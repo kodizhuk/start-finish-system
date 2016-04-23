@@ -39,8 +39,19 @@ CY_ISR(stopHandler)
 {
     Timer_wire_Stop();
     Timer_uart_Stop();
+    butt_stop_ClearInterrupt();
 }
-
+CY_ISR(wstartHandler)
+{
+    Timer_wire_Start();
+    pin_wire_ClearInterrupt();
+}
+CY_ISR(ustartHandler)
+{
+    if(UART_GetChar() == 's') 
+    Timer_uart_Start();
+    Pin_red_Write(~Pin_red_Read());
+}
 int main()
 {   
     char out_buffer[32];
@@ -49,17 +60,23 @@ int main()
     isr_wire_StartEx(wireHandler);
     isr_uart_StartEx(uartHandler); 
     isr_stop_StartEx(stopHandler);
+    isr_wstart_StartEx(wstartHandler);
+    isr_ustart_StartEx(ustartHandler);
     UART_Start();
+    //Timer_uart_Start();
     //LCD_Start();   
     //LCD_Position(0,0);
     //LCD_PrintString("Start-Finish ");
     uint16_t counter;
     for(;;)
     {
+        //if(UART_UartGetChar() == 's') Timer_uart_Start();
         counter = Timer_wire_ReadCounter();
-        sprintf(out_buffer,"%i:%i:%i :%i",wire.hour,wire.min,wire.sec, counter);
+        sprintf(out_buffer,"Wired: %i:%i:%i:%i\n\r",wire.hour,wire.min,wire.sec, counter);
+        UART_PutString(out_buffer);
         counter = Timer_uart_ReadCounter();
-        sprintf(out_buffer,"%i:%i:%i :%i",uart.hour,uart.min,uart.sec, counter);
+        sprintf(out_buffer,"Xbee:  %i:%i:%i:%i\n\n\r",uart.hour,uart.min,uart.sec, counter);
+        UART_PutString(out_buffer);
         CyDelay(100);
     }
 }

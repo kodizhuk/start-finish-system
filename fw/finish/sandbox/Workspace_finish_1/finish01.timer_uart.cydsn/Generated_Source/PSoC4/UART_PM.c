@@ -1,51 +1,95 @@
 /*******************************************************************************
 * File Name: UART_PM.c
-* Version 3.10
+* Version 2.50
 *
 * Description:
-*  This file provides the source code to the Power Management support for
-*  the SCB Component.
+*  This file provides Sleep/WakeUp APIs functionality.
 *
 * Note:
 *
 ********************************************************************************
-* Copyright 2013-2015, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 *******************************************************************************/
 
 #include "UART.h"
-#include "UART_PVT.h"
-
-#if(UART_SCB_MODE_I2C_INC)
-    #include "UART_I2C_PVT.h"
-#endif /* (UART_SCB_MODE_I2C_INC) */
-
-#if(UART_SCB_MODE_EZI2C_INC)
-    #include "UART_EZI2C_PVT.h"
-#endif /* (UART_SCB_MODE_EZI2C_INC) */
-
-#if(UART_SCB_MODE_SPI_INC || UART_SCB_MODE_UART_INC)
-    #include "UART_SPI_UART_PVT.h"
-#endif /* (UART_SCB_MODE_SPI_INC || UART_SCB_MODE_UART_INC) */
 
 
 /***************************************
-*   Backup Structure declaration
+* Local data allocation
 ***************************************/
 
-#if(UART_SCB_MODE_UNCONFIG_CONST_CFG || \
-   (UART_SCB_MODE_I2C_CONST_CFG   && (!UART_I2C_WAKE_ENABLE_CONST))   || \
-   (UART_SCB_MODE_EZI2C_CONST_CFG && (!UART_EZI2C_WAKE_ENABLE_CONST)) || \
-   (UART_SCB_MODE_SPI_CONST_CFG   && (!UART_SPI_WAKE_ENABLE_CONST))   || \
-   (UART_SCB_MODE_UART_CONST_CFG  && (!UART_UART_WAKE_ENABLE_CONST)))
+static UART_BACKUP_STRUCT  UART_backup =
+{
+    /* enableState - disabled */
+    0u,
+};
 
-    UART_BACKUP_STRUCT UART_backup =
-    {
-        0u, /* enableState */
-    };
-#endif
+
+
+/*******************************************************************************
+* Function Name: UART_SaveConfig
+********************************************************************************
+*
+* Summary:
+*  This function saves the component nonretention control register.
+*  Does not save the FIFO which is a set of nonretention registers.
+*  This function is called by the UART_Sleep() function.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  None.
+*
+* Global Variables:
+*  UART_backup - modified when non-retention registers are saved.
+*
+* Reentrant:
+*  No.
+*
+*******************************************************************************/
+void UART_SaveConfig(void)
+{
+    #if(UART_CONTROL_REG_REMOVED == 0u)
+        UART_backup.cr = UART_CONTROL_REG;
+    #endif /* End UART_CONTROL_REG_REMOVED */
+}
+
+
+/*******************************************************************************
+* Function Name: UART_RestoreConfig
+********************************************************************************
+*
+* Summary:
+*  Restores the nonretention control register except FIFO.
+*  Does not restore the FIFO which is a set of nonretention registers.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  None.
+*
+* Global Variables:
+*  UART_backup - used when non-retention registers are restored.
+*
+* Reentrant:
+*  No.
+*
+* Notes:
+*  If this function is called without calling UART_SaveConfig() 
+*  first, the data loaded may be incorrect.
+*
+*******************************************************************************/
+void UART_RestoreConfig(void)
+{
+    #if(UART_CONTROL_REG_REMOVED == 0u)
+        UART_CONTROL_REG = UART_backup.cr;
+    #endif /* End UART_CONTROL_REG_REMOVED */
+}
 
 
 /*******************************************************************************
@@ -53,82 +97,50 @@
 ********************************************************************************
 *
 * Summary:
-*  Prepares the component to enter Deep Sleep.
-*  The "Enable wakeup from Sleep Mode" selection has an influence on
-*  this function implementation.
+*  This is the preferred API to prepare the component for sleep. 
+*  The UART_Sleep() API saves the current component state. Then it
+*  calls the UART_Stop() function and calls 
+*  UART_SaveConfig() to save the hardware configuration.
+*  Call the UART_Sleep() function before calling the CyPmSleep() 
+*  or the CyPmHibernate() function. 
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
+*
+* Global Variables:
+*  UART_backup - modified when non-retention registers are saved.
+*
+* Reentrant:
+*  No.
 *
 *******************************************************************************/
 void UART_Sleep(void)
 {
-#if(UART_SCB_MODE_UNCONFIG_CONST_CFG)
-
-    if(UART_SCB_WAKE_ENABLE_CHECK)
-    {
-        if(UART_SCB_MODE_I2C_RUNTM_CFG)
+    #if(UART_RX_ENABLED || UART_HD_ENABLED)
+        if((UART_RXSTATUS_ACTL_REG  & UART_INT_ENABLE) != 0u)
         {
-            UART_I2CSaveConfig();
+            UART_backup.enableState = 1u;
         }
-        else if(UART_SCB_MODE_EZI2C_RUNTM_CFG)
-        {
-            UART_EzI2CSaveConfig();
-        }
-    #if(!UART_CY_SCBIP_V1)
-        else if(UART_SCB_MODE_SPI_RUNTM_CFG)
-        {
-            UART_SpiSaveConfig();
-        }
-        else if(UART_SCB_MODE_UART_RUNTM_CFG)
-        {
-            UART_UartSaveConfig();
-        }
-    #endif /* (!UART_CY_SCBIP_V1) */
         else
         {
-            /* Unknown mode */
+            UART_backup.enableState = 0u;
         }
-    }
-    else
-    {
-        UART_backup.enableState = (uint8) UART_GET_CTRL_ENABLED;
-
-        if(0u != UART_backup.enableState)
-        {
-            UART_Stop();
-        }
-    }
-
-#else
-
-    #if (UART_SCB_MODE_I2C_CONST_CFG && UART_I2C_WAKE_ENABLE_CONST)
-        UART_I2CSaveConfig();
-
-    #elif (UART_SCB_MODE_EZI2C_CONST_CFG && UART_EZI2C_WAKE_ENABLE_CONST)
-        UART_EzI2CSaveConfig();
-
-    #elif (UART_SCB_MODE_SPI_CONST_CFG && UART_SPI_WAKE_ENABLE_CONST)
-        UART_SpiSaveConfig();
-
-    #elif (UART_SCB_MODE_UART_CONST_CFG && UART_UART_WAKE_ENABLE_CONST)
-        UART_UartSaveConfig();
-
     #else
-
-        UART_backup.enableState = (uint8) UART_GET_CTRL_ENABLED;
-
-        if(0u != UART_backup.enableState)
+        if((UART_TXSTATUS_ACTL_REG  & UART_INT_ENABLE) !=0u)
         {
-            UART_Stop();
+            UART_backup.enableState = 1u;
         }
+        else
+        {
+            UART_backup.enableState = 0u;
+        }
+    #endif /* End UART_RX_ENABLED || UART_HD_ENABLED*/
 
-    #endif /* defined (UART_SCB_MODE_I2C_CONST_CFG) && (UART_I2C_WAKE_ENABLE_CONST) */
-
-#endif /* (UART_SCB_MODE_UNCONFIG_CONST_CFG) */
+    UART_Stop();
+    UART_SaveConfig();
 }
 
 
@@ -137,79 +149,40 @@ void UART_Sleep(void)
 ********************************************************************************
 *
 * Summary:
-*  Prepares the component for the Active mode operation after exiting
-*  Deep Sleep. The "Enable wakeup from Sleep Mode" option has an influence
-*  on this function implementation.
-*  This function should not be called after exiting Sleep.
+*  This is the preferred API to restore the component to the state when 
+*  UART_Sleep() was called. The UART_Wakeup() function
+*  calls the UART_RestoreConfig() function to restore the 
+*  configuration. If the component was enabled before the 
+*  UART_Sleep() function was called, the UART_Wakeup()
+*  function will also re-enable the component.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
+*
+* Global Variables:
+*  UART_backup - used when non-retention registers are restored.
+*
+* Reentrant:
+*  No.
 *
 *******************************************************************************/
 void UART_Wakeup(void)
 {
-#if(UART_SCB_MODE_UNCONFIG_CONST_CFG)
+    UART_RestoreConfig();
+    #if( (UART_RX_ENABLED) || (UART_HD_ENABLED) )
+        UART_ClearRxBuffer();
+    #endif /* End (UART_RX_ENABLED) || (UART_HD_ENABLED) */
+    #if(UART_TX_ENABLED || UART_HD_ENABLED)
+        UART_ClearTxBuffer();
+    #endif /* End UART_TX_ENABLED || UART_HD_ENABLED */
 
-    if(UART_SCB_WAKE_ENABLE_CHECK)
+    if(UART_backup.enableState != 0u)
     {
-        if(UART_SCB_MODE_I2C_RUNTM_CFG)
-        {
-            UART_I2CRestoreConfig();
-        }
-        else if(UART_SCB_MODE_EZI2C_RUNTM_CFG)
-        {
-            UART_EzI2CRestoreConfig();
-        }
-    #if(!UART_CY_SCBIP_V1)
-        else if(UART_SCB_MODE_SPI_RUNTM_CFG)
-        {
-            UART_SpiRestoreConfig();
-        }
-        else if(UART_SCB_MODE_UART_RUNTM_CFG)
-        {
-            UART_UartRestoreConfig();
-        }
-    #endif /* (!UART_CY_SCBIP_V1) */
-        else
-        {
-            /* Unknown mode */
-        }
+        UART_Enable();
     }
-    else
-    {
-        if(0u != UART_backup.enableState)
-        {
-            UART_Enable();
-        }
-    }
-
-#else
-
-    #if (UART_SCB_MODE_I2C_CONST_CFG  && UART_I2C_WAKE_ENABLE_CONST)
-        UART_I2CRestoreConfig();
-
-    #elif (UART_SCB_MODE_EZI2C_CONST_CFG && UART_EZI2C_WAKE_ENABLE_CONST)
-        UART_EzI2CRestoreConfig();
-
-    #elif (UART_SCB_MODE_SPI_CONST_CFG && UART_SPI_WAKE_ENABLE_CONST)
-        UART_SpiRestoreConfig();
-
-    #elif (UART_SCB_MODE_UART_CONST_CFG && UART_UART_WAKE_ENABLE_CONST)
-        UART_UartRestoreConfig();
-
-    #else
-
-        if(0u != UART_backup.enableState)
-        {
-            UART_Enable();
-        }
-
-    #endif /* (UART_I2C_WAKE_ENABLE_CONST) */
-
-#endif /* (UART_SCB_MODE_UNCONFIG_CONST_CFG) */
 }
 
 

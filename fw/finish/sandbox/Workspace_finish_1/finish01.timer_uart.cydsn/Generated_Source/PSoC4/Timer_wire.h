@@ -80,14 +80,14 @@ extern uint8  Timer_wire_initVar;
 /* Signal modes */
 #define Timer_wire_TC_RELOAD_SIGNAL_MODE          (0lu)
 #define Timer_wire_TC_COUNT_SIGNAL_MODE           (3lu)
-#define Timer_wire_TC_START_SIGNAL_MODE           (1lu)
-#define Timer_wire_TC_STOP_SIGNAL_MODE            (0lu)
+#define Timer_wire_TC_START_SIGNAL_MODE           (0lu)
+#define Timer_wire_TC_STOP_SIGNAL_MODE            (1lu)
 #define Timer_wire_TC_CAPTURE_SIGNAL_MODE         (0lu)
 
 /* Signal present */
 #define Timer_wire_TC_RELOAD_SIGNAL_PRESENT       (0lu)
 #define Timer_wire_TC_COUNT_SIGNAL_PRESENT        (0lu)
-#define Timer_wire_TC_START_SIGNAL_PRESENT        (1lu)
+#define Timer_wire_TC_START_SIGNAL_PRESENT        (0lu)
 #define Timer_wire_TC_STOP_SIGNAL_PRESENT         (0lu)
 #define Timer_wire_TC_CAPTURE_SIGNAL_PRESENT      (1lu)
 

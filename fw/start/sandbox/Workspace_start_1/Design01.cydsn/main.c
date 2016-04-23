@@ -4,7 +4,7 @@ CY_ISR(buttHandler)
 {
     Pin_blue_Write(~Pin_blue_Read());
     Pin_wire_Write(1);
-    //CyDelay(1);
+    CyDelay(1);
     Pin_wire_Write(0);
     UART_UartPutString("start\0");
     
