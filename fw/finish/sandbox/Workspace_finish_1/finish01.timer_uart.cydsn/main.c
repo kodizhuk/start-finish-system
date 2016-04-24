@@ -1,6 +1,7 @@
 #include <project.h>
 //#include <stdlib.h>       //include for itoa()
 #include <stdio.h>          //include for sprintf()
+#include <string.h>
 
 struct time{
     uint16_t hour;
@@ -63,14 +64,10 @@ int main()
     isr_wstart_StartEx(wstartHandler);
     isr_ustart_StartEx(ustartHandler);
     UART_Start();
-    //Timer_uart_Start();
-    //LCD_Start();   
-    //LCD_Position(0,0);
-    //LCD_PrintString("Start-Finish ");
+
     uint16_t counter;
     for(;;)
     {
-        //if(UART_UartGetChar() == 's') Timer_uart_Start();
         counter = Timer_wire_ReadCounter();
         sprintf(out_buffer,"Wired: %i:%i:%i:%i\n\r",wire.hour,wire.min,wire.sec, counter);
         UART_PutString(out_buffer);

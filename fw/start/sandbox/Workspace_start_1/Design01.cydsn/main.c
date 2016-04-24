@@ -17,7 +17,9 @@ int main()
     UART_Start();
     int_start_StartEx(buttHandler);
     for(;;)
-    {     
+    {    
+        UART_UartPutChar('f');
+        CyDelay(100);
     }
 }
 
