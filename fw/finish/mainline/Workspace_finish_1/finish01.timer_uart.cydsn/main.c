@@ -65,16 +65,20 @@ int main()
     isr_ustart_StartEx(ustartHandler);
     UART_Start();
 
-    uint16_t counter;
+    uint16_t counter1, counter2;
     for(;;)
     {
-        counter = Timer_wire_ReadCounter();
-        sprintf(out_buffer,"Wired: %i:%i:%i:%i\n\r",wire.hour,wire.min,wire.sec, counter);
+        counter1 = Timer_wire_ReadCounter();
+        sprintf(out_buffer,"Wired: %i:%i:%i:%i\n\r",wire.hour,wire.min,wire.sec, counter1);
         UART_PutString(out_buffer);
-        counter = Timer_uart_ReadCounter();
-        sprintf(out_buffer,"Xbee:  %i:%i:%i:%i\n\n\r",uart.hour,uart.min,uart.sec, counter);
+        counter2 = Timer_uart_ReadCounter();
+        sprintf(out_buffer,"Xbee:  %i:%i:%i:%i\n\r",uart.hour,uart.min,uart.sec, counter2);
         UART_PutString(out_buffer);
-        CyDelay(100);
+        sprintf(out_buffer, "delta = %i\n\n\r", counter1-counter2);
+        UART_PutString(out_buffer);
+        CyDelay(500);
+       
+        
     }
 }
 
