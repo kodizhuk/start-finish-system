@@ -1,6 +1,6 @@
 // ======================================================================
 // finish01.timer_uart.v generated from TopDesign.cysch
-// 04/26/2016 at 08:12
+// 04/28/2016 at 20:28
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -962,7 +962,7 @@ module top ;
 
 
 	cy_isr_v1_0
-		#(.int_type(2'b10))
+		#(.int_type(2'b00))
 		isr_wstart
 		 (.int_signal(Net_120));
 

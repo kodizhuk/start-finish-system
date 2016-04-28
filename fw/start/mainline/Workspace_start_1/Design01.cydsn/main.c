@@ -17,7 +17,10 @@ int main()
     UART_Start();
     int_start_StartEx(buttHandler);
     for(;;)
-    {     
+    {  
+        UART_UartPutChar('f');
+        Pin_green_Write(~Pin_green_Read());
+        CyDelay(500);
     }
 }
 

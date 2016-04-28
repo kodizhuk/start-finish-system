@@ -74,7 +74,7 @@ int main()
         counter2 = Timer_uart_ReadCounter();
         sprintf(out_buffer,"Xbee:  %i:%i:%i:%i\n\r",uart.hour,uart.min,uart.sec, counter2);
         UART_PutString(out_buffer);
-        sprintf(out_buffer, "delta = %i\n\n\r", counter1-counter2);
+        sprintf(out_buffer, "delta = %i\n\n\r", Timer_wire_ReadCounter()-Timer_uart_ReadCounter());
         UART_PutString(out_buffer);
         CyDelay(500);
        
