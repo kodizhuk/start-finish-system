@@ -159,6 +159,7 @@ static void ClockSetup(void)
 
 	/* CYDEV_CLK_SELECT00 Starting address: CYDEV_CLK_SELECT00 */
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_SELECT03), 0x00000010u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_SELECT08), 0x00000020u);
 
 	/* CYDEV_CLK_IMO_CONFIG Starting address: CYDEV_CLK_IMO_CONFIG */
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_IMO_CONFIG), 0x80000000u);
@@ -168,6 +169,9 @@ static void ClockSetup(void)
 
 	/* CYDEV_CLK_DIVIDER_A00 Starting address: CYDEV_CLK_DIVIDER_A00 */
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_DIVIDER_A00), 0x800000CFu);
+
+	/* CYDEV_CLK_DIVIDER_B00 Starting address: CYDEV_CLK_DIVIDER_B00 */
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_DIVIDER_B00), 0x80005DBFu);
 
 	(void)CyIntSetVector(9u, &CySysWdtIsr);
 	CyIntEnable(9u);
@@ -271,8 +275,8 @@ void cyfitter_cfg(void)
 
 	/* Perform second pass device configuration. These items must be configured in specific order after the regular configuration is done. */
 	/* IOPINS0_0 Starting address: CYDEV_PRT0_BASE */
-	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_PRT0_BASE), 0x000000ACu);
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT0_PC), 0x00431D80u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_PRT0_BASE), 0x000000A8u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT0_PC), 0x00431C00u);
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT0_INTCFG), 0x00008000u);
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT0_PC2), 0x00000020u);
 
@@ -281,10 +285,12 @@ void cyfitter_cfg(void)
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT1_PC), 0x00180000u);
 
 	/* IOPINS0_2 Starting address: CYDEV_PRT2_BASE */
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT2_PC), 0x00600000u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT2_PC), 0x007B6DB6u);
 
 	/* IOPINS0_3 Starting address: CYDEV_PRT3_BASE */
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT3_PC), 0x00000D80u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_PRT3_BASE), 0x00000080u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT3_PC), 0x00400D80u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PRT3_INTCFG), 0x00008000u);
 
 
 	/* Setup clocks based on selections from Clock DWR */

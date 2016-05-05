@@ -59,7 +59,7 @@ int main()
     
     CyGlobalIntEnable; /* Enable global interrupts. */
     isr_wire_StartEx(wireHandler);
-    isr_uart_StartEx(uartHandler); 
+    isr_uart_StartEx(uartHandler);
     isr_stop_StartEx(stopHandler);
     isr_wstart_StartEx(wstartHandler);
     isr_ustart_StartEx(ustartHandler);
