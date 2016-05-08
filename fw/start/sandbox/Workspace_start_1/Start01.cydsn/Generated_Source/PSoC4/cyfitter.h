@@ -787,7 +787,7 @@
 #define int_cancel__INTC_SET_PD_REG CYREG_CM0_ISPR
 
 /* Miscellaneous */
-#define CY_PROJECT_NAME "Design01"
+#define CY_PROJECT_NAME "Start01"
 #define CY_VERSION "PSoC Creator  3.3 SP1"
 #define CYDEV_BCLK__HFCLK__HZ 24000000U
 #define CYDEV_BCLK__HFCLK__KHZ 24000U

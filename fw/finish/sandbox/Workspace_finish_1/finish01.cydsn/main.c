@@ -21,13 +21,16 @@ char lastPressed;       //for read number skiers for add or delet
 CY_ISR(finishHandler)
 {
     crossFin = true;
-    skier--;
+    if(skier>0)skier--;
+    led_green_Write(0);
+    CyDelay(100);
+    
     finish_ClearInterrupt();
 }
 
 CY_ISR(timerHandler)
 {
-    if(runStopwach){
+    if(runStopwach){        //if run stopwach, timer start
         if (++first.sec==59){
             first.sec = 0;   
             if (++first.min==59){
@@ -38,14 +41,15 @@ CY_ISR(timerHandler)
         }
         led_green_Write(0);
     }
+    
     timer_ClearInterrupt(timer_INTR_MASK_CC_MATCH); //delet interrupt timer
 }
 
 CY_ISR(xbeeHandler)
 {
-    char c = xbee_GetChar();
+    char input = xbee_GetChar();
     
-    switch (c){
+    switch (input){
         case 's':       //xbee recived start
             first.msec = timer_ReadCounter();
             runStopwach = true;
@@ -53,13 +57,15 @@ CY_ISR(xbeeHandler)
         case 'c':       //xbee resived cancel
             break;
         default:
-            if(lastPressed == 's')skier = c-'0';    //write number skier add distance
-            else if(lastPressed == 'c')             //delet number skier
-                    if(skier)skier--;
+            if(lastPressed == 's')skier = input-'0';    //write number skier add distance
+            else if(lastPressed == 'c'){             //delet number skier
+                    if(skier>0)skier--;
+                }
             break;       
     }
-    lastPressed = c;
+    lastPressed = input;
 }
+
 
 int main()
 {
@@ -67,14 +73,14 @@ int main()
     timer_Start();
     xbee_Start();
 
-    isr_finish_StartEx(finishHandler);
-    isr_timer_StartEx(timerHandler);
-    isr_xbee_StartEx(xbeeHandler);
+    isr_finish_StartEx(finishHandler);      //interrupt for button finish
+    isr_timer_StartEx(timerHandler);        //interrupt for counter timer 
+    isr_xbee_StartEx(xbeeHandler);          //interrupt for input simbol from xbee
     
     for(;;)
     {
-        show_time();
-        led_indication();       
+        show_time();        //output time
+        led_indication();   //blink led (period - 1s)
     }
 }
 
@@ -88,5 +94,5 @@ void show_time()
 
 void led_indication()
 {
-    led_green_Write(1);
+    led_green_Write(1);     //off led(on in interrupt in timer)
 }
