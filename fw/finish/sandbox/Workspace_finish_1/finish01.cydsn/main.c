@@ -1,5 +1,6 @@
 #include <project.h>
 #include <stdio.h>          //include for sprintf()
+#include <string.h>         //include for memset()
 #define MAXSKIER 9          //max skier in distance
 
 void show_time(void);       //out time
@@ -21,9 +22,9 @@ char lastPressed;       //for read number skiers for add or delet
 CY_ISR(finishHandler)
 {
     crossFin = true;
-    if(skier>0)skier--;
-    led_green_Write(0);
-    CyDelay(100);
+    
+    if(skier)skier--;
+    if(!skier) runStopwach = false;     //stop stopwath
     
     finish_ClearInterrupt();
 }
@@ -55,11 +56,12 @@ CY_ISR(xbeeHandler)
             runStopwach = true;
             break;
         case 'c':       //xbee resived cancel
+            if(!skier)runStopwach = false;
             break;
         default:
             if(lastPressed == 's')skier = input-'0';    //write number skier add distance
             else if(lastPressed == 'c'){             //delet number skier
-                    if(skier>0)skier--;
+                    if(skier)skier--;
                 }
             break;       
     }
@@ -81,6 +83,7 @@ int main()
     {
         show_time();        //output time
         led_indication();   //blink led (period - 1s)
+        //if(!runStopwach)memset(&first,0,sizeof(first));     //reset struct first
     }
 }
 
