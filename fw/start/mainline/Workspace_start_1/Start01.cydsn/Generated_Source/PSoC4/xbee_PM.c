@@ -1,51 +1,95 @@
 /*******************************************************************************
 * File Name: xbee_PM.c
-* Version 3.10
+* Version 2.50
 *
 * Description:
-*  This file provides the source code to the Power Management support for
-*  the SCB Component.
+*  This file provides Sleep/WakeUp APIs functionality.
 *
 * Note:
 *
 ********************************************************************************
-* Copyright 2013-2015, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 *******************************************************************************/
 
 #include "xbee.h"
-#include "xbee_PVT.h"
-
-#if(xbee_SCB_MODE_I2C_INC)
-    #include "xbee_I2C_PVT.h"
-#endif /* (xbee_SCB_MODE_I2C_INC) */
-
-#if(xbee_SCB_MODE_EZI2C_INC)
-    #include "xbee_EZI2C_PVT.h"
-#endif /* (xbee_SCB_MODE_EZI2C_INC) */
-
-#if(xbee_SCB_MODE_SPI_INC || xbee_SCB_MODE_UART_INC)
-    #include "xbee_SPI_UART_PVT.h"
-#endif /* (xbee_SCB_MODE_SPI_INC || xbee_SCB_MODE_UART_INC) */
 
 
 /***************************************
-*   Backup Structure declaration
+* Local data allocation
 ***************************************/
 
-#if(xbee_SCB_MODE_UNCONFIG_CONST_CFG || \
-   (xbee_SCB_MODE_I2C_CONST_CFG   && (!xbee_I2C_WAKE_ENABLE_CONST))   || \
-   (xbee_SCB_MODE_EZI2C_CONST_CFG && (!xbee_EZI2C_WAKE_ENABLE_CONST)) || \
-   (xbee_SCB_MODE_SPI_CONST_CFG   && (!xbee_SPI_WAKE_ENABLE_CONST))   || \
-   (xbee_SCB_MODE_UART_CONST_CFG  && (!xbee_UART_WAKE_ENABLE_CONST)))
+static xbee_BACKUP_STRUCT  xbee_backup =
+{
+    /* enableState - disabled */
+    0u,
+};
 
-    xbee_BACKUP_STRUCT xbee_backup =
-    {
-        0u, /* enableState */
-    };
-#endif
+
+
+/*******************************************************************************
+* Function Name: xbee_SaveConfig
+********************************************************************************
+*
+* Summary:
+*  This function saves the component nonretention control register.
+*  Does not save the FIFO which is a set of nonretention registers.
+*  This function is called by the xbee_Sleep() function.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  None.
+*
+* Global Variables:
+*  xbee_backup - modified when non-retention registers are saved.
+*
+* Reentrant:
+*  No.
+*
+*******************************************************************************/
+void xbee_SaveConfig(void)
+{
+    #if(xbee_CONTROL_REG_REMOVED == 0u)
+        xbee_backup.cr = xbee_CONTROL_REG;
+    #endif /* End xbee_CONTROL_REG_REMOVED */
+}
+
+
+/*******************************************************************************
+* Function Name: xbee_RestoreConfig
+********************************************************************************
+*
+* Summary:
+*  Restores the nonretention control register except FIFO.
+*  Does not restore the FIFO which is a set of nonretention registers.
+*
+* Parameters:
+*  None.
+*
+* Return:
+*  None.
+*
+* Global Variables:
+*  xbee_backup - used when non-retention registers are restored.
+*
+* Reentrant:
+*  No.
+*
+* Notes:
+*  If this function is called without calling xbee_SaveConfig() 
+*  first, the data loaded may be incorrect.
+*
+*******************************************************************************/
+void xbee_RestoreConfig(void)
+{
+    #if(xbee_CONTROL_REG_REMOVED == 0u)
+        xbee_CONTROL_REG = xbee_backup.cr;
+    #endif /* End xbee_CONTROL_REG_REMOVED */
+}
 
 
 /*******************************************************************************
@@ -53,82 +97,50 @@
 ********************************************************************************
 *
 * Summary:
-*  Prepares the component to enter Deep Sleep.
-*  The "Enable wakeup from Sleep Mode" selection has an influence on
-*  this function implementation.
+*  This is the preferred API to prepare the component for sleep. 
+*  The xbee_Sleep() API saves the current component state. Then it
+*  calls the xbee_Stop() function and calls 
+*  xbee_SaveConfig() to save the hardware configuration.
+*  Call the xbee_Sleep() function before calling the CyPmSleep() 
+*  or the CyPmHibernate() function. 
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
+*
+* Global Variables:
+*  xbee_backup - modified when non-retention registers are saved.
+*
+* Reentrant:
+*  No.
 *
 *******************************************************************************/
 void xbee_Sleep(void)
 {
-#if(xbee_SCB_MODE_UNCONFIG_CONST_CFG)
-
-    if(xbee_SCB_WAKE_ENABLE_CHECK)
-    {
-        if(xbee_SCB_MODE_I2C_RUNTM_CFG)
+    #if(xbee_RX_ENABLED || xbee_HD_ENABLED)
+        if((xbee_RXSTATUS_ACTL_REG  & xbee_INT_ENABLE) != 0u)
         {
-            xbee_I2CSaveConfig();
+            xbee_backup.enableState = 1u;
         }
-        else if(xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-        {
-            xbee_EzI2CSaveConfig();
-        }
-    #if(!xbee_CY_SCBIP_V1)
-        else if(xbee_SCB_MODE_SPI_RUNTM_CFG)
-        {
-            xbee_SpiSaveConfig();
-        }
-        else if(xbee_SCB_MODE_UART_RUNTM_CFG)
-        {
-            xbee_UartSaveConfig();
-        }
-    #endif /* (!xbee_CY_SCBIP_V1) */
         else
         {
-            /* Unknown mode */
+            xbee_backup.enableState = 0u;
         }
-    }
-    else
-    {
-        xbee_backup.enableState = (uint8) xbee_GET_CTRL_ENABLED;
-
-        if(0u != xbee_backup.enableState)
-        {
-            xbee_Stop();
-        }
-    }
-
-#else
-
-    #if (xbee_SCB_MODE_I2C_CONST_CFG && xbee_I2C_WAKE_ENABLE_CONST)
-        xbee_I2CSaveConfig();
-
-    #elif (xbee_SCB_MODE_EZI2C_CONST_CFG && xbee_EZI2C_WAKE_ENABLE_CONST)
-        xbee_EzI2CSaveConfig();
-
-    #elif (xbee_SCB_MODE_SPI_CONST_CFG && xbee_SPI_WAKE_ENABLE_CONST)
-        xbee_SpiSaveConfig();
-
-    #elif (xbee_SCB_MODE_UART_CONST_CFG && xbee_UART_WAKE_ENABLE_CONST)
-        xbee_UartSaveConfig();
-
     #else
-
-        xbee_backup.enableState = (uint8) xbee_GET_CTRL_ENABLED;
-
-        if(0u != xbee_backup.enableState)
+        if((xbee_TXSTATUS_ACTL_REG  & xbee_INT_ENABLE) !=0u)
         {
-            xbee_Stop();
+            xbee_backup.enableState = 1u;
         }
+        else
+        {
+            xbee_backup.enableState = 0u;
+        }
+    #endif /* End xbee_RX_ENABLED || xbee_HD_ENABLED*/
 
-    #endif /* defined (xbee_SCB_MODE_I2C_CONST_CFG) && (xbee_I2C_WAKE_ENABLE_CONST) */
-
-#endif /* (xbee_SCB_MODE_UNCONFIG_CONST_CFG) */
+    xbee_Stop();
+    xbee_SaveConfig();
 }
 
 
@@ -137,79 +149,40 @@ void xbee_Sleep(void)
 ********************************************************************************
 *
 * Summary:
-*  Prepares the component for the Active mode operation after exiting
-*  Deep Sleep. The "Enable wakeup from Sleep Mode" option has an influence
-*  on this function implementation.
-*  This function should not be called after exiting Sleep.
+*  This is the preferred API to restore the component to the state when 
+*  xbee_Sleep() was called. The xbee_Wakeup() function
+*  calls the xbee_RestoreConfig() function to restore the 
+*  configuration. If the component was enabled before the 
+*  xbee_Sleep() function was called, the xbee_Wakeup()
+*  function will also re-enable the component.
 *
 * Parameters:
-*  None
+*  None.
 *
 * Return:
-*  None
+*  None.
+*
+* Global Variables:
+*  xbee_backup - used when non-retention registers are restored.
+*
+* Reentrant:
+*  No.
 *
 *******************************************************************************/
 void xbee_Wakeup(void)
 {
-#if(xbee_SCB_MODE_UNCONFIG_CONST_CFG)
+    xbee_RestoreConfig();
+    #if( (xbee_RX_ENABLED) || (xbee_HD_ENABLED) )
+        xbee_ClearRxBuffer();
+    #endif /* End (xbee_RX_ENABLED) || (xbee_HD_ENABLED) */
+    #if(xbee_TX_ENABLED || xbee_HD_ENABLED)
+        xbee_ClearTxBuffer();
+    #endif /* End xbee_TX_ENABLED || xbee_HD_ENABLED */
 
-    if(xbee_SCB_WAKE_ENABLE_CHECK)
+    if(xbee_backup.enableState != 0u)
     {
-        if(xbee_SCB_MODE_I2C_RUNTM_CFG)
-        {
-            xbee_I2CRestoreConfig();
-        }
-        else if(xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-        {
-            xbee_EzI2CRestoreConfig();
-        }
-    #if(!xbee_CY_SCBIP_V1)
-        else if(xbee_SCB_MODE_SPI_RUNTM_CFG)
-        {
-            xbee_SpiRestoreConfig();
-        }
-        else if(xbee_SCB_MODE_UART_RUNTM_CFG)
-        {
-            xbee_UartRestoreConfig();
-        }
-    #endif /* (!xbee_CY_SCBIP_V1) */
-        else
-        {
-            /* Unknown mode */
-        }
+        xbee_Enable();
     }
-    else
-    {
-        if(0u != xbee_backup.enableState)
-        {
-            xbee_Enable();
-        }
-    }
-
-#else
-
-    #if (xbee_SCB_MODE_I2C_CONST_CFG  && xbee_I2C_WAKE_ENABLE_CONST)
-        xbee_I2CRestoreConfig();
-
-    #elif (xbee_SCB_MODE_EZI2C_CONST_CFG && xbee_EZI2C_WAKE_ENABLE_CONST)
-        xbee_EzI2CRestoreConfig();
-
-    #elif (xbee_SCB_MODE_SPI_CONST_CFG && xbee_SPI_WAKE_ENABLE_CONST)
-        xbee_SpiRestoreConfig();
-
-    #elif (xbee_SCB_MODE_UART_CONST_CFG && xbee_UART_WAKE_ENABLE_CONST)
-        xbee_UartRestoreConfig();
-
-    #else
-
-        if(0u != xbee_backup.enableState)
-        {
-            xbee_Enable();
-        }
-
-    #endif /* (xbee_I2C_WAKE_ENABLE_CONST) */
-
-#endif /* (xbee_SCB_MODE_UNCONFIG_CONST_CFG) */
 }
 
 
