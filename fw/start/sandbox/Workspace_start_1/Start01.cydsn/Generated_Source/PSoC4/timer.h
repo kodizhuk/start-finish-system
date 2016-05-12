@@ -129,8 +129,8 @@ extern uint8  timer_initVar;
 ***************************************/
 
 /* Timer/Counter Mode */
-#define timer_TC_PERIOD_VALUE                (2000lu)
-#define timer_TC_COMPARE_VALUE               (2000lu)
+#define timer_TC_PERIOD_VALUE                (1000lu)
+#define timer_TC_COMPARE_VALUE               (1000lu)
 #define timer_TC_COMPARE_BUF_VALUE           (65535lu)
 #define timer_TC_COMPARE_SWAP                (0lu)
 

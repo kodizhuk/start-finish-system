@@ -1,32 +1,32 @@
 /*******************************************************************************
 * File Name: xbee_BOOT.c
-* Version 3.10
+* Version 2.50
 *
 * Description:
-*  This file provides the source code of the bootloader communication APIs
-*  for the SCB Component Unconfigured mode.
+*  This file provides the source code of bootloader communication APIs for the
+*  UART component.
 *
 * Note:
 *
 ********************************************************************************
-* Copyright 2013-2015, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 *******************************************************************************/
 
-#include "xbee_BOOT.h"
+#include "xbee.h"
 
-#if defined(CYDEV_BOOTLOADER_IO_COMP) && (xbee_BTLDR_COMM_ENABLED) && \
-                                (xbee_SCB_MODE_UNCONFIG_CONST_CFG)
+#if defined(CYDEV_BOOTLOADER_IO_COMP) && (0u != ((CYDEV_BOOTLOADER_IO_COMP == CyBtldr_xbee) || \
+                                          (CYDEV_BOOTLOADER_IO_COMP == CyBtldr_Custom_Interface)))
+
 
 /*******************************************************************************
 * Function Name: xbee_CyBtldrCommStart
 ********************************************************************************
 *
 * Summary:
-*  Calls the CyBtldrCommStart function of the bootloader communication
-*  component for the selected mode.
+*  Starts the UART communication component.
 *
 * Parameters:
 *  None
@@ -34,31 +34,16 @@
 * Return:
 *  None
 *
+* Side Effects:
+*  This component automatically enables global interrupt.
+*
 *******************************************************************************/
-void xbee_CyBtldrCommStart(void)
+void xbee_CyBtldrCommStart(void) CYSMALL 
 {
-    if (xbee_SCB_MODE_I2C_RUNTM_CFG)
-    {
-        xbee_I2CCyBtldrCommStart();
-    }
-    else if (xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-    {
-        xbee_EzI2CCyBtldrCommStart();
-    }
-#if (!xbee_CY_SCBIP_V1)
-    else if (xbee_SCB_MODE_SPI_RUNTM_CFG)
-    {
-        xbee_SpiCyBtldrCommStart();
-    }
-    else if (xbee_SCB_MODE_UART_RUNTM_CFG)
-    {
-        xbee_UartCyBtldrCommStart();
-    }
-#endif /* (!xbee_CY_SCBIP_V1) */
-    else
-    {
-        /* Unknown mode: do nothing */
-    }
+    /* Start UART component and clear the Tx,Rx buffers */
+    xbee_Start();
+    xbee_ClearRxBuffer();
+    xbee_ClearTxBuffer();
 }
 
 
@@ -67,8 +52,7 @@ void xbee_CyBtldrCommStart(void)
 ********************************************************************************
 *
 * Summary:
-*  Calls the CyBtldrCommStop function of the bootloader communication
-*  component for the selected mode.
+*  Disables the communication component and disables the interrupt.
 *
 * Parameters:
 *  None
@@ -77,30 +61,10 @@ void xbee_CyBtldrCommStart(void)
 *  None
 *
 *******************************************************************************/
-void xbee_CyBtldrCommStop(void)
+void xbee_CyBtldrCommStop(void) CYSMALL 
 {
-    if (xbee_SCB_MODE_I2C_RUNTM_CFG)
-    {
-        xbee_I2CCyBtldrCommStop();
-    }
-    else if (xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-    {
-        xbee_EzI2CCyBtldrCommStop();
-    }
-#if (!xbee_CY_SCBIP_V1)
-    else if (xbee_SCB_MODE_SPI_RUNTM_CFG)
-    {
-        xbee_SpiCyBtldrCommStop();
-    }
-    else if (xbee_SCB_MODE_UART_RUNTM_CFG)
-    {
-        xbee_UartCyBtldrCommStop();
-    }
-#endif /* (!xbee_CY_SCBIP_V1) */
-    else
-    {
-        /* Unknown mode: do nothing */
-    }
+    /* Stop UART component */
+    xbee_Stop();
 }
 
 
@@ -109,8 +73,7 @@ void xbee_CyBtldrCommStop(void)
 ********************************************************************************
 *
 * Summary:
-*  Calls the CyBtldrCommReset function of the bootloader communication
-*  component for the selected mode.
+*  Resets the receive and transmit communication Buffers.
 *
 * Parameters:
 *  None
@@ -119,83 +82,11 @@ void xbee_CyBtldrCommStop(void)
 *  None
 *
 *******************************************************************************/
-void xbee_CyBtldrCommReset(void)
+void xbee_CyBtldrCommReset(void) CYSMALL 
 {
-    if(xbee_SCB_MODE_I2C_RUNTM_CFG)
-    {
-        xbee_I2CCyBtldrCommReset();
-    }
-    else if(xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-    {
-        xbee_EzI2CCyBtldrCommReset();
-    }
-#if (!xbee_CY_SCBIP_V1)
-    else if(xbee_SCB_MODE_SPI_RUNTM_CFG)
-    {
-        xbee_SpiCyBtldrCommReset();
-    }
-    else if(xbee_SCB_MODE_UART_RUNTM_CFG)
-    {
-        xbee_UartCyBtldrCommReset();
-    }
-#endif /* (!xbee_CY_SCBIP_V1) */
-    else
-    {
-        /* Unknown mode: do nothing */
-    }
-}
-
-
-/*******************************************************************************
-* Function Name: xbee_CyBtldrCommRead
-********************************************************************************
-*
-* Summary:
-*  Calls the CyBtldrCommRead function of the bootloader communication
-*  component for the selected mode.
-*
-* Parameters:
-*  pData:    Pointer to storage for the block of data to be read from the
-*            bootloader host
-*  size:     Number of bytes to be read.
-*  count:    Pointer to the variable to write the number of bytes actually
-*            read.
-*  timeOut:  Number of units in 10 ms to wait before returning because of a
-*            timeout.
-*
-* Return:
-*  Returns CYRET_SUCCESS if no problem was encountered or returns the value
-*  that best describes the problem.
-*
-*******************************************************************************/
-cystatus xbee_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uint8 timeOut)
-{
-    cystatus status;
-
-    if(xbee_SCB_MODE_I2C_RUNTM_CFG)
-    {
-        status = xbee_I2CCyBtldrCommRead(pData, size, count, timeOut);
-    }
-    else if(xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-    {
-        status = xbee_EzI2CCyBtldrCommRead(pData, size, count, timeOut);
-    }
-#if (!xbee_CY_SCBIP_V1)
-    else if(xbee_SCB_MODE_SPI_RUNTM_CFG)
-    {
-        status = xbee_SpiCyBtldrCommRead(pData, size, count, timeOut);
-    }
-    else if(xbee_SCB_MODE_UART_RUNTM_CFG)
-    {
-        status = xbee_UartCyBtldrCommRead(pData, size, count, timeOut);
-    }
-#endif /* (!xbee_CY_SCBIP_V1) */
-    else
-    {
-        status = CYRET_INVALID_STATE; /* Unknown mode: return invalid status */
-    }
-
-    return(status);
+    /* Clear RX and TX buffers */
+    xbee_ClearRxBuffer();
+    xbee_ClearTxBuffer();
 }
 
 
@@ -204,53 +95,163 @@ cystatus xbee_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uint8 
 ********************************************************************************
 *
 * Summary:
-*  Calls the CyBtldrCommWrite  function of the bootloader communication
-*  component for the selected mode.
+*  Allows the caller to write data to the boot loader host. This function uses
+* a blocking write function for writing data using UART communication component.
 *
 * Parameters:
-*  pData:    Pointer to the block of data to be written to the bootloader host.
-*  size:     Number of bytes to be written.
-*  count:    Pointer to the variable to write the number of bytes actually
-*            written.
-*  timeOut:  Number of units in 10 ms to wait before returning because of a
-*            timeout.
+*  pData:    A pointer to the block of data to send to the device
+*  size:     The number of bytes to write.
+*  count:    Pointer to an unsigned short variable to write the number of
+*             bytes actually written.
+*  timeOut:  Number of units to wait before returning because of a timeout.
 *
 * Return:
-*  Returns CYRET_SUCCESS if no problem was encountered or returns the value
-*  that best describes the problem.
+*   cystatus: This function will return CYRET_SUCCESS if data is sent
+*             successfully.
+*
+* Side Effects:
+*  This function should be called after command was received .
 *
 *******************************************************************************/
-cystatus xbee_CyBtldrCommWrite(const uint8 pData[], uint16 size, uint16 * count, uint8 timeOut)
+cystatus xbee_CyBtldrCommWrite(const uint8 pData[], uint16 size, uint16 * count, uint8 timeOut) CYSMALL
+         
 {
-    cystatus status;
+    uint16 bufIndex = 0u;
 
-    if(xbee_SCB_MODE_I2C_RUNTM_CFG)
+    if(0u != timeOut)
     {
-        status = xbee_I2CCyBtldrCommWrite(pData, size, count, timeOut);
-    }
-    else if(xbee_SCB_MODE_EZI2C_RUNTM_CFG)
-    {
-        status = xbee_EzI2CCyBtldrCommWrite(pData, size, count, timeOut);
-    }
-#if (!xbee_CY_SCBIP_V1)
-    else if(xbee_SCB_MODE_SPI_RUNTM_CFG)
-    {
-        status = xbee_SpiCyBtldrCommWrite(pData, size, count, timeOut);
-    }
-    else if(xbee_SCB_MODE_UART_RUNTM_CFG)
-    {
-        status = xbee_UartCyBtldrCommWrite(pData, size, count, timeOut);
-    }
-#endif /* (!xbee_CY_SCBIP_V1) */
-    else
-    {
-        status = CYRET_INVALID_STATE; /* Unknown mode: return invalid status */
+        /* Suppress compiler warning */
     }
 
-    return(status);
+    /* Clear receive buffers */
+    xbee_ClearRxBuffer();
+
+    /* Write TX data using blocking function */
+    while(bufIndex < size)
+    {
+        xbee_PutChar(pData[bufIndex]);
+        bufIndex++;
+    }
+
+    /* Return success code */
+    *count = size;
+
+    return (CYRET_SUCCESS);
 }
 
-#endif /* defined(CYDEV_BOOTLOADER_IO_COMP) && (xbee_BTLDR_COMM_MODE_ENABLED) */
+
+/*******************************************************************************
+* Function Name: xbee_CyBtldrCommRead
+********************************************************************************
+*
+* Summary:
+*  Receives the command.
+*
+* Parameters:
+*  pData:    A pointer to the area to store the block of data received
+*             from the device.
+*  size:     Maximum size of the read buffer
+*  count:    Pointer to an unsigned short variable to write the number
+*             of bytes actually read.
+*  timeOut:  Number of units to wait before returning because of a timeOut.
+*            Time out is measured in 10s of ms.
+*
+* Return:
+*  cystatus: This function will return CYRET_SUCCESS if at least one byte is
+*            received successfully within the time out interval. If no data is
+*            received  this function will return CYRET_EMPTY.
+*
+*  BYTE2BYTE_TIME_OUT is used for detecting time out marking end of block data
+*  from host. This has to be set to a value which is greater than the expected
+*  maximum delay between two bytes during a block/packet transmission from the
+*  host. You have to account for the delay in hardware converters while
+*  calculating this value, if you are using any USB-UART bridges.
+*******************************************************************************/
+cystatus xbee_CyBtldrCommRead(uint8 pData[], uint16 size, uint16 * count, uint8 timeOut) CYSMALL
+         
+{
+    uint16 iCntr;
+    uint16 dataIndexCntr;
+    uint16 tempCount;
+    uint16 oldDataCount;
+
+    cystatus status = CYRET_EMPTY;
+
+    /* Check whether data is received within the time out period.
+    *  Time out period is in units of 10ms.
+    *  If at least one byte is received within the time out interval, wait for more data */
+    for (iCntr = 0u; iCntr < ((uint16)10u * timeOut); iCntr++)
+    {
+        /* If at least one byte is received within the timeout interval
+        *  enter the next loop waiting for more data reception
+        */
+        if(0u != xbee_GetRxBufferSize())
+        {
+            /* Wait for more data until 25ms byte to byte time out interval.
+            * If no data is received during the last 25 ms(BYTE2BYTE_TIME_OUT)
+            * then it is considered as end of transmitted data block(packet)
+            * from the host and the program execution will break from the
+            * data awaiting loop with status=CYRET_SUCCESS
+            */
+            do
+            {
+                oldDataCount = xbee_GetRxBufferSize();
+                CyDelay(xbee_BYTE2BYTE_TIME_OUT);
+            }
+            while(xbee_GetRxBufferSize() > oldDataCount);
+
+            status = CYRET_SUCCESS;
+            break;
+        }
+        /* If the data is not received, give a delay of 
+        *  xbee_BL_CHK_DELAY_MS and check again until the timeOut specified.
+        */
+        else
+        {
+            CyDelay(xbee_BL_CHK_DELAY_MS);
+        }
+    }
+
+    /* Initialize the data read indexes and Count value */
+    *count = 0u;
+    dataIndexCntr = 0u;
+
+    /* If GetRxBufferSize()>0 , move the received data to the pData buffer */
+    while(xbee_GetRxBufferSize() > 0u)
+    {
+        tempCount = xbee_GetRxBufferSize();
+        *count  =(*count) + tempCount;
+
+        /* Check if buffer overflow will occur before moving the data */
+        if(*count < size)
+        {
+            for (iCntr = 0u; iCntr < tempCount; iCntr++)
+            {
+                /* Read the data and move it to the pData buffer */
+                pData[dataIndexCntr] = xbee_ReadRxData();
+                dataIndexCntr++;
+            }
+
+            /* Check if the last received byte is end of packet defined by bootloader
+            *  If not wait for additional xbee_WAIT_EOP_DELAY ms.
+            */
+            if(pData[dataIndexCntr - 1u] != xbee_PACKET_EOP)
+            {
+                CyDelay(xbee_WAIT_EOP_DELAY);
+            }
+        }
+        /* If there is no space to move data, break from the loop */
+        else
+        {
+            *count = (*count) - tempCount;
+            break;
+        }
+    }
+
+    return (status);
+}
+
+#endif /* end CYDEV_BOOTLOADER_IO_COMP */
 
 
 /* [] END OF FILE */
