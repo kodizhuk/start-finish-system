@@ -1,6 +1,6 @@
 // ======================================================================
 // Start01.v generated from TopDesign.cysch
-// 05/12/2016 at 20:08
+// 05/12/2016 at 21:24
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -398,12 +398,10 @@ module top ;
           wire  Net_138;
           wire  Net_137;
           wire  Net_136;
-          wire  Net_135;
           wire  Net_134;
           wire  Net_132;
           wire  Net_131;
           wire  Net_130;
-          wire  Net_117;
           wire  Net_129;
           wire  Net_83;
           wire  Net_80;
@@ -417,7 +415,9 @@ module top ;
           wire  Net_104;
           wire  Net_103;
           wire  Net_102;
+          wire  Net_135;
           wire  Net_133;
+          wire  Net_117;
           wire  Net_122;
           wire  Net_107;
     electrical  Net_24;

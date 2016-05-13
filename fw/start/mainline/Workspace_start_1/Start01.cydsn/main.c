@@ -54,6 +54,7 @@ CY_ISR(isrHandler)      //interrupt for blink blue led
 {
     led_blue_Write(0);
     CyDelay(5);
+    led_blue_Write(1);
     timer_ClearInterrupt(timer_INTR_MASK_CC_MATCH);
 }
 
@@ -74,6 +75,7 @@ int main(void)
     {  
         led_indication();
         display_indication();
+        CyDelay(100);
     }
 }
 
@@ -109,4 +111,8 @@ void display_indication()
     sprintf(display_buff,"%s  %d ",finish_time, skier);
     display_Position(1,0);
     display_PrintString(display_buff);
+    if(skier){
+        xbee_PutChar('r');          //read data from the finish
+        xbee_PutChar(skier+'0');
+    }
 }
