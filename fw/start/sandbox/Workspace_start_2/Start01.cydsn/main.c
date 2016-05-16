@@ -15,16 +15,25 @@
 */
 
 void led_indication(void);
-void display_indication(int numSkier);
+void display_indication(int numSkier, int numSkiers);
+void outToDisplay(int numSkier, int position);
+void writeAllTime(char c);
   
 typedef enum {false, true} bool;
+struct time{
+    uint16_t hour;
+    uint16_t min;
+    uint16_t sec;
+    uint16_t msec;
+};
+/*data for each skier*/
+struct time tSkier[9] = {0,0,0,0};       
 
 bool startPress = false;
 bool cancelPress = false;    //flags for press button
 
 uint32_t skier = 0;      //number sportsmen last started
 
-char finish_time[13] = "00.00.00.000";   //hh.mm.ss.uuu\0
 char string_buff[16];   //buffer for output string
 
 /*interrupt for start button*/
@@ -49,18 +58,17 @@ CY_ISR(startHandler)
     }
     start_ClearInterrupt(); 
 }
+
 /*intettupt for incoming data*/
-CY_ISR(dataHandler)     //incoming data
+CY_ISR(dataHandler)    
 {
-    char c;
-    static int i = 0;
+    uint8_t c;
     
-    c = xbee_GetChar();
-    if((c>='0' && c<='9') || c==':') finish_time[i++] = c;        
-    if(c == '\n')i=0;
+    writeAllTime(c);       //record time skiers 
 }
 
-CY_ISR(cancelHandler)       //interrupt for cancel button
+/*interrupt for cancel button*/
+CY_ISR(cancelHandler)       
 {
     if(skier){
         /*put simbol cancel and number for skier*/
@@ -74,6 +82,7 @@ CY_ISR(cancelHandler)       //interrupt for cancel button
 /*interrupt for blink led*/
 CY_ISR(blincHandler)      
 {
+    /*if skier!=0 start blinc LED*/
     if(skier){
         led_blue_Write(0);
         CyDelay(1);
@@ -85,11 +94,9 @@ CY_ISR(blincHandler)
 
 int main(void)
 {
-    int_blinc_Disable();
     CyGlobalIntEnable;    
     xbee_Start();                       //start uart for xbee
     display_Start();                    //start lcd display
-    int_blinc_Enable();
         
     int_blinc_StartEx(blincHandler);    //interrupt for blink led
     int_inputData_StartEx(dataHandler); //interrupt for RX data input
@@ -100,8 +107,8 @@ int main(void)
     while(1)
     {  
         led_indication();
-        display_indication(1);
-        CyDelay(100);
+        display_indication(1,2);
+        CyDelay(1000);
     }
 }
 
@@ -126,16 +133,29 @@ void led_indication()
     led_blue_Write(1);   
 }
 
-void display_indication(int numSkier)
+/*output to display a specified time skier*/
+void display_indication(int numSkier, int numSkiers)
 {      
-    sprintf(string_buff,"    time     num");
-    display_Position(0, 0);
-    display_PrintString(string_buff);
-    sprintf(string_buff,"%s  %i ",finish_time, skier);
-    display_Position(1,0);
-    display_PrintString(string_buff);
-    if(skier){
-        xbee_PutChar(COMMAND_READ);          //read data from the finish
-        xbee_PutChar(skier+'0');
+    int i;
+    int position=0;
+    
+    for(i=0; i < numSkiers; i++,position++)
+    {
+        if(position > 1)position = 0;
+        outToDisplay(numSkier+i, position);
     }
+}
+
+/*function output to display*/
+void outToDisplay(int num, int position)
+{
+    display_Position(position,0);
+    sprintf(string_buff,"%i - %d:%d:%d:%d",
+        num,tSkier[num].hour, tSkier[num].min,tSkier[num].sec,tSkier[num].msec);
+    display_PrintString(string_buff);
+}
+
+void writeAllTime(char c)
+{
+        //if((c>='0' && c<='9') || c==':') tSkier[i++].min = c;
 }
