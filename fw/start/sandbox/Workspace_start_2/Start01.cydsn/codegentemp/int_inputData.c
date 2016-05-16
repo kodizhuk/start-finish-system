@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: isr.c  
+* File Name: int_inputData.c  
 * Version 1.70
 *
 *  Description:
@@ -18,15 +18,15 @@
 
 #include <cydevice_trm.h>
 #include <CyLib.h>
-#include <isr.h>
+#include <int_inputData.h>
 #include "cyapicallbacks.h"
 
-#if !defined(isr__REMOVED) /* Check for removal by optimization */
+#if !defined(int_inputData__REMOVED) /* Check for removal by optimization */
 
 /*******************************************************************************
 *  Place your includes, defines and code here 
 ********************************************************************************/
-/* `#START isr_intc` */
+/* `#START int_inputData_intc` */
 
 /* `#END` */
 
@@ -37,7 +37,7 @@ CY_ISR_PROTO(IntDefaultHandler);
 
 
 /*******************************************************************************
-* Function Name: isr_Start
+* Function Name: int_inputData_Start
 ********************************************************************************
 *
 * Summary:
@@ -53,24 +53,24 @@ CY_ISR_PROTO(IntDefaultHandler);
 *   None
 *
 *******************************************************************************/
-void isr_Start(void)
+void int_inputData_Start(void)
 {
     /* For all we know the interrupt is active. */
-    isr_Disable();
+    int_inputData_Disable();
 
-    /* Set the ISR to point to the isr Interrupt. */
-    isr_SetVector(&isr_Interrupt);
+    /* Set the ISR to point to the int_inputData Interrupt. */
+    int_inputData_SetVector(&int_inputData_Interrupt);
 
     /* Set the priority. */
-    isr_SetPriority((uint8)isr_INTC_PRIOR_NUMBER);
+    int_inputData_SetPriority((uint8)int_inputData_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    isr_Enable();
+    int_inputData_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: isr_StartEx
+* Function Name: int_inputData_StartEx
 ********************************************************************************
 *
 * Summary:
@@ -96,24 +96,24 @@ void isr_Start(void)
 *   None
 *
 *******************************************************************************/
-void isr_StartEx(cyisraddress address)
+void int_inputData_StartEx(cyisraddress address)
 {
     /* For all we know the interrupt is active. */
-    isr_Disable();
+    int_inputData_Disable();
 
-    /* Set the ISR to point to the isr Interrupt. */
-    isr_SetVector(address);
+    /* Set the ISR to point to the int_inputData Interrupt. */
+    int_inputData_SetVector(address);
 
     /* Set the priority. */
-    isr_SetPriority((uint8)isr_INTC_PRIOR_NUMBER);
+    int_inputData_SetPriority((uint8)int_inputData_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    isr_Enable();
+    int_inputData_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: isr_Stop
+* Function Name: int_inputData_Stop
 ********************************************************************************
 *
 * Summary:
@@ -126,22 +126,22 @@ void isr_StartEx(cyisraddress address)
 *   None
 *
 *******************************************************************************/
-void isr_Stop(void)
+void int_inputData_Stop(void)
 {
     /* Disable this interrupt. */
-    isr_Disable();
+    int_inputData_Disable();
 
     /* Set the ISR to point to the passive one. */
-    isr_SetVector(&IntDefaultHandler);
+    int_inputData_SetVector(&IntDefaultHandler);
 }
 
 
 /*******************************************************************************
-* Function Name: isr_Interrupt
+* Function Name: int_inputData_Interrupt
 ********************************************************************************
 *
 * Summary:
-*   The default Interrupt Service Routine for isr.
+*   The default Interrupt Service Routine for int_inputData.
 *
 *   Add custom code between the START and END comments to keep the next version
 *   of this file from over-writing your code.
@@ -156,27 +156,27 @@ void isr_Stop(void)
 *   None
 *
 *******************************************************************************/
-CY_ISR(isr_Interrupt)
+CY_ISR(int_inputData_Interrupt)
 {
-    #ifdef isr_INTERRUPT_INTERRUPT_CALLBACK
-        isr_Interrupt_InterruptCallback();
-    #endif /* isr_INTERRUPT_INTERRUPT_CALLBACK */ 
+    #ifdef int_inputData_INTERRUPT_INTERRUPT_CALLBACK
+        int_inputData_Interrupt_InterruptCallback();
+    #endif /* int_inputData_INTERRUPT_INTERRUPT_CALLBACK */ 
 
     /*  Place your Interrupt code here. */
-    /* `#START isr_Interrupt` */
+    /* `#START int_inputData_Interrupt` */
 
     /* `#END` */
 }
 
 
 /*******************************************************************************
-* Function Name: isr_SetVector
+* Function Name: int_inputData_SetVector
 ********************************************************************************
 *
 * Summary:
-*   Change the ISR vector for the Interrupt. Note calling isr_Start
+*   Change the ISR vector for the Interrupt. Note calling int_inputData_Start
 *   will override any effect this method would have had. To set the vector 
-*   before the component has been started use isr_StartEx instead.
+*   before the component has been started use int_inputData_StartEx instead.
 * 
 *   When defining ISR functions, the CY_ISR and CY_ISR_PROTO macros should be 
 *   used to provide consistent definition across compilers:
@@ -196,14 +196,14 @@ CY_ISR(isr_Interrupt)
 *   None
 *
 *******************************************************************************/
-void isr_SetVector(cyisraddress address)
+void int_inputData_SetVector(cyisraddress address)
 {
-    CyRamVectors[CYINT_IRQ_BASE + isr__INTC_NUMBER] = address;
+    CyRamVectors[CYINT_IRQ_BASE + int_inputData__INTC_NUMBER] = address;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_GetVector
+* Function Name: int_inputData_GetVector
 ********************************************************************************
 *
 * Summary:
@@ -216,22 +216,22 @@ void isr_SetVector(cyisraddress address)
 *   Address of the ISR in the interrupt vector table.
 *
 *******************************************************************************/
-cyisraddress isr_GetVector(void)
+cyisraddress int_inputData_GetVector(void)
 {
-    return CyRamVectors[CYINT_IRQ_BASE + isr__INTC_NUMBER];
+    return CyRamVectors[CYINT_IRQ_BASE + int_inputData__INTC_NUMBER];
 }
 
 
 /*******************************************************************************
-* Function Name: isr_SetPriority
+* Function Name: int_inputData_SetPriority
 ********************************************************************************
 *
 * Summary:
 *   Sets the Priority of the Interrupt. 
 *
-*   Note calling isr_Start or isr_StartEx will 
+*   Note calling int_inputData_Start or int_inputData_StartEx will 
 *   override any effect this API would have had. This API should only be called
-*   after isr_Start or isr_StartEx has been called. 
+*   after int_inputData_Start or int_inputData_StartEx has been called. 
 *   To set the initial priority for the component, use the Design-Wide Resources
 *   Interrupt Editor.
 *
@@ -246,20 +246,20 @@ cyisraddress isr_GetVector(void)
 *   None
 *
 *******************************************************************************/
-void isr_SetPriority(uint8 priority)
+void int_inputData_SetPriority(uint8 priority)
 {
 	uint8 interruptState;
-    uint32 priorityOffset = ((isr__INTC_NUMBER % 4u) * 8u) + 6u;
+    uint32 priorityOffset = ((int_inputData__INTC_NUMBER % 4u) * 8u) + 6u;
     
 	interruptState = CyEnterCriticalSection();
-    *isr_INTC_PRIOR = (*isr_INTC_PRIOR & (uint32)(~isr__INTC_PRIOR_MASK)) |
+    *int_inputData_INTC_PRIOR = (*int_inputData_INTC_PRIOR & (uint32)(~int_inputData__INTC_PRIOR_MASK)) |
                                     ((uint32)priority << priorityOffset);
 	CyExitCriticalSection(interruptState);
 }
 
 
 /*******************************************************************************
-* Function Name: isr_GetPriority
+* Function Name: int_inputData_GetPriority
 ********************************************************************************
 *
 * Summary:
@@ -274,19 +274,19 @@ void isr_SetPriority(uint8 priority)
 *    PSoC 4: Priority is from 0 to 3.
 *
 *******************************************************************************/
-uint8 isr_GetPriority(void)
+uint8 int_inputData_GetPriority(void)
 {
     uint32 priority;
-	uint32 priorityOffset = ((isr__INTC_NUMBER % 4u) * 8u) + 6u;
+	uint32 priorityOffset = ((int_inputData__INTC_NUMBER % 4u) * 8u) + 6u;
 
-    priority = (*isr_INTC_PRIOR & isr__INTC_PRIOR_MASK) >> priorityOffset;
+    priority = (*int_inputData_INTC_PRIOR & int_inputData__INTC_PRIOR_MASK) >> priorityOffset;
 
     return (uint8)priority;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_Enable
+* Function Name: int_inputData_Enable
 ********************************************************************************
 *
 * Summary:
@@ -301,15 +301,15 @@ uint8 isr_GetPriority(void)
 *   None
 *
 *******************************************************************************/
-void isr_Enable(void)
+void int_inputData_Enable(void)
 {
     /* Enable the general interrupt. */
-    *isr_INTC_SET_EN = isr__INTC_MASK;
+    *int_inputData_INTC_SET_EN = int_inputData__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_GetState
+* Function Name: int_inputData_GetState
 ********************************************************************************
 *
 * Summary:
@@ -322,15 +322,15 @@ void isr_Enable(void)
 *   1 if enabled, 0 if disabled.
 *
 *******************************************************************************/
-uint8 isr_GetState(void)
+uint8 int_inputData_GetState(void)
 {
     /* Get the state of the general interrupt. */
-    return ((*isr_INTC_SET_EN & (uint32)isr__INTC_MASK) != 0u) ? 1u:0u;
+    return ((*int_inputData_INTC_SET_EN & (uint32)int_inputData__INTC_MASK) != 0u) ? 1u:0u;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_Disable
+* Function Name: int_inputData_Disable
 ********************************************************************************
 *
 * Summary:
@@ -343,15 +343,15 @@ uint8 isr_GetState(void)
 *   None
 *
 *******************************************************************************/
-void isr_Disable(void)
+void int_inputData_Disable(void)
 {
     /* Disable the general interrupt. */
-    *isr_INTC_CLR_EN = isr__INTC_MASK;
+    *int_inputData_INTC_CLR_EN = int_inputData__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_SetPending
+* Function Name: int_inputData_SetPending
 ********************************************************************************
 *
 * Summary:
@@ -370,14 +370,14 @@ void isr_Disable(void)
 *   interrupts).
 *
 *******************************************************************************/
-void isr_SetPending(void)
+void int_inputData_SetPending(void)
 {
-    *isr_INTC_SET_PD = isr__INTC_MASK;
+    *int_inputData_INTC_SET_PD = int_inputData__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: isr_ClearPending
+* Function Name: int_inputData_ClearPending
 ********************************************************************************
 *
 * Summary:
@@ -395,9 +395,9 @@ void isr_SetPending(void)
 *   None
 *
 *******************************************************************************/
-void isr_ClearPending(void)
+void int_inputData_ClearPending(void)
 {
-    *isr_INTC_CLR_PD = isr__INTC_MASK;
+    *int_inputData_INTC_CLR_PD = int_inputData__INTC_MASK;
 }
 
 #endif /* End check for removal by optimization */

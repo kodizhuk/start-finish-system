@@ -2,28 +2,6 @@
 .set INCLUDED_CYFITTERGNU_INC, 1
 .include "cydevicegnu_trm.inc"
 
-/* isr */
-.set isr__INTC_CLR_EN_REG, CYREG_CM0_ICER
-.set isr__INTC_CLR_PD_REG, CYREG_CM0_ICPR
-.set isr__INTC_MASK, 0x200
-.set isr__INTC_NUMBER, 9
-.set isr__INTC_PRIOR_MASK, 0xC000
-.set isr__INTC_PRIOR_NUM, 3
-.set isr__INTC_PRIOR_REG, CYREG_CM0_IPR2
-.set isr__INTC_SET_EN_REG, CYREG_CM0_ISER
-.set isr__INTC_SET_PD_REG, CYREG_CM0_ISPR
-
-/* isr_inputData */
-.set isr_inputData__INTC_CLR_EN_REG, CYREG_CM0_ICER
-.set isr_inputData__INTC_CLR_PD_REG, CYREG_CM0_ICPR
-.set isr_inputData__INTC_MASK, 0x02
-.set isr_inputData__INTC_NUMBER, 1
-.set isr_inputData__INTC_PRIOR_MASK, 0xC000
-.set isr_inputData__INTC_PRIOR_NUM, 3
-.set isr_inputData__INTC_PRIOR_REG, CYREG_CM0_IPR0
-.set isr_inputData__INTC_SET_EN_REG, CYREG_CM0_ISER
-.set isr_inputData__INTC_SET_PD_REG, CYREG_CM0_ISPR
-
 /* Rx_1 */
 .set Rx_1__0__DM__MASK, 0x7000
 .set Rx_1__0__DM__SHIFT, 12
@@ -762,13 +740,24 @@
 .set led_blue__PS, CYREG_PRT0_PS
 .set led_blue__SHIFT, 3
 
+/* int_blinc */
+.set int_blinc__INTC_CLR_EN_REG, CYREG_CM0_ICER
+.set int_blinc__INTC_CLR_PD_REG, CYREG_CM0_ICPR
+.set int_blinc__INTC_MASK, 0x200
+.set int_blinc__INTC_NUMBER, 9
+.set int_blinc__INTC_PRIOR_MASK, 0xC000
+.set int_blinc__INTC_PRIOR_NUM, 3
+.set int_blinc__INTC_PRIOR_REG, CYREG_CM0_IPR2
+.set int_blinc__INTC_SET_EN_REG, CYREG_CM0_ISER
+.set int_blinc__INTC_SET_PD_REG, CYREG_CM0_ISPR
+
 /* int_start */
 .set int_start__INTC_CLR_EN_REG, CYREG_CM0_ICER
 .set int_start__INTC_CLR_PD_REG, CYREG_CM0_ICPR
 .set int_start__INTC_MASK, 0x01
 .set int_start__INTC_NUMBER, 0
 .set int_start__INTC_PRIOR_MASK, 0xC0
-.set int_start__INTC_PRIOR_NUM, 3
+.set int_start__INTC_PRIOR_NUM, 0
 .set int_start__INTC_PRIOR_REG, CYREG_CM0_IPR0
 .set int_start__INTC_SET_EN_REG, CYREG_CM0_ISER
 .set int_start__INTC_SET_PD_REG, CYREG_CM0_ISPR
@@ -779,10 +768,21 @@
 .set int_cancel__INTC_MASK, 0x08
 .set int_cancel__INTC_NUMBER, 3
 .set int_cancel__INTC_PRIOR_MASK, 0xC0000000
-.set int_cancel__INTC_PRIOR_NUM, 3
+.set int_cancel__INTC_PRIOR_NUM, 0
 .set int_cancel__INTC_PRIOR_REG, CYREG_CM0_IPR0
 .set int_cancel__INTC_SET_EN_REG, CYREG_CM0_ISER
 .set int_cancel__INTC_SET_PD_REG, CYREG_CM0_ISPR
+
+/* int_inputData */
+.set int_inputData__INTC_CLR_EN_REG, CYREG_CM0_ICER
+.set int_inputData__INTC_CLR_PD_REG, CYREG_CM0_ICPR
+.set int_inputData__INTC_MASK, 0x02
+.set int_inputData__INTC_NUMBER, 1
+.set int_inputData__INTC_PRIOR_MASK, 0xC000
+.set int_inputData__INTC_PRIOR_NUM, 1
+.set int_inputData__INTC_PRIOR_REG, CYREG_CM0_IPR0
+.set int_inputData__INTC_SET_EN_REG, CYREG_CM0_ISER
+.set int_inputData__INTC_SET_PD_REG, CYREG_CM0_ISPR
 
 /* Miscellaneous */
 .set CYDEV_BCLK__HFCLK__HZ, 24000000
@@ -906,7 +906,7 @@
 .set CYDEV_VDDA_MV, 3300
 .set CYDEV_VDDD_MV, 3300
 .set CYDEV_WDT_GENERATE_ISR, 0
-.set CYDEV_WDT0_DIV, 32
+.set CYDEV_WDT0_DIV, 65535
 .set CYIPBLOCK_M0S8_CTBM_VERSION, 0
 .set CYIPBLOCK_m0s8cpuss_VERSION, 0
 .set CYIPBLOCK_m0s8csd_VERSION, 0

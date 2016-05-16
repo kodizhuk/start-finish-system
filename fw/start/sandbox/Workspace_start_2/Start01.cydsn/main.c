@@ -5,9 +5,9 @@
 #define TEST_MODE_WIRED 0 // do we want to enable the test mode?
 
 /*Commands*/
-#define COMMAND_START 's'
-#define COMMAND_CANCEL 's'
-#define COMMAND_READ 's'
+#define COMMAND_START   's'
+#define COMMAND_CANCEL  'c'
+#define COMMAND_READ    'r'
 
 /* Api to read (WDT) counter value
 * WDT Counter 0 Read value 
@@ -15,7 +15,7 @@
 */
 
 void led_indication(void);
-void display_indication(void);
+void display_indication(int numSkier);
   
 typedef enum {false, true} bool;
 
@@ -25,14 +25,16 @@ bool cancelPress = false;    //flags for press button
 uint32_t skier = 0;      //number sportsmen last started
 
 char finish_time[13] = "00.00.00.000";   //hh.mm.ss.uuu\0
+char string_buff[16];   //buffer for output string
 
-//interrupt for start button
+/*interrupt for start button*/
 CY_ISR(startHandler)        
 {
     if(skier < MAXSKIER){
         skier++;
-        xbee_PutChar(COMMAND_START);      //simbol start
-        xbee_PutChar(skier+'0');  //number sportsmen   
+        /*put simbol start and number for skier*/
+        sprintf(string_buff,"%c%c",COMMAND_START,skier+'0');  
+        xbee_PutString(string_buff);  
         
         #if(TEST_MODE_WIRED)
         /*this code is used for test mode when two devices are connected via wire*/
@@ -47,7 +49,7 @@ CY_ISR(startHandler)
     }
     start_ClearInterrupt(); 
 }
-
+/*intettupt for incoming data*/
 CY_ISR(dataHandler)     //incoming data
 {
     char c;
@@ -61,33 +63,36 @@ CY_ISR(dataHandler)     //incoming data
 CY_ISR(cancelHandler)       //interrupt for cancel button
 {
     if(skier){
-        xbee_PutChar(COMMAND_CANCEL);      //simbol cancel
-        xbee_PutChar(skier+'0');  //number sportsmen
+        /*put simbol cancel and number for skier*/
+        sprintf(string_buff,"%c%c",COMMAND_CANCEL,skier+'0');
+        xbee_PutString(string_buff);
         skier--;
         cancelPress = true;
     }
-    CyDelay(10);
     cancel_ClearInterrupt();
 }
-
-CY_ISR(isrHandler)      //interrupt for blink blue led
+/*interrupt for blink led*/
+CY_ISR(blincHandler)      
 {
-    led_blue_Write(0);
-    CyDelay(5);
-    led_blue_Write(1);
+    if(skier){
+        led_blue_Write(0);
+        CyDelay(1);
+        led_blue_Write(1);
+    }
     CySysWdtClearInterrupt(CY_SYS_WDT_COUNTER0_INT);
-
 }
 
 
 int main(void)
 {
+    int_blinc_Disable();
     CyGlobalIntEnable;    
     xbee_Start();                       //start uart for xbee
     display_Start();                    //start lcd display
+    int_blinc_Enable();
         
-    isr_StartEx(isrHandler);            //interrupt for blink led
-    isr_inputData_StartEx(dataHandler); //interrupt for RX data input
+    int_blinc_StartEx(blincHandler);    //interrupt for blink led
+    int_inputData_StartEx(dataHandler); //interrupt for RX data input
     int_start_StartEx(startHandler);    //interrupt start button
     int_cancel_StartEx(cancelHandler);  //interrupt cancel button
     
@@ -95,7 +100,7 @@ int main(void)
     while(1)
     {  
         led_indication();
-        display_indication();
+        display_indication(1);
         CyDelay(100);
     }
 }
@@ -121,15 +126,14 @@ void led_indication()
     led_blue_Write(1);   
 }
 
-void display_indication()
-{
-    char display_buff[16];      
-    sprintf(display_buff,"    time     num");
+void display_indication(int numSkier)
+{      
+    sprintf(string_buff,"    time     num");
     display_Position(0, 0);
-    display_PrintString(display_buff);
-    sprintf(display_buff,"%s  %i ",finish_time, skier);
+    display_PrintString(string_buff);
+    sprintf(string_buff,"%s  %i ",finish_time, skier);
     display_Position(1,0);
-    display_PrintString(display_buff);
+    display_PrintString(string_buff);
     if(skier){
         xbee_PutChar(COMMAND_READ);          //read data from the finish
         xbee_PutChar(skier+'0');

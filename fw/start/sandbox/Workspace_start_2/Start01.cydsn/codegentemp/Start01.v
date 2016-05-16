@@ -1,6 +1,6 @@
 // ======================================================================
 // Start01.v generated from TopDesign.cysch
-// 05/13/2016 at 12:12
+// 05/16/2016 at 12:56
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -321,6 +321,10 @@ module top ;
           wire  Net_130;
           wire  Net_129;
           wire  Net_107;
+          wire  Net_41;
+    electrical  Net_40;
+          wire  Net_143;
+    electrical  Net_142;
           wire  Net_135;
           wire  Net_133;
           wire  Net_117;
@@ -330,12 +334,7 @@ module top ;
     electrical  Net_44;
     electrical  Net_9;
     electrical  Net_8;
-          wire  Net_41;
-    electrical  Net_40;
-    electrical  Net_42;
-          wire  Net_26;
     electrical  Net_25;
-    electrical  Net_27;
 
 	wire [0:0] tmpOE__start_net;
 	wire [0:0] tmpFB_0__start_net;
@@ -401,7 +400,7 @@ module top ;
 		  .fb({tmpFB_0__start_net[0:0]}),
 		  .io({tmpIO_0__start_net[0:0]}),
 		  .siovref(tmpSIOVREF__start_net),
-		  .interrupt({Net_26}),
+		  .interrupt({Net_143}),
 		  .annotation({Net_25}),
 		  .in_clock({1'b0}),
 		  .in_clock_en({1'b1}),
@@ -615,7 +614,7 @@ module top ;
 
     cy_annotation_universal_v1_0 START_BUTTON (
         .connect({
-            Net_27,
+            Net_142,
             Net_25
         })
     );
@@ -625,7 +624,7 @@ module top ;
 
     cy_annotation_universal_v1_0 GND_1 (
         .connect({
-            Net_27
+            Net_142
         })
     );
     defparam GND_1.comp_name = "Gnd_v1_0";
@@ -636,7 +635,7 @@ module top ;
 	cy_isr_v1_0
 		#(.int_type(2'b10))
 		int_start
-		 (.int_signal(Net_26));
+		 (.int_signal(Net_143));
 
 
 	wire [0:0] tmpOE__wired_net;
@@ -791,22 +790,13 @@ module top ;
 
     cy_annotation_universal_v1_0 CANCEL_BUTTON (
         .connect({
-            Net_42,
+            Net_142,
             Net_40
         })
     );
     defparam CANCEL_BUTTON.comp_name = "SwitchSPST_v1_0";
     defparam CANCEL_BUTTON.port_names = "T1, T2";
     defparam CANCEL_BUTTON.width = 2;
-
-    cy_annotation_universal_v1_0 GND_2 (
-        .connect({
-            Net_42
-        })
-    );
-    defparam GND_2.comp_name = "Gnd_v1_0";
-    defparam GND_2.port_names = "T1";
-    defparam GND_2.width = 1;
 
 
 	cy_isr_v1_0
@@ -820,14 +810,14 @@ module top ;
 
 	cy_gsref_v1_0
 		#(.guid("1563FAA8-0748-4a1c-9785-CED309984BE3"))
-		GlobalSignal_1
+		blink_led
 		 (.sig_out(Net_107));
 
 
 
 	cy_isr_v1_0
 		#(.int_type(2'b10))
-		isr
+		int_blinc
 		 (.int_signal(Net_107));
 
 
@@ -1012,7 +1002,7 @@ module top ;
 
 	cy_isr_v1_0
 		#(.int_type(2'b10))
-		isr_inputData
+		int_inputData
 		 (.int_signal(Net_135));
 
 

@@ -2,28 +2,6 @@
 #define INCLUDED_CYFITTER_H
 #include "cydevice_trm.h"
 
-/* isr */
-#define isr__INTC_CLR_EN_REG CYREG_CM0_ICER
-#define isr__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define isr__INTC_MASK 0x200u
-#define isr__INTC_NUMBER 9u
-#define isr__INTC_PRIOR_MASK 0xC000u
-#define isr__INTC_PRIOR_NUM 3u
-#define isr__INTC_PRIOR_REG CYREG_CM0_IPR2
-#define isr__INTC_SET_EN_REG CYREG_CM0_ISER
-#define isr__INTC_SET_PD_REG CYREG_CM0_ISPR
-
-/* isr_inputData */
-#define isr_inputData__INTC_CLR_EN_REG CYREG_CM0_ICER
-#define isr_inputData__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define isr_inputData__INTC_MASK 0x02u
-#define isr_inputData__INTC_NUMBER 1u
-#define isr_inputData__INTC_PRIOR_MASK 0xC000u
-#define isr_inputData__INTC_PRIOR_NUM 3u
-#define isr_inputData__INTC_PRIOR_REG CYREG_CM0_IPR0
-#define isr_inputData__INTC_SET_EN_REG CYREG_CM0_ISER
-#define isr_inputData__INTC_SET_PD_REG CYREG_CM0_ISPR
-
 /* Rx_1 */
 #define Rx_1__0__DM__MASK 0x7000u
 #define Rx_1__0__DM__SHIFT 12
@@ -762,13 +740,24 @@
 #define led_blue__PS CYREG_PRT0_PS
 #define led_blue__SHIFT 3
 
+/* int_blinc */
+#define int_blinc__INTC_CLR_EN_REG CYREG_CM0_ICER
+#define int_blinc__INTC_CLR_PD_REG CYREG_CM0_ICPR
+#define int_blinc__INTC_MASK 0x200u
+#define int_blinc__INTC_NUMBER 9u
+#define int_blinc__INTC_PRIOR_MASK 0xC000u
+#define int_blinc__INTC_PRIOR_NUM 3u
+#define int_blinc__INTC_PRIOR_REG CYREG_CM0_IPR2
+#define int_blinc__INTC_SET_EN_REG CYREG_CM0_ISER
+#define int_blinc__INTC_SET_PD_REG CYREG_CM0_ISPR
+
 /* int_start */
 #define int_start__INTC_CLR_EN_REG CYREG_CM0_ICER
 #define int_start__INTC_CLR_PD_REG CYREG_CM0_ICPR
 #define int_start__INTC_MASK 0x01u
 #define int_start__INTC_NUMBER 0u
 #define int_start__INTC_PRIOR_MASK 0xC0u
-#define int_start__INTC_PRIOR_NUM 3u
+#define int_start__INTC_PRIOR_NUM 0u
 #define int_start__INTC_PRIOR_REG CYREG_CM0_IPR0
 #define int_start__INTC_SET_EN_REG CYREG_CM0_ISER
 #define int_start__INTC_SET_PD_REG CYREG_CM0_ISPR
@@ -779,10 +768,21 @@
 #define int_cancel__INTC_MASK 0x08u
 #define int_cancel__INTC_NUMBER 3u
 #define int_cancel__INTC_PRIOR_MASK 0xC0000000u
-#define int_cancel__INTC_PRIOR_NUM 3u
+#define int_cancel__INTC_PRIOR_NUM 0u
 #define int_cancel__INTC_PRIOR_REG CYREG_CM0_IPR0
 #define int_cancel__INTC_SET_EN_REG CYREG_CM0_ISER
 #define int_cancel__INTC_SET_PD_REG CYREG_CM0_ISPR
+
+/* int_inputData */
+#define int_inputData__INTC_CLR_EN_REG CYREG_CM0_ICER
+#define int_inputData__INTC_CLR_PD_REG CYREG_CM0_ICPR
+#define int_inputData__INTC_MASK 0x02u
+#define int_inputData__INTC_NUMBER 1u
+#define int_inputData__INTC_PRIOR_MASK 0xC000u
+#define int_inputData__INTC_PRIOR_NUM 1u
+#define int_inputData__INTC_PRIOR_REG CYREG_CM0_IPR0
+#define int_inputData__INTC_SET_EN_REG CYREG_CM0_ISER
+#define int_inputData__INTC_SET_PD_REG CYREG_CM0_ISPR
 
 /* Miscellaneous */
 #define CY_PROJECT_NAME "Start01"
@@ -910,7 +910,7 @@
 #define CYDEV_VDDD 3.3
 #define CYDEV_VDDD_MV 3300
 #define CYDEV_WDT_GENERATE_ISR 0u
-#define CYDEV_WDT0_DIV 32
+#define CYDEV_WDT0_DIV 65535
 #define CYIPBLOCK_M0S8_CTBM_VERSION 0
 #define CYIPBLOCK_m0s8cpuss_VERSION 0
 #define CYIPBLOCK_m0s8csd_VERSION 0
