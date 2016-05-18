@@ -1,6 +1,6 @@
 // ======================================================================
 // Start01.v generated from TopDesign.cysch
-// 05/16/2016 at 12:56
+// 05/18/2016 at 21:34
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -85,6 +85,19 @@
 `define CYDEV_CHIP_FAMILY_USED 2
 `define CYDEV_CHIP_MEMBER_USED 10
 `define CYDEV_CHIP_REVISION_USED 17
+// Component: or_v1_0
+`ifdef CY_BLK_DIR
+`undef CY_BLK_DIR
+`endif
+
+`ifdef WARP
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\3.3\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\3.3\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0\or_v1_0.v"
+`else
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\3.3\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\3.3\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0\or_v1_0.v"
+`endif
+
 // CharLCD_v2_20(ConversionRoutines=true, CUSTOM0=0,E,8,8,8,E,0, CUSTOM1=0,A,A,4,4,4,0, CUSTOM2=0,E,A,E,8,8,0, CUSTOM3=0,E,A,C,A,A,0, CUSTOM4=0,E,8,C,8,E,0, CUSTOM5=0,E,8,E,2,E,0, CUSTOM6=0,E,8,E,2,E,0, CUSTOM7=0,4,4,4,0,4,0, CustomCharacterSet=0, TypeReplacementString=uint32, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMPONENT_NAME=CharLCD_v2_20, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=display, CY_INSTANCE_SHORT_NAME=display, CY_MAJOR_VERSION=2, CY_MINOR_VERSION=20, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  3.3 SP1, INSTANCE_NAME=display, )
 module CharLCD_v2_20_0 ;
 
@@ -320,10 +333,12 @@ module top ;
           wire  Net_131;
           wire  Net_130;
           wire  Net_129;
-          wire  Net_107;
-          wire  Net_41;
+    electrical  Net_25;
+          wire  Net_147;
+          wire  Net_148;
+          wire  Net_146;
     electrical  Net_40;
-          wire  Net_143;
+          wire  Net_107;
     electrical  Net_142;
           wire  Net_135;
           wire  Net_133;
@@ -334,7 +349,6 @@ module top ;
     electrical  Net_44;
     electrical  Net_9;
     electrical  Net_8;
-    electrical  Net_25;
 
 	wire [0:0] tmpOE__start_net;
 	wire [0:0] tmpFB_0__start_net;
@@ -400,7 +414,7 @@ module top ;
 		  .fb({tmpFB_0__start_net[0:0]}),
 		  .io({tmpIO_0__start_net[0:0]}),
 		  .siovref(tmpSIOVREF__start_net),
-		  .interrupt({Net_143}),
+		  .interrupt({Net_146}),
 		  .annotation({Net_25}),
 		  .in_clock({1'b0}),
 		  .in_clock_en({1'b1}),
@@ -634,8 +648,8 @@ module top ;
 
 	cy_isr_v1_0
 		#(.int_type(2'b10))
-		int_start
-		 (.int_signal(Net_143));
+		int_button
+		 (.int_signal(Net_148));
 
 
 	wire [0:0] tmpOE__wired_net;
@@ -777,7 +791,7 @@ module top ;
 		  .fb({tmpFB_0__cancel_net[0:0]}),
 		  .io({tmpIO_0__cancel_net[0:0]}),
 		  .siovref(tmpSIOVREF__cancel_net),
-		  .interrupt({Net_41}),
+		  .interrupt({Net_147}),
 		  .annotation({Net_40}),
 		  .in_clock({1'b0}),
 		  .in_clock_en({1'b1}),
@@ -799,11 +813,7 @@ module top ;
     defparam CANCEL_BUTTON.width = 2;
 
 
-	cy_isr_v1_0
-		#(.int_type(2'b10))
-		int_cancel
-		 (.int_signal(Net_41));
-
+    assign Net_148 = Net_147 | Net_146;
 
     CharLCD_v2_20_0 display ();
 

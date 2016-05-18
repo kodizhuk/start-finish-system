@@ -69,7 +69,7 @@
 .set Tx_1__0__MASK, 0x20
 .set Tx_1__0__OUT_SEL, CYREG_UDB_PA0_CFG10
 .set Tx_1__0__OUT_SEL_SHIFT, 10
-.set Tx_1__0__OUT_SEL_VAL, 1
+.set Tx_1__0__OUT_SEL_VAL, 2
 .set Tx_1__0__PA__CFG0, CYREG_UDB_PA0_CFG0
 .set Tx_1__0__PA__CFG1, CYREG_UDB_PA0_CFG1
 .set Tx_1__0__PA__CFG10, CYREG_UDB_PA0_CFG10
@@ -751,34 +751,23 @@
 .set int_blinc__INTC_SET_EN_REG, CYREG_CM0_ISER
 .set int_blinc__INTC_SET_PD_REG, CYREG_CM0_ISPR
 
-/* int_start */
-.set int_start__INTC_CLR_EN_REG, CYREG_CM0_ICER
-.set int_start__INTC_CLR_PD_REG, CYREG_CM0_ICPR
-.set int_start__INTC_MASK, 0x01
-.set int_start__INTC_NUMBER, 0
-.set int_start__INTC_PRIOR_MASK, 0xC0
-.set int_start__INTC_PRIOR_NUM, 0
-.set int_start__INTC_PRIOR_REG, CYREG_CM0_IPR0
-.set int_start__INTC_SET_EN_REG, CYREG_CM0_ISER
-.set int_start__INTC_SET_PD_REG, CYREG_CM0_ISPR
-
-/* int_cancel */
-.set int_cancel__INTC_CLR_EN_REG, CYREG_CM0_ICER
-.set int_cancel__INTC_CLR_PD_REG, CYREG_CM0_ICPR
-.set int_cancel__INTC_MASK, 0x08
-.set int_cancel__INTC_NUMBER, 3
-.set int_cancel__INTC_PRIOR_MASK, 0xC0000000
-.set int_cancel__INTC_PRIOR_NUM, 0
-.set int_cancel__INTC_PRIOR_REG, CYREG_CM0_IPR0
-.set int_cancel__INTC_SET_EN_REG, CYREG_CM0_ISER
-.set int_cancel__INTC_SET_PD_REG, CYREG_CM0_ISPR
+/* int_button */
+.set int_button__INTC_CLR_EN_REG, CYREG_CM0_ICER
+.set int_button__INTC_CLR_PD_REG, CYREG_CM0_ICPR
+.set int_button__INTC_MASK, 0x01
+.set int_button__INTC_NUMBER, 0
+.set int_button__INTC_PRIOR_MASK, 0xC0
+.set int_button__INTC_PRIOR_NUM, 0
+.set int_button__INTC_PRIOR_REG, CYREG_CM0_IPR0
+.set int_button__INTC_SET_EN_REG, CYREG_CM0_ISER
+.set int_button__INTC_SET_PD_REG, CYREG_CM0_ISPR
 
 /* int_inputData */
 .set int_inputData__INTC_CLR_EN_REG, CYREG_CM0_ICER
 .set int_inputData__INTC_CLR_PD_REG, CYREG_CM0_ICPR
-.set int_inputData__INTC_MASK, 0x02
-.set int_inputData__INTC_NUMBER, 1
-.set int_inputData__INTC_PRIOR_MASK, 0xC000
+.set int_inputData__INTC_MASK, 0x04
+.set int_inputData__INTC_NUMBER, 2
+.set int_inputData__INTC_PRIOR_MASK, 0xC00000
 .set int_inputData__INTC_PRIOR_NUM, 1
 .set int_inputData__INTC_PRIOR_REG, CYREG_CM0_IPR0
 .set int_inputData__INTC_SET_EN_REG, CYREG_CM0_ISER

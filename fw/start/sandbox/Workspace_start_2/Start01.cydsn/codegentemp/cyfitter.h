@@ -69,7 +69,7 @@
 #define Tx_1__0__MASK 0x20u
 #define Tx_1__0__OUT_SEL CYREG_UDB_PA0_CFG10
 #define Tx_1__0__OUT_SEL_SHIFT 10u
-#define Tx_1__0__OUT_SEL_VAL 1u
+#define Tx_1__0__OUT_SEL_VAL 2u
 #define Tx_1__0__PA__CFG0 CYREG_UDB_PA0_CFG0
 #define Tx_1__0__PA__CFG1 CYREG_UDB_PA0_CFG1
 #define Tx_1__0__PA__CFG10 CYREG_UDB_PA0_CFG10
@@ -751,34 +751,23 @@
 #define int_blinc__INTC_SET_EN_REG CYREG_CM0_ISER
 #define int_blinc__INTC_SET_PD_REG CYREG_CM0_ISPR
 
-/* int_start */
-#define int_start__INTC_CLR_EN_REG CYREG_CM0_ICER
-#define int_start__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define int_start__INTC_MASK 0x01u
-#define int_start__INTC_NUMBER 0u
-#define int_start__INTC_PRIOR_MASK 0xC0u
-#define int_start__INTC_PRIOR_NUM 0u
-#define int_start__INTC_PRIOR_REG CYREG_CM0_IPR0
-#define int_start__INTC_SET_EN_REG CYREG_CM0_ISER
-#define int_start__INTC_SET_PD_REG CYREG_CM0_ISPR
-
-/* int_cancel */
-#define int_cancel__INTC_CLR_EN_REG CYREG_CM0_ICER
-#define int_cancel__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define int_cancel__INTC_MASK 0x08u
-#define int_cancel__INTC_NUMBER 3u
-#define int_cancel__INTC_PRIOR_MASK 0xC0000000u
-#define int_cancel__INTC_PRIOR_NUM 0u
-#define int_cancel__INTC_PRIOR_REG CYREG_CM0_IPR0
-#define int_cancel__INTC_SET_EN_REG CYREG_CM0_ISER
-#define int_cancel__INTC_SET_PD_REG CYREG_CM0_ISPR
+/* int_button */
+#define int_button__INTC_CLR_EN_REG CYREG_CM0_ICER
+#define int_button__INTC_CLR_PD_REG CYREG_CM0_ICPR
+#define int_button__INTC_MASK 0x01u
+#define int_button__INTC_NUMBER 0u
+#define int_button__INTC_PRIOR_MASK 0xC0u
+#define int_button__INTC_PRIOR_NUM 0u
+#define int_button__INTC_PRIOR_REG CYREG_CM0_IPR0
+#define int_button__INTC_SET_EN_REG CYREG_CM0_ISER
+#define int_button__INTC_SET_PD_REG CYREG_CM0_ISPR
 
 /* int_inputData */
 #define int_inputData__INTC_CLR_EN_REG CYREG_CM0_ICER
 #define int_inputData__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define int_inputData__INTC_MASK 0x02u
-#define int_inputData__INTC_NUMBER 1u
-#define int_inputData__INTC_PRIOR_MASK 0xC000u
+#define int_inputData__INTC_MASK 0x04u
+#define int_inputData__INTC_NUMBER 2u
+#define int_inputData__INTC_PRIOR_MASK 0xC00000u
 #define int_inputData__INTC_PRIOR_NUM 1u
 #define int_inputData__INTC_PRIOR_REG CYREG_CM0_IPR0
 #define int_inputData__INTC_SET_EN_REG CYREG_CM0_ISER

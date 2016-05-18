@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: int_cancel.c  
+* File Name: int_button.c  
 * Version 1.70
 *
 *  Description:
@@ -18,15 +18,15 @@
 
 #include <cydevice_trm.h>
 #include <CyLib.h>
-#include <int_cancel.h>
+#include <int_button.h>
 #include "cyapicallbacks.h"
 
-#if !defined(int_cancel__REMOVED) /* Check for removal by optimization */
+#if !defined(int_button__REMOVED) /* Check for removal by optimization */
 
 /*******************************************************************************
 *  Place your includes, defines and code here 
 ********************************************************************************/
-/* `#START int_cancel_intc` */
+/* `#START int_button_intc` */
 
 /* `#END` */
 
@@ -37,7 +37,7 @@ CY_ISR_PROTO(IntDefaultHandler);
 
 
 /*******************************************************************************
-* Function Name: int_cancel_Start
+* Function Name: int_button_Start
 ********************************************************************************
 *
 * Summary:
@@ -53,24 +53,24 @@ CY_ISR_PROTO(IntDefaultHandler);
 *   None
 *
 *******************************************************************************/
-void int_cancel_Start(void)
+void int_button_Start(void)
 {
     /* For all we know the interrupt is active. */
-    int_cancel_Disable();
+    int_button_Disable();
 
-    /* Set the ISR to point to the int_cancel Interrupt. */
-    int_cancel_SetVector(&int_cancel_Interrupt);
+    /* Set the ISR to point to the int_button Interrupt. */
+    int_button_SetVector(&int_button_Interrupt);
 
     /* Set the priority. */
-    int_cancel_SetPriority((uint8)int_cancel_INTC_PRIOR_NUMBER);
+    int_button_SetPriority((uint8)int_button_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    int_cancel_Enable();
+    int_button_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_StartEx
+* Function Name: int_button_StartEx
 ********************************************************************************
 *
 * Summary:
@@ -96,24 +96,24 @@ void int_cancel_Start(void)
 *   None
 *
 *******************************************************************************/
-void int_cancel_StartEx(cyisraddress address)
+void int_button_StartEx(cyisraddress address)
 {
     /* For all we know the interrupt is active. */
-    int_cancel_Disable();
+    int_button_Disable();
 
-    /* Set the ISR to point to the int_cancel Interrupt. */
-    int_cancel_SetVector(address);
+    /* Set the ISR to point to the int_button Interrupt. */
+    int_button_SetVector(address);
 
     /* Set the priority. */
-    int_cancel_SetPriority((uint8)int_cancel_INTC_PRIOR_NUMBER);
+    int_button_SetPriority((uint8)int_button_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    int_cancel_Enable();
+    int_button_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_Stop
+* Function Name: int_button_Stop
 ********************************************************************************
 *
 * Summary:
@@ -126,22 +126,22 @@ void int_cancel_StartEx(cyisraddress address)
 *   None
 *
 *******************************************************************************/
-void int_cancel_Stop(void)
+void int_button_Stop(void)
 {
     /* Disable this interrupt. */
-    int_cancel_Disable();
+    int_button_Disable();
 
     /* Set the ISR to point to the passive one. */
-    int_cancel_SetVector(&IntDefaultHandler);
+    int_button_SetVector(&IntDefaultHandler);
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_Interrupt
+* Function Name: int_button_Interrupt
 ********************************************************************************
 *
 * Summary:
-*   The default Interrupt Service Routine for int_cancel.
+*   The default Interrupt Service Routine for int_button.
 *
 *   Add custom code between the START and END comments to keep the next version
 *   of this file from over-writing your code.
@@ -156,27 +156,27 @@ void int_cancel_Stop(void)
 *   None
 *
 *******************************************************************************/
-CY_ISR(int_cancel_Interrupt)
+CY_ISR(int_button_Interrupt)
 {
-    #ifdef int_cancel_INTERRUPT_INTERRUPT_CALLBACK
-        int_cancel_Interrupt_InterruptCallback();
-    #endif /* int_cancel_INTERRUPT_INTERRUPT_CALLBACK */ 
+    #ifdef int_button_INTERRUPT_INTERRUPT_CALLBACK
+        int_button_Interrupt_InterruptCallback();
+    #endif /* int_button_INTERRUPT_INTERRUPT_CALLBACK */ 
 
     /*  Place your Interrupt code here. */
-    /* `#START int_cancel_Interrupt` */
+    /* `#START int_button_Interrupt` */
 
     /* `#END` */
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_SetVector
+* Function Name: int_button_SetVector
 ********************************************************************************
 *
 * Summary:
-*   Change the ISR vector for the Interrupt. Note calling int_cancel_Start
+*   Change the ISR vector for the Interrupt. Note calling int_button_Start
 *   will override any effect this method would have had. To set the vector 
-*   before the component has been started use int_cancel_StartEx instead.
+*   before the component has been started use int_button_StartEx instead.
 * 
 *   When defining ISR functions, the CY_ISR and CY_ISR_PROTO macros should be 
 *   used to provide consistent definition across compilers:
@@ -196,14 +196,14 @@ CY_ISR(int_cancel_Interrupt)
 *   None
 *
 *******************************************************************************/
-void int_cancel_SetVector(cyisraddress address)
+void int_button_SetVector(cyisraddress address)
 {
-    CyRamVectors[CYINT_IRQ_BASE + int_cancel__INTC_NUMBER] = address;
+    CyRamVectors[CYINT_IRQ_BASE + int_button__INTC_NUMBER] = address;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_GetVector
+* Function Name: int_button_GetVector
 ********************************************************************************
 *
 * Summary:
@@ -216,22 +216,22 @@ void int_cancel_SetVector(cyisraddress address)
 *   Address of the ISR in the interrupt vector table.
 *
 *******************************************************************************/
-cyisraddress int_cancel_GetVector(void)
+cyisraddress int_button_GetVector(void)
 {
-    return CyRamVectors[CYINT_IRQ_BASE + int_cancel__INTC_NUMBER];
+    return CyRamVectors[CYINT_IRQ_BASE + int_button__INTC_NUMBER];
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_SetPriority
+* Function Name: int_button_SetPriority
 ********************************************************************************
 *
 * Summary:
 *   Sets the Priority of the Interrupt. 
 *
-*   Note calling int_cancel_Start or int_cancel_StartEx will 
+*   Note calling int_button_Start or int_button_StartEx will 
 *   override any effect this API would have had. This API should only be called
-*   after int_cancel_Start or int_cancel_StartEx has been called. 
+*   after int_button_Start or int_button_StartEx has been called. 
 *   To set the initial priority for the component, use the Design-Wide Resources
 *   Interrupt Editor.
 *
@@ -246,20 +246,20 @@ cyisraddress int_cancel_GetVector(void)
 *   None
 *
 *******************************************************************************/
-void int_cancel_SetPriority(uint8 priority)
+void int_button_SetPriority(uint8 priority)
 {
 	uint8 interruptState;
-    uint32 priorityOffset = ((int_cancel__INTC_NUMBER % 4u) * 8u) + 6u;
+    uint32 priorityOffset = ((int_button__INTC_NUMBER % 4u) * 8u) + 6u;
     
 	interruptState = CyEnterCriticalSection();
-    *int_cancel_INTC_PRIOR = (*int_cancel_INTC_PRIOR & (uint32)(~int_cancel__INTC_PRIOR_MASK)) |
+    *int_button_INTC_PRIOR = (*int_button_INTC_PRIOR & (uint32)(~int_button__INTC_PRIOR_MASK)) |
                                     ((uint32)priority << priorityOffset);
 	CyExitCriticalSection(interruptState);
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_GetPriority
+* Function Name: int_button_GetPriority
 ********************************************************************************
 *
 * Summary:
@@ -274,19 +274,19 @@ void int_cancel_SetPriority(uint8 priority)
 *    PSoC 4: Priority is from 0 to 3.
 *
 *******************************************************************************/
-uint8 int_cancel_GetPriority(void)
+uint8 int_button_GetPriority(void)
 {
     uint32 priority;
-	uint32 priorityOffset = ((int_cancel__INTC_NUMBER % 4u) * 8u) + 6u;
+	uint32 priorityOffset = ((int_button__INTC_NUMBER % 4u) * 8u) + 6u;
 
-    priority = (*int_cancel_INTC_PRIOR & int_cancel__INTC_PRIOR_MASK) >> priorityOffset;
+    priority = (*int_button_INTC_PRIOR & int_button__INTC_PRIOR_MASK) >> priorityOffset;
 
     return (uint8)priority;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_Enable
+* Function Name: int_button_Enable
 ********************************************************************************
 *
 * Summary:
@@ -301,15 +301,15 @@ uint8 int_cancel_GetPriority(void)
 *   None
 *
 *******************************************************************************/
-void int_cancel_Enable(void)
+void int_button_Enable(void)
 {
     /* Enable the general interrupt. */
-    *int_cancel_INTC_SET_EN = int_cancel__INTC_MASK;
+    *int_button_INTC_SET_EN = int_button__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_GetState
+* Function Name: int_button_GetState
 ********************************************************************************
 *
 * Summary:
@@ -322,15 +322,15 @@ void int_cancel_Enable(void)
 *   1 if enabled, 0 if disabled.
 *
 *******************************************************************************/
-uint8 int_cancel_GetState(void)
+uint8 int_button_GetState(void)
 {
     /* Get the state of the general interrupt. */
-    return ((*int_cancel_INTC_SET_EN & (uint32)int_cancel__INTC_MASK) != 0u) ? 1u:0u;
+    return ((*int_button_INTC_SET_EN & (uint32)int_button__INTC_MASK) != 0u) ? 1u:0u;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_Disable
+* Function Name: int_button_Disable
 ********************************************************************************
 *
 * Summary:
@@ -343,15 +343,15 @@ uint8 int_cancel_GetState(void)
 *   None
 *
 *******************************************************************************/
-void int_cancel_Disable(void)
+void int_button_Disable(void)
 {
     /* Disable the general interrupt. */
-    *int_cancel_INTC_CLR_EN = int_cancel__INTC_MASK;
+    *int_button_INTC_CLR_EN = int_button__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_SetPending
+* Function Name: int_button_SetPending
 ********************************************************************************
 *
 * Summary:
@@ -370,14 +370,14 @@ void int_cancel_Disable(void)
 *   interrupts).
 *
 *******************************************************************************/
-void int_cancel_SetPending(void)
+void int_button_SetPending(void)
 {
-    *int_cancel_INTC_SET_PD = int_cancel__INTC_MASK;
+    *int_button_INTC_SET_PD = int_button__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_cancel_ClearPending
+* Function Name: int_button_ClearPending
 ********************************************************************************
 *
 * Summary:
@@ -395,9 +395,9 @@ void int_cancel_SetPending(void)
 *   None
 *
 *******************************************************************************/
-void int_cancel_ClearPending(void)
+void int_button_ClearPending(void)
 {
-    *int_cancel_INTC_CLR_PD = int_cancel__INTC_MASK;
+    *int_button_INTC_CLR_PD = int_button__INTC_MASK;
 }
 
 #endif /* End check for removal by optimization */
