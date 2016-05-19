@@ -1,6 +1,6 @@
 // ======================================================================
 // finish01.v generated from TopDesign.cysch
-// 05/12/2016 at 21:11
+// 05/20/2016 at 00:00
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -310,20 +310,20 @@ endmodule
 // top
 module top ;
 
-          wire  Net_88;
+          wire  Net_135;
     electrical  Net_63;
-          wire  Net_80;
-          wire  Net_98;
-          wire  Net_97;
-          wire  Net_96;
-          wire  Net_95;
-          wire  Net_94;
+          wire  Net_122;
+          wire  Net_134;
+          wire  Net_133;
+          wire  Net_132;
+          wire  Net_131;
+          wire  Net_130;
           wire  Net_74;
-          wire  Net_93;
-          wire  Net_92;
-          wire  Net_91;
-          wire  Net_90;
-          wire  Net_89;
+          wire  Net_128;
+          wire  Net_127;
+          wire  Net_126;
+          wire  Net_125;
+          wire  Net_124;
           wire  Net_107;
           wire  Net_106;
           wire  Net_105;
@@ -338,7 +338,6 @@ module top ;
           wire  Net_9;
           wire  Net_99;
     electrical  Net_29;
-          wire  Net_33;
           wire  Net_30;
     electrical  Net_68;
     electrical  Net_60;
@@ -418,80 +417,6 @@ module top ;
 		  .out_reset({1'b0}));
 
 	assign tmpOE__finish_net = (`CYDEV_CHIP_MEMBER_USED == `CYDEV_CHIP_MEMBER_3A && `CYDEV_CHIP_REVISION_USED < `CYDEV_CHIP_REVISION_3A_ES3) ? ~{1'b1} : {1'b1};
-
-	wire [0:0] tmpOE__wired_net;
-	wire [0:0] tmpFB_0__wired_net;
-	wire [0:0] tmpIO_0__wired_net;
-	electrical [0:0] tmpSIOVREF__wired_net;
-
-	cy_psoc3_pins_v1_10
-		#(.id("05ec508c-60f9-4228-b95e-775b7e7f534f"),
-		  .drive_mode(3'b001),
-		  .ibuf_enabled(1'b1),
-		  .init_dr_st(1'b0),
-		  .input_clk_en(0),
-		  .input_sync(1'b0),
-		  .input_sync_mode(1'b0),
-		  .intr_mode(2'b10),
-		  .invert_in_clock(0),
-		  .invert_in_clock_en(0),
-		  .invert_in_reset(0),
-		  .invert_out_clock(0),
-		  .invert_out_clock_en(0),
-		  .invert_out_reset(0),
-		  .io_voltage(""),
-		  .layout_mode("CONTIGUOUS"),
-		  .oe_conn(1'b0),
-		  .oe_reset(0),
-		  .oe_sync(1'b0),
-		  .output_clk_en(0),
-		  .output_clock_mode(1'b0),
-		  .output_conn(1'b0),
-		  .output_mode(1'b0),
-		  .output_reset(0),
-		  .output_sync(1'b0),
-		  .pa_in_clock(-1),
-		  .pa_in_clock_en(-1),
-		  .pa_in_reset(-1),
-		  .pa_out_clock(-1),
-		  .pa_out_clock_en(-1),
-		  .pa_out_reset(-1),
-		  .pin_aliases(""),
-		  .pin_mode("I"),
-		  .por_state(4),
-		  .sio_group_cnt(0),
-		  .sio_hyst(1'b1),
-		  .sio_ibuf(""),
-		  .sio_info(2'b00),
-		  .sio_obuf(""),
-		  .sio_refsel(""),
-		  .sio_vtrip(""),
-		  .sio_hifreq(""),
-		  .sio_vohsel(""),
-		  .slew_rate(1'b0),
-		  .spanning(0),
-		  .use_annotation(1'b0),
-		  .vtrip(2'b00),
-		  .width(1),
-		  .ovt_hyst_trim(1'b0),
-		  .ovt_needed(1'b0),
-		  .ovt_slew_control(2'b00),
-		  .input_buffer_sel(2'b00))
-		wired
-		 (.oe(tmpOE__wired_net),
-		  .y({1'b0}),
-		  .fb({tmpFB_0__wired_net[0:0]}),
-		  .io({tmpIO_0__wired_net[0:0]}),
-		  .siovref(tmpSIOVREF__wired_net),
-		  .interrupt({Net_33}),
-		  .in_clock({1'b0}),
-		  .in_clock_en({1'b1}),
-		  .in_reset({1'b0}),
-		  .out_clock({1'b0}),
-		  .out_clock_en({1'b1}),
-		  .out_reset({1'b0}));
-
-	assign tmpOE__wired_net = (`CYDEV_CHIP_MEMBER_USED == `CYDEV_CHIP_MEMBER_3A && `CYDEV_CHIP_REVISION_USED < `CYDEV_CHIP_REVISION_3A_ES3) ? ~{1'b1} : {1'b1};
 
     UART_v2_50_0 xbee (
         .cts_n(1'b0),
@@ -676,12 +601,12 @@ module top ;
         .count(1'b1),
         .capture(1'b0),
         .interrupt(Net_74),
-        .ov(Net_94),
-        .un(Net_95),
-        .cc(Net_96),
-        .line(Net_97),
-        .line_n(Net_98),
-        .clock(Net_80));
+        .ov(Net_130),
+        .un(Net_131),
+        .cc(Net_132),
+        .line(Net_133),
+        .line_n(Net_134),
+        .clock(Net_122));
 
 	wire [0:0] tmpOE__led_green_net;
 	wire [0:0] tmpFB_0__led_green_net;
@@ -817,13 +742,6 @@ module top ;
 
 	cy_isr_v1_0
 		#(.int_type(2'b10))
-		isr_wired
-		 (.int_signal(Net_33));
-
-
-
-	cy_isr_v1_0
-		#(.int_type(2'b10))
 		isr_xbee
 		 (.int_signal(Net_55));
 
@@ -837,7 +755,7 @@ module top ;
 		  .is_direct(0),
 		  .is_digital(0))
 		Clock
-		 (.clock_out(Net_80));
+		 (.clock_out(Net_122));
 
 
 

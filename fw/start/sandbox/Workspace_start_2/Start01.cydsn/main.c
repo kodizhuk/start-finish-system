@@ -34,7 +34,7 @@ struct time{
 };
 
 /*data for each skier*/
-struct time tSkier[10] = {0,0,0,0};       
+struct time tSkier[MAXSKIER] = {0,0,0,0};       
 
 /*flags pressed button */
 bool startPress = false;    
