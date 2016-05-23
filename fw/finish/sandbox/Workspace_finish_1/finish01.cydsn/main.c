@@ -6,19 +6,12 @@
 /* max number skier */
 #define MAXSKIER 10          
 
-/*led indication*/
-#define LED_ON  0
-#define LED_OFF 1
-
 /*Commands*/
 #define COMMAND_START   's'
 #define COMMAND_CANCEL  'c'
 #define COMMAND_READ    'r'
 
-void ShowTime(void);       
-void LedIndication(void);  
-
-/* Structure for have current skyer time */
+/* Structure for have current skier time */
 struct time{           
     uint16_t hour;
     uint16_t min;
@@ -26,8 +19,21 @@ struct time{
     uint16_t msec;
 };
 
+/* Structure for have start, finish 
+*   and rezult  skier time*/
+struct SKIERRESULT{
+    struct time start;
+    struct time finish;
+    struct time rezult;
+}skierRezult[MAXSKIER];
+
+
+void ShowTime(int maxSkier,struct SKIERRESULT *rezult);       
+void LedIndication(void);  
+
 /*data for each skier*/
 struct time first[MAXSKIER] = {0,0,0,0}; 
+
 
 /*flags status*/    
 bool runStopwach = false;     
@@ -86,7 +92,6 @@ CY_ISR(timerHandler)
                 }  
             }
         }
-        led_green_Write(LED_ON);
     }
     
     timer_ClearInterrupt(timer_INTR_MASK_CC_MATCH); 
@@ -133,8 +138,7 @@ int main()
     for(;;)
     {
         LedIndication();   
-        if(writeStatus) ShowTime();
-
+        ShowTime(MAXSKIER,&skierRezult[0]);
         /*reset struct first*/
         //if(!runStopwach)memset(&first,0,sizeof(first));     
     }
@@ -145,19 +149,22 @@ int main()
 *
 * Function displays data for all skiers
 * 
+* Parameters:
+* maxSkier - max skier on distancion.
+* SKIERRESULT *skier - struct from time skiers
 *******************************************************/
-void ShowTime(void)
+void ShowTime(int maxSkier,struct SKIERRESULT *skier)
 {
     /*buffer for two rows*/
     char buffer[16]; 
     int num;
     
-    for(num=0; num<MAXSKIER; num++){
+    for(num=0; num < maxSkier; num++){
         sprintf(buffer, "%i:%i:%i:%i\n\r",
-            first[num].hour, first[num].min, first[num].sec ,first[num].msec);
+            skier[num].rezult.hour, skier[num].rezult.min, 
+            skier[num].rezult.sec ,skier[num].rezult.msec);
         xbee_PutString(buffer);
     }
-    writeStatus = false;
 }
 
 /*******************************************************
@@ -169,9 +176,11 @@ void ShowTime(void)
 *******************************************************/
 void LedIndication(void)
 {
+    int LED_ON = 0;
+    int LED_OFF = 1;
+    
     /*off led(on in interrupt in timer)*/   
-    if(led_green_Read() == LED_ON){
-        CyDelay(10);
-        led_green_Write(LED_OFF);  
-    }
+    led_green_Write(LED_ON);
+    CyDelay(10);
+    led_green_Write(LED_OFF);
 }

@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 /* max number skier */
-#define MAXSKIER 10    
+#define MAXSKIER 9    
 
 /* do we want to enable the test mode? */
 #define TEST_MODE_WIRED 0 
@@ -23,7 +23,7 @@
 
 void LedIndication(void);
 void DisplayIndication(int numSkier, int numSkiers);
-int WriteTime(void);
+void ReadTime(void);
   
 /* Structure for have current skyer time */
 struct time{
@@ -88,7 +88,7 @@ CY_ISR(buttonHandler)
 CY_ISR(dataHandler)    
 {       
     /*record time skiers */
-    //WriteTime();
+    //ReadTime();
 }
 
 
@@ -124,6 +124,11 @@ int main(void)
     while(1)
     {  
         LedIndication();
+        // SkierToDisplay = lastFinished;
+        // string strSkierInfoOneSkier = SkierInforToStrOneSkier(skierInfo[SkierToDisplay]);
+        // string strSkierInfoAllTable = SkierInforToStrAll(skierInfo);
+        // displaySkierInfoOneSkier(strSkierInfoOneSkier)
+        // displaySkierInfoAllTable(strSkierInfoAllTable)
         DisplayIndication(1,2);
     }
 }
@@ -195,3 +200,7 @@ void DisplayIndication(int numSkier, int numSkiers)
 
 }
 
+void ReadTime()
+{
+    
+}
