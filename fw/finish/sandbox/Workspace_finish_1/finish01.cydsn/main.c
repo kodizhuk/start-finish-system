@@ -4,12 +4,13 @@
 #include <stdbool.h>
 
 /* max number skier */
-#define MAXSKIER 10          
+#define MAXSKIER 9       
 
 /*Commands*/
-#define COMMAND_START   's'
-#define COMMAND_CANCEL  'c'
-#define COMMAND_READ    'r'
+#define COMMAND_START       's'
+#define COMMAND_CANCEL      'c'
+#define COMMAND_READ        'r'
+#define COMMAND_ST_CONNECT  'q'
 
 /* Structure for have current skier time */
 struct time{           
@@ -27,70 +28,58 @@ struct SKIERRESULT{
     struct time rezult;
 }skierRezult[MAXSKIER];
 
+/*struct for real time*/
+struct time RealTime;
 
-void ShowTime(int maxSkier,struct SKIERRESULT *rezult);       
+
+void ShowTime(int maxSkier,struct SKIERRESULT *skierTime);       
 void LedIndication(void);  
+void deletTimeSkier(int number, struct SKIERRESULT *skierTime);
 
-/*data for each skier*/
-struct time first[MAXSKIER] = {0,0,0,0}; 
+/* flags status */
+/* skiers on track */
+bool onTrack = false;
+/* request read time skiers  */
+bool requestRead = false;
 
+/*number sportsmen last started and finished*/
+int last_started = 0;
+int last_finished = 0;
 
-/*flags status*/    
-bool runStopwach = false;     
-bool writeStatus = false;
-
-/*number sportsmen last started*/
-int skier = 0;
+/*number free slots*/
+int free_slots = 0;
 /*the number of skiers who finished*/
 int finish_skier = 0;
 
 /*for read number skiers for add or delet*/
 char lastCommand;  
-
-/*number skiers should display*/
-int write_time;        
+        
 
 
 /*interrupt for press finish button*/
 CY_ISR(finishHandler)
-{   
-    int finish_time;
+{       
+    /*kopi real time in finished skier rezult*/
+    skierRezult[last_finished].finish= RealTime;
     
-    /*write diffence time ms between finish-start*/
-    finish_time= timer_ReadCounter() - first[finish_skier].msec;
-    
-    if(finish_time >= 0)first[finish_skier].msec = finish_time;
-    else {
-        first[finish_skier].msec = -(finish_time);
-        first[finish_skier].sec--;
-    }
-    if(skier){
-        skier--;
-        finish_skier++;   
-    }
-    
-    /*stop stopwath if skier = 0*/
-    if(!skier) runStopwach = false;     
+    /*increment last skier finished*/
+    last_finished++;     
     
     finish_ClearInterrupt();
 }
 
 /*interrupt for counter timer */
 CY_ISR(timerHandler)
-{
-    int i;
-    
+{   
     /*if run stopwach, timer start*/
-    if(runStopwach){
-        for(i=finish_skier; i<skier; i++){
-            if (++first[i].sec==59){
-                first[i].sec = 0;   
-                if (++first[i].min==59){
-                    first[i].min = 0;    
-                    if (++first[i].hour==24) 
-                        first[i].hour = 0;   
-                }  
-            }
+    if(onTrack){
+        if (++RealTime.sec==59){
+            RealTime.sec = 0;   
+            if (++RealTime.min==59){
+                RealTime.min = 0;    
+                if (RealTime.hour==24) 
+                    RealTime.hour = 0;   
+            }  
         }
     }
     
@@ -104,21 +93,28 @@ CY_ISR(xbeeHandler)
     
     switch (input){
         case COMMAND_START:       
-            first[skier].msec = timer_ReadCounter();
-            runStopwach = true;
+            RealTime.msec = timer_ReadCounter();
+            skierRezult[last_started].start = RealTime;
+            
+            /*command accepted*/
+            xbee_PutString("OK");
+            onTrack = true;
             break;
-        case COMMAND_CANCEL:       
-            if(!skier)runStopwach = false;
+        case COMMAND_CANCEL:
+            /*command accepted*/
+            xbee_PutString("OK");
             break;
         case COMMAND_READ:
-            writeStatus = true;
+            requestRead = true;
+            break;
+        case COMMAND_ST_CONNECT:
+            /*command accepted*/
+            xbee_PutString("OK");
             break;
         default:
-            /*write number skier add distance*/
-            if(lastCommand == COMMAND_START)skier = input-'0';
             /*delet number skier*/
             if(lastCommand == COMMAND_CANCEL)            
-                    if(skier)skier--;
+                    deletTimeSkier((input-'0'),&skierRezult[0]);
             break;       
     }
     lastCommand = input;
@@ -133,12 +129,16 @@ int main()
 
     isr_finish_StartEx(finishHandler);      
     isr_timer_StartEx(timerHandler);     
-    isr_xbee_StartEx(xbeeHandler);          
+    isr_xbee_StartEx(xbeeHandler);        
+    
+
     
     for(;;)
     {
-        LedIndication();   
-        ShowTime(MAXSKIER,&skierRezult[0]);
+        if(onTrack) 
+            LedIndication();   
+        if(requestRead)
+            ShowTime(MAXSKIER,&skierRezult[0]);
         /*reset struct first*/
         //if(!runStopwach)memset(&first,0,sizeof(first));     
     }
@@ -184,3 +184,11 @@ void LedIndication(void)
     CyDelay(10);
     led_green_Write(LED_OFF);
 }
+
+
+/*
+*таймер зчитує мс . незабути вкінці їх відняти
+*
+*
+*
+*/
