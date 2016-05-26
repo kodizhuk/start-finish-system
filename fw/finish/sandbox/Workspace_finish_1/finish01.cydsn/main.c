@@ -37,12 +37,16 @@ void ShowTime(int maxSkier,struct SKIERRESULT skierTime[]);
 void LedIndication(void);  
 void deletTimeSkier(int number, struct SKIERRESULT skierTime[]);
 void deletTimeSkier(int numSkier, struct SKIERRESULT skier[]);
+void quantifyTimeRezult(struct SKIERRESULT *skierTime);
 
 /* flags status */
 /* skiers on track */
 bool onTrack = false;
 /* request read time skiers  */
 bool requestRead = false;
+
+/*press button finish*/
+bool pressFinish = false;
 
 /*number sportsmen last started and finished*/
 int last_started = 0;
@@ -67,8 +71,12 @@ CY_ISR(finishHandler)
         skierRezult[last_finished].finish.msec = timer_ReadCounter();
         
         /*increment last skier finished*/
-        last_finished++;     
+        last_finished++;
+        
+        /*button pressed flag*/
+        pressFinish = true;
     }
+    
     finish_ClearInterrupt();
 }
 
@@ -137,20 +145,84 @@ int main()
     isr_xbee_StartEx(xbeeHandler);        
       
     for(;;)
-    {
-        if(last_started == last_finished)onTrack = false;
+    {          
+        /*check skiers on the track*/
+        if(last_finished == last_started)
+            onTrack = false;   
         if(onTrack) 
-            LedIndication();   
+            LedIndication();
+        /*if incomming command read*/
         if(requestRead){
             ShowTime(MAXSKIER,skierRezult);
             requestRead = false;
         }
-        CyDelay(2000);
-        /*reset struct first*/
-        //if(!runStopwach)memset(&first,0,sizeof(first));     
+        
+        if(pressFinish){
+            quantifyTimeRezult(&skierRezult[last_finished-1]);
+            pressFinish = false;
+        }
+        
+        CyDelay(1000);
     }
 }
 
+
+/*******************************************************
+* Function name: quantifyTimeRezult
+*
+* Function write rezult subtraction between start and finish
+* 
+* Parameters:
+* skierTime - struct from time skier
+*******************************************************/
+void quantifyTimeRezult(struct SKIERRESULT *skierTime)
+{
+    int rezult;
+    int negative = 0;
+       
+    rezult = skierTime->finish.msec - skierTime->start.msec;
+    if(rezult < 0){
+        rezult =1000+rezult;
+        negative = -1;
+    }
+    skierTime->rezult.msec = rezult;
+    
+    rezult = skierTime->finish.sec - skierTime->start.sec;
+    if(rezult < 0){
+        rezult = 60+rezult+negative; 
+        negative = -1;
+    }
+    else {
+        rezult = rezult+negative;
+        negative = 0;
+    }
+    skierTime->rezult.sec = rezult;
+       
+    rezult = skierTime->finish.min - skierTime->start.min;
+    if(rezult < 0){
+        rezult = 60+rezult+negative; 
+        negative = -1;
+    }
+    else {
+        rezult = rezult+negative;
+        negative = 0;
+    }
+    skierTime->rezult.min = rezult;
+   
+    rezult = skierTime->finish.hour - skierTime->start.hour + negative;
+    if(rezult > 0)skierTime->rezult.hour = rezult + negative;
+}
+
+
+/*******************************************************
+* Function name: deletTimeSkier
+*
+* Function remove rezult from the table
+* 
+* Parameters:
+* numSkier - number skier for remove.
+* skier[] - struct from time skiers
+*******************************************************/
 void deletTimeSkier(int numSkier, struct SKIERRESULT skier[])
 {
     memset(&skier[numSkier-1],0,sizeof(skier[numSkier-1]));
@@ -164,7 +236,7 @@ void deletTimeSkier(int numSkier, struct SKIERRESULT skier[])
 * 
 * Parameters:
 * maxSkier - max skier on distancion.
-* SKIERRESULT *skier - struct from time skiers
+* skier[] - struct from time skiers
 *******************************************************/
 void ShowTime(int maxSkier,struct SKIERRESULT skier[])
 {
@@ -204,11 +276,3 @@ void LedIndication(void)
     CyDelay(10);
     led_green_Write(LED_OFF);
 }
-
-
-/*
-*таймер зчитує мс . незабути вкінці їх відняти
-*
-*
-*
-*/
