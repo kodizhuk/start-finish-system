@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: int_blinc.c  
+* File Name: int_status.c  
 * Version 1.70
 *
 *  Description:
@@ -18,15 +18,15 @@
 
 #include <cydevice_trm.h>
 #include <CyLib.h>
-#include <int_blinc.h>
+#include <int_status.h>
 #include "cyapicallbacks.h"
 
-#if !defined(int_blinc__REMOVED) /* Check for removal by optimization */
+#if !defined(int_status__REMOVED) /* Check for removal by optimization */
 
 /*******************************************************************************
 *  Place your includes, defines and code here 
 ********************************************************************************/
-/* `#START int_blinc_intc` */
+/* `#START int_status_intc` */
 
 /* `#END` */
 
@@ -37,7 +37,7 @@ CY_ISR_PROTO(IntDefaultHandler);
 
 
 /*******************************************************************************
-* Function Name: int_blinc_Start
+* Function Name: int_status_Start
 ********************************************************************************
 *
 * Summary:
@@ -53,24 +53,24 @@ CY_ISR_PROTO(IntDefaultHandler);
 *   None
 *
 *******************************************************************************/
-void int_blinc_Start(void)
+void int_status_Start(void)
 {
     /* For all we know the interrupt is active. */
-    int_blinc_Disable();
+    int_status_Disable();
 
-    /* Set the ISR to point to the int_blinc Interrupt. */
-    int_blinc_SetVector(&int_blinc_Interrupt);
+    /* Set the ISR to point to the int_status Interrupt. */
+    int_status_SetVector(&int_status_Interrupt);
 
     /* Set the priority. */
-    int_blinc_SetPriority((uint8)int_blinc_INTC_PRIOR_NUMBER);
+    int_status_SetPriority((uint8)int_status_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    int_blinc_Enable();
+    int_status_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_StartEx
+* Function Name: int_status_StartEx
 ********************************************************************************
 *
 * Summary:
@@ -96,24 +96,24 @@ void int_blinc_Start(void)
 *   None
 *
 *******************************************************************************/
-void int_blinc_StartEx(cyisraddress address)
+void int_status_StartEx(cyisraddress address)
 {
     /* For all we know the interrupt is active. */
-    int_blinc_Disable();
+    int_status_Disable();
 
-    /* Set the ISR to point to the int_blinc Interrupt. */
-    int_blinc_SetVector(address);
+    /* Set the ISR to point to the int_status Interrupt. */
+    int_status_SetVector(address);
 
     /* Set the priority. */
-    int_blinc_SetPriority((uint8)int_blinc_INTC_PRIOR_NUMBER);
+    int_status_SetPriority((uint8)int_status_INTC_PRIOR_NUMBER);
 
     /* Enable it. */
-    int_blinc_Enable();
+    int_status_Enable();
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_Stop
+* Function Name: int_status_Stop
 ********************************************************************************
 *
 * Summary:
@@ -126,22 +126,22 @@ void int_blinc_StartEx(cyisraddress address)
 *   None
 *
 *******************************************************************************/
-void int_blinc_Stop(void)
+void int_status_Stop(void)
 {
     /* Disable this interrupt. */
-    int_blinc_Disable();
+    int_status_Disable();
 
     /* Set the ISR to point to the passive one. */
-    int_blinc_SetVector(&IntDefaultHandler);
+    int_status_SetVector(&IntDefaultHandler);
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_Interrupt
+* Function Name: int_status_Interrupt
 ********************************************************************************
 *
 * Summary:
-*   The default Interrupt Service Routine for int_blinc.
+*   The default Interrupt Service Routine for int_status.
 *
 *   Add custom code between the START and END comments to keep the next version
 *   of this file from over-writing your code.
@@ -156,27 +156,27 @@ void int_blinc_Stop(void)
 *   None
 *
 *******************************************************************************/
-CY_ISR(int_blinc_Interrupt)
+CY_ISR(int_status_Interrupt)
 {
-    #ifdef int_blinc_INTERRUPT_INTERRUPT_CALLBACK
-        int_blinc_Interrupt_InterruptCallback();
-    #endif /* int_blinc_INTERRUPT_INTERRUPT_CALLBACK */ 
+    #ifdef int_status_INTERRUPT_INTERRUPT_CALLBACK
+        int_status_Interrupt_InterruptCallback();
+    #endif /* int_status_INTERRUPT_INTERRUPT_CALLBACK */ 
 
     /*  Place your Interrupt code here. */
-    /* `#START int_blinc_Interrupt` */
+    /* `#START int_status_Interrupt` */
 
     /* `#END` */
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_SetVector
+* Function Name: int_status_SetVector
 ********************************************************************************
 *
 * Summary:
-*   Change the ISR vector for the Interrupt. Note calling int_blinc_Start
+*   Change the ISR vector for the Interrupt. Note calling int_status_Start
 *   will override any effect this method would have had. To set the vector 
-*   before the component has been started use int_blinc_StartEx instead.
+*   before the component has been started use int_status_StartEx instead.
 * 
 *   When defining ISR functions, the CY_ISR and CY_ISR_PROTO macros should be 
 *   used to provide consistent definition across compilers:
@@ -196,14 +196,14 @@ CY_ISR(int_blinc_Interrupt)
 *   None
 *
 *******************************************************************************/
-void int_blinc_SetVector(cyisraddress address)
+void int_status_SetVector(cyisraddress address)
 {
-    CyRamVectors[CYINT_IRQ_BASE + int_blinc__INTC_NUMBER] = address;
+    CyRamVectors[CYINT_IRQ_BASE + int_status__INTC_NUMBER] = address;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_GetVector
+* Function Name: int_status_GetVector
 ********************************************************************************
 *
 * Summary:
@@ -216,22 +216,22 @@ void int_blinc_SetVector(cyisraddress address)
 *   Address of the ISR in the interrupt vector table.
 *
 *******************************************************************************/
-cyisraddress int_blinc_GetVector(void)
+cyisraddress int_status_GetVector(void)
 {
-    return CyRamVectors[CYINT_IRQ_BASE + int_blinc__INTC_NUMBER];
+    return CyRamVectors[CYINT_IRQ_BASE + int_status__INTC_NUMBER];
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_SetPriority
+* Function Name: int_status_SetPriority
 ********************************************************************************
 *
 * Summary:
 *   Sets the Priority of the Interrupt. 
 *
-*   Note calling int_blinc_Start or int_blinc_StartEx will 
+*   Note calling int_status_Start or int_status_StartEx will 
 *   override any effect this API would have had. This API should only be called
-*   after int_blinc_Start or int_blinc_StartEx has been called. 
+*   after int_status_Start or int_status_StartEx has been called. 
 *   To set the initial priority for the component, use the Design-Wide Resources
 *   Interrupt Editor.
 *
@@ -246,20 +246,20 @@ cyisraddress int_blinc_GetVector(void)
 *   None
 *
 *******************************************************************************/
-void int_blinc_SetPriority(uint8 priority)
+void int_status_SetPriority(uint8 priority)
 {
 	uint8 interruptState;
-    uint32 priorityOffset = ((int_blinc__INTC_NUMBER % 4u) * 8u) + 6u;
+    uint32 priorityOffset = ((int_status__INTC_NUMBER % 4u) * 8u) + 6u;
     
 	interruptState = CyEnterCriticalSection();
-    *int_blinc_INTC_PRIOR = (*int_blinc_INTC_PRIOR & (uint32)(~int_blinc__INTC_PRIOR_MASK)) |
+    *int_status_INTC_PRIOR = (*int_status_INTC_PRIOR & (uint32)(~int_status__INTC_PRIOR_MASK)) |
                                     ((uint32)priority << priorityOffset);
 	CyExitCriticalSection(interruptState);
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_GetPriority
+* Function Name: int_status_GetPriority
 ********************************************************************************
 *
 * Summary:
@@ -274,19 +274,19 @@ void int_blinc_SetPriority(uint8 priority)
 *    PSoC 4: Priority is from 0 to 3.
 *
 *******************************************************************************/
-uint8 int_blinc_GetPriority(void)
+uint8 int_status_GetPriority(void)
 {
     uint32 priority;
-	uint32 priorityOffset = ((int_blinc__INTC_NUMBER % 4u) * 8u) + 6u;
+	uint32 priorityOffset = ((int_status__INTC_NUMBER % 4u) * 8u) + 6u;
 
-    priority = (*int_blinc_INTC_PRIOR & int_blinc__INTC_PRIOR_MASK) >> priorityOffset;
+    priority = (*int_status_INTC_PRIOR & int_status__INTC_PRIOR_MASK) >> priorityOffset;
 
     return (uint8)priority;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_Enable
+* Function Name: int_status_Enable
 ********************************************************************************
 *
 * Summary:
@@ -301,15 +301,15 @@ uint8 int_blinc_GetPriority(void)
 *   None
 *
 *******************************************************************************/
-void int_blinc_Enable(void)
+void int_status_Enable(void)
 {
     /* Enable the general interrupt. */
-    *int_blinc_INTC_SET_EN = int_blinc__INTC_MASK;
+    *int_status_INTC_SET_EN = int_status__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_GetState
+* Function Name: int_status_GetState
 ********************************************************************************
 *
 * Summary:
@@ -322,15 +322,15 @@ void int_blinc_Enable(void)
 *   1 if enabled, 0 if disabled.
 *
 *******************************************************************************/
-uint8 int_blinc_GetState(void)
+uint8 int_status_GetState(void)
 {
     /* Get the state of the general interrupt. */
-    return ((*int_blinc_INTC_SET_EN & (uint32)int_blinc__INTC_MASK) != 0u) ? 1u:0u;
+    return ((*int_status_INTC_SET_EN & (uint32)int_status__INTC_MASK) != 0u) ? 1u:0u;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_Disable
+* Function Name: int_status_Disable
 ********************************************************************************
 *
 * Summary:
@@ -343,15 +343,15 @@ uint8 int_blinc_GetState(void)
 *   None
 *
 *******************************************************************************/
-void int_blinc_Disable(void)
+void int_status_Disable(void)
 {
     /* Disable the general interrupt. */
-    *int_blinc_INTC_CLR_EN = int_blinc__INTC_MASK;
+    *int_status_INTC_CLR_EN = int_status__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_SetPending
+* Function Name: int_status_SetPending
 ********************************************************************************
 *
 * Summary:
@@ -370,14 +370,14 @@ void int_blinc_Disable(void)
 *   interrupts).
 *
 *******************************************************************************/
-void int_blinc_SetPending(void)
+void int_status_SetPending(void)
 {
-    *int_blinc_INTC_SET_PD = int_blinc__INTC_MASK;
+    *int_status_INTC_SET_PD = int_status__INTC_MASK;
 }
 
 
 /*******************************************************************************
-* Function Name: int_blinc_ClearPending
+* Function Name: int_status_ClearPending
 ********************************************************************************
 *
 * Summary:
@@ -395,9 +395,9 @@ void int_blinc_SetPending(void)
 *   None
 *
 *******************************************************************************/
-void int_blinc_ClearPending(void)
+void int_status_ClearPending(void)
 {
-    *int_blinc_INTC_CLR_PD = int_blinc__INTC_MASK;
+    *int_status_INTC_CLR_PD = int_status__INTC_MASK;
 }
 
 #endif /* End check for removal by optimization */

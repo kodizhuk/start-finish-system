@@ -290,61 +290,6 @@
 #define start__SHIFT 7
 #define start__SNAP CYREG_PRT0_INTSTAT
 
-/* wired */
-#define wired__0__DM__MASK 0xE00000u
-#define wired__0__DM__SHIFT 21
-#define wired__0__DR CYREG_PRT2_DR
-#define wired__0__HSIOM CYREG_HSIOM_PORT_SEL2
-#define wired__0__HSIOM_MASK 0xF0000000u
-#define wired__0__HSIOM_SHIFT 28u
-#define wired__0__INTCFG CYREG_PRT2_INTCFG
-#define wired__0__INTSTAT CYREG_PRT2_INTSTAT
-#define wired__0__MASK 0x80u
-#define wired__0__PA__CFG0 CYREG_UDB_PA2_CFG0
-#define wired__0__PA__CFG1 CYREG_UDB_PA2_CFG1
-#define wired__0__PA__CFG10 CYREG_UDB_PA2_CFG10
-#define wired__0__PA__CFG11 CYREG_UDB_PA2_CFG11
-#define wired__0__PA__CFG12 CYREG_UDB_PA2_CFG12
-#define wired__0__PA__CFG13 CYREG_UDB_PA2_CFG13
-#define wired__0__PA__CFG14 CYREG_UDB_PA2_CFG14
-#define wired__0__PA__CFG2 CYREG_UDB_PA2_CFG2
-#define wired__0__PA__CFG3 CYREG_UDB_PA2_CFG3
-#define wired__0__PA__CFG4 CYREG_UDB_PA2_CFG4
-#define wired__0__PA__CFG5 CYREG_UDB_PA2_CFG5
-#define wired__0__PA__CFG6 CYREG_UDB_PA2_CFG6
-#define wired__0__PA__CFG7 CYREG_UDB_PA2_CFG7
-#define wired__0__PA__CFG8 CYREG_UDB_PA2_CFG8
-#define wired__0__PA__CFG9 CYREG_UDB_PA2_CFG9
-#define wired__0__PC CYREG_PRT2_PC
-#define wired__0__PC2 CYREG_PRT2_PC2
-#define wired__0__PORT 2u
-#define wired__0__PS CYREG_PRT2_PS
-#define wired__0__SHIFT 7
-#define wired__DR CYREG_PRT2_DR
-#define wired__INTCFG CYREG_PRT2_INTCFG
-#define wired__INTSTAT CYREG_PRT2_INTSTAT
-#define wired__MASK 0x80u
-#define wired__PA__CFG0 CYREG_UDB_PA2_CFG0
-#define wired__PA__CFG1 CYREG_UDB_PA2_CFG1
-#define wired__PA__CFG10 CYREG_UDB_PA2_CFG10
-#define wired__PA__CFG11 CYREG_UDB_PA2_CFG11
-#define wired__PA__CFG12 CYREG_UDB_PA2_CFG12
-#define wired__PA__CFG13 CYREG_UDB_PA2_CFG13
-#define wired__PA__CFG14 CYREG_UDB_PA2_CFG14
-#define wired__PA__CFG2 CYREG_UDB_PA2_CFG2
-#define wired__PA__CFG3 CYREG_UDB_PA2_CFG3
-#define wired__PA__CFG4 CYREG_UDB_PA2_CFG4
-#define wired__PA__CFG5 CYREG_UDB_PA2_CFG5
-#define wired__PA__CFG6 CYREG_UDB_PA2_CFG6
-#define wired__PA__CFG7 CYREG_UDB_PA2_CFG7
-#define wired__PA__CFG8 CYREG_UDB_PA2_CFG8
-#define wired__PA__CFG9 CYREG_UDB_PA2_CFG9
-#define wired__PC CYREG_PRT2_PC
-#define wired__PC2 CYREG_PRT2_PC2
-#define wired__PORT 2u
-#define wired__PS CYREG_PRT2_PS
-#define wired__SHIFT 7
-
 /* cancel */
 #define cancel__0__DM__MASK 0xE00000u
 #define cancel__0__DM__SHIFT 21
@@ -740,17 +685,6 @@
 #define led_blue__PS CYREG_PRT0_PS
 #define led_blue__SHIFT 3
 
-/* int_blinc */
-#define int_blinc__INTC_CLR_EN_REG CYREG_CM0_ICER
-#define int_blinc__INTC_CLR_PD_REG CYREG_CM0_ICPR
-#define int_blinc__INTC_MASK 0x200u
-#define int_blinc__INTC_NUMBER 9u
-#define int_blinc__INTC_PRIOR_MASK 0xC000u
-#define int_blinc__INTC_PRIOR_NUM 3u
-#define int_blinc__INTC_PRIOR_REG CYREG_CM0_IPR2
-#define int_blinc__INTC_SET_EN_REG CYREG_CM0_ISER
-#define int_blinc__INTC_SET_PD_REG CYREG_CM0_ISPR
-
 /* int_button */
 #define int_button__INTC_CLR_EN_REG CYREG_CM0_ICER
 #define int_button__INTC_CLR_PD_REG CYREG_CM0_ICPR
@@ -761,6 +695,17 @@
 #define int_button__INTC_PRIOR_REG CYREG_CM0_IPR0
 #define int_button__INTC_SET_EN_REG CYREG_CM0_ISER
 #define int_button__INTC_SET_PD_REG CYREG_CM0_ISPR
+
+/* int_status */
+#define int_status__INTC_CLR_EN_REG CYREG_CM0_ICER
+#define int_status__INTC_CLR_PD_REG CYREG_CM0_ICPR
+#define int_status__INTC_MASK 0x200u
+#define int_status__INTC_NUMBER 9u
+#define int_status__INTC_PRIOR_MASK 0xC000u
+#define int_status__INTC_PRIOR_NUM 3u
+#define int_status__INTC_PRIOR_REG CYREG_CM0_IPR2
+#define int_status__INTC_SET_EN_REG CYREG_CM0_ISER
+#define int_status__INTC_SET_PD_REG CYREG_CM0_ISPR
 
 /* int_inputData */
 #define int_inputData__INTC_CLR_EN_REG CYREG_CM0_ICER

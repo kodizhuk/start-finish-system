@@ -170,8 +170,7 @@ void ShowTime(int maxSkier,struct SKIERRESULT *skier)
 /*******************************************************
 * Function name: LedIndication
 *
-* Function led off(led on in interrrupt timer
-* if skier on distancion)
+* Function blinc led
 * 
 *******************************************************/
 void LedIndication(void)
@@ -179,7 +178,7 @@ void LedIndication(void)
     int LED_ON = 0;
     int LED_OFF = 1;
     
-    /*off led(on in interrupt in timer)*/   
+    /*blinc led*/   
     led_green_Write(LED_ON);
     CyDelay(10);
     led_green_Write(LED_OFF);
