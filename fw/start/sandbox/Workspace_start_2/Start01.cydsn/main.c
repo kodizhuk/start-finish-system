@@ -124,6 +124,7 @@ int main(void)
         CyDelay(2000);
 
         int skierToDisplay = last_finished;
+        
         displaySkierInfoOneSkier(skierToDisplay, &skierRezult[skierToDisplay].rezult);
         //displaySkierInfoAllTable(skierRezult);
     }

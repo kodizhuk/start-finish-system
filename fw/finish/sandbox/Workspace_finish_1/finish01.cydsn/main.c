@@ -151,12 +151,14 @@ int main()
             onTrack = false;   
         if(onTrack) 
             LedIndication();
+            
         /*if incomming command read*/
         if(requestRead){
             ShowTime(MAXSKIER,skierRezult);
             requestRead = false;
         }
         
+        /*write rezult if pressed button finish*/
         if(pressFinish){
             quantifyTimeRezult(&skierRezult[last_finished-1]);
             pressFinish = false;
@@ -178,6 +180,7 @@ int main()
 void quantifyTimeRezult(struct SKIERRESULT *skierTime)
 {
     int rezult;
+    /*if previous rezult is negative*/
     int negative = 0;
        
     rezult = skierTime->finish.msec - skierTime->start.msec;
