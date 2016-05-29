@@ -7,7 +7,6 @@
 
 /*Commands*/
 #define COMMAND_START       's'
-#define COMMAND_CANCEL      'c'
 #define COMMAND_READ        'r'
 #define COMMAND_ST_CONNECT  'q'
 
@@ -15,33 +14,33 @@
 #define PRESSED 0
   
 /* Structure for have current skyer time */
-struct time{
+typedef struct time{
     uint16_t hour;
     uint16_t min;
     uint16_t sec;
     uint16_t msec;
-};
+}TIME_T;
 
 /* Structure for have start, finish 
 *   and rezult  skier time
 */
 struct SKIERRESULT{
-    struct time start;
-    struct time finish;
-    struct time rezult;
+    TIME_T start;
+    TIME_T finish;
+    TIME_T rezult;
 }skierRezult[MAXSKIER];      
 
 
-void LedIndication(bool start_press, bool cancel_press);
+void LedIndication(bool start_press);
 void DisplayIndication(int numSkier, int numSkiers, struct SKIERRESULT *skierTime);
 void ReadTime(void);
-void displaySkierInfoOneSkier(int numSkier, struct time *skierInfo);
-void displaySkierInfoAllTable(struct SKIERRESULT skierInfo[]);
+//void displaySkierInfoOneSkier(int numSkier, struct time *skierInfo);
+//void displaySkierInfoAllTable(struct SKIERRESULT skierInfo[]);
+void sleepSystem(void);
 
 
 /*flags pressed button */
-bool startPress = false;    
-bool cancelPress = false;
+bool startPress = false;  
 
 /*flags, true if skier on track*/
 bool onTrack = false;
@@ -51,51 +50,27 @@ uint32_t last_started = 0;
 uint32_t last_finished = 0;
 
 
-/*interrupt for start or cancel button*/
+/*interrupt for start button*/
 CY_ISR(buttonHandler)        
 {
-    if(start_Read()==PRESSED){
-        if(last_started < MAXSKIER){
-            last_started++;
+        if(last_started < MAXSKIER)
+        { 
             /*put simbol start and number for skier*/  
             xbee_PutChar(COMMAND_START);  
             
+            last_started++;
             /*skier on track*/
             onTrack = true;
             /* LED indication*/
             startPress = true;
-            LedIndication(startPress, cancelPress);
+            LedIndication(startPress);
             startPress = false;
         }
     start_ClearInterrupt();
-    }
-    else if(cancel_Read()==PRESSED){
-        if(onTrack){
-            char string_buff[16];
-            
-            /*put simbol cancel and number for skier*/
-            sprintf(string_buff,"%c%c",COMMAND_CANCEL,last_started+'0');
-            xbee_PutString(string_buff);
-            
-            /*delet ende skier*/
-            if(last_started > 1)last_started--;
-            else onTrack = false;
-            
-            /*LED indication*/
-            cancelPress = true;
-            LedIndication(startPress, cancelPress);
-            cancelPress = false;
-        }
-    cancel_ClearInterrupt();
-    }
+
+
 }
 
-/*intettupt for incoming data*/
-CY_ISR(in_dataHandler)    
-{       
-    /*record time skiers */
-    //ReadTime();
-}
 
 CY_ISR(statusHandler)
 {
@@ -111,21 +86,20 @@ int main(void)
     CyGlobalIntEnable;   
     
     xbee_Start();                       
-    display_Start();
+    //display_Start();
             
-    int_inputData_StartEx(in_dataHandler);
     int_button_StartEx(buttonHandler); 
     int_status_StartEx(statusHandler);
     
     
     for(;;)
     {  
-        LedIndication(startPress, cancelPress);
-        CyDelay(2000);
+        LedIndication(startPress);
+        sleepSystem();
 
-        int skierToDisplay = last_finished;
-        
-        displaySkierInfoOneSkier(skierToDisplay, &skierRezult[skierToDisplay].rezult);
+        /*print skier rezult to display*/
+        //int skierToDisplay = last_finished;
+        //displaySkierInfoOneSkier(skierToDisplay, &skierRezult[skierToDisplay].rezult);
         //displaySkierInfoAllTable(skierRezult);
     }
 }
@@ -191,14 +165,12 @@ void displaySkierInfoOneSkier(int numSkier, struct time *skierInfo)
 * Function  blink led 
 * when the key pressed:
 * if pressed "start", blinc blue led 6 times
-* if pressed "cancel", blinc red led 10 times
 *
 * Parameters:
-* startPress - press button Start. Valid range - true, falsh
-* cancelPress - press button Cancel. Valid range - true, false
+* startPress - press button Start. Valid range - true, falsh. Valid range - true, false
 *
 *******************************************************/
-void LedIndication(bool start_press, bool cancel_press)
+void LedIndication(bool start_press)
 {
     int i;
     int LED_ON = 0;
@@ -215,18 +187,16 @@ void LedIndication(bool start_press, bool cancel_press)
             led_blue_Write(~led_blue_Read());
             CyDelay(50);
         }
-    }
-    /*func blinc red led(cancel)*/
-    if(cancel_press){
-        for(i=0;i<10;i++){       
-            led_red_Write(~led_red_Read());
-            CyDelay(50);
-        } 
-    }
+    } 
 }
 
-
-void ReadTime()
+/*******************************************************
+* Function name: sleepSystem
+*
+* Function  sleep the system
+*
+*******************************************************/
+void sleepSystem(void)
 {
-    
+    CyDelay(1000);
 }

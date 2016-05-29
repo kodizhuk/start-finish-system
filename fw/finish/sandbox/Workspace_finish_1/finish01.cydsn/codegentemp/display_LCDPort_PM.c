@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: cancel.c  
+* File Name: display_LCDPort.c  
 * Version 2.20
 *
 * Description:
@@ -15,13 +15,13 @@
 *******************************************************************************/
 
 #include "cytypes.h"
-#include "cancel.h"
+#include "display_LCDPort.h"
 
-static cancel_BACKUP_STRUCT  cancel_backup = {0u, 0u, 0u};
+static display_LCDPort_BACKUP_STRUCT  display_LCDPort_backup = {0u, 0u, 0u};
 
 
 /*******************************************************************************
-* Function Name: cancel_Sleep
+* Function Name: display_LCDPort_Sleep
 ****************************************************************************//**
 *
 * \brief Stores the pin configuration and prepares the pin for entering chip 
@@ -39,30 +39,30 @@ static cancel_BACKUP_STRUCT  cancel_backup = {0u, 0u, 0u};
 *  deep-sleep/hibernate modes.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_Sleep_Wakeup
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_Sleep_Wakeup
 *******************************************************************************/
-void cancel_Sleep(void)
+void display_LCDPort_Sleep(void)
 {
-    #if defined(cancel__PC)
-        cancel_backup.pcState = cancel_PC;
+    #if defined(display_LCDPort__PC)
+        display_LCDPort_backup.pcState = display_LCDPort_PC;
     #else
         #if (CY_PSOC4_4200L)
             /* Save the regulator state and put the PHY into suspend mode */
-            cancel_backup.usbState = cancel_CR1_REG;
-            cancel_USB_POWER_REG |= cancel_USBIO_ENTER_SLEEP;
-            cancel_CR1_REG &= cancel_USBIO_CR1_OFF;
+            display_LCDPort_backup.usbState = display_LCDPort_CR1_REG;
+            display_LCDPort_USB_POWER_REG |= display_LCDPort_USBIO_ENTER_SLEEP;
+            display_LCDPort_CR1_REG &= display_LCDPort_USBIO_CR1_OFF;
         #endif
     #endif
-    #if defined(CYIPBLOCK_m0s8ioss_VERSION) && defined(cancel__SIO)
-        cancel_backup.sioState = cancel_SIO_REG;
+    #if defined(CYIPBLOCK_m0s8ioss_VERSION) && defined(display_LCDPort__SIO)
+        display_LCDPort_backup.sioState = display_LCDPort_SIO_REG;
         /* SIO requires unregulated output buffer and single ended input buffer */
-        cancel_SIO_REG &= (uint32)(~cancel_SIO_LPM_MASK);
+        display_LCDPort_SIO_REG &= (uint32)(~display_LCDPort_SIO_LPM_MASK);
     #endif  
 }
 
 
 /*******************************************************************************
-* Function Name: cancel_Wakeup
+* Function Name: display_LCDPort_Wakeup
 ****************************************************************************//**
 *
 * \brief Restores the pin configuration that was saved during Pin_Sleep().
@@ -75,22 +75,22 @@ void cancel_Sleep(void)
 *  None
 *  
 * \funcusage
-*  Refer to cancel_Sleep() for an example usage.
+*  Refer to display_LCDPort_Sleep() for an example usage.
 *******************************************************************************/
-void cancel_Wakeup(void)
+void display_LCDPort_Wakeup(void)
 {
-    #if defined(cancel__PC)
-        cancel_PC = cancel_backup.pcState;
+    #if defined(display_LCDPort__PC)
+        display_LCDPort_PC = display_LCDPort_backup.pcState;
     #else
         #if (CY_PSOC4_4200L)
             /* Restore the regulator state and come out of suspend mode */
-            cancel_USB_POWER_REG &= cancel_USBIO_EXIT_SLEEP_PH1;
-            cancel_CR1_REG = cancel_backup.usbState;
-            cancel_USB_POWER_REG &= cancel_USBIO_EXIT_SLEEP_PH2;
+            display_LCDPort_USB_POWER_REG &= display_LCDPort_USBIO_EXIT_SLEEP_PH1;
+            display_LCDPort_CR1_REG = display_LCDPort_backup.usbState;
+            display_LCDPort_USB_POWER_REG &= display_LCDPort_USBIO_EXIT_SLEEP_PH2;
         #endif
     #endif
-    #if defined(CYIPBLOCK_m0s8ioss_VERSION) && defined(cancel__SIO)
-        cancel_SIO_REG = cancel_backup.sioState;
+    #if defined(CYIPBLOCK_m0s8ioss_VERSION) && defined(display_LCDPort__SIO)
+        display_LCDPort_SIO_REG = display_LCDPort_backup.sioState;
     #endif
 }
 

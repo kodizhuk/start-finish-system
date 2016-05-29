@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: cancel.c  
+* File Name: display_LCDPort.c  
 * Version 2.20
 *
 * Description:
@@ -13,35 +13,35 @@
 *******************************************************************************/
 
 #include "cytypes.h"
-#include "cancel.h"
+#include "display_LCDPort.h"
 
 
-#if defined(cancel__PC)
-    #define cancel_SetP4PinDriveMode(shift, mode)  \
+#if defined(display_LCDPort__PC)
+    #define display_LCDPort_SetP4PinDriveMode(shift, mode)  \
     do { \
-        cancel_PC =   (cancel_PC & \
-                                (uint32)(~(uint32)(cancel_DRIVE_MODE_IND_MASK << \
-                                (cancel_DRIVE_MODE_BITS * (shift))))) | \
+        display_LCDPort_PC =   (display_LCDPort_PC & \
+                                (uint32)(~(uint32)(display_LCDPort_DRIVE_MODE_IND_MASK << \
+                                (display_LCDPort_DRIVE_MODE_BITS * (shift))))) | \
                                 (uint32)((uint32)(mode) << \
-                                (cancel_DRIVE_MODE_BITS * (shift))); \
+                                (display_LCDPort_DRIVE_MODE_BITS * (shift))); \
     } while (0)
 #else
     #if (CY_PSOC4_4200L)
-        #define cancel_SetP4PinDriveMode(shift, mode)  \
+        #define display_LCDPort_SetP4PinDriveMode(shift, mode)  \
         do { \
-            cancel_USBIO_CTRL_REG = (cancel_USBIO_CTRL_REG & \
-                                    (uint32)(~(uint32)(cancel_DRIVE_MODE_IND_MASK << \
-                                    (cancel_DRIVE_MODE_BITS * (shift))))) | \
+            display_LCDPort_USBIO_CTRL_REG = (display_LCDPort_USBIO_CTRL_REG & \
+                                    (uint32)(~(uint32)(display_LCDPort_DRIVE_MODE_IND_MASK << \
+                                    (display_LCDPort_DRIVE_MODE_BITS * (shift))))) | \
                                     (uint32)((uint32)(mode) << \
-                                    (cancel_DRIVE_MODE_BITS * (shift))); \
+                                    (display_LCDPort_DRIVE_MODE_BITS * (shift))); \
         } while (0)
     #endif
 #endif
   
 
-#if defined(cancel__PC) || (CY_PSOC4_4200L) 
+#if defined(display_LCDPort__PC) || (CY_PSOC4_4200L) 
     /*******************************************************************************
-    * Function Name: cancel_SetDriveMode
+    * Function Name: display_LCDPort_SetDriveMode
     ****************************************************************************//**
     *
     * \brief Sets the drive mode for each of the Pins component's pins.
@@ -67,17 +67,23 @@
     *  APIs (primary method) or disable interrupts around this function.
     *
     * \funcusage
-    *  \snippet cancel_SUT.c usage_cancel_SetDriveMode
+    *  \snippet display_LCDPort_SUT.c usage_display_LCDPort_SetDriveMode
     *******************************************************************************/
-    void cancel_SetDriveMode(uint8 mode)
+    void display_LCDPort_SetDriveMode(uint8 mode)
     {
-		cancel_SetP4PinDriveMode(cancel__0__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__0__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__1__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__2__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__3__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__4__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__5__SHIFT, mode);
+		display_LCDPort_SetP4PinDriveMode(display_LCDPort__6__SHIFT, mode);
     }
 #endif
 
 
 /*******************************************************************************
-* Function Name: cancel_Write
+* Function Name: display_LCDPort_Write
 ****************************************************************************//**
 *
 * \brief Writes the value to the physical port (data output register), masking
@@ -106,18 +112,18 @@
 *  this function.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_Write
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_Write
 *******************************************************************************/
-void cancel_Write(uint8 value)
+void display_LCDPort_Write(uint8 value)
 {
-    uint8 drVal = (uint8)(cancel_DR & (uint8)(~cancel_MASK));
-    drVal = (drVal | ((uint8)(value << cancel_SHIFT) & cancel_MASK));
-    cancel_DR = (uint32)drVal;
+    uint8 drVal = (uint8)(display_LCDPort_DR & (uint8)(~display_LCDPort_MASK));
+    drVal = (drVal | ((uint8)(value << display_LCDPort_SHIFT) & display_LCDPort_MASK));
+    display_LCDPort_DR = (uint32)drVal;
 }
 
 
 /*******************************************************************************
-* Function Name: cancel_Read
+* Function Name: display_LCDPort_Read
 ****************************************************************************//**
 *
 * \brief Reads the associated physical port (pin status register) and masks 
@@ -131,16 +137,16 @@ void cancel_Write(uint8 value)
 *  The current value for the pins in the component as a right justified number.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_Read  
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_Read  
 *******************************************************************************/
-uint8 cancel_Read(void)
+uint8 display_LCDPort_Read(void)
 {
-    return (uint8)((cancel_PS & cancel_MASK) >> cancel_SHIFT);
+    return (uint8)((display_LCDPort_PS & display_LCDPort_MASK) >> display_LCDPort_SHIFT);
 }
 
 
 /*******************************************************************************
-* Function Name: cancel_ReadDataReg
+* Function Name: display_LCDPort_ReadDataReg
 ****************************************************************************//**
 *
 * \brief Reads the associated physical port's data output register and masks 
@@ -149,8 +155,8 @@ uint8 cancel_Read(void)
 *
 * The data output register controls the signal applied to the physical pin in 
 * conjunction with the drive mode parameter. This is not the same as the 
-* preferred cancel_Read() API because the 
-* cancel_ReadDataReg() reads the data register instead of the status 
+* preferred display_LCDPort_Read() API because the 
+* display_LCDPort_ReadDataReg() reads the data register instead of the status 
 * register. For output pins this is a useful function to determine the value 
 * just written to the pin.
 *
@@ -159,16 +165,16 @@ uint8 cancel_Read(void)
 *  justified number for the component instance.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_ReadDataReg 
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_ReadDataReg 
 *******************************************************************************/
-uint8 cancel_ReadDataReg(void)
+uint8 display_LCDPort_ReadDataReg(void)
 {
-    return (uint8)((cancel_DR & cancel_MASK) >> cancel_SHIFT);
+    return (uint8)((display_LCDPort_DR & display_LCDPort_MASK) >> display_LCDPort_SHIFT);
 }
 
 
 /*******************************************************************************
-* Function Name: cancel_SetInterruptMode
+* Function Name: display_LCDPort_SetInterruptMode
 ****************************************************************************//**
 *
 * \brief Configures the interrupt mode for each of the Pins component's
@@ -181,12 +187,12 @@ uint8 cancel_ReadDataReg(void)
 * \param position
 *  The pin position as listed in the Pins component. You may OR these to be 
 *  able to configure the interrupt mode of multiple pins within a Pins 
-*  component. Or you may use cancel_INTR_ALL to configure the
+*  component. Or you may use display_LCDPort_INTR_ALL to configure the
 *  interrupt mode of all the pins in the Pins component.       
-*  - cancel_0_INTR       (First pin in the list)
-*  - cancel_1_INTR       (Second pin in the list)
+*  - display_LCDPort_0_INTR       (First pin in the list)
+*  - display_LCDPort_1_INTR       (Second pin in the list)
 *  - ...
-*  - cancel_INTR_ALL     (All pins in Pins component)
+*  - display_LCDPort_INTR_ALL     (All pins in Pins component)
 *
 * \param mode
 *  Interrupt mode for the selected pins. Valid options are documented in
@@ -202,19 +208,19 @@ uint8 cancel_ReadDataReg(void)
 *  port.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_SetInterruptMode
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_SetInterruptMode
 *******************************************************************************/
-void cancel_SetInterruptMode(uint16 position, uint16 mode)
+void display_LCDPort_SetInterruptMode(uint16 position, uint16 mode)
 {
     uint32 intrCfg;
     
-    intrCfg =  cancel_INTCFG & (uint32)(~(uint32)position);
-    cancel_INTCFG = intrCfg | ((uint32)position & (uint32)mode);
+    intrCfg =  display_LCDPort_INTCFG & (uint32)(~(uint32)position);
+    display_LCDPort_INTCFG = intrCfg | ((uint32)position & (uint32)mode);
 }
 
 
 /*******************************************************************************
-* Function Name: cancel_ClearInterrupt
+* Function Name: display_LCDPort_ClearInterrupt
 ****************************************************************************//**
 *
 * \brief Clears any active interrupts attached with the component and returns 
@@ -231,13 +237,13 @@ void cancel_SetInterruptMode(uint16 position, uint16 mode)
 *  those associated with the Pins component.
 *
 * \funcusage
-*  \snippet cancel_SUT.c usage_cancel_ClearInterrupt
+*  \snippet display_LCDPort_SUT.c usage_display_LCDPort_ClearInterrupt
 *******************************************************************************/
-uint8 cancel_ClearInterrupt(void)
+uint8 display_LCDPort_ClearInterrupt(void)
 {
-	uint8 maskedStatus = (uint8)(cancel_INTSTAT & cancel_MASK);
-	cancel_INTSTAT = maskedStatus;
-    return maskedStatus >> cancel_SHIFT;
+	uint8 maskedStatus = (uint8)(display_LCDPort_INTSTAT & display_LCDPort_MASK);
+	display_LCDPort_INTSTAT = maskedStatus;
+    return maskedStatus >> display_LCDPort_SHIFT;
 }
 
 

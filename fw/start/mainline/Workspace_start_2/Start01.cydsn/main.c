@@ -56,10 +56,11 @@ CY_ISR(buttonHandler)
 {
     if(start_Read()==PRESSED){
         if(last_started < MAXSKIER){
-            last_started++;
+            
             /*put simbol start and number for skier*/  
             xbee_PutChar(COMMAND_START);  
             
+            last_started++;
             /*skier on track*/
             onTrack = true;
             /* LED indication*/
@@ -124,6 +125,7 @@ int main(void)
         CyDelay(2000);
 
         int skierToDisplay = last_finished;
+        
         displaySkierInfoOneSkier(skierToDisplay, &skierRezult[skierToDisplay].rezult);
         //displaySkierInfoAllTable(skierRezult);
     }

@@ -38,6 +38,9 @@ void LedIndication(void);
 void deletTimeSkier(int number, struct SKIERRESULT skierTime[]);
 void deletTimeSkier(int numSkier, struct SKIERRESULT skier[]);
 void quantifyTimeRezult(struct SKIERRESULT *skierTime);
+void displaySkierInfoOneSkier(int numSkier, struct time *skierInfo);
+void displaySkierInfoAllTable(struct SKIERRESULT skierInfo[]);
+void sleepSystem(void);
 
 /* flags status */
 /* skiers on track */
@@ -139,11 +142,12 @@ int main()
     CyGlobalIntEnable; /* Enable global interrupts. */
     timer_Start();
     xbee_Start();
+    display_Start();
 
     isr_finish_StartEx(finishHandler);      
     isr_timer_StartEx(timerHandler);     
-    isr_xbee_StartEx(xbeeHandler);        
-      
+    isr_xbee_StartEx(xbeeHandler);
+    
     for(;;)
     {          
         /*check skiers on the track*/
@@ -164,7 +168,10 @@ int main()
             pressFinish = false;
         }
         
-        CyDelay(1000);
+        /*print skiers rezult to display*/
+        displaySkierInfoAllTable(skierRezult);
+        
+        sleepSystem();
     }
 }
 
@@ -278,4 +285,68 @@ void LedIndication(void)
     led_green_Write(LED_ON);
     CyDelay(10);
     led_green_Write(LED_OFF);
+}
+
+/*******************************************************
+* Function name: displaySkierInfoAllTable
+*
+* Function  print time all skier on display
+* display - row = 2, column = 16
+*
+* Parameters:
+* numSkier - num skier, you want to print
+* *skierInfo - struct from data about time skiers
+*
+*******************************************************/
+void displaySkierInfoAllTable(struct SKIERRESULT skierInfo[])
+{
+    int i;
+    /*row and column display*/
+    int row = 2;
+    int column = 16;
+    char string_buff[column];
+
+    for(i=0; i<row;i++)
+    {
+        sprintf(string_buff,"%i - %d:%d:%d:%d",  
+            i+1,skierInfo[i].rezult.hour, skierInfo[i].rezult.min, 
+            skierInfo[i].rezult.sec, skierInfo[i].rezult.msec);
+        display_Position(i,0);
+        display_PrintString(string_buff);        
+    }  
+}
+
+
+/*******************************************************
+* Function name: displaySkierInfoOneSkier
+*
+* Function  print time one skier on display
+* time skier print in position (0,0)
+*
+* Parameters:
+* numSkier - num skier, you want to print
+* *skierInfo - struct from data about time skiers
+*
+*******************************************************/
+void displaySkierInfoOneSkier(int numSkier, struct time *skierInfo)
+{    
+    char string_buff[16];
+    
+    sprintf(string_buff,"%i - %d:%d:%d:%d",  
+        numSkier+1,skierInfo->hour, skierInfo->min, 
+        skierInfo->sec, skierInfo->msec);
+    display_ClearDisplay();
+    display_Position(0,0);
+    display_PrintString(string_buff);
+}
+
+/*******************************************************
+* Function name: sleepSystem
+*
+* Function  sleep the system
+*
+*******************************************************/
+void sleepSystem(void)
+{
+    CyDelay(1000);
 }
