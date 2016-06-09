@@ -1,19 +1,19 @@
 
 int main(void)
 {
-	/**/
+	/*перевірка дозволу для старту наступного лижника*/
 	bool controlStartPermissionSkier(void);
 	
-	/**/
-	void indicationStartAllowed(void);
+	/*вкл індикацію успішного зєднання зі стартом*/
+	void indicationSuccessConnection(void);
 	
-	/*returns the next empty memory cell */
+	/*записати реальний час фінішу лижника*/
 	int writeRealTimeFinishSkier(uint16_t numberSkier);
 	
-	/**/
+	/*синзронізація даних про лижники із стартом*/
 	bool syncDataWithStart(struct SKIERRESULT *skierTime);
 	
-	/**/
+	/*зчитати команди із панелі управління/смартфона*/
 	int readCommandcontrolPanel(void);
 	
 }
