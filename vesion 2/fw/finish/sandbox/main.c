@@ -1,6 +1,3 @@
-
-int main(void)
-{
 	/*перевірка дозволу для старту наступного лижника*/
 	bool controlStartPermissionSkier(void);
 	
@@ -15,5 +12,6 @@ int main(void)
 	
 	/*зчитати команди із панелі управління/смартфона*/
 	int readCommandcontrolPanel(void);
-	
+int main(void)
+{	
 }
