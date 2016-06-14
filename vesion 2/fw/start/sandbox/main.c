@@ -1,22 +1,22 @@
-
+/*START*/
 
 	/*перевірка дозволу для старту наступного лижника*/
-	bool controlStartPermissionSkier(void);
+	bool ControlStartPermissionSkier(void);
 	
 	/*вкл індикацію дозволу старту лижника*/
-	void indicationStartAllowed(void);
+	void IndicationStartAllowed(void);
 	
 	/*відображення дозволу старту лижника на дисплеї*/
-	void displayIndicationStartAllowed(void);
+	void DisplayIndicationStartAllowed(void);
 	
 	/*записати реальний час старту лижника */
-	int writeRealTimeStartSkier(uint16_t numberSkier);
+	int WriteRealTimeStartSkier(uint16_t numberSkier);
 	
 	/*синзронізація даних про лижники із фінішом*/
-	bool syncDataWithFinish(struct SKIERRESULT *skierTime);
+	bool SyncDataWithFinish( SKIERRESULT_t *skierTime);
 	
 	/*зчитати команди із панелі управління/смартфона*/
-	int readCommandcontrolPanel(void);	
+	int ReadCommandcontrolPanel(void);	
 int main(void)
 {
 }

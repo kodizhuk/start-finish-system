@@ -1,3 +1,5 @@
+/*FINISH*/	
+	
 	/*перевірка дозволу для старту наступного лижника*/
 	bool controlStartPermissionSkier(void);
 	
