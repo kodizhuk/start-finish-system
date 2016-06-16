@@ -1,22 +1,70 @@
 /*START*/
 
-	/*перевірка дозволу для старту наступного лижника*/
-	bool ControlStartPermissionSkier(void);
+	/*світлодіодна індикація*/
+	LedIndication(period);
+
+	RTS_sync();
+	RTC_read();
 	
-	/*вкл індикацію дозволу старту лижника*/
-	void IndicationStartAllowed(void);
+	/*перевірка зєднанння встановлено*/
+	CheckConnections();
 	
-	/*відображення дозволу старту лижника на дисплеї*/
-	void DisplayIndicationStartAllowed(void);
+	/*перевірка чи стартові ворота закриті*/
+	GateClosedTest();
 	
-	/*записати реальний час старту лижника */
-	int WriteRealTimeStartSkier(uint16_t numberSkier);
+	/*перевірка чи фініш готовий до роботи*/
+	CheckFinishReady();
 	
-	/*синзронізація даних про лижники із фінішом*/
-	bool SyncDataWithFinish( SKIERRESULT_t *skierTime);
+	DatabaseSync();
+	DatabaseWrite();
 	
-	/*зчитати команди із панелі управління/смартфона*/
-	int ReadCommandcontrolPanel(void);	
+	DisplayPrintf();	
+	
 int main(void)
 {
+	StartConfig();
+	if(RoaderStart())
+	{
+		SkierStarted();
+	}else 
+	{
+		ErrorStarted();
+	}
+}
+
+
+void StartConfig(void)
+{
+	RTCStart();
+	СommunicationStart();
+	DisplayStart();
+	LedIndicationStart();	
+}
+
+
+int RoaderStart()
+{
+	LedIndication(period);
+	RTS_sync();	
+	CheckConnections();	
+	GateClosedTest();
+	CheckFinishReady();
+	DatabaseSync();
+}
+
+void SkierStarted()
+{
+	if(GateOpen())
+	{
+		time = RTC_read();
+		DatabaseWrite(time);
+		DisplayPrintf(time);
+	}
+	
+}
+
+void ErrorStarted();
+{
+	DisplayPrintf("Error");
+	LedIndication(period);
 }
