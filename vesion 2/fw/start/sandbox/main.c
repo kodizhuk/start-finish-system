@@ -23,7 +23,7 @@
 int main(void)
 {
 	StartConfig();
-	if(RoaderStart())
+	if(RoaderReadyToStart())
 	{
 		SkierStarted();
 	}else 
@@ -35,14 +35,14 @@ int main(void)
 
 void StartConfig(void)
 {
-	RTCStart();
+	RTC_Start();
 	СommunicationStart();
 	DisplayStart();
 	LedIndicationStart();	
 }
 
 
-int RoaderStart()
+bool RoaderReadyToStart()
 {
 	LedIndication(period);
 	RTS_sync();	
