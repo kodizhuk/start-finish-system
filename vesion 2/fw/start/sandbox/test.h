@@ -12,7 +12,6 @@
 	bool RTS_Sync(void);
 	uint32_t RTC_GetTime(void);
 	
-	bool ÑommunicationStart(void);
 	bool CheckConnections(void);
 	bool CheckFinishReady(void);
 	
