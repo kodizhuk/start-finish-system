@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 	void LedBlink(uint16_t Period);
 	void LedOn(void);

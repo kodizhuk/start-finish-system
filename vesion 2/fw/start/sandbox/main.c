@@ -1,9 +1,17 @@
 /*START*/
-#include <test.h> // Empty library functions
+#include "test.h" // Empty library functions
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define INIT_BLINK 500 // time in ms for one period
 #define ERR_BLINK 100 // 100 ms in one period = 10Hz
+
+bool CheckRoaderReadyToStart(void);
+void SystemInit(void);
+void SkierStart(void);
+void ErrorStarted(void);
+
 
 	
 int main(void)
@@ -41,18 +49,19 @@ bool CheckRoaderReadyToStart(void)
 {
 	bool rez;
 	
-	rez = falsh;
+	rez = false;
 	if(GateClosedTest() && CheckFinishReady() && DatabaseSync())
 	{
 		rez = true;
 	}
 	
-	return res;
+	return rez;
 }
 
 void SkierStart(void)
 {
 	uint32_t time;
+	
 	
 	LedOn();	
 	while(!GateOpen());
@@ -64,7 +73,7 @@ void SkierStart(void)
 	DisplayPrintf(time);	
 }
 
-void ErrorStarted();
+void ErrorStarted(void)
 {
 	DisplayPrintf("Error");
 	LedBlink(ERR_BLINK);
