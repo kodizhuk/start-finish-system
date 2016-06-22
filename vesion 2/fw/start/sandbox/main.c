@@ -1,70 +1,90 @@
 /*START*/
+#include <test.h> // Empty library functions
+
+#define INIT_BLINK 500 // time in ms for one period
+#define ERR_BLINK 100 // 100 ms in one period = 10Hz
 
 	/*світлодіодна індикація*/
-	LedIndication(period);
+	void LedBlink(uint16_t Period);
 
-	RTS_sync();
-	RTC_read();
+	bool RTS_sync(void);
+	uint32_t RTC_GetTime(void); 
 	
 	/*перевірка зєднанння встановлено*/
-	CheckConnections();
+	bool CheckConnections();
 	
 	/*перевірка чи стартові ворота закриті*/
-	GateClosedTest();
+	bool GateClosedTest();
 	
 	/*перевірка чи фініш готовий до роботи*/
-	CheckFinishReady();
+	bool CheckFinishReady();
 	
-	DatabaseSync();
-	DatabaseWrite();
+	bool DatabaseSync();
+	bool DatabaseWrite();
 	
-	DisplayPrintf();	
+	void DisplayInformation(char *DisplayData);	
 	
 int main(void)
 {
-	StartConfig();
-	if(RoaderReadyToStart())
-	{
-		SkierStarted();
-	}else 
-	{
-		ErrorStarted();
+	if (!SystemInit()) 
+		Display("System not started");
+	for(;;){
+		while(!skier_started)
+		{		
+			if(CheckRoaderReadyToStart())
+			{
+				SkierStart();
+				skier_started = 1;
+			}else 
+			{
+				DisplayError();
+			}
+		}
+		WaitForNextSkier();
 	}
+	return 1;
 }
 
 
-void StartConfig(void)
+uint8_t StartConfig(void)
 {
-	RTC_Start();
-	СommunicationStart();
-	DisplayStart();
-	LedIndicationStart();	
+	uint8_t Res;
+	Res = 1;
+	// May process other function for reporting errors
+	DisplayConfig();
+	LedBlink(INIT_BLINK);
+	if (!RTC_Start() || !СommunicationStart() || !RTS_sync()) 
+		Res = 0;
+	return Res; 
+	//СommunicationStart();
+	//LedIndicationStart();	
 }
 
 
-bool RoaderReadyToStart()
+bool RoaderReadyToStart(void)
 {
-	LedIndication(period);
+	//LedBlink(READY_BLINK);
 	RTS_sync();	
 	CheckConnections();	
 	GateClosedTest();
 	CheckFinishReady();
 	DatabaseSync();
+	return Res;
 }
 
-void SkierStarted()
+void SkierStarted(void)
 {
-	if(GateOpen())
-	{
-		time = RTC_read();
-		DatabaseWrite(time);
-		DisplayPrintf(time);
-	}
+	uint32_t time;
+	
+	while(!GateOpen());
+	time = RTC_GetTime();
+	DatabaseWrite(time)
+	DisplayPrintf(time);
 	
 }
 
 void ErrorStarted();
 {
 	DisplayPrintf("Error");
-	LedIndication(period);
+	LedBlink(ERR_BLINK);
 }
