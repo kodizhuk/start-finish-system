@@ -4,8 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define INIT_BLINK 500 // time in ms for one period
-#define ERR_BLINK 100 // 100 ms in one period = 10Hz
+/*frequency blinc led*/
+#define INIT_BLINK 	2 
+#define ERR_BLINK 	10
+
+/*led state*/
+#define LED_ENABLE 	1
+#define LED_DISABLE	0
 
 bool CheckRoaderReadyToStart(void);
 void SystemInit(void);
@@ -50,7 +55,7 @@ bool CheckRoaderReadyToStart(void)
 	bool rez;
 	
 	rez = false;
-	if(GateClosedTest() && CheckFinishReady() && DatabaseSync())
+	if(!GateOpen() && CheckFinishReady() && DatabaseSync())
 	{
 		rez = true;
 	}
@@ -61,9 +66,8 @@ bool CheckRoaderReadyToStart(void)
 void SkierStart(void)
 {
 	uint32_t time;
-	
-	
-	LedOn();	
+		
+	SetLedState(LED_ENABLE);	
 	while(!GateOpen());
 	time = RTC_GetTime();
 	if(!DatabaseWrite(time))
