@@ -25,7 +25,8 @@
 * Function name: LedInit
 ********************************************************************************
 *
-* initialization led indicator
+* initialization led indicator:
+*	TIMER...
 *
 * Return:
 *  None.

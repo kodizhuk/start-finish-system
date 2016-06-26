@@ -25,14 +25,12 @@ int main(void)
 	
 	for(;;)
 	{
-		while(!CheckRoaderReadyToStart())
+		while(!SystemReadyToStart())
 		{
 			ErrorStarted();
 		}
 		SkierStart();
 	}
-	
-	return 1;
 }
 
 
@@ -43,24 +41,24 @@ void SystemInit(void)
 	DisplayConfig();
 	RTC_Start();	
 	
-	while (!CheckConnections() && !RTS_Sync())
+	while ((!CheckConnections()) && (!RTS_Sync())
 	{
 		DisplayPrintf("Error init system");
 	}
 }
 
 
-bool CheckRoaderReadyToStart(void)
+bool SystemReadyToStart(void)
 {
-	bool rez;
+	bool result;
 	
-	rez = false;
+	result = false;
 	if(!GateOpen() && CheckFinishReady() && DatabaseSync())
 	{
-		rez = true;
+		result = true;
 	}
 	
-	return rez;
+	return result;
 }
 
 void SkierStart(void)
