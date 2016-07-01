@@ -8,6 +8,9 @@
 #define INIT_BLINK 	2 
 #define ERR_BLINK 	10
 
+/*time left to wait for skier, min*/
+#define TIMEOUT  5
+
 /*led state*/
 #define LED_ENABLE 	1
 #define LED_DISABLE	0
@@ -66,7 +69,7 @@ void SkierStart(void)
 	uint32_t time;
 		
 	SetLedState(LED_ENABLE);	
-	while(!GateOpen());
+	while(!GateOpen() && !WaitingTime(TIMEOUT));
 	time = RTC_GetTime();
 	if(!DatabaseWrite(time))
 	{

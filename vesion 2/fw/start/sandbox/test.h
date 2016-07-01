@@ -19,7 +19,9 @@
 	bool GateOpen(void);
 	
 	bool DatabaseSync(void);
-	bool DatabaseWrite(uint32_t);
+	bool DatabaseWrite(uint32_t data);
+	
+	bool WaitingTime(uint8_t time);
 
 /*******************************************************************************
 * Function name: LedInit
@@ -27,8 +29,6 @@
 *
 * initialization led indicator
 *
-* Return:
-*  None.
 *******************************************************************************/
 	void LedInit(void);
 	
@@ -41,8 +41,6 @@
 * Parameters:
 * Frequency - frequency flashing
 *
-* Return:
-*  None.
 *******************************************************************************/	
 	void LedBlink(uint8_t Frequency);
 
@@ -55,8 +53,6 @@
 * Parameters:
 * State - on(1) or off(0)
 *
-* Return:
-*  None.
 *******************************************************************************/	
 	void SetLedState(uint8_t State);
 
@@ -66,8 +62,6 @@
 *
 * initialization display
 *
-* Return:
-*  None.
 *******************************************************************************/	
 	void DisplayConfig(void);	
 	
@@ -81,8 +75,6 @@
 * Parameters:
 *  string: Pointer to head of char8 array to be written to the LCD module
 *
-* Return:
-*  None.
 *******************************************************************************/
 	void DisplayPrintf(char DisplayInfo[]);
 	
@@ -99,11 +91,6 @@
 *  (low frequency clocks tab), attaches RTC_Update API to a corresponding
 *  WDT's ISR callback.
 *
-* Parameters:
-*  None.
-*
-* Return:
-*  None.
 *******************************************************************************/		
 	void RTC_Start(void);
 	
@@ -128,9 +115,6 @@
 * Summary:
 *  Reads the current time.
 *
-* Parameters:
-*  None.
-*
 * Return:
 *  date: The value of date in the user selected format. The date value is available
 *        in the BCD format.
@@ -148,9 +132,6 @@
 *
 * * Check connections to start(finish)
 *
-* Parameters:
-*  None.
-*
 * Return:
 *  true(connection is established) or false(error connection))
 *******************************************************************************/
@@ -160,10 +141,7 @@
 * Function Name: CheckFinishReady
 ********************************************************************************
 *
-* * Readiness to finish work
-*
-* Parameters:
-*  None.
+* Readiness to finish work
 *
 * Return:
 *  true(ready) or false(not be ready))
@@ -177,9 +155,6 @@
 *
 * * verification or gate closed
 *
-* Parameters:
-*  None.
-*
 * Return:
 *  true(gate closed) or false(gate not closed))
 *******************************************************************************/
@@ -190,9 +165,6 @@
 ********************************************************************************
 *
 * * Synchronization own database with external
-*
-* Parameters:
-*  None.
 *
 * Return:
 *  true(sync successful) or false(synchronization is not successful))
@@ -205,11 +177,21 @@
 *
 * * record the results in a database
 *
-* Parameters:
-*  None.
-*
 * Return:
 *  true(record successful) or false(record is not successful))
 *******************************************************************************/
 	bool DatabaseWrite(uint32_t);
 		
+/*******************************************************************************
+* Function Name: WaitingTime
+********************************************************************************
+*
+* waiting time
+*
+* Parameters:
+*  time when the box falshe be changed to true
+*
+* Return:
+*  true(time out) or false(while not out)
+*******************************************************************************/
+bool WaitingTime(uint8_t time);
