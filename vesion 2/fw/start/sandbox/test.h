@@ -3,8 +3,8 @@
 #include <stdbool.h>
 
 	void LedInit(void);
-	void LedBlink(uint8_t Frequency);
-	void SetLedState(uint8_t State);
+	void LedBlink(uint32_t Frequency);
+	void SetLedState(uint32_t State);
 	
 	void DisplayConfig(void);	
 	void DisplayPrintf(char *DisplayInfo);
@@ -21,7 +21,7 @@
 	bool DatabaseSync(void);
 	bool DatabaseWrite(uint32_t data);
 	
-	bool WaitingTime(uint8_t time);
+	bool WaitingTime(uint32_t time);
 
 /*******************************************************************************
 * Function name: LedInit

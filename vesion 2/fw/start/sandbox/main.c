@@ -68,8 +68,10 @@ void SkierStart(void)
 {
 	uint32_t time;
 		
-	SetLedState(LED_ENABLE);	
+	SetLedState(LED_ENABLE);
+	/*test*/
 	while(!GateOpen() && !WaitingTime(TIMEOUT));
+	
 	time = RTC_GetTime();
 	if(!DatabaseWrite(time))
 	{
