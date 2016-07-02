@@ -15,7 +15,7 @@
 #define LED_ENABLE 	1
 #define LED_DISABLE	0
 
-bool CheckRoaderReadyToStart(void);
+bool SystemReadyToStart(void);
 void SystemInit(void);
 void SkierStart(void);
 void ErrorStarted(void);
@@ -40,6 +40,7 @@ int main(void)
 void SystemInit(void)
 {
 	// May process other function for reporting errors
+	LedInit();
 	LedBlink(INIT_BLINK);
 	DisplayConfig();
 	RTC_Start();	
