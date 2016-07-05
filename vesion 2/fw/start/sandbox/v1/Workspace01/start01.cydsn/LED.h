@@ -47,43 +47,16 @@
 
 #define FreqToTicks(Freq)        FREQ_TIMER_LED/(2*Freq)  
 
-/*
-    Initialization timer and add interrupt to him 
-
-*/
+CY_ISR(LedHandler); // Interrupt Timer 
 
 void LedInit(void);
 
-/* 
-    Blinking Led with Frequency
-    Arguments: 
-        uint16_t Frequency: 
-        Frequency with which LED will blinking
-        Value in Hz
-*/
-
 void LedBlink(uint16_t Frequency);
-/* 
-    Set static state LED indicator
-    Arguments: 
-        uint8_t State: 
-        High or low state.
-        High - ENABLE (1u), Low - Disable(0u)
-*/
 
 void SetLedState(uint8_t State) ;
 
-/*
-    PWM. Different light; 
-    TBD Implementation
-*/
 void SetPWMValue(uint8_t Value) ;
 
 extern uint8_t LED_InitValue;
-
-/*
-    Interrupt handler after lefting time one period light
-*/
-CY_ISR(LedHandler); // Interrupt Timer 
 
 /* [] END OF FILE */

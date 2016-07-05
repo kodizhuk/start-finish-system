@@ -6,6 +6,9 @@
 #include "display.h"
 #include "RTC_WDT.h"
 #include "gate.h"
+#include "network.h"
+#include "database.h"
+#include "wait_timer.h"
 
 /*frequency blinc led*/
 #define INIT_BLINK 	2 
@@ -48,10 +51,10 @@ void SystemInit(void)
     RTC_WDT_Init();
 	//RTC_Start();	
 	
-	/*while ((!CheckConnections()) && (!RTS_Sync())
+	while ((!CheckConnection()) && (!RTCSync()))
 	{
 		DisplayPrintf("Error init");
-	}*/
+	}
 }
 
 bool SystemReadyToStart(void)
@@ -72,11 +75,8 @@ void SkierStart(void)
 	uint32_t time;
 		
 	SetLedState(LED_ENABLE);
-    //DisplayPrintf("System ready");
-    char buff[16];
-    sprintf(buff,"%i",RTC_GetMinutes);
-    DisplayPrintf(buff);
-/*
+    DisplayPrintf("System ready");
+
 	while(!GateOpen() && !WaitingTime(TIMEOUT));
 	
 	time = RTC_GetTime();
@@ -84,7 +84,7 @@ void SkierStart(void)
 	{
 		DisplayPrintf("Error record time");
 	}
-	DisplayPrintf(time);	*/
+	DisplayPrintf(time);	
 }
 
 void ErrorStarted(void)
