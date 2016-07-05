@@ -26,8 +26,10 @@ void DisplayConfig(void)
 *******************************************************************************/
 void DisplayPrintf(char *message)
 {
+    
     LCD_Position(0,0);
     LCD_PrintString(message);
+    LCD_PrintString("          ");
 }
 
 /* [] END OF FILE */
