@@ -11,7 +11,15 @@
 */
 #include <stdbool.h>
 #include <stdint.h>
+#include <CyLib.h>
+#include <int_wait.h>
+#include <Timer_Wait.h>
 
-bool WaitingTime(uint8_t time);
+CY_ISR(WaitHandler); // Interrupt Timer 
+
+void InitWaitingTimer(uint32_t time);
+bool WaitingTimeOut(void);
+
+
 
 /* [] END OF FILE */

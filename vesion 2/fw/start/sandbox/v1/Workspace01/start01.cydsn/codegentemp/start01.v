@@ -1,6 +1,6 @@
 // ======================================================================
 // start01.v generated from TopDesign.cysch
-// 07/05/2016 at 15:54
+// 07/06/2016 at 12:51
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -612,9 +612,105 @@ module SCB_P4_v3_20_2 (
 
 endmodule
 
+// TCPWM_P4_v2_10(Clock_CheckTolerance=true, Clock_desired_freq=12, Clock_desired_freq_unit=6, Clock_divisor=1, Clock_FractDividerDenominator=0, Clock_FractDividerNumerator=0, Clock_FractDividerUsed=false, Clock_is_direct=false, Clock_is_divider=false, Clock_is_freq=true, Clock_minus_tolerance=5, Clock_ph_align_clock_id=, Clock_ph_align_clock_name=, Clock_plus_tolerance=5, Clock_source_clock_id=, Clock_source_clock_name=, PinVisibility_index=false, PinVisibility_kill=false, PinVisibility_phiA=false, PinVisibility_phiB=false, PinVisibility_switch=false, PWMCompare=65535, PWMCompareBuf=65535, PWMCompareSwap=0, PWMCountMode=3, PWMCountPresent=false, PWMDeadTimeCycle=0, PWMInterruptMask=1, PWMKillEvent=0, PWMLinenSignal=0, PWMLineSignal=0, PWMMode=4, PWMPeriod=65535, PWMPeriodBuf=65535, PWMPeriodSwap=0, PWMPrescaler=0, PWMReloadMode=0, PWMReloadPresent=false, PWMRunMode=0, PWMSetAlign=0, PWMStartMode=0, PWMStartPresent=false, PWMStopEvent=0, PWMStopMode=0, PWMStopPresent=false, PWMSwitchMode=0, PWMSwitchPresent=false, QuadAutoStart=true, QuadEncodingModes=0, QuadIndexMode=0, QuadIndexPresent=false, QuadInterruptMask=1, QuadPhiAMode=3, QuadPhiBMode=3, QuadStopMode=0, QuadStopPresent=false, TCCaptureMode=0, TCCapturePresent=false, TCCompare=60000, TCCompareBuf=65535, TCCompareSwap=0, TCCompCapMode=0, TCCountingModes=0, TCCountMode=3, TCCountPresent=false, TCInterruptMask=2, TCPeriod=60000, TCPrescaler=0, TCPWMCapturePresent=false, TCPWMConfig=1, TCPWMCountPresent=false, TCPWMReloadPresent=false, TCPWMStartPresent=false, TCPWMStopPresent=false, TCReloadMode=0, TCReloadPresent=false, TCRunMode=0, TCStartMode=0, TCStartPresent=false, TCStopMode=0, TCStopPresent=false, TermMode_capture=0, TermMode_cc=0, TermMode_clock=0, TermMode_count=0, TermMode_interrupt=0, TermMode_line=0, TermMode_line_n=0, TermMode_ov=0, TermMode_reload=0, TermMode_start=0, TermMode_stop=0, TermMode_un=0, TermModeStates=, TermVisibility_capture=false, TermVisibility_cc=true, TermVisibility_clock=true, TermVisibility_count=false, TermVisibility_interrupt=true, TermVisibility_line=false, TermVisibility_line_n=false, TermVisibility_ov=true, TermVisibility_reload=false, TermVisibility_start=false, TermVisibility_stop=false, TermVisibility_un=true, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMPONENT_NAME=TCPWM_P4_v2_10, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=Timer_Wait, CY_INSTANCE_SHORT_NAME=Timer_Wait, CY_MAJOR_VERSION=2, CY_MINOR_VERSION=10, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  3.3 SP2, INSTANCE_NAME=Timer_Wait, )
+module TCPWM_P4_v2_10_3 (
+    stop,
+    count,
+    reload,
+    start,
+    capture,
+    interrupt,
+    ov,
+    un,
+    cc,
+    clock,
+    line,
+    line_n);
+    input       stop;
+    input       count;
+    input       reload;
+    input       start;
+    input       capture;
+    output      interrupt;
+    output      ov;
+    output      un;
+    output      cc;
+    input       clock;
+    output      line;
+    output      line_n;
+
+
+          wire  Net_64;
+          wire  Net_63;
+          wire  Net_85;
+          wire  Net_62;
+          wire  Net_110;
+          wire  Net_95;
+          wire  Net_106;
+          wire  Net_104;
+          wire  Net_109;
+          wire  Net_98;
+          wire  Net_108;
+          wire  Net_101;
+          wire  Net_66;
+          wire  Net_81;
+          wire  Net_75;
+          wire  Net_69;
+          wire  Net_82;
+          wire  Net_72;
+
+    cy_m0s8_tcpwm_v1_0 cy_m0s8_tcpwm_1 (
+        .capture(Net_75),
+        .underflow(un),
+        .overflow(ov),
+        .line_out_compl(line_n),
+        .line_out(line),
+        .compare_match(cc),
+        .interrupt(interrupt),
+        .count(Net_69),
+        .reload(Net_66),
+        .stop(Net_82),
+        .start(Net_72),
+        .clock(Net_81));
+
+	// VMux_reload (cy_virtualmux_v1_0)
+	assign Net_66 = reload;
+
+	// VMux_count (cy_virtualmux_v1_0)
+	assign Net_69 = count;
+
+	// VMux_start (cy_virtualmux_v1_0)
+	assign Net_72 = start;
+
+	// VMux_capture (cy_virtualmux_v1_0)
+	assign Net_75 = capture;
+
+	// VMux_stop (cy_virtualmux_v1_0)
+	assign Net_82 = stop;
+
+	// VMux_clock (cy_virtualmux_v1_0)
+	assign Net_81 = clock;
+
+
+
+endmodule
+
 // top
 module top ;
 
+          wire  Net_171;
+          wire  Net_126;
+          wire  Net_241;
+          wire  Net_240;
+          wire  Net_239;
+          wire  Net_238;
+          wire  Net_237;
+          wire  Net_120;
+          wire  Net_236;
+          wire  Net_235;
+          wire  Net_234;
+          wire  Net_233;
+          wire  Net_232;
           wire  Net_95;
           wire  Net_94;
           wire  Net_93;
@@ -820,9 +916,9 @@ module top ;
 
 	cy_psoc3_pins_v1_10
 		#(.id("8d318d8b-cf7b-4b6b-b02c-ab1c5c49d0ba"),
-		  .drive_mode(3'b001),
+		  .drive_mode(3'b010),
 		  .ibuf_enabled(1'b1),
-		  .init_dr_st(1'b0),
+		  .init_dr_st(1'b1),
 		  .input_clk_en(0),
 		  .input_sync(1'b0),
 		  .input_sync_mode(1'b0),
@@ -908,6 +1004,39 @@ module top ;
         .m_ss3(Net_93),
         .s_miso(Net_94),
         .rx_in(1'b0));
+
+    TCPWM_P4_v2_10_3 Timer_Wait (
+        .stop(1'b0),
+        .reload(1'b0),
+        .start(1'b0),
+        .count(1'b1),
+        .capture(1'b0),
+        .interrupt(Net_120),
+        .ov(Net_237),
+        .un(Net_238),
+        .cc(Net_239),
+        .line(Net_240),
+        .line_n(Net_241),
+        .clock(Net_126));
+
+
+	cy_clock_v1_0
+		#(.id("001b8442-2eeb-4313-9b33-ff7cc5bc9f41"),
+		  .source_clock_id(""),
+		  .divisor(0),
+		  .period("1000000000000"),
+		  .is_direct(0),
+		  .is_digital(0))
+		clock_1
+		 (.clock_out(Net_126));
+
+
+
+	cy_isr_v1_0
+		#(.int_type(2'b10))
+		int_wait
+		 (.int_signal(Net_120));
+
 
 
 

@@ -2,25 +2,32 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+	#include "LED.h"
 	void LedInit(void);
 	void LedBlink(uint8_t Frequency);
 	void SetLedState(uint8_t State);
 	
+	#include "display.h"
 	void DisplayConfig(void);	
 	void DisplayPrintf(char *DisplayInfo);
 		
+	#include "RTC_WDT.h"
 	void RTC_Start(void);
 	bool RTS_Sync(void);
 	uint32_t RTC_GetTime(void);
 	
+	#include "network.h"
 	bool CheckConnections(void);
 	bool CheckFinishReady(void);
 	
+	#include "gate.h"
 	bool GateOpen(void);
 	
+	#include "database.h"
 	bool DatabaseSync(void);
 	bool DatabaseWrite(uint32_t);
 	
+	#include "wait_timer.h"
 	bool WaitingTime(uint8_t time);
 
 /*******************************************************************************

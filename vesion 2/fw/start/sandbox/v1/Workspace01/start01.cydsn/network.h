@@ -24,7 +24,6 @@
 
 #define CONN_TIME_TO_RD        (1000u)
 
-
 #define TimeToTicks(Data)      (Data)           
 
 #define XBEE_COMM_RD           ('R')

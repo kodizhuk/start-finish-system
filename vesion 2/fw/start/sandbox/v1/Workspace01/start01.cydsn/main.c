@@ -15,7 +15,7 @@
 #define ERR_BLINK 	10
 
 /*time left to wait for skier, min*/
-#define TIMEOUT  5
+#define TIMEOUT  2
 
 /*led state*/
 #define LED_ENABLE 	0
@@ -51,9 +51,10 @@ void SystemInit(void)
     RTC_WDT_Init();
 	//RTC_Start();	
 	
-	while ((!CheckConnection()) && (!RTCSync()))
+	//while ((!CheckConnection()) && (!RTCSync()))
 	{
 		DisplayPrintf("Error init");
+        CyDelay(500);
 	}
 }
 
@@ -73,18 +74,31 @@ bool SystemReadyToStart(void)
 void SkierStart(void)
 {
 	uint32_t time;
-		
+    
+	DisplayPrintf("System ready");
+    
 	SetLedState(LED_ENABLE);
-    DisplayPrintf("System ready");
-
-	while(!GateOpen() && !WaitingTime(TIMEOUT));
+    InitWaitingTimer(TIMEOUT);
+    
+	while(!GateOpen() && !WaitingTimeOut())
+    {
+    }
 	
-	time = RTC_GetTime();
-	if(!DatabaseWrite(time))
-	{
-		DisplayPrintf("Error record time");
-	}
-	DisplayPrintf(time);	
+   if(!WaitingTimeOut()){
+        /*printf time and write in database*/
+	    time = RTC_GetTime();
+	    if(!DatabaseWrite(time))
+	    {
+	    	DisplayPrintf("Error record time");
+	    }
+	    //DisplayPrintf(time);
+        DisplayPrintf("time skier");
+        CyDelay(500);
+    }else 
+    {
+        DisplayPrintf("Time out");
+        CyDelay(5000);
+    }
 }
 
 void ErrorStarted(void)
