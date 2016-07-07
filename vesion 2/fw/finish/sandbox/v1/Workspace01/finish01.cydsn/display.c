@@ -35,7 +35,7 @@ void DisplayPrintf(char *message)
 void DisplayPrintTime(uint64_t time)
 {
     char outInfo[16];
-    uint32_t hour, min, sec, ms;
+    int hour, min, sec, ms;
     
     hour = RTCgetHours(time);
     min = RTCgetMinutes(time);

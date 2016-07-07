@@ -24,7 +24,7 @@
 
 bool SystemReadyToStart(void);
 void SystemInit(void);
-void SkierStart(void);
+void SkierFinish(void);
 void ErrorStarted(void);
 
 
@@ -40,7 +40,7 @@ int main()
 		{
 			ErrorStarted();
 		}
-		SkierStart();
+		SkierFinish();
 	}
 }
 
@@ -51,7 +51,7 @@ void SystemInit(void)
 	DisplayConfig();
     RTC_WDT_Init();	
 	
-	//while ((!CheckConnection()) && (!RTCSync()))
+	while ((!CheckConnection()) && (!RTCSync()))
 	{
 		DisplayPrintf("Error init");
         CyDelay(500);
@@ -63,7 +63,7 @@ bool SystemReadyToStart(void)
 	bool result;
 	
 	result = false;
-	if(!GateOpen() )//&& CheckFinishReady() && DatabaseSync())
+	if(!GateOpen() && CheckConnection() && DatabaseSync())
 	{
 		result = true;
 	}
@@ -71,7 +71,7 @@ bool SystemReadyToStart(void)
 	return result;
 }
 
-void SkierStart(void)
+void SkierFinish(void)
 {
 	uint64_t time;
     
