@@ -34,7 +34,7 @@ bool DatabaseSync(void)
 * Return:
 *  true(record successful) or false(record is not successful))
 *******************************************************************************/
-bool DatabaseWrite(uint32_t data)
+bool DatabaseWrite(uint64_t data)
 {
     return true;
 }

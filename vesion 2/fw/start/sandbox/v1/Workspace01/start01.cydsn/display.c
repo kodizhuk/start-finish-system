@@ -32,4 +32,19 @@ void DisplayPrintf(char *message)
     LCD_PrintString("          ");
 }
 
+void DisplayPrintTime(uint64_t time)
+{
+    char outInfo[16];
+    uint32_t hour, min, sec, ms;
+    
+    hour = RTCgetHours(time);
+    min = RTCgetMinutes(time);
+    sec = RTCgetSecond(time);
+    ms = RTCgetMiliecond(time);
+    
+    sprintf(outInfo,"%i:%i:%i:%i",hour,min, sec, ms);
+    LCD_Position(1,0);
+    LCD_PrintString(outInfo);
+    
+}
 /* [] END OF FILE */

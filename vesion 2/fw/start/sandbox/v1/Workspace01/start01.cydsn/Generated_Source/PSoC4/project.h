@@ -36,6 +36,7 @@
 #include "Timer_Wait.h"
 #include "clock_1.h"
 #include "int_wait.h"
+#include "WDT0_ISR.h"
 #include "LCD_LCDPort.h"
 #include "LCD_LCDPort_aliases.h"
 #include "UART_XB_SCBCLK.h"

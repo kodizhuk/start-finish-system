@@ -15,5 +15,5 @@
 
 bool DatabaseSync(void);
 
-bool DatabaseWrite(uint32_t data);
+bool DatabaseWrite(uint64_t data);
 /* [] END OF FILE */

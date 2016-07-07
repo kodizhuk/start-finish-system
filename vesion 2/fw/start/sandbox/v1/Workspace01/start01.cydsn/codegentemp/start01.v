@@ -1,6 +1,6 @@
 // ======================================================================
 // start01.v generated from TopDesign.cysch
-// 07/06/2016 at 12:51
+// 07/07/2016 at 10:43
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -698,6 +698,7 @@ endmodule
 // top
 module top ;
 
+          wire  Net_242;
           wire  Net_171;
           wire  Net_126;
           wire  Net_241;
@@ -1036,6 +1037,20 @@ module top ;
 		#(.int_type(2'b10))
 		int_wait
 		 (.int_signal(Net_120));
+
+
+
+	cy_gsref_v1_0
+		#(.guid("1563FAA8-0748-4a1c-9785-CED309984BE3"))
+		GlobalSignal_1
+		 (.sig_out(Net_242));
+
+
+
+	cy_isr_v1_0
+		#(.int_type(2'b10))
+		WDT0_ISR
+		 (.int_signal(Net_242));
 
 
 
