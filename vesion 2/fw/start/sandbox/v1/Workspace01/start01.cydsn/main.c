@@ -48,10 +48,11 @@ void SystemInit(void)
 {
     LedInit();
 	LedBlink(INIT_BLINK);
+    NetworkInit();
 	DisplayConfig();
     RTC_WDT_Init();	
 	
-	//while ((!CheckConnection()) && (!RTCSync()))
+	while ((!CheckConnection()) && (!RTCSync()))
 	{
 		DisplayPrintf("Error init");
         CyDelay(500);
@@ -63,7 +64,7 @@ bool SystemReadyToStart(void)
 	bool result;
 	
 	result = false;
-	if(!GateOpen() )//&& CheckFinishReady() && DatabaseSync())
+	if(!GateOpen() && CheckConnection() && DatabaseSync())
 	{
 		result = true;
 	}
