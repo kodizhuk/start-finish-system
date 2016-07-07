@@ -27,6 +27,7 @@ void SystemInit(void);
 void SkierStart(void);
 void ErrorStarted(void);
 
+
 int main()
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -48,8 +49,7 @@ void SystemInit(void)
     LedInit();
 	LedBlink(INIT_BLINK);
 	DisplayConfig();
-    RTC_WDT_Init();
-	//RTC_Start();	
+    RTC_WDT_Init();	
 	
 	//while ((!CheckConnection()) && (!RTCSync()))
 	{
