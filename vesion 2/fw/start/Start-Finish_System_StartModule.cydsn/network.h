@@ -10,6 +10,7 @@
  * ========================================
 */
 #include <stdint.h>
+// For XBEE Uart
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 
@@ -19,19 +20,38 @@
 #endif
     
 #include <CyLib.h>
+#include <crc32.h>
+#include <svt.h>
 
 #define FR_TIMER               (1000u)
 
 #define CONN_TIME_TO_RD        (1000u)
 
+#define TimeToTicks(Data)       (Data)           
 
-#define TimeToTicks(Data)      (Data)           
+#define RDY                    (0x1A)
+#define GTM                    (0x1B)
+#define OKR                    (0x20)
 
-#define XBEE_COMM_RD           ('R')
-#define XBEE_COMM_TM           ('T')
-#define XBEE_COMM_OK           ('O')
+#define FRM0                    ("!")
+#define FRM1                    ("@")
+#define FRM2                    ("#")
 
+
+#define BUFF_LEN                 40u
+
+char szSeq[20];
+char szData[20];
+char szCheckSum[20];
+
+struct Resp TX_RESP;
+uint8_t RXSTATUS;
+char RespBuff[50];
+
+void NetworkInit();
 uint32_t CheckConnection();
 uint32_t NTP_Send();
+
+uint8_t PackData(char *buff, char* data, uint32_t Sequence);
 
 /* [] END OF FILE */

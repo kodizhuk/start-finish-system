@@ -23,20 +23,24 @@
 int main()
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
-    
+    uint8_t GateState;
     SystemInit();
     
     while (!SystemStart())
     {
+        LCD_1_PrintString("                ");
+        LCD_1_Position(CURSOR_ROW_1, CURSOR_COL_0);
         LCD_1_PrintString("SystemNotInit");
             #ifdef DEBUG_W_UART
                 UART_PC_UartPutString("SystemNotInit");
                 UART_PC_UartPutString(LR);
             #endif
         // If System Can't Be inited Then try again after 1s 
-        CyDelay(1000);
+        CyDelay(10000);
     }
     
+    LCD_1_PrintString("                ");
+    LCD_1_Position(CURSOR_ROW_1, CURSOR_COL_0);
     LCD_1_PrintString("SystemInit");
     
     #ifdef DEBUG_W_UART
@@ -47,6 +51,22 @@ int main()
     
     for(;;)
     {
+        GateState = Gate_Start_Read();
+        if (!GateState)
+        {
+            if (CheckConnection())
+            {
+                LCD_1_PrintString("                ");
+                LCD_1_Position(CURSOR_ROW_0, CURSOR_COL_0);
+                LCD_1_PrintString("Conn Success");
+            }
+            else
+            {
+                LCD_1_PrintString("                ");
+                LCD_1_Position(CURSOR_ROW_0, CURSOR_COL_0);
+                LCD_1_PrintString("Conn UnSuccess");
+            }
+        }
         /* Application Here */
     }
 }
@@ -62,10 +82,12 @@ void SystemInit()
     RTC_WDT_Init();
     // Init Timer for Blink LED
     LedInit();
-    
-    LCD_1_Start();
+    LCD_1_Init();
+    LCD_1_Enable();
     LCD_1_DisplayOn();
+    LCD_1_WriteControl(LCD_1_CURSOR_BLINK);
     
+    NetworkInit();
     /*
     UART_XB_UartPutString("XB COM Test Succeful");
     UART_XB_UartPutString(LR);
@@ -83,6 +105,11 @@ void SystemInit()
 uint32_t SystemStart(void) 
 {
     uint32_t SysStat = 1;
+    
+    #ifdef DEBUG_W_UART
+        UART_PC_UartPutString("Try Start System...");
+        UART_PC_UartPutString(LR);
+    #endif
     
     LedBlink(FREQ_INIT_BLINK);
     LCD_1_Position(CURSOR_ROW_0, CURSOR_COL_0);
@@ -107,9 +134,15 @@ uint32_t SystemStart(void)
         #endif
     }
     */
-    
+    if (SysStat)
+    {
+        LCD_1_PrintString("                ");
+        LCD_1_Position(CURSOR_ROW_0, CURSOR_COL_0);
+        LCD_1_PrintString("Conn Success");
+    }
     LCD_1_Position(CURSOR_ROW_1, CURSOR_COL_0);
     // 0u or 1u 
+    //SysStat = 0;
     return SysStat;   
 }
 
