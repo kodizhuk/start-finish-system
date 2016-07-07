@@ -58,7 +58,11 @@
 #endif /* (!UART_XB_CY_SCBIP_V1) */
 
 /* Interrupts remove options */
+<<<<<<< HEAD
 #define UART_XB_REMOVE_SCB_IRQ             (1u)
+=======
+#define UART_XB_REMOVE_SCB_IRQ             (0u)
+>>>>>>> 85420c797993e3a1f0aa1afa8f5870f4787717c6
 #define UART_XB_SCB_IRQ_INTERNAL           (0u == UART_XB_REMOVE_SCB_IRQ)
 
 #define UART_XB_REMOVE_UART_RX_WAKEUP_IRQ  (1u)

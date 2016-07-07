@@ -51,6 +51,7 @@
 #include "UART_XB_SCBCLK.h"
 #include "UART_XB_tx.h"
 #include "UART_XB_tx_aliases.h"
+#include "UART_XB_SCB_IRQ.h"
 #include "UART_XB_rx.h"
 #include "UART_XB_rx_aliases.h"
 #include "core_cm0_psoc4.h"

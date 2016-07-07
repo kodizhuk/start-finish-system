@@ -74,8 +74,13 @@
 #define UART_PC_UART_DROP_ON_FRAME_ERR     (0u)
 #define UART_PC_UART_DROP_ON_PARITY_ERR    (0u)
 #define UART_PC_UART_WAKE_ENABLE           (0u)
+<<<<<<< HEAD
 #define UART_PC_UART_RX_BUFFER_SIZE        (128u)
 #define UART_PC_UART_TX_BUFFER_SIZE        (128u)
+=======
+#define UART_PC_UART_RX_BUFFER_SIZE        (16u)
+#define UART_PC_UART_TX_BUFFER_SIZE        (16u)
+>>>>>>> 85420c797993e3a1f0aa1afa8f5870f4787717c6
 #define UART_PC_UART_MP_MODE_ENABLE        (0u)
 #define UART_PC_UART_MP_ACCEPT_ADDRESS     (0u)
 #define UART_PC_UART_MP_RX_ADDRESS         (2u)

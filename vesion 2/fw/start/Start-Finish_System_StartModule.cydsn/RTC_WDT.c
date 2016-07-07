@@ -45,7 +45,7 @@ uint32_t RTCSync()
 
 void RTC_WDT_Init(){
     RTC_1_Start();
-    
+
     #ifdef USE_WDT_RTC
         WDT0_ISR_StartEx(Wdt0_Handler);
     #endif
