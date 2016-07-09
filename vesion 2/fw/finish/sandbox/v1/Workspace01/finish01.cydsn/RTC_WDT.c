@@ -171,7 +171,7 @@ uint32_t RTCgetSecond(uint64_t readTime)
 *  The miliseconds value.
 *
 *******************************************************************************/
-uint32_t RTCgetMiliecond(uint64_t readTime)
+uint32_t RTCLib_GetMilisecond(uint64_t readTime)
 {
     uint32 retVal;
 

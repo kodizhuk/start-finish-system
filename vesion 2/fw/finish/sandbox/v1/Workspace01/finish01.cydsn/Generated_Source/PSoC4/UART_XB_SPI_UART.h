@@ -89,7 +89,7 @@
 #define UART_XB_UART_RX_TRIGGER_LEVEL      (7u)
 #define UART_XB_UART_TX_TRIGGER_LEVEL      (0u)
 
-#define UART_XB_UART_BYTE_MODE_ENABLE      (0u)
+#define UART_XB_UART_BYTE_MODE_ENABLE      (1u)
 #define UART_XB_UART_CTS_ENABLE            (0u)
 #define UART_XB_UART_CTS_POLARITY          (0u)
 #define UART_XB_UART_RTS_ENABLE            (0u)

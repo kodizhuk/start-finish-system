@@ -45,6 +45,10 @@ void UART_Read(void)
 
 void NetworkInit()
 {
+#ifdef DEBUG_W_UART
+    UART_PC_Start();
+#endif
+    UART_XB_Start();
     void (* XB)(void);
     XB = UART_Read;
     UART_XB_SetCustomInterruptHandler(XB);

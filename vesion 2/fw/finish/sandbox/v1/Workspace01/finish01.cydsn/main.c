@@ -50,7 +50,8 @@ void SystemInit(void)
 	LedBlink(INIT_BLINK);
 	DisplayConfig();
     RTC_WDT_Init();	
-	
+	NetworkInit();
+    
 	while ((!CheckConnection()) && (!RTCSync()))
 	{
 		DisplayPrintf("Error init");
@@ -80,11 +81,10 @@ void SkierFinish(void)
 	SetLedState(LED_ENABLE);
     InitWaitingTimer(TIMEOUT);
     
-	while(!GateOpen() && !WaitingTimeOut())
+	while(!GateOpen())
     {
     }
 	
-   if(!WaitingTimeOut()){
         /*printf time and write in database*/
 	    time = RTCgetTime(RTC_HOUR12);
 	    if(!DatabaseWrite(time))
@@ -95,12 +95,6 @@ void SkierFinish(void)
         
         DisplayPrintTime(time);
         CyDelay(5000);
-    }else 
-    {
-        LedBlink(INIT_BLINK);
-        DisplayPrintf("Time out");
-        CyDelay(5000);
-    }
 }
 
 void ErrorStarted(void)

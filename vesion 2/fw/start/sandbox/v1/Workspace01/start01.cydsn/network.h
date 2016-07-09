@@ -38,10 +38,10 @@
 #define FRM2                    ("#")
 
 
-#define BUFF_LEN                 40u
+#define BUFF_LEN                 100u
 
 char szSeq[20];
-char szData[20];
+char szData[50];
 char szCheckSum[20];
 
 struct Resp TX_RESP;
