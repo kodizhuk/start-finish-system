@@ -51,15 +51,15 @@
 #define RTC_HOUR12 1
 #define RTC_HOUR24 0
 
-void     RTC_WDT_Init(void);
-bool     RTCSync (void);
-uint32_t RTCgetRecentMs(void);
-uint64_t RTCgetTime(uint64_t timeFormat);
+void     RTCLib_WDT_Init(void);
+bool     RTCLibSync (void);
+uint32_t RTCLib_getRecentMs(void);
+uint64_t RTCLib_getTime(uint64_t timeFormat);
 
-uint32_t RTCgetHours(uint64_t readTime);
-uint32_t RTCgetMinutes(uint64_t readTime);
-uint32_t RTCgetSecond(uint64_t readTime);
-uint32_t RTCgetMiliecond(uint64_t readTime);
+uint32_t RTCLib_getHours(uint64_t readTime);
+uint32_t RTCLib_getMinutes(uint64_t readTime);
+uint32_t RTCLib_getSecond(uint64_t readTime);
+uint32_t RTCLib_getMiliecond(uint64_t readTime);
 
 
 extern uint16_t msRTC; 

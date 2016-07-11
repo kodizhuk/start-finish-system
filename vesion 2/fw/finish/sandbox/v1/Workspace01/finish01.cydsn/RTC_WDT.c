@@ -22,6 +22,7 @@ static uint64_t time;
 * Interrupt handler after lefting time one period light
 *
 *******************************************************************************/
+    /*
 CY_ISR_PROTO(Wdt0_Handler)
 {
     msRTC++;
@@ -33,7 +34,7 @@ CY_ISR_PROTO(Wdt0_Handler)
     CySysWdtClearInterrupt(CY_SYS_WDT_COUNTER0_INT);
     WDT0_ISR_ClearPending();
 }
-
+*/
 #endif
 
 /*******************************************************************************
@@ -43,7 +44,7 @@ CY_ISR_PROTO(Wdt0_Handler)
 * Initialization RTC and watchdog timer
 *
 *******************************************************************************/
-void RTC_WDT_Init()
+void RTClib_WDT_Init()
 {
     RTC_Start();
     
@@ -53,7 +54,7 @@ void RTC_WDT_Init()
 }
 
 /*******************************************************************************
-* Function Name: RTCgetTime
+* Function Name: RTCLib_getTime
 ********************************************************************************
 *
 * Summary
@@ -64,7 +65,7 @@ void RTC_WDT_Init()
 *        in the BCD format.
 *
 *******************************************************************************/
-uint64_t RTCgetTime(uint64_t timeFormat)
+uint64_t RTCLib_getTime(uint64_t timeFormat)
 {
     uint32_t readTime;
     uint64_t hour, min, sec, ms, stateAmPm;
@@ -74,7 +75,7 @@ uint64_t RTCgetTime(uint64_t timeFormat)
     hour = RTC_GetHours(readTime);
     min = RTC_GetMinutes(readTime);
     sec = RTC_GetSecond(readTime);
-    ms = RTCgetRecentMs();
+    ms = RTCLib_getRecentMs();
     stateAmPm = RTC_GetAmPm(readTime);
     
     time  = timeFormat << RTC_TIME_FORMAT_SHIFT;
@@ -98,7 +99,7 @@ uint64_t RTCgetTime(uint64_t timeFormat)
 }
 
 /*******************************************************************************
-* Function Name: RTCgetHours
+* Function Name: RTCLib_getHours
 ****************************************************************************//**
 *
 * \brief
@@ -108,7 +109,7 @@ uint64_t RTCgetTime(uint64_t timeFormat)
 *  The hours value.
 *
 *******************************************************************************/
-uint32_t RTCgetHours(uint64_t readTime)
+uint32_t RTCLib_getHours(uint64_t readTime)
 {
     uint64_t retVal;
     
@@ -119,7 +120,7 @@ uint32_t RTCgetHours(uint64_t readTime)
 }
 
 /*******************************************************************************
-* Function Name: RTCgetMinutes
+* Function Name: RTCLib_getMinutes
 ****************************************************************************//**
 *
 * \brief
@@ -129,7 +130,7 @@ uint32_t RTCgetHours(uint64_t readTime)
 *  The minutes value.
 *
 *******************************************************************************/
-uint32_t RTCgetMinutes(uint64_t readTime)
+uint32_t RTCLib_getMinutes(uint64_t readTime)
 {
     uint64 retVal;
 
@@ -140,7 +141,7 @@ uint32_t RTCgetMinutes(uint64_t readTime)
 }
 
 /*******************************************************************************
-* Function Name: RTCgetSecond
+* Function Name: RTCLib_getSecond
 ****************************************************************************//**
 *
 * \brief
@@ -150,7 +151,7 @@ uint32_t RTCgetMinutes(uint64_t readTime)
 *  The seconds value.
 *
 *******************************************************************************/
-uint32_t RTCgetSecond(uint64_t readTime)
+uint32_t RTCLib_getSecond(uint64_t readTime)
 {
     uint32 retVal;
 
@@ -161,7 +162,7 @@ uint32_t RTCgetSecond(uint64_t readTime)
 }
 
 /*******************************************************************************
-* Function Name: RTCgetMilisecond
+* Function Name: RTCLib_GetMilisecond
 ****************************************************************************//**
 *
 * \brief
@@ -183,7 +184,7 @@ uint32_t RTCLib_GetMilisecond(uint64_t readTime)
 }
 
 /*******************************************************************************
-* Function Name: RTCgetRecentMs
+* Function Name: RTCLib_getRecentMs
 ****************************************************************************//**
 *
 * \brief
@@ -193,7 +194,7 @@ uint32_t RTCLib_GetMilisecond(uint64_t readTime)
 *  The miliseconds value.
 *
 *******************************************************************************/
-uint32_t RTCgetRecentMs()
+uint32_t RTCLib_getRecentMs()
 {
     uint16_t TmsRTC = 0;
     #ifdef USE_WDT_RTC
@@ -203,7 +204,7 @@ uint32_t RTCgetRecentMs()
 }
 
 /*******************************************************************************
-* Function Name: RTS_Sync
+* Function Name: RTCLibSync
 ********************************************************************************
 *
 * * synchronize time with an external RTC
@@ -211,7 +212,7 @@ uint32_t RTCgetRecentMs()
 * Return:
 *  true(successful sync) or false(not successful sync))
 *******************************************************************************/
-bool RTCSync()
+bool RTCLibSync()
 {
     return true;
 }
