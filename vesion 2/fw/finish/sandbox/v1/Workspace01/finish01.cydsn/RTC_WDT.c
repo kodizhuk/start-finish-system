@@ -13,16 +13,17 @@
 #include "RTC_WDT.h"
 
 static uint64_t time;
+static uint16_t msRTC;
 
 #ifdef USE_WDT_RTC
 
-    uint16_t msRTC = 0;
+
 /*******************************************************************************
 *
 * Interrupt handler after lefting time one period light
 *
 *******************************************************************************/
-    /*
+  
 CY_ISR_PROTO(Wdt0_Handler)
 {
     msRTC++;
@@ -34,8 +35,18 @@ CY_ISR_PROTO(Wdt0_Handler)
     CySysWdtClearInterrupt(CY_SYS_WDT_COUNTER0_INT);
     WDT0_ISR_ClearPending();
 }
-*/
+
 #endif
+
+void RTCLib_Interrupt(void)
+{
+    msRTC++;
+    if (msRTC == 1000u) 
+    {
+        msRTC = 0u; 
+        //RTC_Update();
+    }    
+}
 
 /*******************************************************************************
 * Function Name: RTC_WDT_Init
@@ -44,10 +55,11 @@ CY_ISR_PROTO(Wdt0_Handler)
 * Initialization RTC and watchdog timer
 *
 *******************************************************************************/
-void RTClib_WDT_Init()
+void RTCLib_WDT_Init()
 {
     RTC_Start();
     
+    //CySysWdtSetInterruptCallback(0,RTCLib_Interrupt);
     #ifdef USE_WDT_RTC
         WDT0_ISR_StartEx(Wdt0_Handler);
     #endif
@@ -172,7 +184,7 @@ uint32_t RTCLib_getSecond(uint64_t readTime)
 *  The miliseconds value.
 *
 *******************************************************************************/
-uint32_t RTCLib_GetMilisecond(uint64_t readTime)
+uint32_t RTCLib_getMiliecond(uint64_t readTime)
 {
     uint32 retVal;
 

@@ -37,10 +37,10 @@ void DisplayPrintTime(uint64_t time)
     char outInfo[16];
     int hour, min, sec, ms;
     
-    hour = RTCgetHours(time);
-    min = RTCgetMinutes(time);
-    sec = RTCgetSecond(time);
-    ms = RTCgetMiliecond(time);
+    hour = RTCLib_getHours(time);
+    min = RTCLib_getMinutes(time);
+    sec = RTCLib_getSecond(time);
+    ms = RTCLib_getMiliecond(time);
     
     sprintf(outInfo,"%i:%i:%i:%i",hour,min, sec, ms);
     LCD_Position(1,0);

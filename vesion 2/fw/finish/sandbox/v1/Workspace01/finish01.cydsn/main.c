@@ -36,11 +36,13 @@ int main()
     
 	for(;;)
 	{
-		while(!SystemReadyToStart())
+		if(SystemReadyToStart())
 		{
-			ErrorStarted();
-		}
-		SkierFinish();
+			SkierFinish();          
+		}else
+        {
+		    ErrorStarted();
+        }
 	}
 }
 
@@ -49,10 +51,10 @@ void SystemInit(void)
     LedInit();
 	LedBlink(INIT_BLINK);
 	DisplayConfig();
-    RTC_WDT_Init();	
-	NetworkInit();
+    RTCLib_WDT_Init();
+	//NetworkInit();
     
-	while ((!CheckConnection()) && (!RTCSync()))
+	//while ((!CheckConnection()) && (!RTCLibSync()))
 	{
 		DisplayPrintf("Error init");
         CyDelay(500);
@@ -64,7 +66,7 @@ bool SystemReadyToStart(void)
 	bool result;
 	
 	result = false;
-	if(!GateOpen() && CheckConnection() && DatabaseSync())
+	if(!IsGateOpen() /*&& CheckConnection() */&& DatabaseSync())
 	{
 		result = true;
 	}
@@ -81,12 +83,12 @@ void SkierFinish(void)
 	SetLedState(LED_ENABLE);
     InitWaitingTimer(TIMEOUT);
     
-	while(!GateOpen())
+	while(!IsGateOpen() && !WaitingTimeOut())
     {
     }
-	
+	if(!WaitingTimeOut()){
         /*printf time and write in database*/
-	    time = RTCgetTime(RTC_HOUR12);
+	    time = RTCLib_getTime(RTC_HOUR12);
 	    if(!DatabaseWrite(time))
 	    {
 	    	DisplayPrintf("Error record time");
@@ -94,7 +96,13 @@ void SkierFinish(void)
         DisplayPrintf("time skier");
         
         DisplayPrintTime(time);
-        CyDelay(5000);
+        CyDelay(1000);
+    }else 
+    {
+        LedBlink(INIT_BLINK);
+        DisplayPrintf("Time out");
+        CyDelay(1000);
+    }
 }
 
 void ErrorStarted(void)

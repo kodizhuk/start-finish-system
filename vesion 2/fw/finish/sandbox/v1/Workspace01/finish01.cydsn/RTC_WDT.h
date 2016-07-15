@@ -14,7 +14,6 @@
 #include <RTC.h>
 #include <stdbool.h>
 
-#define USE_WDT_RTC
 
 #ifdef USE_WDT_RTC
     #include <WDT0_ISR.h>
@@ -51,6 +50,7 @@
 #define RTC_HOUR12 1
 #define RTC_HOUR24 0
 
+void     RTCLib_Interrupt(void);
 void     RTCLib_WDT_Init(void);
 bool     RTCLibSync (void);
 uint32_t RTCLib_getRecentMs(void);
@@ -62,5 +62,4 @@ uint32_t RTCLib_getSecond(uint64_t readTime);
 uint32_t RTCLib_getMiliecond(uint64_t readTime);
 
 
-extern uint16_t msRTC; 
 /* [] END OF FILE */

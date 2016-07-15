@@ -13,6 +13,6 @@
 #include <stdbool.h>
 #include <GatePin.h>
 
-bool GateOpen(void);
+bool IsGateOpen(void);
 
 /* [] END OF FILE */

@@ -12,7 +12,7 @@
 #include "gate.h"
 
 /*******************************************************************************
-* Function Name: GateOpen
+* Function Name: IsGateOpen
 ********************************************************************************
 *
 * * verification or gate closed
@@ -20,7 +20,7 @@
 * Return:
 *  true(gate closed) or false(gate not closed))
 *******************************************************************************/
-bool GateOpen(void)
+bool IsGateOpen(void)
 {
     if(!GatePin_Read())
     {
