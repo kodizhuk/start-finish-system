@@ -14,6 +14,7 @@
 #include <RTC.h>
 #include <stdbool.h>
 
+#define USE_WDT_RTC
 
 #ifdef USE_WDT_RTC
     #include <WDT0_ISR.h>

@@ -42,6 +42,7 @@
 #include "LED_PIN.h"
 #include "LED_PIN_aliases.h"
 #include "Int_Timer_Led.h"
+#include "WDT0_ISR.h"
 #include "UART_PC_SCBCLK.h"
 #include "UART_PC_tx.h"
 #include "UART_PC_tx_aliases.h"

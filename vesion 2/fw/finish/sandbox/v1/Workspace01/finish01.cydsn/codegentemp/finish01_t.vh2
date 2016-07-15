@@ -1,5 +1,5 @@
 -- Project:   D:\Cypress\system-start-finish\vesion 2\fw\finish\sandbox\v1\Workspace01\finish01.cydsn\finish01.cyprj
--- Generated: 07/14/2016 16:07:21
+-- Generated: 07/15/2016 21:06:02
 -- PSoC Creator  3.3 SP2
 
 ENTITY finish01 IS
@@ -65,6 +65,7 @@ ARCHITECTURE __DEFAULT__ OF finish01 IS
     SIGNAL Net_96 : bit;
     SIGNAL Net_97 : bit;
     SIGNAL Net_98 : bit;
+    SIGNAL WDT_INT_OUT : bit;
     SIGNAL \\\LCD:LCDPort(0)\\__PA\ : bit;
     SIGNAL \\\LCD:LCDPort(1)\\__PA\ : bit;
     SIGNAL \\\LCD:LCDPort(2)\\__PA\ : bit;
@@ -144,6 +145,8 @@ ARCHITECTURE __DEFAULT__ OF finish01 IS
     ATTRIBUTE Location OF \UART_XB:SCB\ : LABEL IS "F(SCB,0)";
     ATTRIBUTE Location OF \Timer_LED:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,0)";
     ATTRIBUTE Location OF Int_Timer_Led : LABEL IS "[IntrContainer=(0)][IntrId=(17)]";
+    ATTRIBUTE Location OF WDT0_ISR : LABEL IS "[IntrContainer=(0)][IntrId=(8)]";
+    ATTRIBUTE Location OF WDT : LABEL IS "F(WDT,0)";
     COMPONENT interrupt
         PORT (
             interrupt : IN std_ulogic;
@@ -341,6 +344,10 @@ ARCHITECTURE __DEFAULT__ OF finish01 IS
             line_out : OUT std_ulogic;
             line_out_compl : OUT std_ulogic;
             interrupt : OUT std_ulogic);
+    END COMPONENT;
+    COMPONENT m0s8wdtcell
+        PORT (
+            wdt_int : OUT std_ulogic);
     END COMPONENT;
 BEGIN
 
@@ -1223,5 +1230,16 @@ BEGIN
         PORT MAP(
             interrupt => Net_273,
             clock => ClockBlock_HFCLK);
+
+    WDT0_ISR:interrupt
+        GENERIC MAP(
+            int_type => "10")
+        PORT MAP(
+            interrupt => WDT_INT_OUT,
+            clock => ClockBlock_HFCLK);
+
+    WDT:m0s8wdtcell
+        PORT MAP(
+            wdt_int => WDT_INT_OUT);
 
 END __DEFAULT__;

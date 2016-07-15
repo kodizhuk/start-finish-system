@@ -1,6 +1,6 @@
 // ======================================================================
 // finish01.v generated from TopDesign.cysch
-// 07/14/2016 at 16:07
+// 07/15/2016 at 21:05
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -1007,6 +1007,7 @@ endmodule
 // top
 module top ;
 
+          wire  Net_172;
           wire  Net_98;
           wire  Net_97;
           wire  Net_96;
@@ -1385,6 +1386,20 @@ module top ;
 		#(.int_type(2'b10))
 		Int_Timer_Led
 		 (.int_signal(Net_273));
+
+
+
+	cy_gsref_v1_0
+		#(.guid("1563FAA8-0748-4a1c-9785-CED309984BE3"))
+		GlobalSignal_1
+		 (.sig_out(Net_172));
+
+
+
+	cy_isr_v1_0
+		#(.int_type(2'b10))
+		WDT0_ISR
+		 (.int_signal(Net_172));
 
 
 

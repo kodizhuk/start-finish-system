@@ -20,7 +20,6 @@
 #include "cydevice_trm.h"
 #include "cyfitter.h"
 #include "CyLib.h"
-#include "CyLFClk.h"
 #include "cyfitter_cfg.h"
 
 
@@ -200,9 +199,7 @@ static void ClockSetup(void)
 	/* CYDEV_PERI_PCLK_CTL1 Starting address: CYDEV_PERI_PCLK_CTL1 */
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_PERI_PCLK_CTL1), 0x00000041u);
 
-	(void)CyIntSetVector(8u, &CySysWdtIsr);
-	CyIntEnable(8u);
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_WDT_MATCH), 0x00007FFFu);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_WDT_MATCH), 0x00000020u);
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_WDT_CONFIG), 0x40000005u);
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_WDT_CONTROL), 0x00000008u);
 	while ((CY_GET_XTND_REG32((void CYFAR *)(CYREG_WDT_CONTROL)) & 0x00000008u) != 0u) { }

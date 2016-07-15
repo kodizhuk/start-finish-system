@@ -6,7 +6,7 @@
 #include "display.h"
 #include "RTC_WDT.h"
 #include "gate.h"
-#include "network.h"
+//#include "network.h"
 #include "database.h"
 #include "wait_timer.h"
 
@@ -33,7 +33,6 @@ int main()
     CyGlobalIntEnable; /* Enable global interrupts. */
     
 	SystemInit() ;
-    
 	for(;;)
 	{
 		if(SystemReadyToStart())

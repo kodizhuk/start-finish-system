@@ -16,8 +16,6 @@ static uint64_t time;
 static uint16_t msRTC;
 
 #ifdef USE_WDT_RTC
-
-
 /*******************************************************************************
 *
 * Interrupt handler after lefting time one period light
@@ -44,7 +42,7 @@ void RTCLib_Interrupt(void)
     if (msRTC == 1000u) 
     {
         msRTC = 0u; 
-        //RTC_Update();
+        RTC_Update();
     }    
 }
 
@@ -59,7 +57,6 @@ void RTCLib_WDT_Init()
 {
     RTC_Start();
     
-    //CySysWdtSetInterruptCallback(0,RTCLib_Interrupt);
     #ifdef USE_WDT_RTC
         WDT0_ISR_StartEx(Wdt0_Handler);
     #endif
