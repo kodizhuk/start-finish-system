@@ -1,0 +1,1477 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 1
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"diskio.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.disk_status,"ax",%progbits
+  18              		.align	2
+  19              		.global	disk_status
+  20              		.code	16
+  21              		.thumb_func
+  22              		.type	disk_status, %function
+  23              	disk_status:
+  24              	.LFB0:
+  25              		.file 1 ".\\diskio.c"
+   1:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+   2:.\diskio.c    **** /* Low level disk I/O module glue functions         (C)ChaN, 2016        */
+   3:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+   4:.\diskio.c    **** /* If a working storage control module is available, it should be        */
+   5:.\diskio.c    **** /* attached to the FatFs via a glue function rather than modifying it.   */
+   6:.\diskio.c    **** /* This is an example of glue functions to attach various exsisting      */
+   7:.\diskio.c    **** /* storage control modules to the FatFs module with a defined API.       */
+   8:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+   9:.\diskio.c    **** 
+  10:.\diskio.c    **** #include "diskio.h"			/* FatFs lower layer API */
+  11:.\diskio.c    **** #ifdef DRV_CFC
+  12:.\diskio.c    **** #include "cfc_avr.h"		/* Header file of existing CF control module */
+  13:.\diskio.c    **** #endif
+  14:.\diskio.c    **** #ifdef DRV_MMC
+  15:.\diskio.c    **** #include "mmc_avr_usart.h"	/* Header file of existing SD control module */
+  16:.\diskio.c    **** #endif
+  17:.\diskio.c    **** 
+  18:.\diskio.c    **** 
+  19:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  20:.\diskio.c    **** /* Get Drive Status                                                      */
+  21:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  22:.\diskio.c    **** 
+  23:.\diskio.c    **** DSTATUS disk_status (
+  24:.\diskio.c    **** 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+  25:.\diskio.c    **** )
+  26:.\diskio.c    **** {
+  26              		.loc 1 26 0
+  27              		.cfi_startproc
+  28              	.LVL0:
+  29 0000 08B5     		push	{r3, lr}
+  30              		.cfi_def_cfa_offset 8
+  31              		.cfi_offset 3, -8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 2
+
+
+  32              		.cfi_offset 14, -4
+  27:.\diskio.c    **** 	switch (pdrv) {
+  33              		.loc 1 27 0
+  34 0002 0128     		cmp	r0, #1
+  35 0004 02D1     		bne	.L5
+  28:.\diskio.c    **** #ifdef DRV_CFC
+  29:.\diskio.c    **** 	case DRV_CFC :
+  30:.\diskio.c    **** 		return cf_disk_status();
+  31:.\diskio.c    **** #endif
+  32:.\diskio.c    **** #ifdef DRV_MMC
+  33:.\diskio.c    **** 	case DRV_MMC :
+  34:.\diskio.c    **** 		return mmc_disk_status();
+  36              		.loc 1 34 0
+  37 0006 FFF7FEFF 		bl	mmc_disk_status
+  38              	.LVL1:
+  39 000a 00E0     		b	.L2
+  40              	.LVL2:
+  41              	.L5:
+  35:.\diskio.c    **** #endif
+  36:.\diskio.c    **** 	}
+  37:.\diskio.c    **** 	return STA_NOINIT;
+  42              		.loc 1 37 0
+  43 000c 0120     		mov	r0, #1
+  44              	.LVL3:
+  45              	.L2:
+  38:.\diskio.c    **** }
+  46              		.loc 1 38 0
+  47              		@ sp needed
+  48 000e 08BD     		pop	{r3, pc}
+  49              		.cfi_endproc
+  50              	.LFE0:
+  51              		.size	disk_status, .-disk_status
+  52              		.section	.text.disk_initialize,"ax",%progbits
+  53              		.align	2
+  54              		.global	disk_initialize
+  55              		.code	16
+  56              		.thumb_func
+  57              		.type	disk_initialize, %function
+  58              	disk_initialize:
+  59              	.LFB1:
+  39:.\diskio.c    **** 
+  40:.\diskio.c    **** 
+  41:.\diskio.c    **** 
+  42:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  43:.\diskio.c    **** /* Inidialize a Drive                                                    */
+  44:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  45:.\diskio.c    **** 
+  46:.\diskio.c    **** DSTATUS disk_initialize (
+  47:.\diskio.c    **** 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
+  48:.\diskio.c    **** )
+  49:.\diskio.c    **** {
+  60              		.loc 1 49 0
+  61              		.cfi_startproc
+  62              	.LVL4:
+  63 0000 08B5     		push	{r3, lr}
+  64              		.cfi_def_cfa_offset 8
+  65              		.cfi_offset 3, -8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 3
+
+
+  66              		.cfi_offset 14, -4
+  50:.\diskio.c    **** #ifdef DRV_CFC
+  51:.\diskio.c    **** 		return cf_disk_initialize();
+  52:.\diskio.c    **** #endif
+  53:.\diskio.c    **** #ifdef DRV_MMC
+  54:.\diskio.c    **** 		return mmc_disk_initialize();
+  67              		.loc 1 54 0
+  68 0002 FFF7FEFF 		bl	mmc_disk_initialize
+  69              	.LVL5:
+  55:.\diskio.c    **** #endif
+  56:.\diskio.c    **** 	return STA_NOINIT;
+  57:.\diskio.c    **** }
+  70              		.loc 1 57 0
+  71              		@ sp needed
+  72 0006 08BD     		pop	{r3, pc}
+  73              		.cfi_endproc
+  74              	.LFE1:
+  75              		.size	disk_initialize, .-disk_initialize
+  76              		.section	.text.disk_read,"ax",%progbits
+  77              		.align	2
+  78              		.global	disk_read
+  79              		.code	16
+  80              		.thumb_func
+  81              		.type	disk_read, %function
+  82              	disk_read:
+  83              	.LFB2:
+  58:.\diskio.c    **** 
+  59:.\diskio.c    **** 
+  60:.\diskio.c    **** 
+  61:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  62:.\diskio.c    **** /* Read Sector(s)                                                        */
+  63:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  64:.\diskio.c    **** 
+  65:.\diskio.c    **** DRESULT disk_read (
+  66:.\diskio.c    **** 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
+  67:.\diskio.c    **** 	BYTE *buff,		/* Data buffer to store read data */
+  68:.\diskio.c    **** 	DWORD sector,	/* Sector address in LBA */
+  69:.\diskio.c    **** 	UINT count		/* Number of sectors to read */
+  70:.\diskio.c    **** )
+  71:.\diskio.c    **** {
+  84              		.loc 1 71 0
+  85              		.cfi_startproc
+  86              	.LVL6:
+  87 0000 08B5     		push	{r3, lr}
+  88              		.cfi_def_cfa_offset 8
+  89              		.cfi_offset 3, -8
+  90              		.cfi_offset 14, -4
+  72:.\diskio.c    **** #ifdef DRV_CFC
+  73:.\diskio.c    **** 		return cf_disk_read(buff, sector, count);
+  74:.\diskio.c    **** #endif
+  75:.\diskio.c    **** #ifdef DRV_MMC
+  76:.\diskio.c    **** 		return mmc_disk_read(buff, sector, count);
+  91              		.loc 1 76 0
+  92 0002 081C     		mov	r0, r1
+  93              	.LVL7:
+  94 0004 111C     		mov	r1, r2
+  95              	.LVL8:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 4
+
+
+  96 0006 1A1C     		mov	r2, r3
+  97              	.LVL9:
+  98 0008 FFF7FEFF 		bl	mmc_disk_read
+  99              	.LVL10:
+  77:.\diskio.c    **** #endif
+  78:.\diskio.c    **** 	return RES_PARERR;
+  79:.\diskio.c    **** }
+ 100              		.loc 1 79 0
+ 101              		@ sp needed
+ 102 000c 08BD     		pop	{r3, pc}
+ 103              		.cfi_endproc
+ 104              	.LFE2:
+ 105              		.size	disk_read, .-disk_read
+ 106 000e C046     		.section	.text.disk_write,"ax",%progbits
+ 107              		.align	2
+ 108              		.global	disk_write
+ 109              		.code	16
+ 110              		.thumb_func
+ 111              		.type	disk_write, %function
+ 112              	disk_write:
+ 113              	.LFB3:
+  80:.\diskio.c    **** 
+  81:.\diskio.c    **** 
+  82:.\diskio.c    **** 
+  83:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  84:.\diskio.c    **** /* Write Sector(s)                                                       */
+  85:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+  86:.\diskio.c    **** 
+  87:.\diskio.c    **** #if _USE_WRITE
+  88:.\diskio.c    **** DRESULT disk_write (
+  89:.\diskio.c    **** 	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
+  90:.\diskio.c    **** 	const BYTE *buff,	/* Data to be written */
+  91:.\diskio.c    **** 	DWORD sector,		/* Sector address in LBA */
+  92:.\diskio.c    **** 	UINT count			/* Number of sectors to write */
+  93:.\diskio.c    **** )
+  94:.\diskio.c    **** {
+ 114              		.loc 1 94 0
+ 115              		.cfi_startproc
+ 116              	.LVL11:
+ 117 0000 08B5     		push	{r3, lr}
+ 118              		.cfi_def_cfa_offset 8
+ 119              		.cfi_offset 3, -8
+ 120              		.cfi_offset 14, -4
+  95:.\diskio.c    **** #ifdef DRV_CFC
+  96:.\diskio.c    **** 		return cf_disk_write(buff, sector, count);
+  97:.\diskio.c    **** #endif
+  98:.\diskio.c    **** #ifdef DRV_MMC
+  99:.\diskio.c    **** 		return mmc_disk_write(buff, sector, count);
+ 121              		.loc 1 99 0
+ 122 0002 081C     		mov	r0, r1
+ 123              	.LVL12:
+ 124 0004 111C     		mov	r1, r2
+ 125              	.LVL13:
+ 126 0006 1A1C     		mov	r2, r3
+ 127              	.LVL14:
+ 128 0008 FFF7FEFF 		bl	mmc_disk_write
+ 129              	.LVL15:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 5
+
+
+ 100:.\diskio.c    **** #endif
+ 101:.\diskio.c    **** 	return RES_PARERR;
+ 102:.\diskio.c    **** }
+ 130              		.loc 1 102 0
+ 131              		@ sp needed
+ 132 000c 08BD     		pop	{r3, pc}
+ 133              		.cfi_endproc
+ 134              	.LFE3:
+ 135              		.size	disk_write, .-disk_write
+ 136 000e C046     		.section	.text.disk_ioctl,"ax",%progbits
+ 137              		.align	2
+ 138              		.global	disk_ioctl
+ 139              		.code	16
+ 140              		.thumb_func
+ 141              		.type	disk_ioctl, %function
+ 142              	disk_ioctl:
+ 143              	.LFB4:
+ 103:.\diskio.c    **** #endif
+ 104:.\diskio.c    **** 
+ 105:.\diskio.c    **** 
+ 106:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+ 107:.\diskio.c    **** /* Miscellaneous Functions                                               */
+ 108:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+ 109:.\diskio.c    **** 
+ 110:.\diskio.c    **** #if _USE_IOCTL
+ 111:.\diskio.c    **** DRESULT disk_ioctl (
+ 112:.\diskio.c    **** 	BYTE pdrv,		/* Physical drive nmuber (0..) */
+ 113:.\diskio.c    **** 	BYTE cmd,		/* Control code */
+ 114:.\diskio.c    **** 	void *buff		/* Buffer to send/receive control data */
+ 115:.\diskio.c    **** )
+ 116:.\diskio.c    **** {
+ 144              		.loc 1 116 0
+ 145              		.cfi_startproc
+ 146              	.LVL16:
+ 147 0000 08B5     		push	{r3, lr}
+ 148              		.cfi_def_cfa_offset 8
+ 149              		.cfi_offset 3, -8
+ 150              		.cfi_offset 14, -4
+ 117:.\diskio.c    **** #ifdef DRV_CFC
+ 118:.\diskio.c    **** 		return cf_disk_ioctl(cmd, buff);
+ 119:.\diskio.c    **** #endif
+ 120:.\diskio.c    **** #ifdef DRV_MMC
+ 121:.\diskio.c    **** 		return mmc_disk_ioctl(cmd, buff);
+ 151              		.loc 1 121 0
+ 152 0002 081C     		mov	r0, r1
+ 153              	.LVL17:
+ 154 0004 111C     		mov	r1, r2
+ 155              	.LVL18:
+ 156 0006 FFF7FEFF 		bl	mmc_disk_ioctl
+ 157              	.LVL19:
+ 122:.\diskio.c    **** #endif
+ 123:.\diskio.c    **** 	return RES_PARERR;
+ 124:.\diskio.c    **** }
+ 158              		.loc 1 124 0
+ 159              		@ sp needed
+ 160 000a 08BD     		pop	{r3, pc}
+ 161              		.cfi_endproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 6
+
+
+ 162              	.LFE4:
+ 163              		.size	disk_ioctl, .-disk_ioctl
+ 164              		.section	.text.disk_timerproc,"ax",%progbits
+ 165              		.align	2
+ 166              		.global	disk_timerproc
+ 167              		.code	16
+ 168              		.thumb_func
+ 169              		.type	disk_timerproc, %function
+ 170              	disk_timerproc:
+ 171              	.LFB5:
+ 125:.\diskio.c    **** #endif
+ 126:.\diskio.c    **** 
+ 127:.\diskio.c    **** 
+ 128:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+ 129:.\diskio.c    **** /* Timer driven procedure                                                */
+ 130:.\diskio.c    **** /*-----------------------------------------------------------------------*/
+ 131:.\diskio.c    **** 
+ 132:.\diskio.c    **** 
+ 133:.\diskio.c    **** void disk_timerproc (void)
+ 134:.\diskio.c    **** {
+ 172              		.loc 1 134 0
+ 173              		.cfi_startproc
+ 174 0000 08B5     		push	{r3, lr}
+ 175              		.cfi_def_cfa_offset 8
+ 176              		.cfi_offset 3, -8
+ 177              		.cfi_offset 14, -4
+ 135:.\diskio.c    **** #ifdef DRV_CFC
+ 136:.\diskio.c    **** 	cf_disk_timerproc();
+ 137:.\diskio.c    **** #endif
+ 138:.\diskio.c    **** #ifdef DRV_MMC
+ 139:.\diskio.c    **** 	mmc_disk_timerproc();
+ 178              		.loc 1 139 0
+ 179 0002 FFF7FEFF 		bl	mmc_disk_timerproc
+ 180              	.LVL20:
+ 140:.\diskio.c    **** #endif
+ 141:.\diskio.c    **** }
+ 181              		.loc 1 141 0
+ 182              		@ sp needed
+ 183 0006 08BD     		pop	{r3, pc}
+ 184              		.cfi_endproc
+ 185              	.LFE5:
+ 186              		.size	disk_timerproc, .-disk_timerproc
+ 187              		.text
+ 188              	.Letext0:
+ 189              		.file 2 ".\\integer.h"
+ 190              		.file 3 ".\\diskio.h"
+ 191              		.file 4 ".\\mmc_avr_usart.h"
+ 192              		.section	.debug_info,"",%progbits
+ 193              	.Ldebug_info0:
+ 194 0000 05030000 		.4byte	0x305
+ 195 0004 0400     		.2byte	0x4
+ 196 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 197 000a 04       		.byte	0x4
+ 198 000b 01       		.uleb128 0x1
+ 199 000c 82010000 		.4byte	.LASF31
+ 200 0010 01       		.byte	0x1
+ 201 0011 C4000000 		.4byte	.LASF32
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 7
+
+
+ 202 0015 25000000 		.4byte	.LASF33
+ 203 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 204 001d 00000000 		.4byte	0
+ 205 0021 00000000 		.4byte	.Ldebug_line0
+ 206 0025 02       		.uleb128 0x2
+ 207 0026 04       		.byte	0x4
+ 208 0027 05       		.byte	0x5
+ 209 0028 696E7400 		.ascii	"int\000"
+ 210 002c 03       		.uleb128 0x3
+ 211 002d 76010000 		.4byte	.LASF1
+ 212 0031 02       		.byte	0x2
+ 213 0032 13       		.byte	0x13
+ 214 0033 37000000 		.4byte	0x37
+ 215 0037 04       		.uleb128 0x4
+ 216 0038 04       		.byte	0x4
+ 217 0039 07       		.byte	0x7
+ 218 003a 38010000 		.4byte	.LASF0
+ 219 003e 03       		.uleb128 0x3
+ 220 003f 90000000 		.4byte	.LASF2
+ 221 0043 02       		.byte	0x2
+ 222 0044 16       		.byte	0x16
+ 223 0045 49000000 		.4byte	0x49
+ 224 0049 04       		.uleb128 0x4
+ 225 004a 01       		.byte	0x1
+ 226 004b 08       		.byte	0x8
+ 227 004c 17010000 		.4byte	.LASF3
+ 228 0050 04       		.uleb128 0x4
+ 229 0051 02       		.byte	0x2
+ 230 0052 05       		.byte	0x5
+ 231 0053 2A020000 		.4byte	.LASF4
+ 232 0057 04       		.uleb128 0x4
+ 233 0058 02       		.byte	0x2
+ 234 0059 07       		.byte	0x7
+ 235 005a E1000000 		.4byte	.LASF5
+ 236 005e 04       		.uleb128 0x4
+ 237 005f 04       		.byte	0x4
+ 238 0060 05       		.byte	0x5
+ 239 0061 3E020000 		.4byte	.LASF6
+ 240 0065 03       		.uleb128 0x3
+ 241 0066 80000000 		.4byte	.LASF7
+ 242 006a 02       		.byte	0x2
+ 243 006b 1F       		.byte	0x1f
+ 244 006c 70000000 		.4byte	0x70
+ 245 0070 04       		.uleb128 0x4
+ 246 0071 04       		.byte	0x4
+ 247 0072 07       		.byte	0x7
+ 248 0073 CF000000 		.4byte	.LASF8
+ 249 0077 04       		.uleb128 0x4
+ 250 0078 08       		.byte	0x8
+ 251 0079 07       		.byte	0x7
+ 252 007a 50010000 		.4byte	.LASF9
+ 253 007e 03       		.uleb128 0x3
+ 254 007f 0F010000 		.4byte	.LASF10
+ 255 0083 03       		.byte	0x3
+ 256 0084 14       		.byte	0x14
+ 257 0085 3E000000 		.4byte	0x3e
+ 258 0089 05       		.uleb128 0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 8
+
+
+ 259 008a 01       		.byte	0x1
+ 260 008b 03       		.byte	0x3
+ 261 008c 17       		.byte	0x17
+ 262 008d B0000000 		.4byte	0xb0
+ 263 0091 06       		.uleb128 0x6
+ 264 0092 7B010000 		.4byte	.LASF11
+ 265 0096 00       		.sleb128 0
+ 266 0097 06       		.uleb128 0x6
+ 267 0098 34020000 		.4byte	.LASF12
+ 268 009c 01       		.sleb128 1
+ 269 009d 06       		.uleb128 0x6
+ 270 009e 86000000 		.4byte	.LASF13
+ 271 00a2 02       		.sleb128 2
+ 272 00a3 06       		.uleb128 0x6
+ 273 00a4 F4000000 		.4byte	.LASF14
+ 274 00a8 03       		.sleb128 3
+ 275 00a9 06       		.uleb128 0x6
+ 276 00aa 64020000 		.4byte	.LASF15
+ 277 00ae 04       		.sleb128 4
+ 278 00af 00       		.byte	0
+ 279 00b0 03       		.uleb128 0x3
+ 280 00b1 30010000 		.4byte	.LASF16
+ 281 00b5 03       		.byte	0x3
+ 282 00b6 1D       		.byte	0x1d
+ 283 00b7 89000000 		.4byte	0x89
+ 284 00bb 07       		.uleb128 0x7
+ 285 00bc 04       		.byte	0x4
+ 286 00bd 08       		.uleb128 0x8
+ 287 00be B8000000 		.4byte	.LASF17
+ 288 00c2 01       		.byte	0x1
+ 289 00c3 17       		.byte	0x17
+ 290 00c4 7E000000 		.4byte	0x7e
+ 291 00c8 00000000 		.4byte	.LFB0
+ 292 00cc 10000000 		.4byte	.LFE0-.LFB0
+ 293 00d0 01       		.uleb128 0x1
+ 294 00d1 9C       		.byte	0x9c
+ 295 00d2 EF000000 		.4byte	0xef
+ 296 00d6 09       		.uleb128 0x9
+ 297 00d7 6F020000 		.4byte	.LASF19
+ 298 00db 01       		.byte	0x1
+ 299 00dc 18       		.byte	0x18
+ 300 00dd 3E000000 		.4byte	0x3e
+ 301 00e1 00000000 		.4byte	.LLST0
+ 302 00e5 0A       		.uleb128 0xa
+ 303 00e6 0A000000 		.4byte	.LVL1
+ 304 00ea 93020000 		.4byte	0x293
+ 305 00ee 00       		.byte	0
+ 306 00ef 08       		.uleb128 0x8
+ 307 00f0 A8000000 		.4byte	.LASF18
+ 308 00f4 01       		.byte	0x1
+ 309 00f5 2E       		.byte	0x2e
+ 310 00f6 7E000000 		.4byte	0x7e
+ 311 00fa 00000000 		.4byte	.LFB1
+ 312 00fe 08000000 		.4byte	.LFE1-.LFB1
+ 313 0102 01       		.uleb128 0x1
+ 314 0103 9C       		.byte	0x9c
+ 315 0104 21010000 		.4byte	0x121
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 9
+
+
+ 316 0108 09       		.uleb128 0x9
+ 317 0109 6F020000 		.4byte	.LASF19
+ 318 010d 01       		.byte	0x1
+ 319 010e 2F       		.byte	0x2f
+ 320 010f 3E000000 		.4byte	0x3e
+ 321 0113 3A000000 		.4byte	.LLST1
+ 322 0117 0A       		.uleb128 0xa
+ 323 0118 06000000 		.4byte	.LVL5
+ 324 011c 9E020000 		.4byte	0x29e
+ 325 0120 00       		.byte	0
+ 326 0121 08       		.uleb128 0x8
+ 327 0122 5A020000 		.4byte	.LASF20
+ 328 0126 01       		.byte	0x1
+ 329 0127 41       		.byte	0x41
+ 330 0128 B0000000 		.4byte	0xb0
+ 331 012c 00000000 		.4byte	.LFB2
+ 332 0130 0E000000 		.4byte	.LFE2-.LFB2
+ 333 0134 01       		.uleb128 0x1
+ 334 0135 9C       		.byte	0x9c
+ 335 0136 96010000 		.4byte	0x196
+ 336 013a 09       		.uleb128 0x9
+ 337 013b 6F020000 		.4byte	.LASF19
+ 338 013f 01       		.byte	0x1
+ 339 0140 42       		.byte	0x42
+ 340 0141 3E000000 		.4byte	0x3e
+ 341 0145 5B000000 		.4byte	.LLST2
+ 342 0149 09       		.uleb128 0x9
+ 343 014a 55020000 		.4byte	.LASF21
+ 344 014e 01       		.byte	0x1
+ 345 014f 43       		.byte	0x43
+ 346 0150 96010000 		.4byte	0x196
+ 347 0154 7C000000 		.4byte	.LLST3
+ 348 0158 09       		.uleb128 0x9
+ 349 0159 1E000000 		.4byte	.LASF22
+ 350 015d 01       		.byte	0x1
+ 351 015e 44       		.byte	0x44
+ 352 015f 65000000 		.4byte	0x65
+ 353 0163 A8000000 		.4byte	.LLST4
+ 354 0167 09       		.uleb128 0x9
+ 355 0168 10020000 		.4byte	.LASF23
+ 356 016c 01       		.byte	0x1
+ 357 016d 45       		.byte	0x45
+ 358 016e 2C000000 		.4byte	0x2c
+ 359 0172 D4000000 		.4byte	.LLST5
+ 360 0176 0B       		.uleb128 0xb
+ 361 0177 0C000000 		.4byte	.LVL10
+ 362 017b A9020000 		.4byte	0x2a9
+ 363 017f 0C       		.uleb128 0xc
+ 364 0180 01       		.uleb128 0x1
+ 365 0181 52       		.byte	0x52
+ 366 0182 03       		.uleb128 0x3
+ 367 0183 F3       		.byte	0xf3
+ 368 0184 01       		.uleb128 0x1
+ 369 0185 53       		.byte	0x53
+ 370 0186 0C       		.uleb128 0xc
+ 371 0187 01       		.uleb128 0x1
+ 372 0188 51       		.byte	0x51
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 10
+
+
+ 373 0189 03       		.uleb128 0x3
+ 374 018a F3       		.byte	0xf3
+ 375 018b 01       		.uleb128 0x1
+ 376 018c 52       		.byte	0x52
+ 377 018d 0C       		.uleb128 0xc
+ 378 018e 01       		.uleb128 0x1
+ 379 018f 50       		.byte	0x50
+ 380 0190 03       		.uleb128 0x3
+ 381 0191 F3       		.byte	0xf3
+ 382 0192 01       		.uleb128 0x1
+ 383 0193 51       		.byte	0x51
+ 384 0194 00       		.byte	0
+ 385 0195 00       		.byte	0
+ 386 0196 0D       		.uleb128 0xd
+ 387 0197 04       		.byte	0x4
+ 388 0198 3E000000 		.4byte	0x3e
+ 389 019c 08       		.uleb128 0x8
+ 390 019d 45010000 		.4byte	.LASF24
+ 391 01a1 01       		.byte	0x1
+ 392 01a2 58       		.byte	0x58
+ 393 01a3 B0000000 		.4byte	0xb0
+ 394 01a7 00000000 		.4byte	.LFB3
+ 395 01ab 0E000000 		.4byte	.LFE3-.LFB3
+ 396 01af 01       		.uleb128 0x1
+ 397 01b0 9C       		.byte	0x9c
+ 398 01b1 11020000 		.4byte	0x211
+ 399 01b5 09       		.uleb128 0x9
+ 400 01b6 6F020000 		.4byte	.LASF19
+ 401 01ba 01       		.byte	0x1
+ 402 01bb 59       		.byte	0x59
+ 403 01bc 3E000000 		.4byte	0x3e
+ 404 01c0 F5000000 		.4byte	.LLST6
+ 405 01c4 09       		.uleb128 0x9
+ 406 01c5 55020000 		.4byte	.LASF21
+ 407 01c9 01       		.byte	0x1
+ 408 01ca 5A       		.byte	0x5a
+ 409 01cb 11020000 		.4byte	0x211
+ 410 01cf 16010000 		.4byte	.LLST7
+ 411 01d3 09       		.uleb128 0x9
+ 412 01d4 1E000000 		.4byte	.LASF22
+ 413 01d8 01       		.byte	0x1
+ 414 01d9 5B       		.byte	0x5b
+ 415 01da 65000000 		.4byte	0x65
+ 416 01de 42010000 		.4byte	.LLST8
+ 417 01e2 09       		.uleb128 0x9
+ 418 01e3 10020000 		.4byte	.LASF23
+ 419 01e7 01       		.byte	0x1
+ 420 01e8 5C       		.byte	0x5c
+ 421 01e9 2C000000 		.4byte	0x2c
+ 422 01ed 6E010000 		.4byte	.LLST9
+ 423 01f1 0B       		.uleb128 0xb
+ 424 01f2 0C000000 		.4byte	.LVL15
+ 425 01f6 C8020000 		.4byte	0x2c8
+ 426 01fa 0C       		.uleb128 0xc
+ 427 01fb 01       		.uleb128 0x1
+ 428 01fc 52       		.byte	0x52
+ 429 01fd 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 11
+
+
+ 430 01fe F3       		.byte	0xf3
+ 431 01ff 01       		.uleb128 0x1
+ 432 0200 53       		.byte	0x53
+ 433 0201 0C       		.uleb128 0xc
+ 434 0202 01       		.uleb128 0x1
+ 435 0203 51       		.byte	0x51
+ 436 0204 03       		.uleb128 0x3
+ 437 0205 F3       		.byte	0xf3
+ 438 0206 01       		.uleb128 0x1
+ 439 0207 52       		.byte	0x52
+ 440 0208 0C       		.uleb128 0xc
+ 441 0209 01       		.uleb128 0x1
+ 442 020a 50       		.byte	0x50
+ 443 020b 03       		.uleb128 0x3
+ 444 020c F3       		.byte	0xf3
+ 445 020d 01       		.uleb128 0x1
+ 446 020e 51       		.byte	0x51
+ 447 020f 00       		.byte	0
+ 448 0210 00       		.byte	0
+ 449 0211 0D       		.uleb128 0xd
+ 450 0212 04       		.byte	0x4
+ 451 0213 17020000 		.4byte	0x217
+ 452 0217 0E       		.uleb128 0xe
+ 453 0218 3E000000 		.4byte	0x3e
+ 454 021c 08       		.uleb128 0x8
+ 455 021d 25010000 		.4byte	.LASF25
+ 456 0221 01       		.byte	0x1
+ 457 0222 6F       		.byte	0x6f
+ 458 0223 B0000000 		.4byte	0xb0
+ 459 0227 00000000 		.4byte	.LFB4
+ 460 022b 0C000000 		.4byte	.LFE4-.LFB4
+ 461 022f 01       		.uleb128 0x1
+ 462 0230 9C       		.byte	0x9c
+ 463 0231 74020000 		.4byte	0x274
+ 464 0235 09       		.uleb128 0x9
+ 465 0236 6F020000 		.4byte	.LASF19
+ 466 023a 01       		.byte	0x1
+ 467 023b 70       		.byte	0x70
+ 468 023c 3E000000 		.4byte	0x3e
+ 469 0240 8F010000 		.4byte	.LLST10
+ 470 0244 0F       		.uleb128 0xf
+ 471 0245 636D6400 		.ascii	"cmd\000"
+ 472 0249 01       		.byte	0x1
+ 473 024a 71       		.byte	0x71
+ 474 024b 3E000000 		.4byte	0x3e
+ 475 024f B0010000 		.4byte	.LLST11
+ 476 0253 09       		.uleb128 0x9
+ 477 0254 55020000 		.4byte	.LASF21
+ 478 0258 01       		.byte	0x1
+ 479 0259 72       		.byte	0x72
+ 480 025a BB000000 		.4byte	0xbb
+ 481 025e D1010000 		.4byte	.LLST12
+ 482 0262 0B       		.uleb128 0xb
+ 483 0263 0A000000 		.4byte	.LVL19
+ 484 0267 E7020000 		.4byte	0x2e7
+ 485 026b 0C       		.uleb128 0xc
+ 486 026c 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 12
+
+
+ 487 026d 51       		.byte	0x51
+ 488 026e 03       		.uleb128 0x3
+ 489 026f F3       		.byte	0xf3
+ 490 0270 01       		.uleb128 0x1
+ 491 0271 52       		.byte	0x52
+ 492 0272 00       		.byte	0
+ 493 0273 00       		.byte	0
+ 494 0274 10       		.uleb128 0x10
+ 495 0275 67010000 		.4byte	.LASF34
+ 496 0279 01       		.byte	0x1
+ 497 027a 85       		.byte	0x85
+ 498 027b 00000000 		.4byte	.LFB5
+ 499 027f 08000000 		.4byte	.LFE5-.LFB5
+ 500 0283 01       		.uleb128 0x1
+ 501 0284 9C       		.byte	0x9c
+ 502 0285 93020000 		.4byte	0x293
+ 503 0289 0A       		.uleb128 0xa
+ 504 028a 06000000 		.4byte	.LVL20
+ 505 028e 01030000 		.4byte	0x301
+ 506 0292 00       		.byte	0
+ 507 0293 11       		.uleb128 0x11
+ 508 0294 FF000000 		.4byte	.LASF26
+ 509 0298 04       		.byte	0x4
+ 510 0299 12       		.byte	0x12
+ 511 029a 7E000000 		.4byte	0x7e
+ 512 029e 11       		.uleb128 0x11
+ 513 029f 16020000 		.4byte	.LASF27
+ 514 02a3 04       		.byte	0x4
+ 515 02a4 11       		.byte	0x11
+ 516 02a5 7E000000 		.4byte	0x7e
+ 517 02a9 12       		.uleb128 0x12
+ 518 02aa 47020000 		.4byte	.LASF28
+ 519 02ae 04       		.byte	0x4
+ 520 02af 13       		.byte	0x13
+ 521 02b0 B0000000 		.4byte	0xb0
+ 522 02b4 C8020000 		.4byte	0x2c8
+ 523 02b8 13       		.uleb128 0x13
+ 524 02b9 96010000 		.4byte	0x196
+ 525 02bd 13       		.uleb128 0x13
+ 526 02be 65000000 		.4byte	0x65
+ 527 02c2 13       		.uleb128 0x13
+ 528 02c3 2C000000 		.4byte	0x2c
+ 529 02c7 00       		.byte	0
+ 530 02c8 12       		.uleb128 0x12
+ 531 02c9 00000000 		.4byte	.LASF29
+ 532 02cd 04       		.byte	0x4
+ 533 02ce 14       		.byte	0x14
+ 534 02cf B0000000 		.4byte	0xb0
+ 535 02d3 E7020000 		.4byte	0x2e7
+ 536 02d7 13       		.uleb128 0x13
+ 537 02d8 11020000 		.4byte	0x211
+ 538 02dc 13       		.uleb128 0x13
+ 539 02dd 65000000 		.4byte	0x65
+ 540 02e1 13       		.uleb128 0x13
+ 541 02e2 2C000000 		.4byte	0x2c
+ 542 02e6 00       		.byte	0
+ 543 02e7 12       		.uleb128 0x12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 13
+
+
+ 544 02e8 0F000000 		.4byte	.LASF30
+ 545 02ec 04       		.byte	0x4
+ 546 02ed 15       		.byte	0x15
+ 547 02ee B0000000 		.4byte	0xb0
+ 548 02f2 01030000 		.4byte	0x301
+ 549 02f6 13       		.uleb128 0x13
+ 550 02f7 3E000000 		.4byte	0x3e
+ 551 02fb 13       		.uleb128 0x13
+ 552 02fc BB000000 		.4byte	0xbb
+ 553 0300 00       		.byte	0
+ 554 0301 14       		.uleb128 0x14
+ 555 0302 95000000 		.4byte	.LASF35
+ 556 0306 04       		.byte	0x4
+ 557 0307 16       		.byte	0x16
+ 558 0308 00       		.byte	0
+ 559              		.section	.debug_abbrev,"",%progbits
+ 560              	.Ldebug_abbrev0:
+ 561 0000 01       		.uleb128 0x1
+ 562 0001 11       		.uleb128 0x11
+ 563 0002 01       		.byte	0x1
+ 564 0003 25       		.uleb128 0x25
+ 565 0004 0E       		.uleb128 0xe
+ 566 0005 13       		.uleb128 0x13
+ 567 0006 0B       		.uleb128 0xb
+ 568 0007 03       		.uleb128 0x3
+ 569 0008 0E       		.uleb128 0xe
+ 570 0009 1B       		.uleb128 0x1b
+ 571 000a 0E       		.uleb128 0xe
+ 572 000b 55       		.uleb128 0x55
+ 573 000c 17       		.uleb128 0x17
+ 574 000d 11       		.uleb128 0x11
+ 575 000e 01       		.uleb128 0x1
+ 576 000f 10       		.uleb128 0x10
+ 577 0010 17       		.uleb128 0x17
+ 578 0011 00       		.byte	0
+ 579 0012 00       		.byte	0
+ 580 0013 02       		.uleb128 0x2
+ 581 0014 24       		.uleb128 0x24
+ 582 0015 00       		.byte	0
+ 583 0016 0B       		.uleb128 0xb
+ 584 0017 0B       		.uleb128 0xb
+ 585 0018 3E       		.uleb128 0x3e
+ 586 0019 0B       		.uleb128 0xb
+ 587 001a 03       		.uleb128 0x3
+ 588 001b 08       		.uleb128 0x8
+ 589 001c 00       		.byte	0
+ 590 001d 00       		.byte	0
+ 591 001e 03       		.uleb128 0x3
+ 592 001f 16       		.uleb128 0x16
+ 593 0020 00       		.byte	0
+ 594 0021 03       		.uleb128 0x3
+ 595 0022 0E       		.uleb128 0xe
+ 596 0023 3A       		.uleb128 0x3a
+ 597 0024 0B       		.uleb128 0xb
+ 598 0025 3B       		.uleb128 0x3b
+ 599 0026 0B       		.uleb128 0xb
+ 600 0027 49       		.uleb128 0x49
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 14
+
+
+ 601 0028 13       		.uleb128 0x13
+ 602 0029 00       		.byte	0
+ 603 002a 00       		.byte	0
+ 604 002b 04       		.uleb128 0x4
+ 605 002c 24       		.uleb128 0x24
+ 606 002d 00       		.byte	0
+ 607 002e 0B       		.uleb128 0xb
+ 608 002f 0B       		.uleb128 0xb
+ 609 0030 3E       		.uleb128 0x3e
+ 610 0031 0B       		.uleb128 0xb
+ 611 0032 03       		.uleb128 0x3
+ 612 0033 0E       		.uleb128 0xe
+ 613 0034 00       		.byte	0
+ 614 0035 00       		.byte	0
+ 615 0036 05       		.uleb128 0x5
+ 616 0037 04       		.uleb128 0x4
+ 617 0038 01       		.byte	0x1
+ 618 0039 0B       		.uleb128 0xb
+ 619 003a 0B       		.uleb128 0xb
+ 620 003b 3A       		.uleb128 0x3a
+ 621 003c 0B       		.uleb128 0xb
+ 622 003d 3B       		.uleb128 0x3b
+ 623 003e 0B       		.uleb128 0xb
+ 624 003f 01       		.uleb128 0x1
+ 625 0040 13       		.uleb128 0x13
+ 626 0041 00       		.byte	0
+ 627 0042 00       		.byte	0
+ 628 0043 06       		.uleb128 0x6
+ 629 0044 28       		.uleb128 0x28
+ 630 0045 00       		.byte	0
+ 631 0046 03       		.uleb128 0x3
+ 632 0047 0E       		.uleb128 0xe
+ 633 0048 1C       		.uleb128 0x1c
+ 634 0049 0D       		.uleb128 0xd
+ 635 004a 00       		.byte	0
+ 636 004b 00       		.byte	0
+ 637 004c 07       		.uleb128 0x7
+ 638 004d 0F       		.uleb128 0xf
+ 639 004e 00       		.byte	0
+ 640 004f 0B       		.uleb128 0xb
+ 641 0050 0B       		.uleb128 0xb
+ 642 0051 00       		.byte	0
+ 643 0052 00       		.byte	0
+ 644 0053 08       		.uleb128 0x8
+ 645 0054 2E       		.uleb128 0x2e
+ 646 0055 01       		.byte	0x1
+ 647 0056 3F       		.uleb128 0x3f
+ 648 0057 19       		.uleb128 0x19
+ 649 0058 03       		.uleb128 0x3
+ 650 0059 0E       		.uleb128 0xe
+ 651 005a 3A       		.uleb128 0x3a
+ 652 005b 0B       		.uleb128 0xb
+ 653 005c 3B       		.uleb128 0x3b
+ 654 005d 0B       		.uleb128 0xb
+ 655 005e 27       		.uleb128 0x27
+ 656 005f 19       		.uleb128 0x19
+ 657 0060 49       		.uleb128 0x49
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 15
+
+
+ 658 0061 13       		.uleb128 0x13
+ 659 0062 11       		.uleb128 0x11
+ 660 0063 01       		.uleb128 0x1
+ 661 0064 12       		.uleb128 0x12
+ 662 0065 06       		.uleb128 0x6
+ 663 0066 40       		.uleb128 0x40
+ 664 0067 18       		.uleb128 0x18
+ 665 0068 9742     		.uleb128 0x2117
+ 666 006a 19       		.uleb128 0x19
+ 667 006b 01       		.uleb128 0x1
+ 668 006c 13       		.uleb128 0x13
+ 669 006d 00       		.byte	0
+ 670 006e 00       		.byte	0
+ 671 006f 09       		.uleb128 0x9
+ 672 0070 05       		.uleb128 0x5
+ 673 0071 00       		.byte	0
+ 674 0072 03       		.uleb128 0x3
+ 675 0073 0E       		.uleb128 0xe
+ 676 0074 3A       		.uleb128 0x3a
+ 677 0075 0B       		.uleb128 0xb
+ 678 0076 3B       		.uleb128 0x3b
+ 679 0077 0B       		.uleb128 0xb
+ 680 0078 49       		.uleb128 0x49
+ 681 0079 13       		.uleb128 0x13
+ 682 007a 02       		.uleb128 0x2
+ 683 007b 17       		.uleb128 0x17
+ 684 007c 00       		.byte	0
+ 685 007d 00       		.byte	0
+ 686 007e 0A       		.uleb128 0xa
+ 687 007f 898201   		.uleb128 0x4109
+ 688 0082 00       		.byte	0
+ 689 0083 11       		.uleb128 0x11
+ 690 0084 01       		.uleb128 0x1
+ 691 0085 31       		.uleb128 0x31
+ 692 0086 13       		.uleb128 0x13
+ 693 0087 00       		.byte	0
+ 694 0088 00       		.byte	0
+ 695 0089 0B       		.uleb128 0xb
+ 696 008a 898201   		.uleb128 0x4109
+ 697 008d 01       		.byte	0x1
+ 698 008e 11       		.uleb128 0x11
+ 699 008f 01       		.uleb128 0x1
+ 700 0090 31       		.uleb128 0x31
+ 701 0091 13       		.uleb128 0x13
+ 702 0092 00       		.byte	0
+ 703 0093 00       		.byte	0
+ 704 0094 0C       		.uleb128 0xc
+ 705 0095 8A8201   		.uleb128 0x410a
+ 706 0098 00       		.byte	0
+ 707 0099 02       		.uleb128 0x2
+ 708 009a 18       		.uleb128 0x18
+ 709 009b 9142     		.uleb128 0x2111
+ 710 009d 18       		.uleb128 0x18
+ 711 009e 00       		.byte	0
+ 712 009f 00       		.byte	0
+ 713 00a0 0D       		.uleb128 0xd
+ 714 00a1 0F       		.uleb128 0xf
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 16
+
+
+ 715 00a2 00       		.byte	0
+ 716 00a3 0B       		.uleb128 0xb
+ 717 00a4 0B       		.uleb128 0xb
+ 718 00a5 49       		.uleb128 0x49
+ 719 00a6 13       		.uleb128 0x13
+ 720 00a7 00       		.byte	0
+ 721 00a8 00       		.byte	0
+ 722 00a9 0E       		.uleb128 0xe
+ 723 00aa 26       		.uleb128 0x26
+ 724 00ab 00       		.byte	0
+ 725 00ac 49       		.uleb128 0x49
+ 726 00ad 13       		.uleb128 0x13
+ 727 00ae 00       		.byte	0
+ 728 00af 00       		.byte	0
+ 729 00b0 0F       		.uleb128 0xf
+ 730 00b1 05       		.uleb128 0x5
+ 731 00b2 00       		.byte	0
+ 732 00b3 03       		.uleb128 0x3
+ 733 00b4 08       		.uleb128 0x8
+ 734 00b5 3A       		.uleb128 0x3a
+ 735 00b6 0B       		.uleb128 0xb
+ 736 00b7 3B       		.uleb128 0x3b
+ 737 00b8 0B       		.uleb128 0xb
+ 738 00b9 49       		.uleb128 0x49
+ 739 00ba 13       		.uleb128 0x13
+ 740 00bb 02       		.uleb128 0x2
+ 741 00bc 17       		.uleb128 0x17
+ 742 00bd 00       		.byte	0
+ 743 00be 00       		.byte	0
+ 744 00bf 10       		.uleb128 0x10
+ 745 00c0 2E       		.uleb128 0x2e
+ 746 00c1 01       		.byte	0x1
+ 747 00c2 3F       		.uleb128 0x3f
+ 748 00c3 19       		.uleb128 0x19
+ 749 00c4 03       		.uleb128 0x3
+ 750 00c5 0E       		.uleb128 0xe
+ 751 00c6 3A       		.uleb128 0x3a
+ 752 00c7 0B       		.uleb128 0xb
+ 753 00c8 3B       		.uleb128 0x3b
+ 754 00c9 0B       		.uleb128 0xb
+ 755 00ca 27       		.uleb128 0x27
+ 756 00cb 19       		.uleb128 0x19
+ 757 00cc 11       		.uleb128 0x11
+ 758 00cd 01       		.uleb128 0x1
+ 759 00ce 12       		.uleb128 0x12
+ 760 00cf 06       		.uleb128 0x6
+ 761 00d0 40       		.uleb128 0x40
+ 762 00d1 18       		.uleb128 0x18
+ 763 00d2 9742     		.uleb128 0x2117
+ 764 00d4 19       		.uleb128 0x19
+ 765 00d5 01       		.uleb128 0x1
+ 766 00d6 13       		.uleb128 0x13
+ 767 00d7 00       		.byte	0
+ 768 00d8 00       		.byte	0
+ 769 00d9 11       		.uleb128 0x11
+ 770 00da 2E       		.uleb128 0x2e
+ 771 00db 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 17
+
+
+ 772 00dc 3F       		.uleb128 0x3f
+ 773 00dd 19       		.uleb128 0x19
+ 774 00de 03       		.uleb128 0x3
+ 775 00df 0E       		.uleb128 0xe
+ 776 00e0 3A       		.uleb128 0x3a
+ 777 00e1 0B       		.uleb128 0xb
+ 778 00e2 3B       		.uleb128 0x3b
+ 779 00e3 0B       		.uleb128 0xb
+ 780 00e4 27       		.uleb128 0x27
+ 781 00e5 19       		.uleb128 0x19
+ 782 00e6 49       		.uleb128 0x49
+ 783 00e7 13       		.uleb128 0x13
+ 784 00e8 3C       		.uleb128 0x3c
+ 785 00e9 19       		.uleb128 0x19
+ 786 00ea 00       		.byte	0
+ 787 00eb 00       		.byte	0
+ 788 00ec 12       		.uleb128 0x12
+ 789 00ed 2E       		.uleb128 0x2e
+ 790 00ee 01       		.byte	0x1
+ 791 00ef 3F       		.uleb128 0x3f
+ 792 00f0 19       		.uleb128 0x19
+ 793 00f1 03       		.uleb128 0x3
+ 794 00f2 0E       		.uleb128 0xe
+ 795 00f3 3A       		.uleb128 0x3a
+ 796 00f4 0B       		.uleb128 0xb
+ 797 00f5 3B       		.uleb128 0x3b
+ 798 00f6 0B       		.uleb128 0xb
+ 799 00f7 27       		.uleb128 0x27
+ 800 00f8 19       		.uleb128 0x19
+ 801 00f9 49       		.uleb128 0x49
+ 802 00fa 13       		.uleb128 0x13
+ 803 00fb 3C       		.uleb128 0x3c
+ 804 00fc 19       		.uleb128 0x19
+ 805 00fd 01       		.uleb128 0x1
+ 806 00fe 13       		.uleb128 0x13
+ 807 00ff 00       		.byte	0
+ 808 0100 00       		.byte	0
+ 809 0101 13       		.uleb128 0x13
+ 810 0102 05       		.uleb128 0x5
+ 811 0103 00       		.byte	0
+ 812 0104 49       		.uleb128 0x49
+ 813 0105 13       		.uleb128 0x13
+ 814 0106 00       		.byte	0
+ 815 0107 00       		.byte	0
+ 816 0108 14       		.uleb128 0x14
+ 817 0109 2E       		.uleb128 0x2e
+ 818 010a 00       		.byte	0
+ 819 010b 3F       		.uleb128 0x3f
+ 820 010c 19       		.uleb128 0x19
+ 821 010d 03       		.uleb128 0x3
+ 822 010e 0E       		.uleb128 0xe
+ 823 010f 3A       		.uleb128 0x3a
+ 824 0110 0B       		.uleb128 0xb
+ 825 0111 3B       		.uleb128 0x3b
+ 826 0112 0B       		.uleb128 0xb
+ 827 0113 27       		.uleb128 0x27
+ 828 0114 19       		.uleb128 0x19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 18
+
+
+ 829 0115 3C       		.uleb128 0x3c
+ 830 0116 19       		.uleb128 0x19
+ 831 0117 00       		.byte	0
+ 832 0118 00       		.byte	0
+ 833 0119 00       		.byte	0
+ 834              		.section	.debug_loc,"",%progbits
+ 835              	.Ldebug_loc0:
+ 836              	.LLST0:
+ 837 0000 00000000 		.4byte	.LVL0
+ 838 0004 09000000 		.4byte	.LVL1-1
+ 839 0008 0100     		.2byte	0x1
+ 840 000a 50       		.byte	0x50
+ 841 000b 09000000 		.4byte	.LVL1-1
+ 842 000f 0C000000 		.4byte	.LVL2
+ 843 0013 0400     		.2byte	0x4
+ 844 0015 F3       		.byte	0xf3
+ 845 0016 01       		.uleb128 0x1
+ 846 0017 50       		.byte	0x50
+ 847 0018 9F       		.byte	0x9f
+ 848 0019 0C000000 		.4byte	.LVL2
+ 849 001d 0E000000 		.4byte	.LVL3
+ 850 0021 0100     		.2byte	0x1
+ 851 0023 50       		.byte	0x50
+ 852 0024 0E000000 		.4byte	.LVL3
+ 853 0028 10000000 		.4byte	.LFE0
+ 854 002c 0400     		.2byte	0x4
+ 855 002e F3       		.byte	0xf3
+ 856 002f 01       		.uleb128 0x1
+ 857 0030 50       		.byte	0x50
+ 858 0031 9F       		.byte	0x9f
+ 859 0032 00000000 		.4byte	0
+ 860 0036 00000000 		.4byte	0
+ 861              	.LLST1:
+ 862 003a 00000000 		.4byte	.LVL4
+ 863 003e 05000000 		.4byte	.LVL5-1
+ 864 0042 0100     		.2byte	0x1
+ 865 0044 50       		.byte	0x50
+ 866 0045 05000000 		.4byte	.LVL5-1
+ 867 0049 08000000 		.4byte	.LFE1
+ 868 004d 0400     		.2byte	0x4
+ 869 004f F3       		.byte	0xf3
+ 870 0050 01       		.uleb128 0x1
+ 871 0051 50       		.byte	0x50
+ 872 0052 9F       		.byte	0x9f
+ 873 0053 00000000 		.4byte	0
+ 874 0057 00000000 		.4byte	0
+ 875              	.LLST2:
+ 876 005b 00000000 		.4byte	.LVL6
+ 877 005f 04000000 		.4byte	.LVL7
+ 878 0063 0100     		.2byte	0x1
+ 879 0065 50       		.byte	0x50
+ 880 0066 04000000 		.4byte	.LVL7
+ 881 006a 0E000000 		.4byte	.LFE2
+ 882 006e 0400     		.2byte	0x4
+ 883 0070 F3       		.byte	0xf3
+ 884 0071 01       		.uleb128 0x1
+ 885 0072 50       		.byte	0x50
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 19
+
+
+ 886 0073 9F       		.byte	0x9f
+ 887 0074 00000000 		.4byte	0
+ 888 0078 00000000 		.4byte	0
+ 889              	.LLST3:
+ 890 007c 00000000 		.4byte	.LVL6
+ 891 0080 06000000 		.4byte	.LVL8
+ 892 0084 0100     		.2byte	0x1
+ 893 0086 51       		.byte	0x51
+ 894 0087 06000000 		.4byte	.LVL8
+ 895 008b 0B000000 		.4byte	.LVL10-1
+ 896 008f 0100     		.2byte	0x1
+ 897 0091 50       		.byte	0x50
+ 898 0092 0B000000 		.4byte	.LVL10-1
+ 899 0096 0E000000 		.4byte	.LFE2
+ 900 009a 0400     		.2byte	0x4
+ 901 009c F3       		.byte	0xf3
+ 902 009d 01       		.uleb128 0x1
+ 903 009e 51       		.byte	0x51
+ 904 009f 9F       		.byte	0x9f
+ 905 00a0 00000000 		.4byte	0
+ 906 00a4 00000000 		.4byte	0
+ 907              	.LLST4:
+ 908 00a8 00000000 		.4byte	.LVL6
+ 909 00ac 08000000 		.4byte	.LVL9
+ 910 00b0 0100     		.2byte	0x1
+ 911 00b2 52       		.byte	0x52
+ 912 00b3 08000000 		.4byte	.LVL9
+ 913 00b7 0B000000 		.4byte	.LVL10-1
+ 914 00bb 0100     		.2byte	0x1
+ 915 00bd 51       		.byte	0x51
+ 916 00be 0B000000 		.4byte	.LVL10-1
+ 917 00c2 0E000000 		.4byte	.LFE2
+ 918 00c6 0400     		.2byte	0x4
+ 919 00c8 F3       		.byte	0xf3
+ 920 00c9 01       		.uleb128 0x1
+ 921 00ca 52       		.byte	0x52
+ 922 00cb 9F       		.byte	0x9f
+ 923 00cc 00000000 		.4byte	0
+ 924 00d0 00000000 		.4byte	0
+ 925              	.LLST5:
+ 926 00d4 00000000 		.4byte	.LVL6
+ 927 00d8 0B000000 		.4byte	.LVL10-1
+ 928 00dc 0100     		.2byte	0x1
+ 929 00de 53       		.byte	0x53
+ 930 00df 0B000000 		.4byte	.LVL10-1
+ 931 00e3 0E000000 		.4byte	.LFE2
+ 932 00e7 0400     		.2byte	0x4
+ 933 00e9 F3       		.byte	0xf3
+ 934 00ea 01       		.uleb128 0x1
+ 935 00eb 53       		.byte	0x53
+ 936 00ec 9F       		.byte	0x9f
+ 937 00ed 00000000 		.4byte	0
+ 938 00f1 00000000 		.4byte	0
+ 939              	.LLST6:
+ 940 00f5 00000000 		.4byte	.LVL11
+ 941 00f9 04000000 		.4byte	.LVL12
+ 942 00fd 0100     		.2byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 20
+
+
+ 943 00ff 50       		.byte	0x50
+ 944 0100 04000000 		.4byte	.LVL12
+ 945 0104 0E000000 		.4byte	.LFE3
+ 946 0108 0400     		.2byte	0x4
+ 947 010a F3       		.byte	0xf3
+ 948 010b 01       		.uleb128 0x1
+ 949 010c 50       		.byte	0x50
+ 950 010d 9F       		.byte	0x9f
+ 951 010e 00000000 		.4byte	0
+ 952 0112 00000000 		.4byte	0
+ 953              	.LLST7:
+ 954 0116 00000000 		.4byte	.LVL11
+ 955 011a 06000000 		.4byte	.LVL13
+ 956 011e 0100     		.2byte	0x1
+ 957 0120 51       		.byte	0x51
+ 958 0121 06000000 		.4byte	.LVL13
+ 959 0125 0B000000 		.4byte	.LVL15-1
+ 960 0129 0100     		.2byte	0x1
+ 961 012b 50       		.byte	0x50
+ 962 012c 0B000000 		.4byte	.LVL15-1
+ 963 0130 0E000000 		.4byte	.LFE3
+ 964 0134 0400     		.2byte	0x4
+ 965 0136 F3       		.byte	0xf3
+ 966 0137 01       		.uleb128 0x1
+ 967 0138 51       		.byte	0x51
+ 968 0139 9F       		.byte	0x9f
+ 969 013a 00000000 		.4byte	0
+ 970 013e 00000000 		.4byte	0
+ 971              	.LLST8:
+ 972 0142 00000000 		.4byte	.LVL11
+ 973 0146 08000000 		.4byte	.LVL14
+ 974 014a 0100     		.2byte	0x1
+ 975 014c 52       		.byte	0x52
+ 976 014d 08000000 		.4byte	.LVL14
+ 977 0151 0B000000 		.4byte	.LVL15-1
+ 978 0155 0100     		.2byte	0x1
+ 979 0157 51       		.byte	0x51
+ 980 0158 0B000000 		.4byte	.LVL15-1
+ 981 015c 0E000000 		.4byte	.LFE3
+ 982 0160 0400     		.2byte	0x4
+ 983 0162 F3       		.byte	0xf3
+ 984 0163 01       		.uleb128 0x1
+ 985 0164 52       		.byte	0x52
+ 986 0165 9F       		.byte	0x9f
+ 987 0166 00000000 		.4byte	0
+ 988 016a 00000000 		.4byte	0
+ 989              	.LLST9:
+ 990 016e 00000000 		.4byte	.LVL11
+ 991 0172 0B000000 		.4byte	.LVL15-1
+ 992 0176 0100     		.2byte	0x1
+ 993 0178 53       		.byte	0x53
+ 994 0179 0B000000 		.4byte	.LVL15-1
+ 995 017d 0E000000 		.4byte	.LFE3
+ 996 0181 0400     		.2byte	0x4
+ 997 0183 F3       		.byte	0xf3
+ 998 0184 01       		.uleb128 0x1
+ 999 0185 53       		.byte	0x53
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 21
+
+
+ 1000 0186 9F       		.byte	0x9f
+ 1001 0187 00000000 		.4byte	0
+ 1002 018b 00000000 		.4byte	0
+ 1003              	.LLST10:
+ 1004 018f 00000000 		.4byte	.LVL16
+ 1005 0193 04000000 		.4byte	.LVL17
+ 1006 0197 0100     		.2byte	0x1
+ 1007 0199 50       		.byte	0x50
+ 1008 019a 04000000 		.4byte	.LVL17
+ 1009 019e 0C000000 		.4byte	.LFE4
+ 1010 01a2 0400     		.2byte	0x4
+ 1011 01a4 F3       		.byte	0xf3
+ 1012 01a5 01       		.uleb128 0x1
+ 1013 01a6 50       		.byte	0x50
+ 1014 01a7 9F       		.byte	0x9f
+ 1015 01a8 00000000 		.4byte	0
+ 1016 01ac 00000000 		.4byte	0
+ 1017              	.LLST11:
+ 1018 01b0 00000000 		.4byte	.LVL16
+ 1019 01b4 06000000 		.4byte	.LVL18
+ 1020 01b8 0100     		.2byte	0x1
+ 1021 01ba 51       		.byte	0x51
+ 1022 01bb 06000000 		.4byte	.LVL18
+ 1023 01bf 0C000000 		.4byte	.LFE4
+ 1024 01c3 0400     		.2byte	0x4
+ 1025 01c5 F3       		.byte	0xf3
+ 1026 01c6 01       		.uleb128 0x1
+ 1027 01c7 51       		.byte	0x51
+ 1028 01c8 9F       		.byte	0x9f
+ 1029 01c9 00000000 		.4byte	0
+ 1030 01cd 00000000 		.4byte	0
+ 1031              	.LLST12:
+ 1032 01d1 00000000 		.4byte	.LVL16
+ 1033 01d5 09000000 		.4byte	.LVL19-1
+ 1034 01d9 0100     		.2byte	0x1
+ 1035 01db 52       		.byte	0x52
+ 1036 01dc 09000000 		.4byte	.LVL19-1
+ 1037 01e0 0C000000 		.4byte	.LFE4
+ 1038 01e4 0400     		.2byte	0x4
+ 1039 01e6 F3       		.byte	0xf3
+ 1040 01e7 01       		.uleb128 0x1
+ 1041 01e8 52       		.byte	0x52
+ 1042 01e9 9F       		.byte	0x9f
+ 1043 01ea 00000000 		.4byte	0
+ 1044 01ee 00000000 		.4byte	0
+ 1045              		.section	.debug_aranges,"",%progbits
+ 1046 0000 44000000 		.4byte	0x44
+ 1047 0004 0200     		.2byte	0x2
+ 1048 0006 00000000 		.4byte	.Ldebug_info0
+ 1049 000a 04       		.byte	0x4
+ 1050 000b 00       		.byte	0
+ 1051 000c 0000     		.2byte	0
+ 1052 000e 0000     		.2byte	0
+ 1053 0010 00000000 		.4byte	.LFB0
+ 1054 0014 10000000 		.4byte	.LFE0-.LFB0
+ 1055 0018 00000000 		.4byte	.LFB1
+ 1056 001c 08000000 		.4byte	.LFE1-.LFB1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 22
+
+
+ 1057 0020 00000000 		.4byte	.LFB2
+ 1058 0024 0E000000 		.4byte	.LFE2-.LFB2
+ 1059 0028 00000000 		.4byte	.LFB3
+ 1060 002c 0E000000 		.4byte	.LFE3-.LFB3
+ 1061 0030 00000000 		.4byte	.LFB4
+ 1062 0034 0C000000 		.4byte	.LFE4-.LFB4
+ 1063 0038 00000000 		.4byte	.LFB5
+ 1064 003c 08000000 		.4byte	.LFE5-.LFB5
+ 1065 0040 00000000 		.4byte	0
+ 1066 0044 00000000 		.4byte	0
+ 1067              		.section	.debug_ranges,"",%progbits
+ 1068              	.Ldebug_ranges0:
+ 1069 0000 00000000 		.4byte	.LFB0
+ 1070 0004 10000000 		.4byte	.LFE0
+ 1071 0008 00000000 		.4byte	.LFB1
+ 1072 000c 08000000 		.4byte	.LFE1
+ 1073 0010 00000000 		.4byte	.LFB2
+ 1074 0014 0E000000 		.4byte	.LFE2
+ 1075 0018 00000000 		.4byte	.LFB3
+ 1076 001c 0E000000 		.4byte	.LFE3
+ 1077 0020 00000000 		.4byte	.LFB4
+ 1078 0024 0C000000 		.4byte	.LFE4
+ 1079 0028 00000000 		.4byte	.LFB5
+ 1080 002c 08000000 		.4byte	.LFE5
+ 1081 0030 00000000 		.4byte	0
+ 1082 0034 00000000 		.4byte	0
+ 1083              		.section	.debug_line,"",%progbits
+ 1084              	.Ldebug_line0:
+ 1085 0000 C5000000 		.section	.debug_str,"MS",%progbits,1
+ 1085      02005300 
+ 1085      00000201 
+ 1085      FB0E0D00 
+ 1085      01010101 
+ 1086              	.LASF29:
+ 1087 0000 6D6D635F 		.ascii	"mmc_disk_write\000"
+ 1087      6469736B 
+ 1087      5F777269 
+ 1087      746500
+ 1088              	.LASF30:
+ 1089 000f 6D6D635F 		.ascii	"mmc_disk_ioctl\000"
+ 1089      6469736B 
+ 1089      5F696F63 
+ 1089      746C00
+ 1090              	.LASF22:
+ 1091 001e 73656374 		.ascii	"sector\000"
+ 1091      6F7200
+ 1092              	.LASF33:
+ 1093 0025 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 1093      79707265 
+ 1093      73735C73 
+ 1093      79737465 
+ 1093      6D2D7374 
+ 1094 0053 6973685C 		.ascii	"ish\\sandbox\\v2\\Workspace01\\sd_v2_FatFs.cydsn\000"
+ 1094      73616E64 
+ 1094      626F785C 
+ 1094      76325C57 
+ 1094      6F726B73 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 23
+
+
+ 1095              	.LASF7:
+ 1096 0080 44574F52 		.ascii	"DWORD\000"
+ 1096      4400
+ 1097              	.LASF13:
+ 1098 0086 5245535F 		.ascii	"RES_WRPRT\000"
+ 1098      57525052 
+ 1098      5400
+ 1099              	.LASF2:
+ 1100 0090 42595445 		.ascii	"BYTE\000"
+ 1100      00
+ 1101              	.LASF35:
+ 1102 0095 6D6D635F 		.ascii	"mmc_disk_timerproc\000"
+ 1102      6469736B 
+ 1102      5F74696D 
+ 1102      65727072 
+ 1102      6F6300
+ 1103              	.LASF18:
+ 1104 00a8 6469736B 		.ascii	"disk_initialize\000"
+ 1104      5F696E69 
+ 1104      7469616C 
+ 1104      697A6500 
+ 1105              	.LASF17:
+ 1106 00b8 6469736B 		.ascii	"disk_status\000"
+ 1106      5F737461 
+ 1106      74757300 
+ 1107              	.LASF32:
+ 1108 00c4 2E5C6469 		.ascii	".\\diskio.c\000"
+ 1108      736B696F 
+ 1108      2E6300
+ 1109              	.LASF8:
+ 1110 00cf 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1110      20756E73 
+ 1110      69676E65 
+ 1110      6420696E 
+ 1110      7400
+ 1111              	.LASF5:
+ 1112 00e1 73686F72 		.ascii	"short unsigned int\000"
+ 1112      7420756E 
+ 1112      7369676E 
+ 1112      65642069 
+ 1112      6E7400
+ 1113              	.LASF14:
+ 1114 00f4 5245535F 		.ascii	"RES_NOTRDY\000"
+ 1114      4E4F5452 
+ 1114      445900
+ 1115              	.LASF26:
+ 1116 00ff 6D6D635F 		.ascii	"mmc_disk_status\000"
+ 1116      6469736B 
+ 1116      5F737461 
+ 1116      74757300 
+ 1117              	.LASF10:
+ 1118 010f 44535441 		.ascii	"DSTATUS\000"
+ 1118      54555300 
+ 1119              	.LASF3:
+ 1120 0117 756E7369 		.ascii	"unsigned char\000"
+ 1120      676E6564 
+ 1120      20636861 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 24
+
+
+ 1120      7200
+ 1121              	.LASF25:
+ 1122 0125 6469736B 		.ascii	"disk_ioctl\000"
+ 1122      5F696F63 
+ 1122      746C00
+ 1123              	.LASF16:
+ 1124 0130 44524553 		.ascii	"DRESULT\000"
+ 1124      554C5400 
+ 1125              	.LASF0:
+ 1126 0138 756E7369 		.ascii	"unsigned int\000"
+ 1126      676E6564 
+ 1126      20696E74 
+ 1126      00
+ 1127              	.LASF24:
+ 1128 0145 6469736B 		.ascii	"disk_write\000"
+ 1128      5F777269 
+ 1128      746500
+ 1129              	.LASF9:
+ 1130 0150 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1130      206C6F6E 
+ 1130      6720756E 
+ 1130      7369676E 
+ 1130      65642069 
+ 1131              	.LASF34:
+ 1132 0167 6469736B 		.ascii	"disk_timerproc\000"
+ 1132      5F74696D 
+ 1132      65727072 
+ 1132      6F6300
+ 1133              	.LASF1:
+ 1134 0176 55494E54 		.ascii	"UINT\000"
+ 1134      00
+ 1135              	.LASF11:
+ 1136 017b 5245535F 		.ascii	"RES_OK\000"
+ 1136      4F4B00
+ 1137              	.LASF31:
+ 1138 0182 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 1138      4320342E 
+ 1138      392E3320 
+ 1138      32303135 
+ 1138      30333033 
+ 1139 01b5 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 1139      20726576 
+ 1139      6973696F 
+ 1139      6E203232 
+ 1139      31323230 
+ 1140 01e8 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1140      66756E63 
+ 1140      74696F6E 
+ 1140      2D736563 
+ 1140      74696F6E 
+ 1141              	.LASF23:
+ 1142 0210 636F756E 		.ascii	"count\000"
+ 1142      7400
+ 1143              	.LASF27:
+ 1144 0216 6D6D635F 		.ascii	"mmc_disk_initialize\000"
+ 1144      6469736B 
+ 1144      5F696E69 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPI8XHN.s 			page 25
+
+
+ 1144      7469616C 
+ 1144      697A6500 
+ 1145              	.LASF4:
+ 1146 022a 73686F72 		.ascii	"short int\000"
+ 1146      7420696E 
+ 1146      7400
+ 1147              	.LASF12:
+ 1148 0234 5245535F 		.ascii	"RES_ERROR\000"
+ 1148      4552524F 
+ 1148      5200
+ 1149              	.LASF6:
+ 1150 023e 6C6F6E67 		.ascii	"long int\000"
+ 1150      20696E74 
+ 1150      00
+ 1151              	.LASF28:
+ 1152 0247 6D6D635F 		.ascii	"mmc_disk_read\000"
+ 1152      6469736B 
+ 1152      5F726561 
+ 1152      6400
+ 1153              	.LASF21:
+ 1154 0255 62756666 		.ascii	"buff\000"
+ 1154      00
+ 1155              	.LASF20:
+ 1156 025a 6469736B 		.ascii	"disk_read\000"
+ 1156      5F726561 
+ 1156      6400
+ 1157              	.LASF15:
+ 1158 0264 5245535F 		.ascii	"RES_PARERR\000"
+ 1158      50415245 
+ 1158      525200
+ 1159              	.LASF19:
+ 1160 026f 70647276 		.ascii	"pdrv\000"
+ 1160      00
+ 1161              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br
