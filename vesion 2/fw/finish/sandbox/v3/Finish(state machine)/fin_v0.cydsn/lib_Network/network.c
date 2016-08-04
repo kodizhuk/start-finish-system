@@ -23,6 +23,7 @@ void InitNetwork(void)
     
     inData.readStatus = READ_OK;
     outData.writeStatus = NO_WRITE;
+    UART_XB_SpiUartClearRxBuffer();
     
     networkStatus = NETWORK_DISCONN;
     
@@ -32,6 +33,7 @@ void AppDelay(uint32_t delayMs)
 {
     uint32_t runTime;
     
+    runTime = 0;
     if(delayMs < MIN_DELAYMS)
     {
         CyDelay(delayMs);
@@ -94,6 +96,8 @@ void SendData(void)
     char sendData[DATA_BUFFER];
     int i;
     
+    outData.countSkiers = SkierOnWay();
+    outData.reboot = 0;
     /*pack data*/
     sprintf(sendData,"%02X:%016X%02X%02X%02X", 0u, 0u, outData.ready, outData.reboot, outData.countSkiers);
     
@@ -116,7 +120,7 @@ uint32_t ReceiveData(void)
     uint8_t byte;
     struct Resp recvData;
       
-    while((byte=UART_XB_UartGetChar()) != 0)
+    while((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
     { 
         result = UnpackData(&recvData, (uint8_t)(byte & 0xFF));
         
@@ -128,18 +132,27 @@ uint32_t ReceiveData(void)
             inData.IDpacket = recvData.Seq;
             
             /*id packet ok*/
-            if(inData.IDpacket == inData.IDpacket)
+            if(outData.IDpacket == inData.IDpacket)
             {
                 inData.readStatus = NO_READ;
                 outData.writeStatus = NO_WRITE;
                 
+                
                 /*connect network*/
                 networkStatus = NETWORK_CONN;
                 noConnect = 0;
+                
                 /*write data*/
-                inData.gateStatus = recvData.Data3;
+                inData.newSkier = recvData.Data3;
                 inData.unixStartTime = recvData.Data1;
                 inData.startMsTime = recvData.Data2;
+                
+                /*if new skier on track*/
+                if(inData.newSkier == NEW_SKIER_IN_TARCK )
+                {
+                    WriteStartTime(inData.unixStartTime, inData.startMsTime);
+                }
+                
                 /*next packet*/
                 outData.IDpacket++;
                 #ifdef DEBUG_PC
@@ -152,7 +165,7 @@ uint32_t ReceiveData(void)
     }
     
     #ifdef DEBUG_PC
-    SW_UART_DEBUG_PutString("ERROR READ!!!!");   
+    //SW_UART_DEBUG_PutString("ERROR READ!!!!");   
     SW_UART_DEBUG_PutString("\n\r");
     #endif 
     return  ERROR;
@@ -162,5 +175,10 @@ uint32_t ReceiveData(void)
 uint32_t NetworkStatus(void)
 {
     return networkStatus;
+}
+
+void SendFinStatus(uint32_t ready)
+{
+    outData.ready = ready;
 }
 /* [] END OF FILE */

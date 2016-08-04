@@ -24,7 +24,7 @@ void InitNetwork(void)
     
     inData.readStatus = NO_READ;
     outData.writeStatus = WRITE_OK;
-    
+    networkStatus = NETWORK_DISCONN;   
 }
 
 void AppDelay(uint32_t delayMs)
@@ -66,12 +66,21 @@ void AppDelay(uint32_t delayMs)
         }
         AppDelay_Stop();
         
-    #ifdef DEBUG_PC
-    char buffer[100];
-    sprintf(buffer,"time send data %u\n\r", (runTime));
-    SW_UART_DEBUG_PutString(buffer);
-    #endif
+        #ifdef DEBUG_PC
+        char buffer[100];
+        sprintf(buffer,"time send data %u\n\r", (runTime));
+        SW_UART_DEBUG_PutString(buffer);
+        #endif
         
+        /*tyme to respond*/
+        if(numAttemps++ >5)
+        {
+            numAttemps=0;
+            if(noConnect++ == 5)
+            {
+                networkStatus = NETWORK_DISCONN;
+            }
+        }
         CyDelay(delayMs - runTime);
     }
     
@@ -127,6 +136,10 @@ uint32_t ReceiveData(void)
             {
                 inData.readStatus = READ_OK;
                 outData.writeStatus = NO_WRITE;
+                
+                /*connect network*/
+                networkStatus = NETWORK_CONN;
+                noConnect = 0;
                 /*write data*/
                 inData.countSkiers = recvData.Data3;
                 //inData.unixStartTime = recvData.Data1;
@@ -148,5 +161,11 @@ uint32_t ReceiveData(void)
     SW_UART_DEBUG_PutString("\n\r");
     #endif 
     return  ERROR;
+}
+
+
+uint32_t NetworkStatus(void)
+{
+    return networkStatus;
 }
 /* [] END OF FILE */

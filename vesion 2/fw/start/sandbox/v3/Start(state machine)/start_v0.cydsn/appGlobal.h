@@ -15,7 +15,7 @@
 #define ERROR       0
 
 #define TIMEOUT_NEXT_SKIER  1000
-#define TIMEOUT_STATE   100
+#define TIMEOUT_STATE   500
 #define TIMEOUT_USER_READ_INFO  500
 
 uint32_t SystemInit(void);

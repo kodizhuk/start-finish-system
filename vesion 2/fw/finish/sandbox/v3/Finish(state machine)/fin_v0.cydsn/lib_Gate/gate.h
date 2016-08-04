@@ -19,8 +19,11 @@
 #define GATE_CLOSE   0
 
 
+
 void GateInit(void);
 uint32_t  GateIsOpen(void);
 void GateClose(void);
+
+void AllowNextSkier(void);
 
 /* [] END OF FILE */

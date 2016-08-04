@@ -15,9 +15,10 @@
 #include <project.h>
 #include <AppDelay.h>
 #include <stdio.h>
-#include <lib_Network\svt.h>
+#include "lib_Network\svt.h"
+#include "lib_DB\database.h"
 
-//#define DEBUG_PC
+#define DEBUG_PC
 
 #ifdef DEBUG_PC
     #include <SW_UART_DEBUG.h>
@@ -30,6 +31,10 @@
 #define NO_READ     0
 #define WRITE_OK     1
 #define NO_WRITE     0
+#define FIN_READY       1
+#define FIN_NO_READY    0
+
+#define NEW_SKIER_IN_TARCK   1
 
 #define MIN_DELAYMS 150
 
@@ -61,7 +66,7 @@ typedef struct
     uint8_t IDpacket;
     uint64_t unixStartTime;
     uint16_t startMsTime;
-    uint8_t gateStatus;
+    uint8_t newSkier;
     uint8_t readStatus;
 }StartData;
 
@@ -77,6 +82,7 @@ static int noConnect;
 void InitNetwork(void);
 void AppDelay(uint32_t delayMs);
 uint32_t NetworkStatus(void);
+void SendFinStatus(uint32_t ready);
 
 void SendData(void);
 uint32_t ReceiveData(void);

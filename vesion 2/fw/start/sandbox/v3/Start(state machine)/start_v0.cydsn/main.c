@@ -43,13 +43,10 @@ int main()
             }
             case GET_FIN_STATUS:
             {
-                if(CyclesCheckConn++ >= 10)
+                result = GetFinishStatus();
+
+                if(result == NO_ERROR)
                 {
-                    //result = GetFinishStatus();
-                    CyclesCheckConn = 0;
-                }else
-                {
-                    result = NO_ERROR;
                     currentState = CHECK_GATE;                   
                 }
                 break;
@@ -74,7 +71,7 @@ int main()
                 break;
             }           
         }
-        CyDelay(TIMEOUT_STATE);
+        AppDelay(TIMEOUT_STATE);
     }
 }
 
@@ -92,15 +89,8 @@ uint32_t SystemInit(void)
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
-    
-    if(NetworkStatus()==NETWORK_CONN)
-    {
-        result = NO_ERROR;
-    }else
-    {
-        result = ERROR;
-    }
-    
+
+    result = NO_ERROR;
     return result;
     
 }
@@ -109,20 +99,15 @@ uint32_t GetFinishStatus(void)
 {
     uint32_t result;
     
-    /*return */
-    //result = CheckFinishReady();
-    if (result > 5)
+    if (NetworkStatus() == NETWORK_DISCONN || FinWriteInDB() == ERROR || FinReady() == NO_READY)
     {
         LedBlink(FREQ_ERR_BLINK);
-        CheckConnection();
         result = ERROR;
         DisplayPrintf("Fin no ready");
     }
-    else if (result <= 5)
+    else
     {
         result = NO_ERROR;
-        DisplayPrintf("You Can Start");
-        //CyDelay(TIMEOUT_USER_READ_INFO);
     }
           
     return result;
@@ -135,10 +120,12 @@ uint32_t CheckGate(void)
     
     SetLedState(LED_ENABLE);
     result = GateIsOpen();
+    GateClose();
     
     if(result == GATE_OPEN)
     {
         DisplayPrintf("Skier Started");
+        CyDelay(TIMEOUT_USER_READ_INFO);
     }else
     {
         DisplayPrintf("Start ready");
@@ -152,7 +139,8 @@ uint32_t SaveResult(void)
     uint32_t result;
     
     LedBlink(FREQ_INIT_BLINK);
-    //SendSkierStart(RTCGetUnixTime(),RTCgetRecentMs());
+    AllowNextSkier();
+    //SendSkierStart(void);
     result = NO_ERROR;
     
     return result;

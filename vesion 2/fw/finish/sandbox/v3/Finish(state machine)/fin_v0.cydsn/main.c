@@ -125,10 +125,12 @@ uint32_t SystemInit(void)
         }else
         {
             result = ERROR;
+            SendFinStatus(FIN_NO_READY);
         }
     }else
     {
         result = ERROR;
+        SendFinStatus(FIN_NO_READY);
     }
     
     return result;
@@ -139,10 +141,19 @@ uint32_t Ready(void)
 {
     uint32_t result;
     
+    SendFinStatus(FIN_READY);
+    
+    if(SkierOnWay() >= MAX_SKIERS_ON_WAY)
+    {
+        SendFinStatus(FIN_NO_READY);
+    }
+    
     if(NetworkStatus() == NETWORK_DISCONN)
     {
         DisplayPrintf("No connect");
         LedBlink(FREQ_ERR_BLINK);
+        SendFinStatus(FIN_NO_READY);
+        result = ERROR;
     }else
     {
         result = NO_ERROR;      
@@ -176,12 +187,16 @@ uint32_t SaveResult(void)
 {
     uint32_t result;
     
+    SendFinStatus(FIN_NO_READY);
     LedBlink(FREQ_INIT_BLINK);
+    
     /*write log in SD*/
     result = WriteSkierResult(&skierDB[skiersFinished]);
+    AllowNextSkier();
     if(result == FR_OK)
     {
         result = NO_ERROR;
+        
     }else
     {
         DisplayPrintf("Error save data");

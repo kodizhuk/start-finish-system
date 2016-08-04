@@ -17,10 +17,15 @@ static uint32_t gateOpen ;
 
 CY_ISR(GATE_INTERRUPT)
 {
-    gateOpen = GATE_OPEN;
     
-    /*write skier result in buffer database*/
-    WriteFinishTime(RTCGetUnixTime(),RTCgetRecentMs());
+    if(SkierOnWay() > 0)
+    {
+        gateOpen = GATE_OPEN;    
+        /*write skier result in buffer database*/
+        WriteFinishTime(RTCGetUnixTime(),RTCgetRecentMs());
+        /*off interrupt, on after seve time result*/
+        GATE_INT_Disable();
+    }
     
     GatePin_ClearInterrupt();
 }
@@ -43,11 +48,16 @@ void GateInit(void)
 *******************************************************************************/
 uint32_t GateIsOpen(void)
 {   
-    return gateOpen;;
+    return gateOpen;
 }
 
 void GateClose(void)
 {
     gateOpen = GATE_CLOSE;
+}
+
+void AllowNextSkier(void)
+{
+    GATE_INT_Enable();
 }
 /* [] END OF FILE */

@@ -205,7 +205,10 @@ uint8_t UnpackData(struct Resp *Data, uint8_t InByte)
     			{
                     uint32_t _tmpcrc;
                     char _tmpdata[40];
-                    sprintf(_tmpdata, "%02X:%016LX%04X%02X", Data->Command, Data->Data1, Data->Data2, Data->Data3);
+                    sprintf(_tmpdata, "%02X:%08X%08X%04X%02X", Data->Command, 
+                        (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+                        (uint32_t)(Data->Data1 & 0x00000000FFFFFFFF), 
+                        Data->Data2, Data->Data3);
                     _tmpcrc = crc32_reset();
                     _tmpcrc = crc32_calc_block((uint8_t *)"A", 1, _tmpcrc);
                     _tmpcrc = crc32_calc_block((uint8_t *)_tmpdata, strlen(_tmpdata), _tmpcrc);

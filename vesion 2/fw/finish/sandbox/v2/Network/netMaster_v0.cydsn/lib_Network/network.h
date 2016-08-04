@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <lib_Network\svt.h>
 
-//#define DEBUG_PC
+#define DEBUG_PC
 
 #ifdef DEBUG_PC
     #include <SW_UART_DEBUG.h>
@@ -40,6 +40,10 @@
 #define ADRESS_READY        8
 #define ADRESS_REBOOT       9
 #define ADRESS_COUNT_SK     10
+
+/*network status*/
+#define NETWORK_CONN        1
+#define NETWORK_DISCONN     0
 
 typedef struct
 {
@@ -64,9 +68,15 @@ typedef struct
 FinishData outData ;
 StartData inData;
 
+static uint32_t networkStatus;
+
+static int numAttemps ;
+static int noConnect;
+
 
 void InitNetwork(void);
 void AppDelay(uint32_t delayMs);
+uint32_t NetworkStatus(void);
 
 void SendData(void);
 uint32_t ReceiveData(void);

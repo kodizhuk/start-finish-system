@@ -9,10 +9,11 @@
  *
  * ========================================
 */
-   
+
+
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
-#include <project.h>
+//#include <project.h>
 #include <AppDelay.h>
 #include <stdio.h>
 #include <lib_Network\svt.h>
@@ -41,6 +42,10 @@
 #define ADRESS_REBOOT       9
 #define ADRESS_COUNT_SK     10
 
+/*network status*/
+#define NETWORK_CONN        1
+#define NETWORK_DISCONN     0
+
 typedef struct
 {
     uint8_t IDpacket;
@@ -61,12 +66,17 @@ typedef struct
     uint8_t writeStatus;
 }StartData;
 
-FinishData inData ;
+FinishData inData;
 StartData outData;
 
+static uint32_t networkStatus;
+
+static int numAttemps ;
+static int noConnect;
 
 void InitNetwork(void);
 void AppDelay(uint32_t delayMs);
+uint32_t NetworkStatus(void);
 
 void SendData(void);
 uint32_t ReceiveData(void);

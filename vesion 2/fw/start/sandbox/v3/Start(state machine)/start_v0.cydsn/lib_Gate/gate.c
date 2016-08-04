@@ -15,18 +15,20 @@ static uint8_t gateOpen;
 
 CY_ISR(GATE_INTERRUPT)
 {
-    if(gateOpen == GATE_CLOSE)
+    if(FinWriteInDB() == NO_ERROR && FinReady() == READY)
     {
         gateOpen = GATE_OPEN;
         /*write skier result in buffer database*/
-        //SendSkierSrart(RTCGetUnixTime(),RTCgetRecentMs());
+        SendSkierStart(RTCGetUnixTime(),RTCgetRecentMs());
+
+        GATE_INT_Disable();
     }
-    GATE_INT_ClearPending();
+    GatePin_ClearInterrupt();
 }
 
 void GateInit(void)
 {
-    GATE_INT_StartEx(GATE_INTERRUPT); 
+    GATE_INT_StartEx(GATE_INTERRUPT);
     gateOpen = GATE_CLOSE;
 }
 
@@ -41,18 +43,17 @@ void GateInit(void)
 *  GATE_CLOSE or GATE_OPEN
 *******************************************************************************/
 uint32_t GateIsOpen(void)
+{   
+    return gateOpen;
+}
+
+void GateClose(void)
 {
-    uint32_t result;
-    
-    if(gateOpen == GATE_OPEN)
-    {
-        result = GATE_OPEN;
-        gateOpen = GATE_CLOSE;
-    }else
-    {
-        result = GATE_CLOSE;
-    }
-    
-    return result;
+    gateOpen = GATE_CLOSE;
+}
+
+void AllowNextSkier(void)
+{
+    GATE_INT_Enable();
 }
 /* [] END OF FILE */

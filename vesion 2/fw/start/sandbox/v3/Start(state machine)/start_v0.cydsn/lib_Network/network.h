@@ -9,7 +9,8 @@
  *
  * ========================================
 */
-
+#ifndef _NETWORK_H
+    #define _NETWORK_H
 
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
@@ -18,7 +19,7 @@
 #include <stdio.h>
 #include <lib_Network\svt.h>
 
-//#define DEBUG_PC
+#define DEBUG_PC
 
 #ifdef DEBUG_PC
     #include <SW_UART_DEBUG.h>
@@ -29,10 +30,14 @@
 
 #define READ_OK     1
 #define NO_READ     0
-#define WRITE_OK     1
-#define NO_WRITE     0
+#define WRITE_OK    1
+#define NO_WRITE    0
+#define READY       1
+#define NO_READY    0
 
 #define MIN_DELAYMS 150
+
+#define NEW_SKIER_IN_TARCK   1
 
 /*size buffer*/
 #define DATA_BUFFER   50
@@ -62,7 +67,7 @@ typedef struct
     uint8_t IDpacket;
     uint64_t unixStartTime;
     uint16_t startMsTime;
-    uint8_t gateStatus;
+    uint8_t newSkier;
     uint8_t writeStatus;
 }StartData;
 
@@ -77,8 +82,12 @@ static int noConnect;
 void InitNetwork(void);
 void AppDelay(uint32_t delayMs);
 uint32_t NetworkStatus(void);
+void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs);
+uint32_t FinWriteInDB(void);
+uint32_t FinReady(void);
 
 void SendData(void);
 uint32_t ReceiveData(void);
 
+#endif
 /* [] END OF FILE */
