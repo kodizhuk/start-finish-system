@@ -15,7 +15,7 @@
 #define LED_ENABLE 	1
 #define LED_DISABLE	0
 
-bool CheckRoaderReadyToFinish(void);
+bool SystemReadyToFinish(void);
 void SystemInit(void);
 void SkierFinish(void);
 void ErrorStarted(void);
@@ -26,7 +26,7 @@ int main(void)
 	
 	for(;;)
 	{
-		while(!CheckRoaderReadyToFinish())
+		while(!SystemReadyToFinish())
 		{
 			ErrorStarted();
 		}
@@ -52,7 +52,7 @@ void SystemInit(void)
 }
 
 
-bool CheckRoaderReadyToFinish(void)
+bool SystemReadyToFinish(void)
 {
 	bool rez;
 	
