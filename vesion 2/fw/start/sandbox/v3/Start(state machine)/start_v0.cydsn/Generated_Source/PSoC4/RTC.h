@@ -138,14 +138,14 @@ typedef struct
 
 
 #define RTC_INITIAL_DATA_FORMAT     (0u)
-#define RTC_INITIAL_TIME_FORMAT     (1u)
+#define RTC_INITIAL_TIME_FORMAT     (0u)
 #define RTC_INITIAL_UPDATE_MODE     (0u)
-#define RTC_INITIAL_SECOND          (0u)
-#define RTC_INITIAL_MINUTE          (0u)
-#define RTC_INITIAL_HOUR            (0u)
-#define RTC_INITIAL_DAY             (1u)
-#define RTC_INITIAL_MONTH           (1u)
-#define RTC_INITIAL_YEAR            (1970u)
+#define RTC_INITIAL_SECOND          (28u)
+#define RTC_INITIAL_MINUTE          (46u)
+#define RTC_INITIAL_HOUR            (16u)
+#define RTC_INITIAL_DAY             (5u)
+#define RTC_INITIAL_MONTH           (8u)
+#define RTC_INITIAL_YEAR            (2016u)
 
 #define RTC_INITIAL_ALARM_STATUS    (0u)
 
