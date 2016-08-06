@@ -1,15 +1,15 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
-#include <Cylib.h>
+
+#include <project.h>
+/*user lib*/
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_DS1307\DS1307.h"
+#include "lib_LED\LED.h"
+#include "lib_Display\display.h"
+#include "lib_Network\network.h"
+#include "lib_Gate\gate.h"
+#include "lib_Fat\ff.h"
+#include "lib_DB\database.h"
+#include "lib_MyDelay\myDelay.h"
 
 #define NO_ERROR    1
 #define ERROR       0
@@ -19,10 +19,15 @@
 #define TIMEOUT_STATE   500
 #define TIMEOUT_USER_READ_INFO  500
 
+/*all state for state-machine*/
+typedef enum {SYSTEM_INIT = 0, READY, CHECK_GATE, SAVE_RESULT} StateType; 
+StateType currentState;
+
+static uint32_t result;
+
 uint32_t SystemInit(void);
 uint32_t Ready(void);
 uint32_t CheckGate(void);
 uint32_t SaveResult(void);
-uint32_t ReinitDB(void);
 
 /* [] END OF FILE */

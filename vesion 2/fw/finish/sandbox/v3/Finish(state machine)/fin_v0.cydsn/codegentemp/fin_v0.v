@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v0.v generated from TopDesign.cysch
-// 08/05/2016 at 16:45
+// 08/06/2016 at 17:49
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -511,7 +511,7 @@ module SCB_P4_v3_20_1 (
 
 endmodule
 
-// CharLCD_v2_20(ConversionRoutines=true, CUSTOM0=0,E,8,8,8,E,0, CUSTOM1=0,A,A,4,4,4,0, CUSTOM2=0,E,A,E,8,8,0, CUSTOM3=0,E,A,C,A,A,0, CUSTOM4=0,E,8,C,8,E,0, CUSTOM5=0,E,8,E,2,E,0, CUSTOM6=0,E,8,E,2,E,0, CUSTOM7=0,4,4,4,0,4,0, CustomCharacterSet=0, TypeReplacementString=uint32, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMPONENT_NAME=CharLCD_v2_20, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=LCD, CY_INSTANCE_SHORT_NAME=LCD, CY_MAJOR_VERSION=2, CY_MINOR_VERSION=20, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  3.3 SP2, INSTANCE_NAME=LCD, )
+// CharLCD_v2_20(ConversionRoutines=true, CUSTOM0="7,F,1F,1F,1F,1F,1F,1F,", CUSTOM1="7,F,1F,1F,15,1B,15,1F,", CUSTOM2="E,1B,11,15,4,4,E,1F,", CUSTOM3="0,0,0,4,4,4,E,1F,", CUSTOM4="0,E,8,C,8,E,0,0,", CUSTOM5="0,E,8,E,2,E,0,0,", CUSTOM6="0,E,8,E,2,E,0,0,", CUSTOM7="0,4,4,4,0,4,0,0,", CustomCharacterSet=3, TypeReplacementString=uint32, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMPONENT_NAME=CharLCD_v2_20, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=LCD, CY_INSTANCE_SHORT_NAME=LCD, CY_MAJOR_VERSION=2, CY_MINOR_VERSION=20, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  3.3 SP2, INSTANCE_NAME=LCD, )
 module CharLCD_v2_20_2 ;
 
 
@@ -1229,6 +1229,7 @@ endmodule
 // top
 module top ;
 
+          wire  Net_179;
           wire  Net_176;
           wire  Net_175;
           wire  Net_174;
@@ -1289,11 +1290,11 @@ module top ;
           wire  Net_142;
           wire  Net_141;
           wire  Net_140;
+          wire  Net_168;
     electrical  Net_58;
     electrical  Net_57;
           wire  Net_12;
           wire  Net_10;
-          wire  Net_168;
     electrical  Net_80;
 
     SW_Tx_UART_v1_50_0 SW_UART_DEBUG ();
@@ -1578,7 +1579,7 @@ module top ;
 
 
 	cy_isr_v1_0
-		#(.int_type(2'b00))
+		#(.int_type(2'b01))
 		GATE_INT
 		 (.int_signal(Net_168));
 
@@ -1614,6 +1615,80 @@ module top ;
     defparam AppDelay.InterruptOnTC = 0;
     defparam AppDelay.Resolution = 24;
     defparam AppDelay.SiliconRevision = "0";
+
+	wire [0:0] tmpOE__SDinsert_net;
+	wire [0:0] tmpIO_0__SDinsert_net;
+	wire [0:0] tmpINTERRUPT_0__SDinsert_net;
+	electrical [0:0] tmpSIOVREF__SDinsert_net;
+
+	cy_psoc3_pins_v1_10
+		#(.id("8d318d8b-cf7b-4b6b-b02c-ab1c5c49d0ba"),
+		  .drive_mode(3'b010),
+		  .ibuf_enabled(1'b1),
+		  .init_dr_st(1'b1),
+		  .input_clk_en(0),
+		  .input_sync(1'b0),
+		  .input_sync_mode(1'b0),
+		  .intr_mode(2'b00),
+		  .invert_in_clock(0),
+		  .invert_in_clock_en(0),
+		  .invert_in_reset(0),
+		  .invert_out_clock(0),
+		  .invert_out_clock_en(0),
+		  .invert_out_reset(0),
+		  .io_voltage(""),
+		  .layout_mode("CONTIGUOUS"),
+		  .oe_conn(1'b0),
+		  .oe_reset(0),
+		  .oe_sync(1'b0),
+		  .output_clk_en(0),
+		  .output_clock_mode(1'b0),
+		  .output_conn(1'b0),
+		  .output_mode(1'b0),
+		  .output_reset(0),
+		  .output_sync(1'b0),
+		  .pa_in_clock(-1),
+		  .pa_in_clock_en(-1),
+		  .pa_in_reset(-1),
+		  .pa_out_clock(-1),
+		  .pa_out_clock_en(-1),
+		  .pa_out_reset(-1),
+		  .pin_aliases(""),
+		  .pin_mode("I"),
+		  .por_state(4),
+		  .sio_group_cnt(0),
+		  .sio_hyst(1'b1),
+		  .sio_ibuf(""),
+		  .sio_info(2'b00),
+		  .sio_obuf(""),
+		  .sio_refsel(""),
+		  .sio_vtrip(""),
+		  .sio_hifreq(""),
+		  .sio_vohsel(""),
+		  .slew_rate(1'b0),
+		  .spanning(0),
+		  .use_annotation(1'b0),
+		  .vtrip(2'b00),
+		  .width(1),
+		  .ovt_hyst_trim(1'b0),
+		  .ovt_needed(1'b0),
+		  .ovt_slew_control(2'b00),
+		  .input_buffer_sel(2'b00))
+		SDinsert
+		 (.oe(tmpOE__SDinsert_net),
+		  .y({1'b0}),
+		  .fb({Net_179}),
+		  .io({tmpIO_0__SDinsert_net[0:0]}),
+		  .siovref(tmpSIOVREF__SDinsert_net),
+		  .interrupt({tmpINTERRUPT_0__SDinsert_net[0:0]}),
+		  .in_clock({1'b0}),
+		  .in_clock_en({1'b1}),
+		  .in_reset({1'b0}),
+		  .out_clock({1'b0}),
+		  .out_clock_en({1'b1}),
+		  .out_reset({1'b0}));
+
+	assign tmpOE__SDinsert_net = (`CYDEV_CHIP_MEMBER_USED == `CYDEV_CHIP_MEMBER_3A && `CYDEV_CHIP_REVISION_USED < `CYDEV_CHIP_REVISION_3A_ES3) ? ~{1'b1} : {1'b1};
 
 
 

@@ -1,14 +1,5 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+#ifndef _NETWORK_H
+    #define _NETWORK_H
    
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
@@ -19,13 +10,10 @@
 #include "lib_DB\database.h"
 
 #define DEBUG_PC
-
 #ifdef DEBUG_PC
     #include <SW_UART_DEBUG.h>
 #endif
 
-#define ERROR       0
-#define NO_ERROR    1
 
 #define READ_OK     1
 #define NO_READ     0
@@ -35,8 +23,6 @@
 #define FIN_NO_READY    0
 
 #define NEW_SKIER_IN_TARCK   1
-
-#define MIN_DELAYMS 150
 
 /*size buffer*/
 #define DATA_BUFFER   50
@@ -50,33 +36,39 @@
 #define NETWORK_CONN        1
 #define NETWORK_DISCONN     0
 
+#define NETWORK_TIMEOUT     30
+
 typedef struct
 {
-    uint8_t IDpacket;
-    uint8_t ready;
-    uint8_t reboot;
+    /*data to transmit*/
+    uint8_t IDpacket;    
+    uint8_t ready;          /*flag readu finish*/
+    uint8_t reboot;         /*flag finish reboot*/
     uint8_t countSkiers;
+    
     uint64_t tmpTime;
     uint16_t tmpMsTime;
-    uint8_t writeStatus;
+    uint8_t writeStatus;    /*flag transmitt data*/
 }FinishData;
 
 typedef struct
 {
+    /*data to receive*/
     uint8_t IDpacket;
     uint64_t unixStartTime;
     uint16_t startMsTime;
     uint8_t newSkier;
-    uint8_t readStatus;
+    
+    uint8_t readStatus;     /*flag successful read data in start*/
 }StartData;
 
 FinishData outData ;
 StartData inData;
 
-static uint32_t networkStatus;
 
-static int numAttemps ;
-static int noConnect;
+uint32_t numAttemps,noConnect, networkStatus;
+#define ERROR 1
+#define NO_ERROR    0
 
 
 void InitNetwork(void);
@@ -87,4 +79,5 @@ void SendFinStatus(uint32_t ready);
 void SendData(void);
 uint32_t ReceiveData(void);
 
+#endif
 /* [] END OF FILE */

@@ -22,12 +22,13 @@
 
 
 FATFS fatFs;    /* File object */
-FIL fileO;      /* File objects */
+FIL fileO;      /* File info */
 
 /*flag who shows that the establishment of the file*/
 DWORD createFlag;   
 
 uint32_t logStart(void);
 uint32_t WriteSkierResult(skierDB_El *data);
+
 
 /* [] END OF FILE */
