@@ -1,3 +1,6 @@
+#ifndef _SVT_H
+    #define _SVT_H
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,3 +78,5 @@ uint8_t DecodeByte(uint8_t Inp);
 uint8_t CheckSymb(uint8_t Inp);
 void 	ResetPacket(struct Resp *Data);
 uint8_t PackData(char *buff, uint8_t *data, uint32_t Sequence);
+
+#endif

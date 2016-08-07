@@ -152,7 +152,7 @@ uint32_t SaveResult(void)
     GetStartTime(&startUnixTime, &startRecentMs);
     SendSkierStart(startUnixTime, startRecentMs);
     
-    DisplayPrintf("Please wait");
+    DisplayPrintf("Wait next skier");
     AppDelay(TIMEOUT_NEXT_SKIER);
     
     result = NO_ERROR;

@@ -45,6 +45,8 @@
 #include "UART_XB_BOOT.h"
 #include "GATE_INT.h"
 #include "AppDelay.h"
+#include "SDinsert.h"
+#include "SDinsert_aliases.h"
 #include "I2C_SCBCLK.h"
 #include "I2C_sda.h"
 #include "I2C_sda_aliases.h"

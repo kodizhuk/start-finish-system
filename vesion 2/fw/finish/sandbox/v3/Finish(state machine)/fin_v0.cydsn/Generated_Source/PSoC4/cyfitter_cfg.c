@@ -123,7 +123,7 @@ static void CyClockStartupError(uint8 errorCode)
 }
 #endif
 
-#define CY_CFG_BASE_ADDR_COUNT 8u
+#define CY_CFG_BASE_ADDR_COUNT 7u
 CYPACKED typedef struct
 {
 	uint8 offset;
@@ -299,8 +299,6 @@ void cyfitter_cfg(void)
 
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_BLE_BLESS_LL_DSM_CTRL), 0x00000000u);
 
-	/* Enable the clock in the interrupt controller for the routed interrupts */
-	CY_SET_REG8((void *)CYREG_UDB_UDBIF_INT_CLK_CTL, 0x01u);
 	{
 		static const uint32 CYCODE cy_cfg_addr_table[] = {
 			0x400F0001u, /* Base address: 0x400F0000 Count: 1 */
@@ -308,7 +306,6 @@ void cyfitter_cfg(void)
 			0x400F311Cu, /* Base address: 0x400F3100 Count: 28 */
 			0x400F3219u, /* Base address: 0x400F3200 Count: 25 */
 			0x400F330Du, /* Base address: 0x400F3300 Count: 13 */
-			0x400F4104u, /* Base address: 0x400F4100 Count: 4 */
 			0x400F4204u, /* Base address: 0x400F4200 Count: 4 */
 			0x400F6002u, /* Base address: 0x400F6000 Count: 2 */
 		};
@@ -439,10 +436,6 @@ void cyfitter_cfg(void)
 			{0xD0u, 0x50u},
 			{0xD6u, 0xD0u},
 			{0xDEu, 0x80u},
-			{0x11u, 0x08u},
-			{0x6Du, 0x08u},
-			{0xC4u, 0x10u},
-			{0xDAu, 0x80u},
 			{0x24u, 0x50u},
 			{0x8Cu, 0x50u},
 			{0xC8u, 0x01u},
@@ -491,12 +484,6 @@ void cyfitter_cfg(void)
 		/* UDB_PA_3 Starting address: CYDEV_UDB_PA3_BASE */
 		CY_SET_XTND_REG32((void CYFAR *)(CYDEV_UDB_PA3_BASE), 0x00990000u);
 
-		/* INT_SELECT Starting address: CYDEV_CPUSS_INT_SEL */
-		CY_SET_XTND_REG32((void CYFAR *)(CYREG_CPUSS_INT_SEL), 0x00000002u);
-
-		/* INT_CONFIG Starting address: CYDEV_UDB_INT_CFG */
-		CY_SET_XTND_REG32((void CYFAR *)(CYREG_UDB_INT_CFG), 0x00000002u);
-
 		/* Enable digital routing */
 		CY_SET_XTND_REG8((void *)CYREG_UDB_UDBIF_BANK_CTL, CY_GET_XTND_REG8((void *)CYREG_UDB_UDBIF_BANK_CTL) | 0x02u);
 
@@ -516,7 +503,8 @@ void cyfitter_cfg(void)
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT1_PC), 0x007B6DB6u);
 
 	/* IOPINS0_2 Starting address: CYDEV_GPIO_PRT2_BASE */
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT2_PC), 0x000003B6u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_GPIO_PRT2_BASE), 0x00000010u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT2_PC), 0x000023B6u);
 
 	/* IOPINS0_3 Starting address: CYDEV_GPIO_PRT3_BASE */
 	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_GPIO_PRT3_BASE), 0x00000003u);

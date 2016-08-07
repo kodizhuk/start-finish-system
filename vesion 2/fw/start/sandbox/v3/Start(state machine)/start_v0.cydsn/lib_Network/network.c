@@ -25,6 +25,7 @@ void InitNetwork(void)
     
     inData.readStatus = NO_READ;
     outData.writeStatus = WRITE_OK;
+    outData.IDpacket = 0xFF;
     networkStatus = NETWORK_DISCONN;   
     UART_XB_SpiUartClearRxBuffer();
 }
@@ -53,11 +54,6 @@ void AppDelay(uint32_t delayMs)
         while(((delayMs - runTime) > MIN_DELAYMS) && (runTime <= delayMs))
         {
             /*user function*/      
-            if(outData.writeStatus == WRITE_OK && inData.readStatus == NO_READ)
-            {
-                ReceiveData();
-                
-            }
             if(outData.writeStatus == NO_WRITE && inData.readStatus == READ_OK)
             {
                 if (inData.IDpacket == outData.IDpacket)
@@ -68,6 +64,11 @@ void AppDelay(uint32_t delayMs)
                 {
                     SendData();
                 }
+            }
+            if(outData.writeStatus == WRITE_OK && inData.readStatus == NO_READ)
+            {
+                ReceiveData();
+                
             }
         
             CyDelay((uint32)MIN_DELAYMS);

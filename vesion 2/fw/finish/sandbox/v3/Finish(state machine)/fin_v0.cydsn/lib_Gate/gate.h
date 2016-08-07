@@ -13,6 +13,7 @@
 #include <GatePin.h>
 #include <GATE_INT.h>
 #include "lib_RTC\RTC_WDT.h"
+#include "lib_DB\database.h"
 
 #define GATE_OPEN    1
 #define GATE_CLOSE   0
