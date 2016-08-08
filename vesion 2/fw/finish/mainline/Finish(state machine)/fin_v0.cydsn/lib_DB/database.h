@@ -1,30 +1,29 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
-
 #ifndef _DATABASE_H
 #define _DATABASE_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
-
+/* The maximum number of skiers that may be issued on the track */
 #define MAX_SKIERS_ON_WAY   4u
+
+/* Description FIFO which is used to record deferred to SD card*/
+/* The maximum number of skiers that may be saved on the main part FIFO */
 #define MAX_SKIERS_ON_BUF   8u
-#define BUFFER_SIZE         MAX_SKIERS_ON_WAY + 4u
-#define MAX_SKIERS_ON_DB    150u
+/* Backup buffer share further to the FIFO may contain the maximum number of skiers on the track */
 #define MAX_FIFO_SIZE       MAX_SKIERS_ON_BUF + MAX_SKIERS_ON_WAY
+/* End description FIFO*/
+
+/* Buffer which saved start time skiers until they not finish */
+#define BUFFER_SIZE         MAX_SKIERS_ON_WAY
+/* Max saved skiers which can be saved on internal database*/
+#define MAX_SKIERS_ON_DB    150u
+
+/* */
 #define DB_START            1
 #define DB_NO_START         0
-    
+   
+/* Struct one element on database*/   
 typedef struct 
 {
     uint64_t unixStartSkier;
@@ -37,6 +36,7 @@ typedef struct
 
 #include "lib_DB\logResult.h"
 
+/* Struct one element on buffer*/
 struct elementBuff
 {
     uint64_t unixStartSkier;
@@ -44,17 +44,21 @@ struct elementBuff
     struct elementBuff* nextSki;
 } bufferSkiersOnWay[BUFFER_SIZE];
 
+/* FIFO which is used to record deferred to SD card */
 skierDB_El bufferFifo[MAX_SKIERS_ON_BUF];
 
+/* Current size Buffer */
 uint32_t currentSizeBuff;
+
+/* Tail and Head buffer */
 struct elementBuff *currentElementStart;
 struct elementBuff *currentElementFinish;
 
-uint16_t skiersStarted;
+/* Count finished skiers*/
 uint16_t skiersFinished;
 
+/* Internal database*/
 skierDB_El skierDB[MAX_SKIERS_ON_DB];
-
 
 uint32_t DataBaseStart(void);
 void InitBuff();
@@ -88,5 +92,5 @@ void FifoGet(skierDB_El *data);
 void FifoPushLast(skierDB_El data);
 
 
-#endif
+#endif /* _DATABASE_H */
 /* [] END OF FILE */
