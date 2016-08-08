@@ -1,27 +1,14 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
 #include "LED.h"
 
-uint8_t LED_InitValue;
+uint8_t LED_initValue;
 
-void LedInit(void)
-{
-        Timer_LED_Init();
-        if (!LED_InitValue)
-        {
-            Int_Timer_Led_StartEx(LedHandler);
-        }
-        LED_InitValue = 1;
-}
+/*******************************************************************************
+* Interrupt function name: LedHandler
+********************************************************************************
+*
+* After every interrupt inverts pin state and clear interrupt state. 
+*
+*******************************************************************************/	
 
 CY_ISR(LedHandler)
 {
@@ -29,23 +16,70 @@ CY_ISR(LedHandler)
     Timer_LED_ClearInterrupt(Timer_LED_INTR_MASK_CC_MATCH);
 }
 
-void LedBlink(uint16_t Frequency)
+/*******************************************************************************
+* Function name: LedInit
+********************************************************************************
+*
+* Initialization timer for led, 
+* and attach interrupt to output 
+* timer termial. If LED is already 
+* initialised, this function does nothing. 
+*
+*******************************************************************************/	
+
+void LedInit(void)
 {
-    uint32_t time_l;
-    time_l = FreqToTicks(Frequency);
-    Timer_LED_WritePeriod(time_l);
+        Timer_LED_Init();
+        if (!LED_initValue)
+        {
+            Int_Timer_Led_StartEx(LedHandler);
+        }
+        LED_initValue = 1;
+}
+
+/*******************************************************************************
+* Function Name: LedBlink
+********************************************************************************
+*
+* Summary:
+*  Writes a timer value period of ticks, equivalent transferred 
+*  flashing frequency and enable timer. 
+*
+* Parameters:
+*  frequency: Frequency with which LED will be blinking
+* Note:
+*  Transfered value must be in Hz
+*
+*******************************************************************************/
+
+void LedBlink(uint16_t frequency)
+{
+    uint32_t time;
+    time = FreqToTicks(frequency);
+    Timer_LED_WritePeriod(time);
     Timer_LED_Enable();
 }
 
-void SetPWMValue(uint8_t Value)
-{
-    /* TBD: Implementation Here; */
-}
+/*******************************************************************************
+* Function Name: SetLedState
+********************************************************************************
+*
+* Summary:
+*  Set static state LED indicator and disable timer. 
+*
+* Parameters:
+*  state: Set high or low level on LED. 
+* Note:
+*  Macro definitions for LED:
+*  LED_ENABLE - High level. 
+*  LED_DISABLE - Low level. 
+*
+*******************************************************************************/
 
-void SetLedState(uint8_t State)
+void SetLedState(uint8_t state)
 {
     Timer_LED_Stop();
-    LED_PIN_Write(State);
+    LED_PIN_Write(state);
 }
 
 /* [] END OF FILE */
