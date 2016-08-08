@@ -75,6 +75,7 @@ void DisplayPutIndicatorNetwork(NetworkIndicator state)
         LCD_PutChar(LCD_CUSTOM_3);
     }
 }
+
 /*******************************************************************************
 * Function name: DisplayPrintfRealTime
 ********************************************************************************
@@ -92,4 +93,31 @@ void DisplayPrintfRealTime(void)
     LCD_PrintString(buff);
 }
 
+/*******************************************************************************
+* Function name: DisplayPrintLastTimeSkier
+********************************************************************************
+*
+* print time last skier from position row = 1, column = 0
+*
+*******************************************************************************/
+void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
+{
+    sprintf(buff, "Result %02u:%02u:%03u",sec/60,sec%60, milisec);
+    LCD_Position(0,0);
+    LCD_PrintString(buff);
+}
+
+/*******************************************************************************
+* Function name: DisplayPrintNumSkierOnWay
+********************************************************************************
+*
+* print number skier on way from position row = 1, column = 11
+*
+*******************************************************************************/
+void DisplayPrintNumSkierOnWay(uint32_t num)
+{
+    sprintf(buff, "%u/%u", num, MAX_SKIERS_ON_WAY);
+    LCD_Position(1,11);
+    LCD_PrintString(buff);
+}
 /* [] END OF FILE */

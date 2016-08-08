@@ -15,7 +15,7 @@
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 #include <project.h>
-#include <AppDelay.h>
+
 #include <stdio.h>
 #include <lib_Network\svt.h>
 
@@ -25,8 +25,6 @@
     #include <SW_UART_DEBUG.h>
 #endif
 
-#define ERROR       0
-#define NO_ERROR    1
 
 #define READ_OK     1
 #define NO_READ     0
@@ -50,6 +48,13 @@
 /*network status*/
 #define NETWORK_CONN        1
 #define NETWORK_DISCONN     0
+#define NETWORK_TIMEOUT     30
+
+#define MASK_HIGH   0xFFFFFFFF00000000
+#define MASK_LOW    0x00000000FFFFFFFF
+#define DATA_SHIFT  32
+
+#define TIMEOUT_FIN_READY   3
 
 typedef struct
 {
@@ -77,19 +82,16 @@ StartData outData;
 char previousData[100];
 
 static uint32_t networkStatus;
-
-static int numAttemps ;
 static int noConnect;
+static int finNoReady;
 
 void InitNetwork(void);
-void AppDelay(uint32_t delayMs);
 uint32_t NetworkStatus(void);
 void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs);
 uint32_t FinWriteInDB(void);
 uint32_t FinReady(void);
 
 void SendData(void);
-void SendPreviousPacket(void);
 uint32_t ReceiveData(void);
 
 #endif

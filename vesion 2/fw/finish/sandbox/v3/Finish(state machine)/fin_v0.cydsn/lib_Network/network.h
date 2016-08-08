@@ -4,7 +4,6 @@
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 #include <project.h>
-#include <AppDelay.h>
 #include <stdio.h>
 #include "lib_Network\svt.h"
 #include "lib_DB\database.h"
@@ -38,6 +37,7 @@
 
 #define NETWORK_TIMEOUT     30
 
+
 typedef struct
 {
     /*data to transmit*/
@@ -67,12 +67,10 @@ StartData inData;
 
 
 uint32_t numAttemps,noConnect, networkStatus;
-#define ERROR 1
-#define NO_ERROR    0
+
 
 
 void InitNetwork(void);
-void AppDelay(uint32_t delayMs);
 uint32_t NetworkStatus(void);
 void SendFinStatus(uint32_t ready);
 

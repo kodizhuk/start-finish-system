@@ -9,15 +9,14 @@
  *
  * ========================================
 */
+#ifndef _RTC_WDT_H
+    #define _RTC_WDT_H
 
 #include <CyLib.h>
 #include <RTC.h>
 
-#define USE_WDT_RTC
 
-#ifdef USE_WDT_RTC
-     #include <CyLFClk.h>
-#endif
+#include <CyLFClk.h>
 
 #define RTC_TIME_FORMAT_SHIFT       (39u)
 #define RTC_PERIOD_OF_DAY_SHIFT     (38u)
@@ -62,4 +61,6 @@ uint32_t RTCgetMiliecond(uint64_t readTime);
 
 extern uint16_t msRTC; 
 extern uint32_t RTCSyncWithDS;
+
+#endif
 /* [] END OF FILE */

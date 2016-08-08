@@ -31,6 +31,6 @@ void GetStartTime(uint64_t *unixTime,  uint32_t *recentMs);
 
 #define DEBUG_PC
 #ifdef DEBUG_PC
-static int err;
+
 #endif
 /* [] END OF FILE */

@@ -1,16 +1,5 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
-#include "appGlobal.h"
 
+#include "appGlobal.h"
 
 
 int main()
@@ -43,8 +32,7 @@ int main()
                 if(result == NO_ERROR)
                 {
                     currentState = CHECK_GATE;
-                }
-                
+                }               
                 break;
             }
             case CHECK_GATE:
@@ -70,7 +58,6 @@ int main()
             }            
         }
         MyDelay(TIMEOUT_STATE);
-        DisplayPrintfRealTime();
     }
 }
 
@@ -117,48 +104,22 @@ uint32_t SystemInit(void)
 uint32_t Ready(void)
 {
     uint32_t result;   
-    
-    /*if(NetworkStatus() == NETWORK_DISCONN)
-    {
-        DisplayPrintf("No connect");
-        LedBlink(FREQ_ERR_BLINK);
-        SendFinStatus(FIN_NO_READY);
-        
-        result = ERROR;
-    }else*/ if(SkierOnWay() >= MAX_SKIERS_ON_WAY)
-    {
-        DisplayPrintf("Max skier on way");
-        SendFinStatus(FIN_NO_READY);
-        MyDelay(TIMEOUT_USER_READ_INFO);
-        
-        result = NO_ERROR;      
-    }else if(SkierOnWay() == 0)
-    {
-        DisplayPrintf("No skier on way");
-        MyDelay(TIMEOUT_USER_READ_INFO);
-        SendFinStatus(FIN_READY);
-        SetLedState(LED_ENABLE);
-        
-        result = ERROR;      
-    }
-    else
-    {
-        SendFinStatus(FIN_READY);
-        
-        result = NO_ERROR;
-    }
-    
+ 
+    /*sise FIFO*/
     if ((FifoGetSize() >= MAX_SKIERS_ON_BUF) && (FifoGetSize() <= MAX_FIFO_SIZE))
     {
         /*skier finish successful*/
         DisplayPrintf("Error SD Card!");
-        SendFinStatus(FIN_NO_READY);        
+        SendFinStatus(FIN_NO_READY); 
+        
         if (SkierOnWay() == 0)
         {
+            /*if not skiers on way*/
             result = ERROR;
         }
         else
         {
+            /*if skiers on way*/
             result = NO_ERROR;
         }        
     }
@@ -168,9 +129,34 @@ uint32_t Ready(void)
         DisplayPrintf("Error SD Card!");
         SendFinStatus(FIN_NO_READY);        
         result = ERROR;                
+    }else if(SkierOnWay() >= MAX_SKIERS_ON_WAY)
+    {
+        /*max skier on way*/
+        
+        DisplayPrintf("Max skier on way");
+        SendFinStatus(FIN_NO_READY);
+        MyDelay(TIMEOUT_USER_READ_INFO);
+        
+        result = NO_ERROR;      
+    }else if(SkierOnWay() == 0)
+    {
+        /*no skier on way*/
+        DisplayPrintf("Finish Ready");
+        //MyDelay(TIMEOUT_USER_READ_INFO);
+        SendFinStatus(FIN_READY);
+        SetLedState(LED_ENABLE);
+        
+        result = ERROR;      
+    }else
+    {
+        /*finish ready*/
+        SendFinStatus(FIN_READY);
+        DisplayPrintf("Finish Ready");
+        
+        result = NO_ERROR;
     }
+       
     return result;
-    
 }
 
 uint32_t CheckGate(void)
@@ -186,9 +172,6 @@ uint32_t CheckGate(void)
         MyDelay(TIMEOUT_USER_READ_INFO);
     }else
     {
-        char _tmpBuff[20];
-        sprintf(_tmpBuff, "%d skiers on Way", SkierOnWay());
-        DisplayPrintf(_tmpBuff);
         AllowNextSkier();
     }
     return result;
@@ -197,11 +180,10 @@ uint32_t CheckGate(void)
 
 uint32_t SaveResult(void)
 {
-    uint32_t result;
     uint64_t finUnixTime;
     uint32_t finRecentMs;
     
-    SendFinStatus(FIN_NO_READY);
+    SendFinStatus(FIN_READY);
     LedBlink(FREQ_INIT_BLINK);
     DisplayPrintf("Save data");
     MyDelay(TIMEOUT_USER_READ_INFO);
@@ -210,55 +192,13 @@ uint32_t SaveResult(void)
     GetFinTime(&finUnixTime, &finRecentMs);
     WriteFinishTime(finUnixTime,finRecentMs);
     FifoPush(skierDB[skiersFinished-1]);
-     
-    /*app delay*/
-    //result = WriteSkierResult(&skierDB[skiersFinished-1]);
     
-    /*
-    if(result == FR_OK)
-    {
-        result = NO_ERROR;
-        reinitDB = NO_ERROR;
-        
-        /*printf result last skier*/
-    /*
-        char _tmpBuff[20];
-        sprintf(_tmpBuff, "Result %02u:%02u:%03u",LastSecTimeOnWay()/60,LastSecTimeOnWay()%60, LastMillsTimeOnWay());
-        DisplayPrintf(_tmpBuff);
-        MyDelay(3*TIMEOUT_USER_READ_INFO);
-    }else
-    {
-        DisplayPrintf("Error save data");
-        MyDelay(TIMEOUT_USER_READ_INFO);
-        reinitDB = ERROR;
-        
-        result = ERROR;
-    }
+    /*print time result last skier finished*/
+    DisplayPrintLastTimeSkier(LastSecTimeOnWay(),LastMillsTimeOnWay());
+    MyDelay(2*TIMEOUT_USER_READ_INFO);
     
-    */
-    result = NO_ERROR;
     
-    return result;
-    
+    return NO_ERROR;   
 }
-/*
-uint32_t ReinitDB(void)
-{
-    uint32_t result;
-    
-    result = logStart();
-    if(result == FR_OK)
-    {
-        DisplayPrintf("Save data OK!");
-        MyDelay(TIMEOUT_USER_READ_INFO);
-        result = NO_ERROR;
-    }else
-    {
-        
-        result = ERROR;
-    }
-    
-    return result;
-}
-*/
+
 /* [] END OF FILE */
