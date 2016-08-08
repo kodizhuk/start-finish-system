@@ -58,6 +58,7 @@ void MyDelay(uint32_t delayMs)
     }
 }
 
+
 static void UserFunc_1(void)
 {
     /*network*/
@@ -91,7 +92,7 @@ static void UserFunc_2(void)
         result = WriteSkierResult(&tmpStruct);
         if(result != FR_OK)
         {
-            logStart();
+            LogStart();
             writeFlag = WRITE_ERROR;
         }
         else
@@ -124,6 +125,7 @@ static void UserFunc_3(void)
 
 static void UserFunc_4(void)
 {
+    /*printf real time and num skier on way*/
     DisplayPrintfRealTime();
     DisplayPrintNumSkierOnWay(SkierOnWay());
 }
