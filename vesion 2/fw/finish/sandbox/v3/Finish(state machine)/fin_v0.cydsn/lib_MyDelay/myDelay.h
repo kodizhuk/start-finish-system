@@ -1,5 +1,3 @@
-#ifndef _MY_DELAY_H
-    #define _MY_DELAY_H
 
 #include <CyLib.h>
 #include <AppDelay.h>
@@ -24,5 +22,4 @@ void MyDelay(uint32_t miliseconds);
 static void UserFunc_1(void);
 static void UserFunc_2(void);
 static void UserFunc_3(void);
-
-#endif
+static void UserFunc_4(void);

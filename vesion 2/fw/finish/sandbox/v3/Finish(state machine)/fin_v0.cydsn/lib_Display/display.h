@@ -20,6 +20,8 @@ void DisplayPrintf(char *message);
 void DisplayPutIndicatorSD(SDindicator);
 void DisplayPutIndicatorNetwork(NetworkIndicator);
 void DisplayPrintfRealTime(void);
+void DisplayPrintNumSkierOnWay(uint32_t num);
+void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec);
 
 
 #endif

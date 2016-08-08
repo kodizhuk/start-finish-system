@@ -34,6 +34,7 @@ void MyDelay(uint32_t delayMs)
             UserFunc_1();
             UserFunc_2();
             UserFunc_3();
+            UserFunc_4();
             
             CyDelay(MIN_DELAY_MS);
                             
@@ -119,4 +120,10 @@ static void UserFunc_3(void)
         DisplayPutIndicatorNetwork(DISCONNECT);
     }
     
+}
+
+static void UserFunc_4(void)
+{
+    DisplayPrintfRealTime();
+    DisplayPrintNumSkierOnWay(SkierOnWay());
 }

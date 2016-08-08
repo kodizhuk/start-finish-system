@@ -1,4 +1,6 @@
-
+#ifndef _MY_DELAY_H
+    #define _MY_DELAY_H
+    
 #include <project.h>
 /*user lib*/
 #include "lib_RTC\RTC_WDT.h"
@@ -29,5 +31,7 @@ uint32_t SystemInit(void);
 uint32_t Ready(void);
 uint32_t CheckGate(void);
 uint32_t SaveResult(void);
+
+#endif
 
 /* [] END OF FILE */

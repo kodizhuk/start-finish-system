@@ -14,13 +14,25 @@
 uint32_t DataBaseStart(void)
 {
     uint32_t result; 
+    
     result = logStart();
+    if(result == FR_OK)
+    {
+        result = DB_START;
+    }else
+    {
+        result = DB_NO_START;
+    }
     return result;
 }
 
 void InitBuff()
 {
     uint32_t i;
+    
+    /*init fifo*/
+    fifo.totalSize = MAX_FIFO_SIZE;
+    
     for( i = 0; i< BUFFER_SIZE - 1; i++)
     {
         bufferSkiersOnWay[i].nextSki = &bufferSkiersOnWay[i+1];
@@ -124,4 +136,41 @@ uint32_t LastMillsTimeOnWay()
     return tmpData;
 }
 
+
+/*FIFO*/
+uint16_t FifoGetSize(void)
+{
+    return fifo.size;
+}
+
+void FifoPush(skierDB_El data)
+{
+    if (fifo.size<fifo.totalSize)           
+    {                                                  
+        ++fifo.size;                               
+                                                       
+        fifo.buffer[fifo.lastElement++] = data;  
+                                                       
+        if (fifo.lastElement == fifo.totalSize) 
+            fifo.lastElement = 0;
+    }  
+}
+
+void FifoGet(skierDB_El *data)                    
+{                                                   
+    if (fifo.size != 0)                             
+    {                                                           
+        *data = fifo.buffer[fifo.firstElement++];
+                                                        
+        if (fifo.firstElement == fifo.totalSize) 
+            fifo.firstElement = 0;  
+        
+        --fifo.size;                               
+    }                                                  
+}
+
+void FifoPushLast(skierDB_El data)
+{
+    fifo.last = data;
+}
 /* [] END OF FILE */

@@ -82,4 +82,5 @@ uint32_t WriteSkierResult(skierDB_El *data)
     
     return resultF;
 }
+
 /* [] END OF FILE */

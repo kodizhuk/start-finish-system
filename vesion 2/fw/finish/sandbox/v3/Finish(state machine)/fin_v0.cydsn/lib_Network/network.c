@@ -27,99 +27,6 @@ void InitNetwork(void)
     
 }
 
-//void AppDelay(uint32_t delayMs)
-//{
-//    uint32_t runTime;
-//    
-//    runTime = 0;
-//    
-//    if(delayMs < MIN_DELAYMS)
-//    {
-//        CyDelay(delayMs);
-//    }else
-//    {
-//        AppDelay_WriteCounter(131071);
-//        uint32_t counter = AppDelay_ReadCounter();
-//        
-//        AppDelay_Start();
-//        
-//        while(((delayMs - runTime) > MIN_DELAYMS) && (runTime <= delayMs))
-//        {
-//            /*user function*/      
-//            if(inData.readStatus == READ_OK && outData.writeStatus == NO_WRITE )
-//            {
-//                SendData();           
-//            }
-//            
-//            if(inData.readStatus == READ_OK && outData.writeStatus == WRITE_OK)
-//            {
-//                ReceiveData();
-//                
-//                #ifdef DEBUG_PC
-//                inData.readStatus = READ_OK;
-//                #endif
-//            }
-//            
-//            /*write result skier on log*/
-//            if((FifoGetSize() > 0) || (writeFlag == ERROR))
-//            {
-//                uint32_t result;
-//                skierDB_El tmpStruct;
-//                if (writeFlag == NO_ERROR)
-//                {
-//                    FifoGet(&tmpStruct);
-//                    FifoPushLast(tmpStruct);
-//                }
-//                else
-//                {
-//                    tmpStruct = fifo.last;
-//                }
-//                result = WriteSkierResult(&tmpStruct);
-//                if(result != FR_OK)
-//                {
-//                    logStart();
-//                    writeFlag = ERROR;
-//                }
-//                else
-//                {
-//                    writeFlag = NO_ERROR;
-//                }
-//            }
-//            
-//            CyDelay(MIN_DELAYMS);
-//
-//            uint32_t period = AppDelay_ReadPeriod();
-//            counter = AppDelay_ReadCounter();
-//            runTime = (period -  counter)/32.768;
-//            
-//            /*user function*/  
-//        }
-//        AppDelay_Stop();
-//        
-//        #ifdef DEBUG_PC
-//        char buffer[100];
-//        sprintf(buffer,"time send data %u\n\r", (runTime));
-//        SW_UART_DEBUG_PutString(buffer);
-//        #endif
-//        
-//        /*tyme to respond*/
-//        if(numAttemps++ >= 2)
-//        {
-//            numAttemps=0;
-//            outData.writeStatus = NO_WRITE;
-//        }
-//        if(noConnect++ >= 4)
-//        {
-//            networkStatus = NETWORK_DISCONN;
-//        }
-//        
-//        
-//        if (delayMs > runTime)
-//        {
-//            CyDelay(delayMs - runTime);
-//        }
-//    }   
-//}
 
 void SendData(void)
 {   
@@ -225,7 +132,6 @@ uint32_t  ReceiveData(void)
 
         }
         
-
         noConnect++;
         if(noConnect >= NETWORK_TIMEOUT)
         {
@@ -241,6 +147,7 @@ uint32_t  ReceiveData(void)
         
         return  NETWORK_DISCONN;
     }
+    return 0;
 }
 
 
