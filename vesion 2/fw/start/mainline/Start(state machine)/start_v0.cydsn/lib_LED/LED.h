@@ -15,6 +15,9 @@
  Interrupt : Int_Timer_Led
 */
 
+#ifndef _CY_LED_H
+#define _CY_LED_H
+
 #include <stdint.h>
 #include <CyLib.h>
 
@@ -65,5 +68,7 @@ extern uint8_t LED_initValue;
     Interrupt handler after lefting time one period light
 */
 CY_ISR_PROTO(LedHandler);  
+
+#endif /* _CY_LED_H */
 
 /* [] END OF FILE */

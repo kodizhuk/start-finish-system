@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------
-/  Low level disk interface modlue include file   (C)ChaN, 2014
+/  Low level disk interface modlue include file   (C)ANDREY AND PETYA PRODUCTION, 2014
 /-----------------------------------------------------------------------*/
 
 #ifndef _DISKIO_DEFINED

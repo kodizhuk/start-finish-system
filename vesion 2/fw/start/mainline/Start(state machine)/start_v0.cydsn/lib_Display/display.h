@@ -22,5 +22,5 @@ void DisplayPrintfRealTime(void);
 void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec);
 
 
-#endif
+#endif /* _DISPALY_H */
 /* [] END OF FILE */
