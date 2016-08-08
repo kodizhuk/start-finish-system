@@ -32,6 +32,7 @@ uint32_t Ready(void);
 uint32_t CheckGate(void);
 uint32_t SaveResult(void);
 
+
 #endif
 
 /* [] END OF FILE */
