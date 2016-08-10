@@ -59,6 +59,7 @@ uint32_t RTCgetHours(uint64_t readTime);
 uint32_t RTCgetMinutes(uint64_t readTime);
 uint32_t RTCgetSecond(uint64_t readTime);
 uint32_t RTCgetMiliecond(uint64_t readTime);
+void RTCSync(uint32_t unixTime, uint16_t resentMs);
 
 extern uint16_t msRTC; 
 extern uint32_t RTCSyncWithDS;

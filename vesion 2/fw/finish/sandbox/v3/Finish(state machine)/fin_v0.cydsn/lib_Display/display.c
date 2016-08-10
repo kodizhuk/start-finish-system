@@ -107,6 +107,7 @@ void DisplayPrintfRealTime(void)
 *******************************************************************************/
 void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
 {
+    /*printf time in format mm:ss:msmsms*/
     sprintf(buff, "Result %02u:%02u:%03u",sec/60,sec%60, milisec);
     LCD_Position(0,0);
     LCD_PrintString(buff);

@@ -65,6 +65,22 @@ uint32_t SystemInit(void)
     InitNetwork();
     GateInit();
 
+    for(;;)
+    {
+        
+        result = NTPsync();
+        if(result == TIME_SYNC_OK)
+        {
+            DisplayPrintf("RTC sync ok");
+            //DisplayPrintfRealTime();
+            //CyDelay(10000);
+            for(;;) DisplayPrintfRealTime();
+        }else
+        {
+            DisplayPrintf("REC sync error");
+        }
+        DisplayPrintfRealTime();
+    }
     return NO_ERROR;  
 }
 
