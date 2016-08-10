@@ -6,13 +6,7 @@
 void InitNetwork(void)
 {
     UART_XB_Start();
-    
-    #ifdef DEBUG_PC
-    SW_UART_DEBUG_Start();
-    SW_UART_DEBUG_PutString("\n\nInit network start\n\n");
-    UART_XB_UartPutString("BLABLABLA");
-    #endif
-    
+   
     inData.readStatus = NO_READ;
     outData.writeStatus = WRITE_OK;
     outData.IDpacket = 0xFF;
@@ -56,11 +50,6 @@ void SendData(void)
             outData.writeStatus = WRITE_OK;
             outData.IDpacket = inData.IDpacket;
             inData.readStatus = NO_READ;
-            #ifdef DEBUG_PC
-            SW_UART_DEBUG_PutString("out data - "); 
-            SW_UART_DEBUG_PutString(sendBuffer);   
-            SW_UART_DEBUG_PutString("\n\r");
-            #endif   
             strcpy(previousData, sendBuffer);
         }
     }
@@ -78,10 +67,6 @@ uint32_t ReceiveData(void)
         { 
             UnpackData(&recvData, (uint8_t)(byte & 0xFF));
             
-            #ifdef DEBUG_PC
-            //SW_UART_DEBUG_PutString("\nbyte - ");
-            SW_UART_DEBUG_PutChar(byte);
-            #endif
             
             if(recvData.EndPacket == 1)
             {                      
@@ -98,21 +83,10 @@ uint32_t ReceiveData(void)
                 //inData.unixStartTime = recvData.Data1;
                 inData.ready = (recvData.Data2 & 0xFF00) >> 8;
                 inData.reboot = recvData.Data2 & 0x00FF;
-                /*next packet*/
-                //outData.IDpacket++;
-                #ifdef DEBUG_PC
-                SW_UART_DEBUG_PutString("       READ DATA OKEY");   
-                SW_UART_DEBUG_PutString("\n\r");
-                #endif 
 
                 return  NETWORK_CONN;  
             }
         }
-        
-        #ifdef DEBUG_PC
-        //SW_UART_DEBUG_PutString("\nERROR READ!!!!");   
-        //SW_UART_DEBUG_PutString("\n\r");
-        #endif 
         
         /*tyme to respond*/
         if(noConnect++ >= NETWORK_TIMEOUT)
@@ -141,26 +115,6 @@ void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs)
 
 uint32_t FinReady(void)
 {
-    /*uint32_t result;
-    
-    if(finNoReady <= TIMEOUT_FIN_READY )
-    {
-        if(inData.ready == READY)
-        {
-            finNoReady = 0;
-        }else
-        {
-            finNoReady++;    
-        }
-        
-        result = READY;
-    }else 
-    {
-        result = NO_READY;
-        finNoReady = TIMEOUT_FIN_READY;
-    }
-    
-    return result;*/
     return inData.ready;
 }
 
@@ -194,51 +148,42 @@ uint32_t NTPsync(void)
     
 
     noConnect = 0;
-    lastIDpacket = 0xff;
-    #ifdef DEBUG_PC 
-        char buffer[100];
-    #endif
+    lastIDpacket = 0;
     
-    for(i=0; (i < NUM_TRY_SYNC) && (noConnect <= NUM_CONNECT_ATTEMPS) ;)// && (IDreceivePacket != lastIDpacket);)
+    for(i=0; (i < NUM_TRY_SYNC) && (noConnect <= NUM_CONNECT_ATTEMPS); )
     {      
         /*receive time from start*/
         resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, !SAVE_TIME);
         
-        #ifdef DEBUG_PC 
-        if(resultReceive == READ_OK)
-        {
-            sprintf(buffer,"\n\rt2= %u:%u\n\r",unixTime[T2],millisTime[T2]);
-            SW_UART_DEBUG_PutString(buffer);
-        }
-        sprintf(buffer,"Start i= %u, noConnect= %u\n\r",i,noConnect);
-        SW_UART_DEBUG_PutString(buffer);
-        #endif
+        CyDelay(50);
         
         if(resultReceive == READ_OK)
-        {
-            /*send real time to start*/
-            unixTime[T3] = RTCGetUnixTime();
-            millisTime[T3] = RTCgetRecentMs();
-            NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDreceivePacket);
-
-            #ifdef DEBUG_PC 
-            sprintf(buffer,"\n\real time is= %u:%u\n\r",unixTime[T3],millisTime[T3]);
-            SW_UART_DEBUG_PutString(buffer);
-            #endif
-            noConnect=0;
-            if(lastIDpacket != IDreceivePacket)
+        {   
+            if((i == 0) && (IDreceivePacket != 0))
             {
-                lastIDpacket = IDreceivePacket;
-                i++;
+                /*error sync, does not start with zero packet*/
+                noConnect = NUM_CONNECT_ATTEMPS;
+            }else
+            {
+                /*no error, send time*/
+                
+                unixTime[T3] = RTCGetUnixTime();
+                millisTime[T3] = RTCgetRecentMs();
+                NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDreceivePacket);
+                
+                noConnect=0;
+                
+                if((lastIDpacket != IDreceivePacket) || (lastIDpacket == 0))
+                {
+                    /*finish read data, next step sync*/
+                    lastIDpacket = IDreceivePacket;
+                    i = IDreceivePacket+1;
+                }
             }
             
         }else 
         {
             noConnect++;
-            
-            #ifdef DEBUG_PC
-            CyDelay(1000);
-            #endif
         }
     }
     
@@ -248,12 +193,25 @@ uint32_t NTPsync(void)
         result = TIME_SYNC_ERR;
     }else
     {
-        /*write time and ms in rtc*/
-        resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, SAVE_TIME);
-        if(resultReceive == READ_OK)
+        resultReceive = NO_READ;
+        while(resultReceive == NO_READ)
         {
-             RTCSync(unixTime[T2], millisTime[T2]);
+            /*write time and ms in rtc*/
+            resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, SAVE_TIME);
+            if(resultReceive == READ_OK)
+            {
+                //debug_Write(1u);
+                //debug_Write(0u);
+                if(IDreceivePacket == 0x0A)
+                {
+                    RTCSync(unixTime[T2], millisTime[T2]+CORRECTION_TIME);
+                }else
+                {
+                    resultReceive = NO_READ;
+                }
+            }
         }
+        
         NTPsendTime(0,0,0,0,IDreceivePacket);
         
         result = TIME_SYNC_OK;
@@ -274,9 +232,7 @@ static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint32
     {
         result = NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
         
-        #ifdef DEBUG_PC
-        SW_UART_DEBUG_PutChar(byte);
-        #endif
+        CyDelay(2);
                     
         if(recvDataNTP.EndPacket == 1)
         {
@@ -311,9 +267,6 @@ static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,u
     sprintf(sendData,"%08X%03X%08X%03X", unixTime2, millis2, unixTime3, millis3); 
     PackData(sendBuffer, (uint8_t *)sendData, ID);
     UART_XB_UartPutString(sendBuffer);
-    
-    #ifdef DEBUG_PC
-    SW_UART_DEBUG_PutString(sendBuffer);
-    #endif
+    CyDelay(50);
 }
 /* [] END OF FILE */

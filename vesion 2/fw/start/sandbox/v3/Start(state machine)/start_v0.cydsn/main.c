@@ -73,7 +73,7 @@ uint32_t SystemInit(void)
         {
             DisplayPrintf("RTC sync ok");
             //DisplayPrintfRealTime();
-            //CyDelay(10000);
+            CyDelay(100);
             for(;;) DisplayPrintfRealTime();
         }else
         {

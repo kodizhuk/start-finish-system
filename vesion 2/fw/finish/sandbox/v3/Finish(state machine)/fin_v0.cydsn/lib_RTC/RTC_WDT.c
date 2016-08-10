@@ -28,6 +28,10 @@ void CallBackCounter()
     {
         msRTC = 0u; 
         RTC_Update();
+        #ifdef DEBUG_RTC
+            debug_Write(1);
+            debug_Write(0);
+        #endif
         //SW_UART_PC_PutString("Second Goes\r\n");
     }
 }

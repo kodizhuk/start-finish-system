@@ -10,11 +10,20 @@
 #include "lib_RTC\RTC_WDT.h"
 #include "lib_Network\ntp.h"
 
-#define DEBUG_PC
+//#define DEBUG_PC
 #ifdef DEBUG_PC
     #include <SW_UART_DEBUG.h>
 #endif
 
+//#define DEBUG_NTP
+#ifdef DEBUG_NTP
+    #include <SW_UART_DEBUG.h>
+#endif
+
+//#define DEBUG_TIME
+#ifdef DEBUG_TIME
+    #include <SW_UART_DEBUG.h>
+#endif
 
 #define READ_OK     1
 #define NO_READ     0
@@ -41,7 +50,7 @@
 
 /*for NTP protocol*/
 #define NUM_TRY_SYNC        10
-#define NUM_CONNECT_ATTEMPS 20
+#define NUM_CONNECT_ATTEMPS 100
 
 #define TIME_SYNC_ERR       1
 #define TIME_SYNC_OK        0
@@ -94,6 +103,7 @@ uint32_t NTPsync(void);
 static void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint32_t ID);
 static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *unixTime3, uint16_t *millis3, uint32_t *IDreceive);
 static void NTPsetTimeToStart(uint32_t unixTime4,uint16_t millis4,  uint32_t ID);
+static void NTPcalculateTime(uint32_t unixTime[], uint16_t msTime[], int32_t *sumTime, int32_t *sumMs);
 
 #endif
 /* [] END OF FILE */

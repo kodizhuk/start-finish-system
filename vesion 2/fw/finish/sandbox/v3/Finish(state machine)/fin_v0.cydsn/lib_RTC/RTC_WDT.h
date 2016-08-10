@@ -15,6 +15,10 @@
 #include <CyLib.h>
 #include <RTC.h>
 
+#define DEBUG_RTC
+#ifdef DEBUG_RTC
+     #include <debug.h>
+#endif
 
 #include <CyLFClk.h>
 

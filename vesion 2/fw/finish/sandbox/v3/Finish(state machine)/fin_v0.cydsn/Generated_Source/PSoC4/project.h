@@ -47,6 +47,8 @@
 #include "GatePin.h"
 #include "GatePin_aliases.h"
 #include "GATE_INT.h"
+#include "debug.h"
+#include "debug_aliases.h"
 #include "I2C_SCBCLK.h"
 #include "I2C_sda.h"
 #include "I2C_sda_aliases.h"

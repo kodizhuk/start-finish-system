@@ -21,12 +21,6 @@
 #include "lib_RTC\RTC_WDT.h"
 #include "lib_Network\ntp.h"
 
-#define DEBUG_PC
-
-#ifdef DEBUG_PC
-    #include <SW_UART_DEBUG.h>
-#endif
-
 
 #define READ_OK     1
 #define NO_READ     0
@@ -60,14 +54,15 @@
 
 /*for NTP protocol*/
 #define NUM_TRY_SYNC        10
-#define NUM_CONNECT_ATTEMPS 20
+#define NUM_CONNECT_ATTEMPS 100
 #define TIME_SYNC_ERR       1
 #define TIME_SYNC_OK        0
 #define SAVE_TIME           1
 /*segment time*/
-
 #define T2                  0
 #define T3                  1
+
+#define CORRECTION_TIME     0
 
 
 typedef struct
