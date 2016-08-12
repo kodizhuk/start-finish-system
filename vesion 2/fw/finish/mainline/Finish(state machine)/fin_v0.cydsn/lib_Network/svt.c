@@ -205,7 +205,7 @@ uint8_t UnpackData(struct Resp *Data, uint8_t InByte)
     			{
                     uint32_t _tmpcrc;
                     char _tmpdata[40];
-                    sprintf(_tmpdata, "%02X:%08X%08X%04X%02X", Data->Command, 
+                    sprintf(_tmpdata, "%02X:%08X%08X%04X%04X", Data->Command, 
                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
                         (uint32_t)(Data->Data1 & 0x00000000FFFFFFFF), 
                         Data->Data2, Data->Data3);

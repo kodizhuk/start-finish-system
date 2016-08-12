@@ -20,6 +20,9 @@
 #include "lib_Network\svt.h"
 #include "lib_RTC\RTC_WDT.h"
 #include "lib_Network\ntp.h"
+#include "lib_Display\display.h"
+
+#define DEBUG_INFO
 
 
 #define READ_OK     1
@@ -44,7 +47,9 @@
 /*network status*/
 #define NETWORK_CONN        1
 #define NETWORK_DISCONN     0
-#define NETWORK_TIMEOUT     30
+#define REBOOT              (0xFF)
+#define NO_REBOOT           (0xFE)
+#define NETWORK_TIMEOUT     50
 
 #define MASK_HIGH   0xFFFFFFFF00000000
 #define MASK_LOW    0x00000000FFFFFFFF
@@ -53,7 +58,7 @@
 #define TIMEOUT_FIN_READY   3
 
 /*for NTP protocol*/
-#define NUM_TRY_SYNC        10
+#define NUM_TRY_SYNC        14
 #define NUM_CONNECT_ATTEMPS 100
 #define TIME_SYNC_ERR       1
 #define TIME_SYNC_OK        0
@@ -83,6 +88,7 @@ typedef struct
     uint16_t startMsTime;
     uint8_t newSkier;
     uint8_t writeStatus;
+    uint8_t reboot;     /*reboot=1, not reboot=0*/
 }StartData;
 
 FinishData inData;
@@ -99,6 +105,9 @@ uint32_t NetworkStatus(void);
 void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs);
 uint32_t FinWriteInDB(void);
 uint32_t FinReady(void);
+uint32_t ReadRebootFinishFlag(void);
+void WriteRebootFlag(uint32_t status);
+
 
 void SendData(void);
 uint32_t ReceiveData(void);

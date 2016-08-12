@@ -6,7 +6,10 @@
 void InitNetwork(void)
 {
     UART_XB_Start();
-   
+    #ifdef DEBUG_INFO
+    SW_UART_DEBUG_Start();
+    SW_UART_DEBUG_PutString("HElLO, IM READY(start)");
+    #endif
     inData.readStatus = NO_READ;
     outData.writeStatus = WRITE_OK;
     outData.IDpacket = 0xFF;
@@ -33,16 +36,22 @@ void SendData(void)
             char sendData[DATA_BUFFER];
             
             /*pack data*/
-            sprintf(sendData,"%02X:%08X%08X%04X%02X",
+            sprintf(sendData,"%02X:%08X%08X%04X%02X%02X",
                     0u,
                     (uint32_t)((outData.unixStartTime & MASK_HIGH) >> DATA_SHIFT), 
                     (uint32_t)(outData.unixStartTime & MASK_LOW), 
                     outData.startMsTime, 
-                    outData.newSkier);
+                    outData.newSkier, 
+                    outData.reboot);
             
             
             PackData(sendBuffer, (uint8_t *)sendData, inData.IDpacket);
             UART_XB_UartPutString(sendBuffer);
+            
+            #ifdef DEBUG_INFO
+            SW_UART_DEBUG_PutString(sendBuffer);
+            SW_UART_DEBUG_PutString("    send data\n\r");
+            #endif
             
 
             outData.newSkier = !NEW_SKIER_IN_TARCK;
@@ -51,6 +60,8 @@ void SendData(void)
             outData.IDpacket = inData.IDpacket;
             inData.readStatus = NO_READ;
             strcpy(previousData, sendBuffer);
+            
+            CyDelay(50);
         }
     }
 }
@@ -67,6 +78,10 @@ uint32_t ReceiveData(void)
         { 
             UnpackData(&recvData, (uint8_t)(byte & 0xFF));
             
+            CyDelay(2);
+            #ifdef DEBUG_INFO
+            SW_UART_DEBUG_PutChar(byte);
+            #endif
             
             if(recvData.EndPacket == 1)
             {                      
@@ -79,10 +94,15 @@ uint32_t ReceiveData(void)
                 networkStatus = NETWORK_CONN;
                 noConnect = 0;
                 /*write data*/
-                inData.countSkiers = recvData.Data3;
+                inData.countSkiers = (recvData.Data3 & 0x00FF) << 8;
                 //inData.unixStartTime = recvData.Data1;
                 inData.ready = (recvData.Data2 & 0xFF00) >> 8;
                 inData.reboot = recvData.Data2 & 0x00FF;
+                
+                #ifdef DEBUG_INFO
+                SW_UART_DEBUG_PutString("    receive data\n\r");
+                #endif
+                CyDelay(50);
 
                 return  NETWORK_CONN;  
             }
@@ -134,7 +154,35 @@ uint32_t FinWriteInDB(void)
     return result;
 }
 
+uint32_t ReadRebootFinishFlag(void)
+{
+    uint32_t result;
+    
+    if(inData.reboot == 1 && outData.reboot == 0)
+    {
+        result = REBOOT;
+        inData.reboot = 0;
+    }else
+    {
+        outData.reboot = 0;
+        inData.reboot = 0;
+        result = NO_REBOOT;
+    }
+    return result;
+}
 
+void WriteRebootFlag(uint32_t status)
+{
+    if(status == REBOOT)
+    {
+        outData.reboot = 1;
+    }else
+    {
+        outData.reboot = 0;
+    }
+}
+
+/*NTP*/
 uint32_t NTPsync(void)
 {
     int i;
@@ -177,6 +225,7 @@ uint32_t NTPsync(void)
                 {
                     /*finish read data, next step sync*/
                     lastIDpacket = IDreceivePacket;
+                    DisplayPrintfLoading(i);
                     i = IDreceivePacket+1;
                 }
             }
@@ -202,7 +251,7 @@ uint32_t NTPsync(void)
             {
                 //debug_Write(1u);
                 //debug_Write(0u);
-                if(IDreceivePacket == 0x0A)
+                if(IDreceivePacket == NUM_TRY_SYNC)
                 {
                     RTCSync(unixTime[T2], millisTime[T2]+CORRECTION_TIME);
                 }else

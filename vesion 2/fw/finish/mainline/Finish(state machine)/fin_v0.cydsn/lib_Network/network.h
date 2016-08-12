@@ -7,13 +7,12 @@
 #include <stdio.h>
 #include "lib_Network\svt.h"
 #include "lib_DB\database.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "lib_Display\display.h"
 
-#define DEBUG_PC
-#ifdef DEBUG_PC
-    #include <SW_UART_DEBUG.h>
-#endif
-
-
+//#define DEBUG_INFO
+    
 #define READ_OK     1
 #define NO_READ     0
 #define WRITE_OK     1
@@ -34,9 +33,22 @@
 /*network status*/
 #define NETWORK_CONN        1
 #define NETWORK_DISCONN     0
+#define REBOOT              (0xFF)
+#define NO_REBOOT           (0xFE)
 
-#define NETWORK_TIMEOUT     30
+#define NETWORK_TIMEOUT     50
 
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        14
+#define NUM_CONNECT_ATTEMPS 20
+
+#define TIME_SYNC_ERR       1
+#define TIME_SYNC_OK        0
+/*segment time*/
+#define T1                  0
+#define T2                  1
+#define T3                  2
+#define T4                  3
 
 typedef struct
 {
@@ -58,6 +70,7 @@ typedef struct
     uint64_t unixStartTime;
     uint16_t startMsTime;
     uint8_t newSkier;
+    uint8_t reboot;     /*reboot=1, no reboot=0*/
     
     uint8_t readStatus;     /*flag successful read data in start*/
 }StartData;
@@ -66,16 +79,26 @@ FinishData outData ;
 StartData inData;
 
 
-uint32_t numAttemps,noConnect, networkStatus;
 
+uint32_t numAttemps,noConnect, networkStatus;
 
 
 void InitNetwork(void);
 uint32_t NetworkStatus(void);
 void SendFinStatus(uint32_t ready);
+uint32_t ReadRebootStartFlag(void);
+void WriteRebootFlag(uint32_t status);
 
 void SendData(void);
 uint32_t ReceiveData(void);
+
+
+/*NTP protocol sync*/
+uint32_t NTPsync(void);
+static void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *unixTime3, uint16_t *millis3, uint32_t *IDreceive);
+static void NTPsetTimeToStart(uint32_t unixTime4,uint16_t millis4,  uint32_t ID);
+static void NTPcalculateTime(uint32_t unixTime[], uint16_t msTime[], int32_t *sumTime, int32_t *sumMs);
 
 #endif
 /* [] END OF FILE */

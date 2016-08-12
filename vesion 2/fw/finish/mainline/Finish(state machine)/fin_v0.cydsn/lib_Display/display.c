@@ -5,6 +5,7 @@
 * Function name: DisplayConfig
 ********************************************************************************
 *
+* Summary:
 * initialization display
 *
 *******************************************************************************/	
@@ -19,7 +20,7 @@ void DisplayConfig(void)
 ********************************************************************************
 *
 * Summary:
-*  Writes a zero terminated string to the LCD.
+*   Writes a zero terminated string to the LCD.
 *
 * Parameters:
 *  string: Pointer to head of char8 array to be written to the LCD module
@@ -38,7 +39,8 @@ void DisplayPrintf(char *message)
 * Function name: DisplayPutIndicatorSD
 ********************************************************************************
 *
-* print incator SD card from position row = 1, column = 15
+* Summary:
+*   print incator SD card from position row = 1, column = 15
 *
 * Parametrs:
 *   state = SD_INSERT or state = SD_NO_INSERT
@@ -59,7 +61,8 @@ void DisplayPutIndicatorSD(SDindicator state)
 * Function name: DisplayPutIndicatorNetwork
 ********************************************************************************
 *
-* print incator connect  from position row = 1, column = 15
+* Summary:
+*   print incator connect  from position row = 1, column = 15
 *
 * Parametrs:
 *   state = CONNECT or state = DISCONNECT
@@ -80,7 +83,8 @@ void DisplayPutIndicatorNetwork(NetworkIndicator state)
 * Function name: DisplayPrintfRealTime
 ********************************************************************************
 *
-* print real time from position row = 1, column = 0
+* Summary:
+*   print real time from position row = 1, column = 0
 *
 *******************************************************************************/
 void DisplayPrintfRealTime(void)
@@ -97,11 +101,13 @@ void DisplayPrintfRealTime(void)
 * Function name: DisplayPrintLastTimeSkier
 ********************************************************************************
 *
-* print time last skier from position row = 1, column = 0
+* Summary:
+*   print time last skier from position row = 1, column = 0
 *
 *******************************************************************************/
 void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
 {
+    /*printf time in format mm:ss:msmsms*/
     sprintf(buff, "Result %02u:%02u:%03u",sec/60,sec%60, milisec);
     LCD_Position(0,0);
     LCD_PrintString(buff);
@@ -111,13 +117,33 @@ void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
 * Function name: DisplayPrintNumSkierOnWay
 ********************************************************************************
 *
-* print number skier on way from position row = 1, column = 11
+* Summary:
+*   print number skier on way from position row = 1, column = 11
 *
 *******************************************************************************/
 void DisplayPrintNumSkierOnWay(uint32_t num)
 {
     sprintf(buff, "%u/%u", num, MAX_SKIERS_ON_WAY);
-    LCD_Position(1,11);
+    LCD_Position(1,10);
     LCD_PrintString(buff);
+}
+
+
+/*******************************************************************************
+* Function name: DisplayPrintfLoading
+********************************************************************************
+*
+* print loading from position row = 1, column = 0
+*
+*******************************************************************************/
+void DisplayPrintfLoading(uint32_t numLoad)
+{
+    LCD_Position(1,numLoad-1);
+    LCD_PutChar(LCD_CUSTOM_4);
+    if(numLoad == 0)
+    {
+        LCD_Position(1,0);
+        LCD_PrintString("             ");
+    }
 }
 /* [] END OF FILE */

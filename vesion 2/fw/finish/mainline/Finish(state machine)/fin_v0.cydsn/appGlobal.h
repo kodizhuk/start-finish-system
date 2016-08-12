@@ -13,6 +13,10 @@
 #include "lib_DB\database.h"
 #include "lib_MyDelay\myDelay.h"
 
+#ifdef DEBUG_TIME
+    #include "debug.h"
+#endif
+    
 #define NO_ERROR    1
 #define ERROR       0
 
@@ -22,15 +26,17 @@
 #define TIMEOUT_USER_READ_INFO  500
 
 /*all state for state-machine*/
-typedef enum {SYSTEM_INIT = 0, READY, CHECK_GATE, SAVE_RESULT} StateType; 
+typedef enum {SYSTEM_INIT = 0, TIME_SYNC, READY, CHECK_GATE, SAVE_RESULT} StateType; 
 StateType currentState;
 
 static uint32_t result;
 
 uint32_t SystemInit(void);
+uint32_t TimeSynchronize();
 uint32_t Ready(void);
 uint32_t CheckGate(void);
 uint32_t SaveResult(void);
+
 
 #endif
 

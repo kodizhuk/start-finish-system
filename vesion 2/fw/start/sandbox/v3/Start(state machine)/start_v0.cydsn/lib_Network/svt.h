@@ -17,7 +17,7 @@ struct Resp
 	int Command;
 	uint64_t Data1;
 	uint16_t Data2;
-	uint8_t Data3;
+	uint16_t Data3;
 	uint32_t CheckSum;
 	uint8_t EndPacket;
 };
@@ -56,7 +56,7 @@ enum PRO_ERRORS
 #define LEN_COM 2
 #define LEN_DA1 16
 #define LEN_DA2 4
-#define LEN_DA3 2
+#define LEN_DA3 4
 #define LEN_CHS 8
 
 #define HALF_BYTE 4

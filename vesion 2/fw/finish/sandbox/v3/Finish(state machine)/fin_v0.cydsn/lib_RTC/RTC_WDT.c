@@ -38,16 +38,43 @@ void CallBackCounter()
 
 #endif
 
+#ifdef DEBUG_TIME
+
+static uint16_t timeRestart = 0;
+
+void CallBackCounter2()
+{
+    timeRestart++;
+    if (timeRestart == 120) 
+    {
+        timeRestart = 0u; 
+        debug_reset_fin_Write(0);
+        CyDelay(100);
+        debug_reset_fin_Write(1);
+    }
+}
+
+#endif
 
 void RTC_WDT_Init(){
     void (*CallBackWDT0)(void);
     
     CallBackWDT0 = CallBackCounter;
     
+    #ifdef DEBUG_TIME
+    void (*CallBackWDT1)(void);  
+    CallBackWDT1 = CallBackCounter2;
+    #endif
+    
     RTC_Start();
     
     #ifdef USE_WDT_RTC
         CySysWdtSetInterruptCallback(0, CallBackWDT0);
+        //WDT0_ISR_StartEx(Wdt0_Handler);
+    #endif
+    
+    #ifdef DEBUG_TIME
+        CySysWdtSetInterruptCallback(1, CallBackWDT1);
         //WDT0_ISR_StartEx(Wdt0_Handler);
     #endif
 }

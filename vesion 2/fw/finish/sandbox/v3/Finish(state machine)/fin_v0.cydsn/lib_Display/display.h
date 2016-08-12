@@ -22,6 +22,7 @@ void DisplayPutIndicatorNetwork(NetworkIndicator);
 void DisplayPrintfRealTime(void);
 void DisplayPrintNumSkierOnWay(uint32_t num);
 void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec);
+void DisplayPrintfLoading(uint32_t numLoad);
 
 
 #endif

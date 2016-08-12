@@ -1,14 +1,4 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #ifndef _RTC_WDT_H
     #define _RTC_WDT_H
 
@@ -19,6 +9,12 @@
 #ifdef DEBUG_RTC
      #include <debug.h>
 #endif
+
+//#define DEBUG_TIME
+#ifdef DEBUG_TIME
+    #include <debug_reset_fin.h>
+#endif
+
 
 #include <CyLFClk.h>
 

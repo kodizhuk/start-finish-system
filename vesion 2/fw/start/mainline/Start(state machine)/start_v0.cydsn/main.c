@@ -15,6 +15,15 @@ int main()
                 result = SystemInit();
                 if(result == NO_ERROR)
                 {
+                    currentState = TIME_SYNC;
+                }
+                break;
+            }
+            case TIME_SYNC:
+            {
+                result = TimeSynchronize();
+                if(result == TIME_SYNC_OK)
+                {
                     currentState = GET_FIN_STATUS;
                 }
                 break;
@@ -26,6 +35,9 @@ int main()
                 if(result == NO_ERROR)
                 {
                     currentState = CHECK_GATE;                   
+                }else if(result == REBOOT)  
+                {
+                    currentState = TIME_SYNC;
                 }
                 break;
             }
@@ -55,6 +67,7 @@ int main()
 
 uint32_t SystemInit(void)
 {   
+    WriteRebootFlag(REBOOT);
     LedInit();
     LedBlink(FREQ_INIT_BLINK);
     
@@ -66,6 +79,39 @@ uint32_t SystemInit(void)
     GateInit();
 
     return NO_ERROR;  
+}
+
+uint32_t TimeSynchronize(void)
+{
+    uint32_t result;
+    
+    LedBlink(FREQ_INIT_BLINK);
+    /*network connect*/
+    if(NetworkStatus() == NETWORK_DISCONN)
+    {
+        DisplayPrintf("Network conn...");
+        MyDelay(TIMEOUT_STATE);
+    }else
+    {
+        /*time sync*/
+        DisplayPrintf("Sync time...");
+        if(NTPsync() == TIME_SYNC_OK)
+        {
+            DisplayPrintf("Sync ok");
+            ReadRebootFinishFlag();
+            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            result = TIME_SYNC_OK;
+        }else
+        {
+            DisplayPrintf("Sync time error");
+            WriteRebootFlag(REBOOT);
+            MyDelay(4*TIMEOUT_USER_READ_INFO);
+      
+            result = TIME_SYNC_ERR;
+        }
+    }
+    
+    return result;
 }
 
 uint32_t GetFinishStatus(void)
@@ -84,6 +130,12 @@ uint32_t GetFinishStatus(void)
     {
         result = NO_ERROR;
     }
+    
+    if(ReadRebootFinishFlag() == REBOOT)
+    {
+        result = REBOOT;    
+    }
+
           
     return result;
     

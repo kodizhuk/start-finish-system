@@ -29,6 +29,10 @@ void CallBackCounter()
         msRTC = 0u; 
         RTC_Update();
         //SW_UART_PC_PutString("Second Goes\r\n");
+        #ifdef DEBUG_RTC
+            debug_Write(1);
+            debug_Write(0);
+        #endif
     }
 }
 
@@ -219,10 +223,11 @@ uint32_t RTCgetRecentMs()
 * Return:
 *  true(successful sync) or false(not successful sync))
 *******************************************************************************/
-/*
-bool RTCSync()
+
+void RTCSync(uint32_t unixTime, uint16_t recentMs)
 {
-    return true;
+    msRTC = recentMs;
+    RTC_SetUnixTime(unixTime);
 }
-*/
+
 /* [] END OF FILE */
