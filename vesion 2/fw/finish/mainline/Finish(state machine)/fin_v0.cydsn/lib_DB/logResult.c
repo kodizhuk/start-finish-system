@@ -1,18 +1,19 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #include "logResult.h"
 
 
-uint32_t logStart(void)
+/*******************************************************************************
+* Function Name: LogStart
+********************************************************************************
+*
+* Summary:
+*  Start log system(mount fat)
+*
+* Return:
+*   resultF - result mount FAT system (from enum FRESULT)
+*
+*******************************************************************************/
+uint32_t LogStart(void)
 {
     uint8 resultF;
     
@@ -23,6 +24,19 @@ uint32_t logStart(void)
 }
 
 
+/*******************************************************************************
+* Function Name: WriteSkierResult
+********************************************************************************
+*
+* Summary:
+*  Start log system(mount fat)
+*
+* Parametrs:
+*   *data - pointer from result skiers
+* Return:
+*   resultF - result mount FAT system (from enum FRESULT)
+*
+*******************************************************************************/
 uint32_t WriteSkierResult(skierDB_El *data)
 {
     uint8 resultF;
@@ -34,12 +48,13 @@ uint32_t WriteSkierResult(skierDB_El *data)
     uint32_t nameDay;
     uint32_t date;
     
+    /*get date from RTC*/
     date = RTC_GetDate();
     nameYear = RTC_GetYear(date)-2000;
     nameMonth = RTC_GetMonth(date);
     nameDay = RTC_GetDay(date);
     
-    /*Construct name of file in format ddmmyyyy*/
+    /*Construct name of file in format dd_mm_yyyy*/
     sprintf(nameFile,"%02d_%02d_%d.txt",nameDay,nameMonth,nameYear);
     createFlag = 0;
     resultF = f_open(&fileO, nameFile, FA_WRITE | FA_OPEN_APPEND, &createFlag);

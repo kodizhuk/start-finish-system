@@ -19,6 +19,11 @@
      #include <CyLFClk.h>
 #endif
 
+#define DEBUG_RTC
+#ifdef DEBUG_RTC
+     #include <debug.h>
+#endif
+
 #define RTC_TIME_FORMAT_SHIFT       (39u)
 #define RTC_PERIOD_OF_DAY_SHIFT     (38u)
 #define RTC_10_HOURS_SHIFT          (36u)
@@ -59,6 +64,7 @@ uint32_t RTCgetHours(uint64_t readTime);
 uint32_t RTCgetMinutes(uint64_t readTime);
 uint32_t RTCgetSecond(uint64_t readTime);
 uint32_t RTCgetMiliecond(uint64_t readTime);
+void RTCSync(uint32_t unixTime, uint16_t resentMs);
 
 extern uint16_t msRTC; 
 extern uint32_t RTCSyncWithDS;

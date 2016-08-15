@@ -105,4 +105,23 @@ void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
     LCD_Position(0,0);
     LCD_PrintString(buff);
 }
+
+
+/*******************************************************************************
+* Function name: DisplayPrintfLoading
+********************************************************************************
+*
+* print loading from position row = 1, column = 0
+*
+*******************************************************************************/
+void DisplayPrintfLoading(uint32_t numLoad)
+{
+    LCD_Position(1,numLoad-1);
+    LCD_PutChar(LCD_CUSTOM_4);
+    if(numLoad == 0)
+    {
+        LCD_Position(1,0);
+        LCD_PrintString("            ");
+    }
+}
 /* [] END OF FILE */

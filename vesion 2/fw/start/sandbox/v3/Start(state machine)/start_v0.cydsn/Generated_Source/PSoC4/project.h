@@ -37,6 +37,8 @@
 #include "GATE_INT.h"
 #include "LED_PIN.h"
 #include "LED_PIN_aliases.h"
+#include "debug.h"
+#include "debug_aliases.h"
 #include "UART_XB_SCBCLK.h"
 #include "UART_XB_tx.h"
 #include "UART_XB_tx_aliases.h"

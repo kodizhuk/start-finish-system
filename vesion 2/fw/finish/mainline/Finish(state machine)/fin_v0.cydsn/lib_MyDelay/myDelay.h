@@ -6,15 +6,14 @@
 #include "lib_Network\network.h"
 #include "lib_Display\display.h"
 
+/*Minimum time to execution user function  */
 #define MIN_DELAY_MS    150
+
 #define WRITE_ERROR     1
 #define WRITE_NO_ERROR  0
 
-//static uint32_t networkStatus;
 static uint16_t writeFlag;
 
-//static int numAttemps ;
-//static int noConnect;
 
 void MyDelay(uint32_t miliseconds);
 

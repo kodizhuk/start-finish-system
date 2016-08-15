@@ -17,13 +17,12 @@
 #include <project.h>
 
 #include <stdio.h>
-#include <lib_Network\svt.h>
+#include "lib_Network\svt.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "lib_Display\display.h"
 
-#define DEBUG_PC
-
-#ifdef DEBUG_PC
-    #include <SW_UART_DEBUG.h>
-#endif
+#define DEBUG_INFO
 
 
 #define READ_OK     1
@@ -48,13 +47,28 @@
 /*network status*/
 #define NETWORK_CONN        1
 #define NETWORK_DISCONN     0
-#define NETWORK_TIMEOUT     30
+#define REBOOT              (0xFF)
+#define NO_REBOOT           (0xFE)
+#define NETWORK_TIMEOUT     50
 
 #define MASK_HIGH   0xFFFFFFFF00000000
 #define MASK_LOW    0x00000000FFFFFFFF
 #define DATA_SHIFT  32
 
 #define TIMEOUT_FIN_READY   3
+
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        14
+#define NUM_CONNECT_ATTEMPS 100
+#define TIME_SYNC_ERR       1
+#define TIME_SYNC_OK        0
+#define SAVE_TIME           1
+/*segment time*/
+#define T2                  0
+#define T3                  1
+
+#define CORRECTION_TIME     0
+
 
 typedef struct
 {
@@ -74,6 +88,7 @@ typedef struct
     uint16_t startMsTime;
     uint8_t newSkier;
     uint8_t writeStatus;
+    uint8_t reboot;     /*reboot=1, not reboot=0*/
 }StartData;
 
 FinishData inData;
@@ -90,9 +105,17 @@ uint32_t NetworkStatus(void);
 void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs);
 uint32_t FinWriteInDB(void);
 uint32_t FinReady(void);
+uint32_t ReadRebootFinishFlag(void);
+void WriteRebootFlag(uint32_t status);
+
 
 void SendData(void);
 uint32_t ReceiveData(void);
+
+/*NTP protocol sync*/
+uint32_t NTPsync(void);
+static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *IDreceive, uint32_t saveTime);
 
 #endif
 /* [] END OF FILE */

@@ -9,9 +9,6 @@ int main()
     
     currentState = SYSTEM_INIT;
     
-    /*set unix time in RTC DS1307*/
-    //DS1307_SetUnixTime(1470503047);
-    
     for(;;)
     {
         switch (currentState)
@@ -21,6 +18,15 @@ int main()
                 result = SystemInit();
                 if(result == NO_ERROR)
                 {
+                    currentState = TIME_SYNC;
+                }
+                break;
+            }
+            case TIME_SYNC:
+            {
+                result = TimeSynchronize();
+                if(result == TIME_SYNC_OK)
+                {
                     currentState = READY;
                 }
                 break;
@@ -28,11 +34,13 @@ int main()
             case READY:
             {
                 result = Ready();
-
                 if(result == NO_ERROR)
                 {
                     currentState = CHECK_GATE;
-                }               
+                }else if(result == REBOOT)  
+                {
+                    currentState = TIME_SYNC;
+                }
                 break;
             }
             case CHECK_GATE:
@@ -66,13 +74,17 @@ uint32_t SystemInit(void)
     uint32_t result;
     uint64_t unixTime;
     
+    WriteRebootFlag(REBOOT);
     LedInit();   
     DisplayConfig();   
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
     InitBuff();
+
     
+    /*set unix time in RTC DS1307*/
+    //DS1307_SetUnixTime(1471006500);
     /*sync real time*/
     unixTime = DS1307_GetUnixTime();
     
@@ -100,6 +112,43 @@ uint32_t SystemInit(void)
     return result;
     
 }
+
+uint32_t TimeSynchronize(void)
+{
+    uint32_t result;
+    
+    LedBlink(FREQ_INIT_BLINK);
+    /*network connect*/
+    if(NetworkStatus() == NETWORK_DISCONN)
+    {
+        DisplayPrintf("Network conn...");
+        MyDelay(TIMEOUT_STATE);
+    }else
+    {  
+        /*time sync*/
+        DisplayPrintf("Sync time...");
+        if(NTPsync() == TIME_SYNC_OK)
+        {
+            DisplayPrintf("Sync ok");
+            ReadRebootStartFlag();
+            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            result = TIME_SYNC_OK;
+            #ifdef DEBUG_TIME
+                DebugStart();
+            #endif
+        }else
+        {
+            DisplayPrintf("Sync time error");
+            WriteRebootFlag(REBOOT);
+            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            
+            result = TIME_SYNC_ERR;
+        }
+    }
+    
+    return result;
+}
+
 
 uint32_t Ready(void)
 {
@@ -141,19 +190,35 @@ uint32_t Ready(void)
     }else if(SkierOnWay() == 0)
     {
         /*no skier on way*/
+        #ifndef DEBUG_TIME
         DisplayPrintf("Finish Ready");
         //MyDelay(TIMEOUT_USER_READ_INFO);
+        #endif
+        #ifdef DEBUG_TIME
+        DebugPrintResult();
+        #endif
         SendFinStatus(FIN_READY);
-        SetLedState(LED_ENABLE);
+        SetLedState(LED_DISABLE);
+        
         
         result = ERROR;      
     }else
     {
         /*finish ready*/
         SendFinStatus(FIN_READY);
+        #ifndef DEBUG_TIME
         DisplayPrintf("Finish Ready");
+        #endif
+        #ifdef DEBUG_TIME
+        DebugPrintResult();
+        #endif
         
         result = NO_ERROR;
+    }
+    
+    if(ReadRebootStartFlag() == REBOOT)
+    {
+        result = REBOOT;    
     }
        
     return result;

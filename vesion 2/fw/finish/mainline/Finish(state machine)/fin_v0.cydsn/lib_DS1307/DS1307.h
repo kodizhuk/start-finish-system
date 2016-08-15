@@ -1,14 +1,4 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #ifndef _DS1307_H
 #define _DS1307_H
 
@@ -170,17 +160,19 @@ static uint8 DS1307_daysInMonthTbl[DS1307_MONTHS_PER_YEAR] = {DS1307_DAYS_IN_JAN
                                                             DS1307_DAYS_IN_NOVEMBER,
                                                             DS1307_DAYS_IN_DECEMBER};
 
+
 static uint32 DS1307_ReadTimeToStruct(void);
 static void DS1307_WriteTimeFromStruct(void);
 static uint32_t DS1307_ConstructTime(uint32 timeFormat, uint32 stateAmPm, uint32 hour, uint32 min, uint32 sec);
 static uint32 DS1307_ConstructDate(uint32 month, uint32 day, uint32 year);
 static uint64 DS1307_DateTimeToUnix(uint32 inputDate, uint32 inputTime);
 
+
 uint64_t DS1307_GetUnixTime(void);
 void DS1307_SetUnixTime(uint64_t time);
 void DS1307_Start(void);
 void DS1307_Stop(void);
 
-#endif
+#endif  /*_DS1307_H*/
 
 /* [] END OF FILE */

@@ -1,18 +1,19 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #include "lib_DS1307\DS1307.h"
 
 DS1307_DATE_TIME DS1307_currentTimeDate ;// = {20,11,7,0,1,4,27,7,16};
 
+/*******************************************************************************
+* Function Name: DS1307_ReadTimeToStruct
+********************************************************************************
+*
+* Summary:
+*   Read real time from chip DS1307
+*
+* Return:
+*   status the I2C connect
+*
+*******************************************************************************/
 static uint32 DS1307_ReadTimeToStruct(void)
 {
     uint8_t data[DS1307_NUMBER_OF_BYTES];
@@ -22,38 +23,40 @@ static uint32 DS1307_ReadTimeToStruct(void)
     I2C_Start();
     
     /*reset pointer register reading*/
-        status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS,I2C_I2C_WRITE_XFER_MODE);
-        if(status == I2C_I2C_MSTR_NO_ERROR)
-        {
-            I2C_I2CMasterWriteByte(DS1307_NULL_ADRESS);
-        }else 
-        {
-            return status;
-        }
-        I2C_I2CMasterSendStop();
-    
+    //I2C_I2CMasterClearStatus();
+    status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS,I2C_I2C_WRITE_XFER_MODE);
+    if(status == I2C_I2C_MSTR_NO_ERROR)
+    {
+        I2C_I2CMasterWriteByte(DS1307_NULL_ADRESS);
+    }else 
+    {
+        /*error connect from DS1307*/
+        return status;
+    }
+    I2C_I2CMasterSendStop();
+
     /*read data*/
-        I2C_I2CMasterClearStatus();
-        status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS,I2C_I2C_READ_XFER_MODE);
-        if(I2C_I2C_MSTR_NO_ERROR == status) 
-        {
-            for(i=0; i<DS1307_NUMBER_OF_BYTES; i++)
-            {   
-                if(i < DS1307_NUMBER_OF_BYTES-1)
-                {
-                    data[i] = I2C_I2CMasterReadByte(I2C_I2C_ACK_DATA);
-                }
-                else
-                {
-                    data[i] = I2C_I2CMasterReadByte(I2C_I2C_NAK_DATA);
-                }
+    I2C_I2CMasterClearStatus();
+    status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS,I2C_I2C_READ_XFER_MODE);
+    if(I2C_I2C_MSTR_NO_ERROR == status) 
+    {
+        /*write data in buffer*/
+        for(i=0; i<DS1307_NUMBER_OF_BYTES; i++)
+        {   
+            if(i < DS1307_NUMBER_OF_BYTES-1)
+            {
+                data[i] = I2C_I2CMasterReadByte(I2C_I2C_ACK_DATA);
+            }
+            else
+            {
+                data[i] = I2C_I2CMasterReadByte(I2C_I2C_NAK_DATA);
             }
         }
-         I2C_I2CMasterSendStop();
+    }
+    I2C_I2CMasterSendStop();
     I2C_Stop();
     
-    /*write data in struct*/
-    
+    /*write data from buffer in struct*/
     DS1307_currentTimeDate.second =  (data[DS1307_SEC_ADRESS]& DS1307_SEC_MASK)+(((data[DS1307_SEC_ADRESS]&DS1307_10_SEC_MASK)>>4)*10);
     DS1307_currentTimeDate.minutes = (data[DS1307_MIN_ADRESS]& DS1307_MIN_MASK)+(((data[DS1307_MIN_ADRESS]&DS1307_10_MIN_MASK)>>4)*10);
     DS1307_currentTimeDate.timeFormat = (data[DS1307_HOUR_ADRESS] & DS1307_TIME_FORMAT_MASK)>>6;
@@ -73,12 +76,22 @@ static uint32 DS1307_ReadTimeToStruct(void)
     return I2C_I2C_MSTR_NO_ERROR;
 }
 
+
+/*******************************************************************************
+* Function Name: DS1307_WriteTimeFromStruct
+********************************************************************************
+*
+* Summary:
+*   write time in chip DS1307
+*
+*******************************************************************************/
 static void DS1307_WriteTimeFromStruct(void)
 {
     uint32_t status;
     int i;
     uint8_t data[DS1307_NUMBER_OF_BYTES] ;
     
+    /*write data from buffer*/
     data[DS1307_SEC_ADRESS] = ((DS1307_currentTimeDate.second/10)<<4) + (DS1307_currentTimeDate.second%10);
     data[DS1307_MIN_ADRESS] = ((DS1307_currentTimeDate.minutes/10)<<4) + (DS1307_currentTimeDate.minutes%10);
     if(DS1307_currentTimeDate.timeFormat == DS1307_12TIME_FORMAT)
@@ -91,13 +104,12 @@ static void DS1307_WriteTimeFromStruct(void)
         data[DS1307_HOUR_ADRESS] = ((DS1307_currentTimeDate.hours/10)<<4) + (DS1307_currentTimeDate.hours%10);
         data[DS1307_HOUR_ADRESS] |= (DS1307_currentTimeDate.timeFormat << 6);
     }
-    
-    
     data[DS1307_DAY_ADRESS] = DS1307_currentTimeDate.day;
     data[DS1307_DATE_ADRESS] = ((DS1307_currentTimeDate.date/10)<<4) + (DS1307_currentTimeDate.date%10);
     data[DS1307_MONTH_ADRESS] = ((DS1307_currentTimeDate.month/10)<<4) + (DS1307_currentTimeDate.month%10);
     data[DS1307_YEAR_ADRESS] = ((DS1307_currentTimeDate.year/10)<<4) + (DS1307_currentTimeDate.year%10);
     
+    /*write data on DS1307*/
     I2C_Start();
     I2C_I2CMasterClearStatus();
     status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS, I2C_I2C_WRITE_XFER_MODE);
@@ -116,6 +128,18 @@ static void DS1307_WriteTimeFromStruct(void)
     I2C_I2CMasterSendStop();    
 }
 
+/*******************************************************************************
+* Function Name: DS1307_ConstructTime
+********************************************************************************
+*
+* Summary:
+*   Returns the time in the format used in APIs from individual elements passed (hour, min, sec etc)
+* Parametrs:
+*   timeFormat - DS1307_12TIME_FORMAT or DS1307_24TIME_FORMAT
+*   stateAmRm - DS1307_PM or DS1307_AM
+*   hour, min, sec - time
+*
+*******************************************************************************/
 static uint32_t DS1307_ConstructTime(uint32 timeFormat, uint32 stateAmPm, uint32 hour, uint32 min, uint32 sec)
 {
     uint32 retVal;
@@ -137,9 +161,18 @@ static uint32_t DS1307_ConstructTime(uint32 timeFormat, uint32 stateAmPm, uint32
     return (retVal);
 }
 
+/*******************************************************************************
+* Function Name: DS1307_ConstructDate
+********************************************************************************
+*
+* Summary:
+*   Returns the date in the format used in APIs from individual elements passed 
+* Parametrs:
+*   month, day, year - date
+*
+*******************************************************************************/
 static uint32 DS1307_ConstructDate(uint32 month, uint32 day, uint32 year)
-{
-    
+{  
     /*year in D1307 save ten (16 =>2016 year)*/
     year +=2000;
     uint32 retVal;
@@ -164,6 +197,16 @@ static uint32 DS1307_ConstructDate(uint32 month, uint32 day, uint32 year)
 }
 
 
+/*******************************************************************************
+* Function Name: DS1307_DateTimeToUnix
+********************************************************************************
+*
+* Summary:
+*   convert the time in unix format
+* Parametrs:
+*   inoutDate, inoutTime - date and time 
+*
+*******************************************************************************/
 static uint64 DS1307_DateTimeToUnix(uint32 inputDate, uint32 inputTime)
 {
     uint32 i;
@@ -222,8 +265,7 @@ static uint64 DS1307_DateTimeToUnix(uint32 inputDate, uint32 inputTime)
     /*Get time format*/
     uint32_t timeFormat= ((0uL != (inputTime & (1uL << DS1307_TIME_FORMAT_OFFSET))) ? (uint32)!DS1307_12TIME_FORMAT :
                                                                                   (uint32)!DS1307_24TIME_FORMAT);
-
-    
+   
     uint32_t AmRm = ((DS1307_PERIOD_OF_DAY_MASK_UNIX == (inputTime & DS1307_PERIOD_OF_DAY_MASK_UNIX)) ? 1Lu : 0Lu);;
     if(((uint32)!DS1307_24TIME_FORMAT != timeFormat) &&
        ((uint32)DS1307_AM == AmRm) && (tmpVal < 12u))
@@ -249,6 +291,16 @@ static uint64 DS1307_DateTimeToUnix(uint32 inputDate, uint32 inputTime)
     return(unixTime);
 }
 
+/*******************************************************************************
+* Function Name: DS1307_GetUnixTime
+********************************************************************************
+*
+* Summary:
+*   get time from DS1307
+* Return:
+*   unix time
+*
+*******************************************************************************/
 uint64_t DS1307_GetUnixTime(void)
 {
     uint64_t unixTime;
@@ -268,6 +320,7 @@ uint64_t DS1307_GetUnixTime(void)
                                     DS1307_currentTimeDate.hours,   \
                                     DS1307_currentTimeDate.minutes,   \
                                     DS1307_currentTimeDate.second);
+        /*convert  time and data in unix format*/
         unixTime = DS1307_DateTimeToUnix(date, time);
     }else 
     {
@@ -276,6 +329,16 @@ uint64_t DS1307_GetUnixTime(void)
     return unixTime;
 }
 
+/*******************************************************************************
+* Function Name: DS1307_SetUnixTime
+********************************************************************************
+*
+* Summary:
+*   Set time in DS1307
+* Parametrs:
+*   unixTime - time in unix format
+*
+*******************************************************************************/
 void DS1307_SetUnixTime( uint64 unixTime)
 {
     uint32 tmpMinute;
@@ -472,7 +535,7 @@ void DS1307_SetUnixTime( uint64 unixTime)
     DS1307_currentTimeDate.minutes = tmpMinute;
     DS1307_currentTimeDate.hours = tmpHour;
     DS1307_currentTimeDate.AmRm = !tmpAmPmState;
-    DS1307_currentTimeDate.timeFormat = !timeFormat;
+    DS1307_currentTimeDate.timeFormat = timeFormat;
     DS1307_currentTimeDate.day = dayOfWeek;
     DS1307_currentTimeDate.month = tmpMonth;
     DS1307_currentTimeDate.year = tmpYear-2000;
@@ -482,7 +545,14 @@ void DS1307_SetUnixTime( uint64 unixTime)
     DS1307_WriteTimeFromStruct();
 }
 
-
+/*******************************************************************************
+* Function Name: DS1307_Start
+********************************************************************************
+*
+* Summary:
+*   start the chip DS1307
+*
+*******************************************************************************/
 void DS1307_Start(void)
 {
     uint8_t data ;
@@ -494,6 +564,7 @@ void DS1307_Start(void)
     I2C_I2CMasterClearStatus();
     status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS, I2C_I2C_WRITE_XFER_MODE);
     I2C_I2CMasterWriteByte(DS1307_NULL_ADRESS);
+    
     if(I2C_I2C_MSTR_NO_ERROR == status) 
     {
         status = I2C_I2CMasterWriteByte(data);
@@ -501,6 +572,15 @@ void DS1307_Start(void)
     I2C_I2CMasterSendStop();
 }
 
+
+/*******************************************************************************
+* Function Name: DS1307_Start
+********************************************************************************
+*
+* Summary:
+*   stop the chip DS1307
+*
+*******************************************************************************/
 void DS1307_Stop(void)
 {
     uint8_t data ;
@@ -512,10 +592,12 @@ void DS1307_Stop(void)
     I2C_I2CMasterClearStatus();
     status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS, I2C_I2C_WRITE_XFER_MODE);
     I2C_I2CMasterWriteByte(DS1307_NULL_ADRESS);
+    
     if(I2C_I2C_MSTR_NO_ERROR == status) 
     {
         status = I2C_I2CMasterWriteByte(data);
     }
     I2C_I2CMasterSendStop();
 }
+
 /* [] END OF FILE */

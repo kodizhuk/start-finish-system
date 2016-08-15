@@ -15,7 +15,7 @@ uint32_t DataBaseStart(void)
 {
     uint32_t result; 
     
-    result = logStart();
+    result = LogStart();
     if(result == FR_OK)
     {
         result = DB_START;

@@ -1,23 +1,16 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #include <project.h>
 #include <stdio.h>
+
 #include "lib_Fat\diskio.h"
 #include "lib_Fat\ff.h"
 #include "lib_DB\database.h"
 
-
-#define LEN_NAME    20
-#define LEN_DATA    20
+/*lenth name .txt file*/
+#define LEN_NAME        20
+/*lenth buffer from time skier*/
+#define LEN_DATA        20
+/*len buffer to save information on SD card*/
 #define LEN_DATA_ALL    100
 
 
@@ -27,7 +20,8 @@ FIL fileO;      /* File info */
 /*flag who shows that the establishment of the file*/
 DWORD createFlag;   
 
-uint32_t logStart(void);
+
+uint32_t LogStart(void);
 uint32_t WriteSkierResult(skierDB_El *data);
 
 

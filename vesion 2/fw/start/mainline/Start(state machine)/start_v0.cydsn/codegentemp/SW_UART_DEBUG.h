@@ -20,7 +20,7 @@
 #include "cyfitter.h"
 #include "cypins.h"
 
-#define SW_UART_DEBUG_BAUD_RATE                      (9600u)
+#define SW_UART_DEBUG_BAUD_RATE                      (115200u)
 #define SW_UART_DEBUG_PIN_STATIC_MODE                (1u)
 
 

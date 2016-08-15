@@ -27,8 +27,8 @@
 // Frequency Timer for Led in Hz. 
 #define FREQ_TIMER_LED                       (1000u)
 
-#define FREQ_INIT_BLINK         (3u)
-#define FREQ_ERR_BLINK         (10u)
+#define FREQ_INIT_BLINK         (10u)
+#define FREQ_ERR_BLINK         (3u)
 
 #define LED_ENABLE              (1u)
 #define LED_DISABLE             (0u)

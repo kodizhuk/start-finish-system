@@ -19,6 +19,11 @@
      #include <CyLFClk.h>
 #endif
 
+#define DEBUG_RTC
+#ifdef DEBUG_RTC
+     #include <debug.h>
+#endif
+
 #define RTC_TIME_FORMAT_SHIFT       (39u)
 #define RTC_PERIOD_OF_DAY_SHIFT     (38u)
 #define RTC_10_HOURS_SHIFT          (36u)
