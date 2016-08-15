@@ -17,7 +17,9 @@
 #include <project.h>
 
 #include <stdio.h>
-#include <lib_Network\svt.h>
+#include "lib_Network\svt.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
 
 #define DEBUG_PC
 
@@ -56,6 +58,18 @@
 
 #define TIMEOUT_FIN_READY   3
 
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        10
+#define NUM_CONNECT_ATTEMPS 20
+#define TIME_SYNC_ERR       1
+#define TIME_SYNC_OK        0
+#define SAVE_TIME           1
+/*segment time*/
+
+#define T2                  0
+#define T3                  1
+
+
 typedef struct
 {
     uint8_t IDpacket;
@@ -93,6 +107,11 @@ uint32_t FinReady(void);
 
 void SendData(void);
 uint32_t ReceiveData(void);
+
+/*NTP protocol sync*/
+uint32_t NTPsync(void);
+static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *IDreceive, uint32_t saveTime);
 
 #endif
 /* [] END OF FILE */

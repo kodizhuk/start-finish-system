@@ -9,9 +9,6 @@ int main()
     
     currentState = SYSTEM_INIT;
     
-    /*set unix time in RTC DS1307*/
-    //DS1307_SetUnixTime(1470503047);
-    
     for(;;)
     {
         switch (currentState)
@@ -73,6 +70,23 @@ uint32_t SystemInit(void)
     GateInit();
     InitBuff();
     
+    while(1)
+    {
+        if(NTPsync() == TIME_SYNC_OK)
+        {
+            DisplayPrintf("RTC sync");
+            //DisplayPrintfRealTime();
+            //CyDelay(10000);
+            for(;;) DisplayPrintfRealTime();
+        }else
+        {
+            DisplayPrintf("RTC not sync");
+        }
+        DisplayPrintfRealTime();
+    }
+    
+    /*set unix time in RTC DS1307*/
+    //DS1307_SetUnixTime(1470737760);
     /*sync real time*/
     unixTime = DS1307_GetUnixTime();
     

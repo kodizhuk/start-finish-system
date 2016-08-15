@@ -23,6 +23,7 @@ static uint32 DS1307_ReadTimeToStruct(void)
     I2C_Start();
     
     /*reset pointer register reading*/
+    //I2C_I2CMasterClearStatus();
     status = I2C_I2CMasterSendStart(DS1307_SLAVE_ADRESS,I2C_I2C_WRITE_XFER_MODE);
     if(status == I2C_I2C_MSTR_NO_ERROR)
     {
@@ -534,7 +535,7 @@ void DS1307_SetUnixTime( uint64 unixTime)
     DS1307_currentTimeDate.minutes = tmpMinute;
     DS1307_currentTimeDate.hours = tmpHour;
     DS1307_currentTimeDate.AmRm = !tmpAmPmState;
-    DS1307_currentTimeDate.timeFormat = !timeFormat;
+    DS1307_currentTimeDate.timeFormat = timeFormat;
     DS1307_currentTimeDate.day = dayOfWeek;
     DS1307_currentTimeDate.month = tmpMonth;
     DS1307_currentTimeDate.year = tmpYear-2000;

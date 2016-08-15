@@ -10,6 +10,7 @@ void InitNetwork(void)
     #ifdef DEBUG_PC
     SW_UART_DEBUG_Start();
     SW_UART_DEBUG_PutString("\n\nInit network start\n\n");
+    UART_XB_UartPutString("BLABLABLA");
     #endif
     
     inData.readStatus = NO_READ;
@@ -177,5 +178,142 @@ uint32_t FinWriteInDB(void)
     }
     
     return result;
+}
+
+
+uint32_t NTPsync(void)
+{
+    int i;
+    uint16_t result;
+    uint32_t IDreceivePacket;
+    uint32_t lastIDpacket;
+    uint32_t unixTime[2];
+    uint16_t millisTime[2];
+    uint32_t resultReceive;
+    uint32_t noConnect;
+    
+
+    noConnect = 0;
+    lastIDpacket = 0xff;
+    #ifdef DEBUG_PC 
+        char buffer[100];
+    #endif
+    
+    for(i=0; (i < NUM_TRY_SYNC) && (noConnect <= NUM_CONNECT_ATTEMPS) ;)// && (IDreceivePacket != lastIDpacket);)
+    {      
+        /*receive time from start*/
+        resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, !SAVE_TIME);
+        
+        #ifdef DEBUG_PC 
+        if(resultReceive == READ_OK)
+        {
+            sprintf(buffer,"\n\rt2= %u:%u\n\r",unixTime[T2],millisTime[T2]);
+            SW_UART_DEBUG_PutString(buffer);
+        }
+        sprintf(buffer,"Start i= %u, noConnect= %u\n\r",i,noConnect);
+        SW_UART_DEBUG_PutString(buffer);
+        #endif
+        
+        if(resultReceive == READ_OK)
+        {
+            /*send real time to start*/
+            unixTime[T3] = RTCGetUnixTime();
+            millisTime[T3] = RTCgetRecentMs();
+            NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDreceivePacket);
+
+            #ifdef DEBUG_PC 
+            sprintf(buffer,"\n\real time is= %u:%u\n\r",unixTime[T3],millisTime[T3]);
+            SW_UART_DEBUG_PutString(buffer);
+            #endif
+            noConnect=0;
+            if(lastIDpacket != IDreceivePacket)
+            {
+                lastIDpacket = IDreceivePacket;
+                i++;
+            }
+            
+        }else 
+        {
+            noConnect++;
+            
+            #ifdef DEBUG_PC
+            CyDelay(1000);
+            #endif
+        }
+    }
+    
+    
+    if(noConnect >= NUM_CONNECT_ATTEMPS)
+    {
+        result = TIME_SYNC_ERR;
+    }else
+    {
+        /*write time and ms in rtc*/
+        resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, SAVE_TIME);
+        if(resultReceive == READ_OK)
+        {
+             RTCSync(unixTime[T2], millisTime[T2]);
+        }
+        NTPsendTime(0,0,0,0,IDreceivePacket);
+        
+        result = TIME_SYNC_OK;
+    }
+    return result;
+}
+
+
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint32_t *IDreceive,uint32_t saveTime)
+{
+    uint8_t byte;
+    uint32_t result;
+    /*debug*/
+    result = READ_OK;
+    
+    NTPResp recvDataNTP;
+    while((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
+    {
+        result = NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
+        
+        #ifdef DEBUG_PC
+        SW_UART_DEBUG_PutChar(byte);
+        #endif
+                    
+        if(recvDataNTP.EndPacket == 1)
+        {
+            /*save unix time*/
+            
+            *IDreceive = recvDataNTP.Id;
+            if(saveTime == SAVE_TIME)
+            {
+                *unixTime2 = recvDataNTP.Data1;
+                *millisTime2 = recvDataNTP.DataMs1;
+            }else
+            {
+                *unixTime2 = RTCGetUnixTime();
+                *millisTime2 = RTCgetRecentMs();
+            }
+           
+            return READ_OK;
+        }
+        result = NO_READ;
+    }
+    result = NO_READ;
+    
+    return result;
+}
+
+static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint32_t ID)
+{
+    char sendBuffer[DATA_BUFFER];
+    char sendData[DATA_BUFFER];
+    
+    /*pack data*/
+    sprintf(sendData,"%08X%03X%08X%03X", unixTime2, millis2, unixTime3, millis3); 
+    PackData(sendBuffer, (uint8_t *)sendData, ID);
+    UART_XB_UartPutString(sendBuffer);
+    
+    #ifdef DEBUG_PC
+    SW_UART_DEBUG_PutString(sendBuffer);
+    #endif
 }
 /* [] END OF FILE */

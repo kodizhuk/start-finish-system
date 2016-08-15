@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include "lib_Network\svt.h"
 #include "lib_DB\database.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
 
 #define DEBUG_PC
 #ifdef DEBUG_PC
@@ -37,6 +39,17 @@
 
 #define NETWORK_TIMEOUT     30
 
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        10
+#define NUM_CONNECT_ATTEMPS 20
+
+#define TIME_SYNC_ERR       1
+#define TIME_SYNC_OK        0
+/*segment time*/
+#define T1                  0
+#define T2                  1
+#define T3                  2
+#define T4                  3
 
 typedef struct
 {
@@ -66,16 +79,21 @@ FinishData outData ;
 StartData inData;
 
 
-uint32_t numAttemps,noConnect, networkStatus;
 
+uint32_t numAttemps,noConnect, networkStatus;
 
 
 void InitNetwork(void);
 uint32_t NetworkStatus(void);
 void SendFinStatus(uint32_t ready);
-
 void SendData(void);
 uint32_t ReceiveData(void);
+
+/*NTP protocol sync*/
+uint32_t NTPsync(void);
+static void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *unixTime3, uint16_t *millis3, uint32_t *IDreceive);
+static void NTPsetTimeToStart(uint32_t unixTime4,uint16_t millis4,  uint32_t ID);
 
 #endif
 /* [] END OF FILE */

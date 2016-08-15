@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v0.v generated from TopDesign.cysch
-// 08/08/2016 at 12:34
+// 08/09/2016 at 15:17
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -1242,8 +1242,7 @@ endmodule
 // top
 module top ;
 
-          wire  Net_183;
-          wire  Net_181;
+          wire  Net_189;
           wire  Net_179;
           wire  Net_176;
           wire  Net_175;
@@ -1252,7 +1251,6 @@ module top ;
           wire  Net_172;
           wire  Net_171;
           wire  Net_170;
-    electrical  Net_558;
           wire  Net_139;
           wire  Net_138;
           wire  Net_137;
@@ -1272,14 +1270,14 @@ module top ;
           wire  Net_123;
           wire  Net_122;
           wire  Net_121;
+    electrical  Net_57;
+    electrical  Net_194;
           wire  Net_62;
-          wire  Net_53;
           wire  Net_52;
           wire  Net_51;
           wire  Net_50;
           wire  Net_49;
           wire  Net_48;
-          wire  Net_47;
           wire  Net_46;
           wire  Net_45;
           wire  Net_44;
@@ -1304,12 +1302,14 @@ module top ;
           wire  Net_142;
           wire  Net_141;
           wire  Net_140;
-    electrical  Net_180;
+          wire  Net_47;
     electrical  Net_58;
-    electrical  Net_57;
-          wire  Net_12;
+          wire  Net_53;
+          wire  Net_185;
+    electrical  Net_180;
+    electrical  Net_186;
           wire  Net_10;
-    electrical  Net_80;
+          wire  Net_12;
 
     SW_Tx_UART_v1_50_0 SW_UART_DEBUG ();
 
@@ -1371,7 +1371,7 @@ module top ;
 
     cy_annotation_universal_v1_0 GND_2 (
         .connect({
-            Net_80
+            Net_194
         })
     );
     defparam GND_2.comp_name = "Gnd_v1_0";
@@ -1381,7 +1381,7 @@ module top ;
     cy_annotation_universal_v1_0 Resistor_Red_1 (
         .connect({
             Net_57,
-            Net_80
+            Net_194
         })
     );
     defparam Resistor_Red_1.comp_name = "Resistor_v1_0";
@@ -1499,7 +1499,7 @@ module top ;
 
     cy_annotation_universal_v1_0 SW_1 (
         .connect({
-            Net_558,
+            Net_186,
             Net_180
         })
     );
@@ -1509,7 +1509,7 @@ module top ;
 
     cy_annotation_universal_v1_0 GND_1 (
         .connect({
-            Net_558
+            Net_186
         })
     );
     defparam GND_1.comp_name = "Gnd_v1_0";
@@ -1683,7 +1683,7 @@ module top ;
 		GatePin
 		 (.oe(tmpOE__GatePin_net),
 		  .y({1'b0}),
-		  .fb({Net_181}),
+		  .fb({Net_189}),
 		  .io({tmpIO_0__GatePin_net[0:0]}),
 		  .siovref(tmpSIOVREF__GatePin_net),
 		  .interrupt({tmpINTERRUPT_0__GatePin_net[0:0]}),
@@ -1701,11 +1701,11 @@ module top ;
 	cy_isr_v1_0
 		#(.int_type(2'b00))
 		GATE_INT
-		 (.int_signal(Net_183));
+		 (.int_signal(Net_185));
 
 
 
-    assign Net_183 = ~Net_181;
+    assign Net_185 = ~Net_189;
 
 
 

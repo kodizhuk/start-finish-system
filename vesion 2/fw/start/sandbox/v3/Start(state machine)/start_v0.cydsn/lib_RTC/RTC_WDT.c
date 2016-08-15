@@ -219,10 +219,11 @@ uint32_t RTCgetRecentMs()
 * Return:
 *  true(successful sync) or false(not successful sync))
 *******************************************************************************/
-/*
-bool RTCSync()
+
+void RTCSync(uint32_t unixTime, uint16_t recentMs)
 {
-    return true;
+    RTC_SetUnixTime(unixTime);
+    msRTC = recentMs;
 }
-*/
+
 /* [] END OF FILE */
