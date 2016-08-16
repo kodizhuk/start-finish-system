@@ -1,5 +1,15 @@
 
+#include <CyLib.h>
+#include <LCD.h>
+#include <stdio.h>
+#include "lib_DB\database.h"
+#include "lib_RTC\RTC_WDT.h"
 #include "lib_Display\display.h"
+
+
+/*buffer for print string on LCD*/
+static  char buff[100];
+
 
 /*******************************************************************************
 * Function name: DisplayConfig
@@ -9,7 +19,7 @@
 * initialization display
 *
 *******************************************************************************/	
-void DisplayConfig(void)
+void DisplayStart(void)
 {
     LCD_Start();
 }
@@ -28,7 +38,7 @@ void DisplayConfig(void)
 *   print string from position row = 0, column = 0
 *
 *******************************************************************************/
-void DisplayPrintf(char *message)
+void Display(char *message)
 {    
     LCD_Position(0,0);
     LCD_PrintString(message);
@@ -45,13 +55,14 @@ void DisplayPrintf(char *message)
 * Parametrs:
 *   state = SD_INSERT or state = SD_NO_INSERT
 *******************************************************************************/
-void DisplayPutIndicatorSD(SDindicator state)
+void DisplayIndicatorSD(SDindicator indicator)
 {
     LCD_Position(1,15);
-    if(state == SD_INSERT)
+    if(indicator == SD_INSERT)
     {
         LCD_PutChar(LCD_CUSTOM_0);
-    }else
+    }
+    else
     {
         LCD_PutChar(LCD_CUSTOM_1);
     }
@@ -67,13 +78,14 @@ void DisplayPutIndicatorSD(SDindicator state)
 * Parametrs:
 *   state = CONNECT or state = DISCONNECT
 *******************************************************************************/
-void DisplayPutIndicatorNetwork(NetworkIndicator state)
+void DisplayIndicatorNetwork(NetworkIndicator indicator)
 {
     LCD_Position(1,14);
-    if(state == CONNECT)
+    if(indicator == CONNECT)
     {
         LCD_PutChar(LCD_CUSTOM_2);
-    }else
+    }
+    else
     {
         LCD_PutChar(LCD_CUSTOM_3);
     }
@@ -87,7 +99,7 @@ void DisplayPutIndicatorNetwork(NetworkIndicator state)
 *   print real time from position row = 1, column = 0
 *
 *******************************************************************************/
-void DisplayPrintfRealTime(void)
+void DisplayRealTime(void)
 {
     uint32_t time;
     
@@ -105,7 +117,7 @@ void DisplayPrintfRealTime(void)
 *   print time last skier from position row = 1, column = 0
 *
 *******************************************************************************/
-void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
+void DisplayLastSkierTime(uint32_t sec, uint16_t milisec)
 {
     /*printf time in format mm:ss:msmsms*/
     sprintf(buff, "Result %02u:%02u:%03u",sec/60,sec%60, milisec);
@@ -121,7 +133,7 @@ void DisplayPrintLastTimeSkier(uint32_t sec, uint16_t milisec)
 *   print number skier on way from position row = 1, column = 11
 *
 *******************************************************************************/
-void DisplayPrintNumSkierOnWay(uint32_t num)
+void DisplayNumSkierOnWay(uint32_t num)
 {
     sprintf(buff, "%u/%u", num, MAX_SKIERS_ON_WAY);
     LCD_Position(1,10);
@@ -136,14 +148,18 @@ void DisplayPrintNumSkierOnWay(uint32_t num)
 * print loading from position row = 1, column = 0
 *
 *******************************************************************************/
-void DisplayPrintfLoading(uint32_t numLoad)
+void DisplayLoading(uint32_t numLoad)
 {
-    LCD_Position(1,numLoad-1);
-    LCD_PutChar(LCD_CUSTOM_4);
     if(numLoad == 0)
     {
+        /*clear row 1*/
         LCD_Position(1,0);
         LCD_PrintString("             ");
+    }
+    if((numLoad > 0) && numLoad < 16)
+    {
+        LCD_Position(1,numLoad-1);
+        LCD_PutChar(LCD_CUSTOM_4);
     }
 }
 /* [] END OF FILE */

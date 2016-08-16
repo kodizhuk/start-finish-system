@@ -1,4 +1,21 @@
 #include "lib_MyDelay\myDelay.h"
+#include <AppDelay.h>
+
+#include "lib_Network\network.h"
+#include "lib_Display\display.h"
+
+#define MIN_DELAY_MS    150
+#define WRITE_ERROR     1
+#define WRITE_NO_ERROR  0
+
+static uint16_t writeFlag;
+
+/*user func*/
+static void UserFunc_1(void);
+static void UserFunc_2(void);
+static void UserFunc_3(void);
+
+
 
 /*******************************************************************************
 * Function Name: MyDelay
@@ -34,13 +51,12 @@ void MyDelay(uint32_t delayMs)
             UserFunc_1();
             UserFunc_2();
             UserFunc_3();
+            /*user function*/  
             
             CyDelay(MIN_DELAY_MS);
                             
             counter = AppDelay_ReadCounter();
             runTime = (period -  counter)/32.768;
-            
-            /*user function*/  
         }
         AppDelay_Stop();
         
@@ -56,6 +72,7 @@ void MyDelay(uint32_t delayMs)
         }
     }
 }
+
 
 static void UserFunc_1(void)
 {
@@ -73,7 +90,7 @@ static void UserFunc_1(void)
 
 static void UserFunc_2(void)
 {
-    DisplayPrintfRealTime();
+    DisplayRealTime();
 }
 
 static void UserFunc_3(void)
@@ -81,10 +98,10 @@ static void UserFunc_3(void)
     /*indicator network*/
     if(NetworkStatus() == NETWORK_CONN)
     {
-        DisplayPutIndicatorNetwork(CONNECT);
-    }else
-    {
-        DisplayPutIndicatorNetwork(DISCONNECT);
+        DisplayIndicatorNetwork(CONNECT);
     }
-       
+    else
+    {
+        DisplayIndicatorNetwork(DISCONNECT);
+    }      
 }

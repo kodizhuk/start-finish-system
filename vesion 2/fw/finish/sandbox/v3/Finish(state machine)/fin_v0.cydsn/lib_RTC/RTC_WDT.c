@@ -1,88 +1,79 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
-
+#include <RTC.h>
 #include "lib_RTC\RTC_WDT.h"
-#include <SW_UART_PC.h>
+#include <CyLFClk.h>
+
+#define RTC_TIME_FORMAT_SHIFT       (39u)
+#define RTC_PERIOD_OF_DAY_SHIFT     (38u)
+#define RTC_10_HOURS_SHIFT          (36u)
+#define RTC_HOURS_SHIFT             (32u)
+#define RTC_10_MINUTES_SHIFT        (28u)
+#define RTC_MINUTES_SHIFT           (24u)
+#define RTC_10_SECONDS_SHIFT        (20u)
+#define RTC_SECONDS_SHIFT           (16u)
+#define RTC_100_MILISECONDS_SHIFT   (12u)
+#define RTC_10_MILISECONDS_SHIFT    (8u)
+#define RTC_MILISECONDS_SHIFT       (0u)
+
+#define RTC_MASK_TIME_FORMAT       (0x00000001ull << RTC_TIME_FORMAT_SHIFT )
+#define RTC_MASK_PERIOD_OF_DAY     (0x00000001ull << RTC_PERIOD_OF_DAY_SHIFT)
+#define RTC_MASK_10_HOURS          (0x00000003ull << RTC_10_HOURS_SHIFT )
+#define RTC_MASK_HOURS             (0x0000000Full << RTC_HOURS_SHIFT )
+#define RTC_MASK_10_MINUTES        (0x00000007uL << RTC_10_MINUTES_SHIFT )
+#define RTC_MASK_MINUTES           (0x0000000FuL << RTC_MINUTES_SHIFT )
+#define RTC_MASK_10_SECONDS        (0x00000007uL << RTC_10_SECONDS_SHIFT )
+#define RTC_MASK_SECONDS           (0x0000000FuL << RTC_SECONDS_SHIFT )
+#define RTC_MASK_100_MILISECONDS    (0x0000000FuL << RTC_100_MILISECONDS_SHIFT )
+#define RTC_MASK_10_MILISECONDS     (0x0000000FuL << RTC_10_MILISECONDS_SHIFT )
+#define RTC_MASK_MILISECONDS        (0x0000000FuL << RTC_MILISECONDS_SHIFT )
+
 
 static uint64_t time;
+static uint16_t msRTC = 0;
 
-uint32_t RTCSyncWithDS = 0;
+void CallBackCounter();
 
-#ifdef USE_WDT_RTC
 
-    uint16_t msRTC = 0;
-
-void CallBackCounter()
+/*******************************************************************************
+* Function Name: CallBackCounter
+********************************************************************************
+*
+* Summary
+*  miliseconds counter
+*  RTC update each seconds
+*
+*******************************************************************************/
+void CallBackCounter(void)
 {
     msRTC++;
     if (msRTC == 1000u) 
     {
         msRTC = 0u; 
         RTC_Update();
+        
         #ifdef DEBUG_RTC
             debug_Write(1);
             debug_Write(0);
         #endif
-        //SW_UART_PC_PutString("Second Goes\r\n");
     }
 }
 
-#endif
-
-#ifdef DEBUG_TIME
-
-static uint16_t timeRestart = 0;
-
-void CallBackCounter2()
+/*******************************************************************************
+* Function Name: RTC_WDT_Init
+********************************************************************************
+*
+* Summary
+*  Init watchdog counter
+*
+*******************************************************************************/
+void RTC_WDT_Init(void)
 {
-    timeRestart++;
-    if (timeRestart == 120) 
-    {
-        timeRestart = 0u; 
-        debug_reset_fin_Write(0);
-        CyDelay(100);
-        debug_reset_fin_Write(1);
-    }
+    void (*CallBackWDT0)(void);   
+    CallBackWDT0 = CallBackCounter;  
+    RTC_Start();  
+    CySysWdtSetInterruptCallback(0, CallBackWDT0);
+    //WDT0_ISR_StartEx(Wdt0_Handler);
 }
 
-#endif
-
-void RTC_WDT_Init(){
-    void (*CallBackWDT0)(void);
-    
-    CallBackWDT0 = CallBackCounter;
-    
-    #ifdef DEBUG_TIME
-    void (*CallBackWDT1)(void);  
-    CallBackWDT1 = CallBackCounter2;
-    #endif
-    
-    RTC_Start();
-    
-    #ifdef USE_WDT_RTC
-        CySysWdtSetInterruptCallback(0, CallBackWDT0);
-        //WDT0_ISR_StartEx(Wdt0_Handler);
-    #endif
-    
-    #ifdef DEBUG_TIME
-        CySysWdtSetInterruptCallback(1, CallBackWDT1);
-        //WDT0_ISR_StartEx(Wdt0_Handler);
-    #endif
-}
-
-uint32_t RTCSynced(void)
-{
-    return RTCSyncWithDS;
-}
 
 /*******************************************************************************
 * Function Name: RTCgetTime
@@ -233,12 +224,8 @@ uint32_t RTCgetMiliecond(uint64_t readTime)
 *
 *******************************************************************************/
 uint32_t RTCgetRecentMs()
-{
-    uint16_t TmsRTC = 0;
-    #ifdef USE_WDT_RTC
-        TmsRTC = msRTC;
-    #endif
-    return TmsRTC;
+{    
+    return msRTC;
 }
 
 /*******************************************************************************

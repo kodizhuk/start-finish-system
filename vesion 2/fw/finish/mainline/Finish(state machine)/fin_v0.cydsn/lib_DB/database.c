@@ -1,14 +1,4 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+
 #include "lib_DB\database.h"
 
 uint32_t DataBaseStart(void)
@@ -98,11 +88,11 @@ uint32_t SkierOnWay()
 
 uint32_t TimeOnWay(uint32_t Number)
 {
-    skierDB[Number].SecondsWay =  skierDB[Number].unixFinishSkier - skierDB[Number].unixStartSkier;  
+    skierDB[Number].secondsWay =  skierDB[Number].unixFinishSkier - skierDB[Number].unixStartSkier;  
     skierDB[Number].millsWay =  skierDB[Number].millsFinishSkier - skierDB[Number].millsStartSkier;  
     if (skierDB[Number].millsWay > 1000u)
     {
-        skierDB[Number].SecondsWay--;
+        skierDB[Number].secondsWay--;
         skierDB[Number].millsWay = 0 - skierDB[Number].millsWay;
     }
     return 1u;
@@ -113,11 +103,11 @@ uint32_t LastSecTimeOnWay()
     uint32_t tmpData;
     if (skiersFinished == 0)
     {
-        tmpData = skierDB[MAX_SKIERS_ON_DB].SecondsWay;
+        tmpData = skierDB[MAX_SKIERS_ON_DB].secondsWay;
     }
     else
     {
-        tmpData = skierDB[skiersFinished-1].SecondsWay;
+        tmpData = skierDB[skiersFinished-1].secondsWay;
     }
     return tmpData;
 }

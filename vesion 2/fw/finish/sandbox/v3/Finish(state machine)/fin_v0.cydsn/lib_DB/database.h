@@ -30,8 +30,8 @@ typedef struct
     uint64_t unixStartSkier;
     uint16_t millsStartSkier;
     uint64_t unixFinishSkier;
-    uint16_t millsFinishSkier;   
-    uint64_t SecondsWay;
+    uint16_t millsFinishSkier;
+    uint64_t secondsWay;
     uint16_t millsWay;
 }skierDB_El;
 

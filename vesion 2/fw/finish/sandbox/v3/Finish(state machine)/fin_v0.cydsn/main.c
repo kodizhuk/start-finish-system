@@ -3,25 +3,14 @@
 
 
 int main()
-{
-    /* Enable global interrupts */
-    CyGlobalIntEnable; 
-    
-    currentState = SYSTEM_INIT;
+{      
+    while(SystemInit() == ERROR);
+    currentState = TIME_SYNC;
     
     for(;;)
     {
         switch (currentState)
         {
-            case SYSTEM_INIT:
-            {
-                result = SystemInit();
-                if(result == NO_ERROR)
-                {
-                    currentState = TIME_SYNC;
-                }
-                break;
-            }
             case TIME_SYNC:
             {
                 result = TimeSynchronize();
@@ -33,11 +22,12 @@ int main()
             }
             case READY:
             {
-                result = Ready();
+                result = CheckReady();
                 if(result == NO_ERROR)
                 {
                     currentState = CHECK_GATE;
-                }else if(result == REBOOT)  
+                }
+                else if(result == REBOOT)  
                 {
                     currentState = TIME_SYNC;
                 }
@@ -49,7 +39,8 @@ int main()
                 if(result == GATE_OPEN)
                 {
                     currentState = SAVE_RESULT;
-                }else
+                }
+                else
                 {
                     currentState = READY;
                 }
@@ -57,31 +48,32 @@ int main()
             }
             case SAVE_RESULT:
             {
-                result = SaveResult();
-                if(result == NO_ERROR)
-                {
-                    currentState = READY;
-                }
+                SaveResult();
+                currentState = READY;
                 break;
             }            
         }
-        MyDelay(TIMEOUT_STATE);
+        MyDelay(TIMEOUT_DELAY);
     }
 }
+
 
 uint32_t SystemInit(void)
 {
     uint32_t result;
     uint64_t unixTime;
     
+    
     WriteRebootFlag(REBOOT);
     LedInit();   
-    DisplayConfig();   
+    DisplayStart();   
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
     InitBuff();
 
+    /* Enable global interrupts */
+    CyGlobalIntEnable;
     
     /*set unix time in RTC DS1307*/
     //DS1307_SetUnixTime(1471006500);
@@ -93,24 +85,26 @@ uint32_t SystemInit(void)
         RTC_SetUnixTime(unixTime);
         result = DataBaseStart();
         
-        if(result == DB_START)
+        if(result == DB_START)//db_no_error
         {
-            DisplayPrintf("System init...");
+            Display("System init...");
             result = NO_ERROR;
-        }else
+        }
+        else
         {
-            DisplayPrintf("Please insert SD");
+            Display("Please insert SD");
             result = ERROR;
             SendFinStatus(FIN_NO_READY);
         }
-    }else
+    }
+    else
     {
-        DisplayPrintf("Error sync time");
+        Display("Error sync time");
         result = ERROR;
         SendFinStatus(FIN_NO_READY);
     }
-    return result;
     
+    return result;    
 }
 
 uint32_t TimeSynchronize(void)
@@ -118,29 +112,30 @@ uint32_t TimeSynchronize(void)
     uint32_t result;
     
     LedBlink(FREQ_INIT_BLINK);
-    /*network connect*/
-    if(NetworkStatus() == NETWORK_DISCONN)
+    
+    /* network connect */
+    if(NetworkStatus() == NETWORK_DISCONNECT)
     {
-        DisplayPrintf("Network conn...");
-        MyDelay(TIMEOUT_STATE);
-    }else
+        Display("Network conn...");
+        MyDelay(TIMEOUT_DELAY);
+    }
+    else
     {  
-        /*time sync*/
-        DisplayPrintf("Sync time...");
+        /* time sync */
+        Display("Sync time...");
         if(NTPsync() == TIME_SYNC_OK)
         {
-            DisplayPrintf("Sync ok");
-            ReadRebootStartFlag();
-            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            Display("Sync ok");
+            IsRebootStartFlag();/*clear flag*/
+            MyDelay(4 * TIMEOUT_USER_READ_INFO);
+            
             result = TIME_SYNC_OK;
-            #ifdef DEBUG_TIME
-                DebugStart();
-            #endif
-        }else
+        }
+        else
         {
-            DisplayPrintf("Sync time error");
-            WriteRebootFlag(REBOOT);
-            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            Display("Sync time error");
+            WriteRebootFlag(REBOOT);//SetRebootFlag();, ClearRebootFlag();
+            MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_ERR;
         }
@@ -150,75 +145,67 @@ uint32_t TimeSynchronize(void)
 }
 
 
-uint32_t Ready(void)
+uint32_t CheckReady(void)
 {
     uint32_t result;   
  
     /*sise FIFO*/
-    if ((FifoGetSize() >= MAX_SKIERS_ON_BUF) && (FifoGetSize() <= MAX_FIFO_SIZE))
+    if ((FifoGetSize() >= MAX_SKIERS_ON_BUF/*main_db_buffer) */)&& (FifoGetSize() <= MAX_FIFO_SIZE)/*reserv, max_fifo rec*/)
     {
         /*skier finish successful*/
-        DisplayPrintf("Error SD Card!");
+        Display("Error SD Card!");
         SendFinStatus(FIN_NO_READY); 
         
-        if (SkierOnWay() == 0)
-        {
-            /*if not skiers on way*/
-            result = ERROR;
-        }
-        else
+        if (SkierOnWay() != 0)
         {
             /*if skiers on way*/
             result = NO_ERROR;
+        }
+        else
+        {
+            /*if not skiers on way*/
+            result = ERROR;
         }        
     }
-    else if(FifoGetSize() >= MAX_FIFO_SIZE)
+    else if(FifoGetSize() > MAX_FIFO_SIZE)
     {
         /*skier finish no successful*/
-        DisplayPrintf("Error SD Card!");
-        SendFinStatus(FIN_NO_READY);        
+        Display("Error SD Card!");
+        SendFinStatus(FIN_NO_READY); 
+        
         result = ERROR;                
-    }else if(SkierOnWay() >= MAX_SKIERS_ON_WAY)
+    }
+    else if(SkierOnWay() >= MAX_SKIERS_ON_WAY/*MAX_COUNT, TRACK_OVERFLOW*/)
     {
         /*max skier on way*/
-        
-        DisplayPrintf("Max skier on way");
+     
+        Display("Max skier on way");
         SendFinStatus(FIN_NO_READY);
         MyDelay(TIMEOUT_USER_READ_INFO);
         
         result = NO_ERROR;      
-    }else if(SkierOnWay() == 0)
+    }
+    else if(SkierOnWay() == 0)
     {
-        /*no skier on way*/
-        #ifndef DEBUG_TIME
-        DisplayPrintf("Finish Ready");
-        //MyDelay(TIMEOUT_USER_READ_INFO);
-        #endif
-        #ifdef DEBUG_TIME
-        DebugPrintResult();
-        #endif
+        Display("Finish Ready");
         SendFinStatus(FIN_READY);
-        SetLedState(LED_DISABLE);
-        
+        SetLedState(LED_DISABLE);        
         
         result = ERROR;      
-    }else
+    }
+    else
     {
         /*finish ready*/
         SendFinStatus(FIN_READY);
-        #ifndef DEBUG_TIME
-        DisplayPrintf("Finish Ready");
-        #endif
-        #ifdef DEBUG_TIME
-        DebugPrintResult();
-        #endif
+        Display("Finish Ready");
         
         result = NO_ERROR;
     }
     
-    if(ReadRebootStartFlag() == REBOOT)
+    //if(ReadRebootStartFlag() == REBOOT/*IS*/)
+    if(IsRebootStartFlag() == REBOOT)
     {
-        result = REBOOT;    
+        result = REBOOT;
     }
        
     return result;
@@ -229,41 +216,42 @@ uint32_t CheckGate(void)
     uint32_t result;
     
     SetLedState(LED_ENABLE);
-    result = GateIsOpen();
+    result = GateIsOpen();/*IsGateOpen(), CheckGateStatus()*/
     
     if(result == GATE_OPEN)
     {
-        DisplayPrintf("Skier Finished");
+        Display("Skier Finished");
         MyDelay(TIMEOUT_USER_READ_INFO);
-    }else
+    }
+    else
     {
         AllowNextSkier();
     }
-    return result;
     
+    return result;  
 }
 
-uint32_t SaveResult(void)
+void SaveResult(void)
 {
     uint64_t finUnixTime;
     uint32_t finRecentMs;
     
     SendFinStatus(FIN_READY);
     LedBlink(FREQ_INIT_BLINK);
-    DisplayPrintf("Save data");
+    Display("Save data");
     MyDelay(TIMEOUT_USER_READ_INFO);
     
     /*write time in fifo*/
     GetFinTime(&finUnixTime, &finRecentMs);
     WriteFinishTime(finUnixTime,finRecentMs);
+    
+    /*-------func in DB*/
     FifoPush(skierDB[skiersFinished-1]);
     
     /*print time result last skier finished*/
-    DisplayPrintLastTimeSkier(LastSecTimeOnWay(),LastMillsTimeOnWay());
+    DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/
     MyDelay(2*TIMEOUT_USER_READ_INFO);
-    
-    
-    return NO_ERROR;   
+  
 }
 
 /* [] END OF FILE */

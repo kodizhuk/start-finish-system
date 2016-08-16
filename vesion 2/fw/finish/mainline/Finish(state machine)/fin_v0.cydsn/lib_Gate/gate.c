@@ -1,5 +1,12 @@
-
 #include "lib_Gate\gate.h"
+#include <GatePin.h>
+#include <GATE_INT.h>
+#include "lib_RTC\RTC_WDT.h"
+
+static uint64_t savedUnixTime;
+static uint32_t savedRecentMs;
+static uint32_t gateOpen ;
+
 
 /*gate interrupt*/
 CY_ISR(GATE_INTERRUPT)
@@ -11,7 +18,7 @@ CY_ISR(GATE_INTERRUPT)
     savedUnixTime = RTCGetUnixTime();
     savedRecentMs = RTCgetRecentMs();
     
-    GatePin_ClearInterrupt();
+    //GatePin_ClearInterrupt();
     GATE_INT_ClearPending();   
 }
 
@@ -26,7 +33,7 @@ CY_ISR(GATE_INTERRUPT)
 *******************************************************************************/
 void GateInit(void)
 {
-    GatePin_ClearInterrupt();
+    //GatePin_ClearInterrupt();
     GATE_INT_ClearPending();
     GATE_INT_StartEx(GATE_INTERRUPT); 
     GATE_INT_Disable();
@@ -66,11 +73,19 @@ uint32_t GateIsOpen(void)
 *******************************************************************************/
 void AllowNextSkier(void)
 {
-    GatePin_ClearInterrupt();
+    //GatePin_ClearInterrupt();
     GATE_INT_ClearPending();
     GATE_INT_Enable();
 }
 
+void DisAllowNextSkier(void)
+{
+    gateOpen = GATE_CLOSE;
+     
+    GatePin_ClearInterrupt();
+    GATE_INT_ClearPending();
+    GATE_INT_Disable();   
+}
 
 /*******************************************************************************
 * Function Name: GetFinTime

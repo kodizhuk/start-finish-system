@@ -2,23 +2,13 @@
 
 int main()
 {
-    CyGlobalIntEnable; /* Enable global interrupts. */
-    
-    currentState = SYSTEM_INIT;
+    SystemInit();
+    currentState = TIME_SYNC;
 
     for(;;)
     {
         switch (currentState)
         {
-            case SYSTEM_INIT:
-            {
-                result = SystemInit();
-                if(result == NO_ERROR)
-                {
-                    currentState = TIME_SYNC;
-                }
-                break;
-            }
             case TIME_SYNC:
             {
                 result = TimeSynchronize();
@@ -65,20 +55,19 @@ int main()
     }
 }
 
-uint32_t SystemInit(void)
+void  SystemInit(void)
 {   
     WriteRebootFlag(REBOOT);
     LedInit();
     LedBlink(FREQ_INIT_BLINK);
     
-    DisplayConfig();
-    DisplayPrintf("System init...");
+    DisplayStart();
+    Display("System init...");
     
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
-
-    return NO_ERROR;  
+    CyGlobalIntEnable; /* Enable global interrupts. */ 
 }
 
 uint32_t TimeSynchronize(void)
@@ -89,21 +78,22 @@ uint32_t TimeSynchronize(void)
     /*network connect*/
     if(NetworkStatus() == NETWORK_DISCONN)
     {
-        DisplayPrintf("Network conn...");
+        Display("Network conn...");
         MyDelay(TIMEOUT_STATE);
     }else
     {
         /*time sync*/
-        DisplayPrintf("Sync time...");
+        Display("Sync time...");
         if(NTPsync() == TIME_SYNC_OK)
         {
-            DisplayPrintf("Sync ok");
+            Display("Sync ok");
             ReadRebootFinishFlag();
             MyDelay(4*TIMEOUT_USER_READ_INFO);
             result = TIME_SYNC_OK;
         }else
         {
-            DisplayPrintf("Sync time error");
+            Display("Sync time error");
+            
             WriteRebootFlag(REBOOT);
             MyDelay(4*TIMEOUT_USER_READ_INFO);
       
@@ -122,7 +112,7 @@ uint32_t GetFinishStatus(void)
     {
         LedBlink(FREQ_ERR_BLINK);
         result = ERROR;
-        DisplayPrintf("Fin no ready");
+        Display("Fin no ready");
         DisAllowNextSkier();
         MyDelay(TIMEOUT_USER_READ_INFO);
     }
@@ -149,13 +139,13 @@ uint32_t CheckGate(void)
     
     if(result == GATE_OPEN)
     {
-        DisplayPrintf("Skier Started");
+        Display("Skier Started");
         LedBlink(FREQ_INIT_BLINK);
         MyDelay(TIMEOUT_USER_READ_INFO);
 
     }else
     {
-        DisplayPrintf("Start ready");
+        Display("Start ready");
         SetLedState(LED_ENABLE);
         AllowNextSkier();
 
@@ -171,13 +161,13 @@ uint32_t SaveResult(void)
     uint32_t startRecentMs;
     
     LedBlink(FREQ_INIT_BLINK);
-    DisplayPrintf("Save result");
+    Display("Save result");
     MyDelay(TIMEOUT_USER_READ_INFO);
     
     GetStartTime(&startUnixTime, &startRecentMs);
     SendSkierStart(startUnixTime, startRecentMs);
     
-    DisplayPrintf("Wait next skier");
+    Display("Wait next skier");
     MyDelay(TIMEOUT_NEXT_SKIER);
     
     result = NO_ERROR;

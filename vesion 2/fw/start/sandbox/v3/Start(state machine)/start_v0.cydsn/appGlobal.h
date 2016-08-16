@@ -15,12 +15,12 @@
 #define TIMEOUT_STATE   500
 #define TIMEOUT_USER_READ_INFO  500
 
-typedef enum {SYSTEM_INIT = 0, TIME_SYNC, GET_FIN_STATUS, CHECK_GATE, SAVE_RESULT} StateType; 
+typedef enum {TIME_SYNC = 0, GET_FIN_STATUS, CHECK_GATE, SAVE_RESULT} StateType; 
 StateType currentState;
 
 static uint32_t result;
 
-uint32_t SystemInit(void);
+void SystemInit(void);
 uint32_t TimeSynchronize(void);
 uint32_t GetFinishStatus(void);
 uint32_t CheckGate(void);

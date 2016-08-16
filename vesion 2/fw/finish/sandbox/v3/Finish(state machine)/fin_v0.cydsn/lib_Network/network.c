@@ -1,8 +1,80 @@
 
 #include "lib_Network\network.h"
+#include <UART_XB.h>
+#include <UART_XB_SPI_UART.h>
+
+#include "lib_Network\svt.h"
+#include "lib_DB\database.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "lib_Display\display.h"
+
+
+/*size buffer*/
+#define DATA_BUFFER   50
+ 
+#define ADRESS_READY        8
+#define ADRESS_REBOOT       9
+#define ADRESS_COUNT_SK     10
+
+#define NETWORK_TIMEOUT     50
+
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        14
+#define NUM_CONNECT_ATTEMPS 20
+    
+/*segment time for NTP*/
+#define T1                  0
+#define T2                  1
+#define T3                  2
+#define T4                  3
+
+typedef struct
+{
+    /*data to transmit*/
+    uint8_t IDpacket;    
+    uint8_t ready;          /*flag readu finish*/
+    uint8_t reboot;         /*flag finish reboot*/
+    uint8_t countSkiers;
+    
+    uint64_t tmpTime;
+    uint16_t tmpMsTime;
+    uint8_t writeStatus;    /*flag transmitt data*/
+}FinishData;
+
+typedef struct
+{
+    /*data to receive*/
+    uint8_t IDpacket;
+    uint64_t unixStartTime;
+    uint16_t startMsTime;
+    uint8_t newSkier;
+    uint8_t reboot;     /*reboot=1, no reboot=0*/
+    
+    uint8_t readStatus;     /*flag successful read data in start*/
+}StartData;
+
+FinishData outData ;
+StartData inData;
+
+uint32_t numAttemps,noConnect, networkStatus;
+
+
+static void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *unixTime3, uint16_t *millis3, uint32_t *IDreceive);
+static void NTPsetTimeToStart(uint32_t unixTime4,uint16_t millis4,  uint32_t ID);
+static void NTPcalculateTime(uint32_t unixTime[], uint16_t msTime[], int32_t *sumTime, int32_t *sumMs);
 
 
 
+/*******************************************************************************
+* Function Name: InitNetwork
+********************************************************************************
+*
+* Summary:
+*   initialization UART for XBee module
+*
+*******************************************************************************/
 void InitNetwork(void)
 {
     UART_XB_Start();
@@ -17,7 +89,14 @@ void InitNetwork(void)
     
 }
 
-
+/*******************************************************************************
+* Function Name: SendData
+********************************************************************************
+*
+* Summary:
+*   send data to start from struct "outData"
+*
+*******************************************************************************/
 void SendData(void)
 {   
     if( outData.writeStatus == NO_WRITE || inData.readStatus == READ_OK)
@@ -49,10 +128,18 @@ void SendData(void)
     }
 }
 
-
+/*******************************************************************************
+* Function Name: ReceiveData
+********************************************************************************
+*
+* Summary:
+*   receive data from start in struct "inData"
+* Return:
+*   NETWORK_CONNECT or NETWORK_DISCONNECT
+*
+*******************************************************************************/
 uint32_t  ReceiveData(void)
-{
-    
+{   
     if(inData.readStatus == NO_READ && outData.writeStatus == WRITE_OK)
     {
         uint32_t result = 0;
@@ -80,7 +167,7 @@ uint32_t  ReceiveData(void)
                     outData.writeStatus = NO_WRITE;
                     
                     /*connect network*/
-                    networkStatus = NETWORK_CONN;
+                    networkStatus = NETWORK_CONNECT;
                     noConnect = 0;
                     
                     /*write data*/
@@ -109,13 +196,12 @@ uint32_t  ReceiveData(void)
                     inData.unixStartTime = recvData.Data1;
                     inData.startMsTime = recvData.Data2;
                     
-                    networkStatus = NETWORK_CONN;
+                    networkStatus = NETWORK_CONNECT;
                     noConnect = 0;
                     CyDelay(50);
                 }
-                return  NETWORK_CONN;  
+                return  NETWORK_CONNECT;  
             }
-
         }
         
         noConnect++;
@@ -123,28 +209,56 @@ uint32_t  ReceiveData(void)
         {
             outData.writeStatus = NO_WRITE;
             inData.readStatus = NO_READ;
-            networkStatus = NETWORK_DISCONN;
+            networkStatus = NETWORK_DISCONNECT;
         }
         
-        return  NETWORK_DISCONN;
+        return  NETWORK_DISCONNECT;
     }
     return 0;
 }
 
 
-
+/*******************************************************************************
+* Function Name: SendFinStatus
+********************************************************************************
+*
+* Summary:
+*   set fin status
+* Parametrs:
+*   FIN_READY or FIN_NO_READY
+*
+*******************************************************************************/
 void SendFinStatus(uint32_t ready)
 {
     outData.ready = ready;
 }
 
+/*******************************************************************************
+* Function Name: NetworkStatus
+********************************************************************************
+*
+* Summary:
+*   read network status
+* Return:
+*   NETWORK_CONNECT or NETWORK_DISCONNECT
+*
+*******************************************************************************/
 uint32_t NetworkStatus(void)
 {
     return networkStatus;
 }
 
-
-uint32_t ReadRebootStartFlag(void)
+/*******************************************************************************
+* Function Name: ReadRebootStartFlag
+********************************************************************************
+*
+* Summary:
+*   read reboot flag from start
+* Return:
+*   REBOOT or NO_REBOOT
+*
+*******************************************************************************/
+uint32_t IsRebootStartFlag(void)
 {
     uint32_t result;
     
@@ -152,7 +266,8 @@ uint32_t ReadRebootStartFlag(void)
     {
         result = REBOOT;
         inData.reboot = 0;
-    }else 
+    }
+    else 
     {
         outData.reboot = 0;
         inData.reboot = 0;
@@ -161,19 +276,39 @@ uint32_t ReadRebootStartFlag(void)
     return result;
 }
 
+/*******************************************************************************
+* Function Name: WriteRebootFlag
+********************************************************************************
+*
+* Summary:
+*   write reboot flag to start
+* Parametrs:
+*   REBOOT or NO_REBOOT
+*
+*******************************************************************************/
 void WriteRebootFlag(uint32_t status)
 {
     if(status == REBOOT)
     {
         outData.reboot = 1;
-    }else
+    }
+    else
     {
         outData.reboot = 0;
     }
 }
 
-/*NTP */
 
+/*******************************************************************************
+* Function Name: NTPsync
+********************************************************************************
+*
+* Summary:
+*   NTP time synchronization protocol on
+* Return:
+*   TIME_SYNC_OK or TIME_SYNC_ERR
+*
+*******************************************************************************/
 uint32_t NTPsync(void)
 {
     int i;
@@ -218,12 +353,14 @@ uint32_t NTPsync(void)
             deliveryTime += sumTime;
             deliveryMs += sumMillis;
             
-            DisplayPrintfLoading(IDpacket);
+            DisplayLoading(IDpacket);
+            
             IDpacket++;
             noConnect=0;
             i++;  
             
-        }else
+        }
+        else
         {
             noConnect++;
         }
@@ -233,7 +370,8 @@ uint32_t NTPsync(void)
     if(noConnect >= NUM_CONNECT_ATTEMPS)
     {
         result = TIME_SYNC_ERR;
-    }else
+    }
+    else
     {
         uint16_t outMs;
         uint16_t tmpDataMs;
@@ -262,18 +400,44 @@ uint32_t NTPsync(void)
     return result;
 }
 
-static void NTPsendTime(uint32_t unixTime1,uint16_t millis2, uint32_t ID)
+
+/*******************************************************************************
+* Function Name: NTPsendTime
+********************************************************************************
+*
+* Summary:
+*   send time to NTP protocol
+* Parametrs:
+*   unixTime - time in unix format
+*   millis - millis time
+*   ID - ID packet
+*
+*******************************************************************************/
+static void NTPsendTime(uint32_t unixTime,uint16_t millis, uint32_t ID)
 {
     char sendBuffer[DATA_BUFFER];
     char sendData[DATA_BUFFER];
     
     /*pack data*/
-    sprintf(sendData,"%08X%03X", unixTime1,millis2); 
+    sprintf(sendData,"%08X%03X", unixTime,millis); 
     PackData(sendBuffer, (uint8_t *)sendData, ID);
     UART_XB_UartPutString(sendBuffer);
 }
 
-
+/*******************************************************************************
+* Function Name: NTPreceiveTime
+********************************************************************************
+*
+* Summary:
+*   receive time to NTP protocol
+* Parametrs:
+*   *unixTime2,unixTime3 - time in unix format
+*   *millisTime2,millisTime3 - millis time
+*   *IDreceive - ID packet
+* Return:
+*   READ_OK or NO_READ
+*
+*******************************************************************************/
 static uint32_t NTPreceiveTime(uint32_t *unixTime2, uint16_t *millisTime2, uint32_t *unixTime3, uint16_t *millisTime3, uint32_t *IDreceive)
 {
     uint8_t byte;
@@ -304,7 +468,18 @@ static uint32_t NTPreceiveTime(uint32_t *unixTime2, uint16_t *millisTime2, uint3
     return result;
 }
 
-
+/*******************************************************************************
+* Function Name: NTPsetTimeToStart
+********************************************************************************
+*
+* Summary:
+*   sending start time based on the time of delivery
+* Parametrs:
+*   unixTime4 - time in unix format
+*   millisTime4 - millis time
+*   ID - ID packet
+*
+*******************************************************************************/
 static void NTPsetTimeToStart(uint32_t unixTime4, uint16_t millisTime4, uint32_t ID)
 {
     char sendBuffer[DATA_BUFFER];

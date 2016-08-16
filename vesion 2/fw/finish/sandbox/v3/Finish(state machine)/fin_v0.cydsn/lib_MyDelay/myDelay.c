@@ -1,4 +1,24 @@
 #include "lib_MyDelay\myDelay.h"
+#include <AppDelay.h>
+#include <SDinsert.h>
+#include "lib_DB\logResult.h"
+#include "lib_Network\network.h"
+#include "lib_Display\display.h"
+
+/*Minimum time to execution user function  */
+#define MIN_DELAY_MS    150
+
+#define WRITE_ERROR     1
+#define WRITE_NO_ERROR  0
+
+static uint16_t writeFlag;
+
+/*user func*/
+static void UserFunc_1(void);
+static void UserFunc_2(void);
+static void UserFunc_3(void);
+static void UserFunc_4(void);
+
 
 /*******************************************************************************
 * Function Name: MyDelay
@@ -17,7 +37,8 @@ void MyDelay(uint32_t delayMs)
     if(delayMs < MIN_DELAY_MS)
     {
         CyDelay(delayMs);
-    }else
+    }
+    else
     {
         uint32_t runTime;
         uint32_t counter ;
@@ -61,7 +82,7 @@ void MyDelay(uint32_t delayMs)
 
 static void UserFunc_1(void)
 {
-    /*network*/
+    /*network connection and transfer data*/
 
     SendData();           
     ReceiveData();
@@ -75,7 +96,9 @@ static void UserFunc_1(void)
 
 static void UserFunc_2(void)
 {
-    /*write result skier on log*/
+    /*write result skier on log 
+    (if there is no memory card that is a record in fifo)*/
+    
     if((FifoGetSize() > 0) || (writeFlag == WRITE_ERROR))
     {
         uint32_t result;
@@ -104,28 +127,31 @@ static void UserFunc_2(void)
 
 static void UserFunc_3(void)
 {
-    /*indicator SD card*/
+    /*print indicator SD card*/
     if(SDinsert_Read() == 0)
     {
-        DisplayPutIndicatorSD(SD_INSERT);
-    }else
-    {
-        DisplayPutIndicatorSD(SD_NO_INSERT);
+        DisplayIndicatorSD(SD_INSERT);
     }
-    /*indicator network*/
-    if(NetworkStatus() == NETWORK_CONN)
+    else
     {
-        DisplayPutIndicatorNetwork(CONNECT);
-    }else
-    {
-        DisplayPutIndicatorNetwork(DISCONNECT);
+        DisplayIndicatorSD(SD_NO_INSERT);
     }
     
+    /*printindicator network*/
+    if(NetworkStatus() == NETWORK_CONNECT)
+    {
+        DisplayIndicatorNetwork(CONNECT);
+    }
+    else
+    {
+        DisplayIndicatorNetwork(DISCONNECT);
+    }  
 }
 
 static void UserFunc_4(void)
 {
     /*printf real time and num skier on way*/
-    DisplayPrintfRealTime();
-    DisplayPrintNumSkierOnWay(SkierOnWay());
+    
+    DisplayRealTime();
+    DisplayNumSkierOnWay(SkierOnWay());
 }

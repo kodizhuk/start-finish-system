@@ -1,8 +1,86 @@
 
 #include "lib_Network\network.h"
+#include <UART_XB.h>
+#include <UART_XB_SPI_UART.h>
+
+#include <stdio.h>
+#include "lib_Network\svt.h"
+#include "lib_RTC\RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "lib_Display\display.h"
+
+#define MIN_DELAYMS 150
+
+/*size buffer*/
+#define DATA_BUFFER   50
+#define RX_BUFFER   
+
+#define ADRESS_READY        8
+#define ADRESS_REBOOT       9
+#define ADRESS_COUNT_SK     10
+
+#define MASK_HIGH   0xFFFFFFFF00000000
+#define MASK_LOW    0x00000000FFFFFFFF
+#define DATA_SHIFT  32
+
+#define TIMEOUT_FIN_READY   3
+
+/*for NTP protocol*/
+#define NUM_TRY_SYNC        14
+#define NUM_CONNECT_ATTEMPS 100
+
+#define SAVE_TIME           1
+#define NETWORK_TIMEOUT     50
+#define NEW_SKIER_IN_TARCK   1
 
 
+/*segment time*/
+#define T2                  0
+#define T3                  1
 
+#define CORRECTION_TIME     0
+
+typedef struct
+{
+    uint8_t IDpacket;
+    uint8_t ready;
+    uint8_t reboot;
+    uint8_t countSkiers;
+    uint64_t tmpTime;
+    uint16_t tmpMsTime;
+    uint8_t readStatus;
+}FinishData;
+
+typedef struct
+{
+    uint8_t IDpacket;
+    uint64_t unixStartTime;
+    uint16_t startMsTime;
+    uint8_t newSkier;
+    uint8_t writeStatus;
+    uint8_t reboot;     /*reboot=1, not reboot=0*/
+}StartData;
+
+FinishData inData;
+StartData outData;
+
+char previousData[100];
+
+static uint32_t networkStatus;
+static int noConnect;
+static int finNoReady;
+
+static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint32_t ID);
+static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint32_t *IDreceive, uint32_t saveTime);
+
+/*******************************************************************************
+* Function Name: InitNetwork
+********************************************************************************
+*
+* Summary:
+*   initialization UART for XBee module
+*
+*******************************************************************************/
 void InitNetwork(void)
 {
     UART_XB_Start();
@@ -17,6 +95,14 @@ void InitNetwork(void)
     UART_XB_SpiUartClearRxBuffer();
 }
 
+/*******************************************************************************
+* Function Name: SendData
+********************************************************************************
+*
+* Summary:
+*   send data to start from struct "outData"
+*
+*******************************************************************************/
 void SendData(void)
 {
     if(outData.writeStatus == NO_WRITE && inData.readStatus == READ_OK)
@@ -67,6 +153,16 @@ void SendData(void)
 }
 
 
+/*******************************************************************************
+* Function Name: ReceiveData
+********************************************************************************
+*
+* Summary:
+*   receive data from start in struct "inData"
+* Return:
+*   NETWORK_CONNECT or NETWORK_DISCONNECT
+*
+*******************************************************************************/
 uint32_t ReceiveData(void)
 {
     if(outData.writeStatus == WRITE_OK && inData.readStatus == NO_READ)
@@ -118,11 +214,21 @@ uint32_t ReceiveData(void)
     return 0;
 }
 
-
+/*******************************************************************************
+* Function Name: NetworkStatus
+********************************************************************************
+*
+* Summary:
+*   read network status
+* Return:
+*   NETWORK_CONNECT or NETWORK_DISCONNECT
+*
+*******************************************************************************/
 uint32_t NetworkStatus(void)
 {
     return networkStatus;
 }
+
 
 
 void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs)
@@ -182,7 +288,17 @@ void WriteRebootFlag(uint32_t status)
     }
 }
 
-/*NTP*/
+
+/*******************************************************************************
+* Function Name: NTPsync
+********************************************************************************
+*
+* Summary:
+*   NTP time synchronization protocol on
+* Return:
+*   TIME_SYNC_OK or TIME_SYNC_ERR
+*
+*******************************************************************************/
 uint32_t NTPsync(void)
 {
     int i;
@@ -211,7 +327,8 @@ uint32_t NTPsync(void)
             {
                 /*error sync, does not start with zero packet*/
                 noConnect = NUM_CONNECT_ATTEMPS;
-            }else
+            }
+            else
             {
                 /*no error, send time*/
                 
@@ -225,12 +342,13 @@ uint32_t NTPsync(void)
                 {
                     /*finish read data, next step sync*/
                     lastIDpacket = IDreceivePacket;
-                    DisplayPrintfLoading(i);
+                    DisplayLoading(i);
                     i = IDreceivePacket+1;
                 }
             }
             
-        }else 
+        }
+        else 
         {
             noConnect++;
         }
@@ -254,7 +372,8 @@ uint32_t NTPsync(void)
                 if(IDreceivePacket == NUM_TRY_SYNC)
                 {
                     RTCSync(unixTime[T2], millisTime[T2]+CORRECTION_TIME);
-                }else
+                }
+                else
                 {
                     resultReceive = NO_READ;
                 }
@@ -269,11 +388,26 @@ uint32_t NTPsync(void)
 }
 
 
+/*******************************************************************************
+* Function Name: NTPreceiveTime
+********************************************************************************
+*
+* Summary:
+*   receive time to NTP protocol
+* Parametrs:
+*   *unixTime2 - time in unix format
+*   *millisTime2 - millis time
+*   *IDreceive - ID packet
+*   saveTime - command save time from finish
+* Return:
+*   READ_OK or NO_READ
+*
+*******************************************************************************/
 static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint32_t *IDreceive,uint32_t saveTime)
 {
     uint8_t byte;
     uint32_t result;
-    /*debug*/
+    
     result = READ_OK;
     
     NTPResp recvDataNTP;
@@ -292,7 +426,8 @@ static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint32
             {
                 *unixTime2 = recvDataNTP.Data1;
                 *millisTime2 = recvDataNTP.DataMs1;
-            }else
+            }
+            else
             {
                 *unixTime2 = RTCGetUnixTime();
                 *millisTime2 = RTCgetRecentMs();
@@ -307,6 +442,18 @@ static uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint32
     return result;
 }
 
+/*******************************************************************************
+* Function Name: NTPsendTime
+********************************************************************************
+*
+* Summary:
+*   send time t2 and t3 to NTP protocol
+* Parametrs:
+*   unixTime2,unixTime3 - time in unix format
+*   millis2, millis3 - millis time
+*   ID - ID packet
+*
+*******************************************************************************/
 static void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint32_t ID)
 {
     char sendBuffer[DATA_BUFFER];
