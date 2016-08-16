@@ -22,7 +22,7 @@
 #include "lib_Network\ntp.h"
 #include "lib_Display\display.h"
 
-#define DEBUG_INFO
+//#define DEBUG_INFO
 
 
 #define READ_OK     1

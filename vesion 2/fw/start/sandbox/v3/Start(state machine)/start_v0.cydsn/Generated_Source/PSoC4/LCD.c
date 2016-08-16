@@ -491,7 +491,8 @@ static void LCD_WrDatNib(uint8 nibble)
     LCD_PORT_DR_REG &= ((uint32)(~LCD_RW));
 
     /* Guaranteed delay between Setting RS and RW and setting E bits */
-    CyDelayUs(10u);
+    /* >> FIX >> */ 
+	CyDelayUs(LCD_STROBE_DELAY_BW_NIBBLES);
     
     /* Clear data pins */
     LCD_PORT_DR_REG &= ((uint32)(~LCD_DATA_MASK));
@@ -505,7 +506,8 @@ static void LCD_WrDatNib(uint8 nibble)
     #endif /* (0u != LCD_PORT_SHIFT) */
 
     /* Minimum of 230 ns delay */
-    CyDelayUs(10u);
+    /* >> FIX >> */
+	CyDelayUs(LCD_STROBE_DELAY_AF_NIBBLES);
 
     LCD_PORT_DR_REG &= ((uint32)(~LCD_E));
 }

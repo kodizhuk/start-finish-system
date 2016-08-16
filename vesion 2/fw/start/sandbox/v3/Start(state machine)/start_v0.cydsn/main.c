@@ -99,6 +99,7 @@ uint32_t TimeSynchronize(void)
         {
             DisplayPrintf("Sync ok");
             ReadRebootFinishFlag();
+            WriteRebootFlag(NO_REBOOT);
             MyDelay(4*TIMEOUT_USER_READ_INFO);
             result = TIME_SYNC_OK;
         }else
