@@ -11,6 +11,42 @@
 */
 #include "lib_DB\database.h"
 
+#define BUFFER_SIZE         MAX_SKIERS_ON_WAY + 4u
+#define MAX_SKIERS_ON_DB    150u
+
+struct elementBuff
+{
+    uint64_t unixStartSkier;
+    uint16_t millsStartSkier;
+    struct elementBuff* nextSki;
+} bufferSkiersOnWay[BUFFER_SIZE];
+
+typedef struct
+{
+    uint16_t    size;
+    uint16_t    firstElement;                                
+    uint16_t    lastElement; 
+    
+    uint16_t totalSize;
+    /*buffer*/
+    skierDB_El buffer[MAX_FIFO_SIZE]; 
+    /*last output element*/
+    skierDB_El last;
+}fifoTimeSkier;
+
+skierDB_El skierDB[MAX_SKIERS_ON_DB];
+skierDB_El bufferFifo[MAX_SKIERS_ON_BUF];
+
+uint32_t currentSizeBuff;
+struct elementBuff *currentElementStart;
+struct elementBuff *currentElementFinish;
+
+uint16_t skiersStarted;
+uint16_t skiersFinished;
+
+fifoTimeSkier fifo;
+
+
 uint32_t DataBaseStart(void)
 {
     uint32_t result; 
@@ -113,11 +149,11 @@ uint32_t LastSecTimeOnWay()
     uint32_t tmpData;
     if (skiersFinished == 0)
     {
-        tmpData = skierDB[MAX_SKIERS_ON_DB].SecondsWay;
+        tmpData = skierDB[MAX_SKIERS_ON_DB - 1].SecondsWay;
     }
     else
     {
-        tmpData = skierDB[skiersFinished-1].SecondsWay;
+        tmpData = skierDB[skiersFinished - 1].SecondsWay;
     }
     return tmpData;
 }
@@ -127,7 +163,7 @@ uint32_t LastMillsTimeOnWay()
     uint32_t tmpData;
     if (skiersFinished == 0)
     {
-        tmpData = skierDB[MAX_SKIERS_ON_DB].millsWay;
+        tmpData = skierDB[MAX_SKIERS_ON_DB - 1].millsWay;
     }
     else
     {
@@ -173,4 +209,22 @@ void FifoPushLast(skierDB_El data)
 {
     fifo.last = data;
 }
+
+skierDB_El FifoGetLast(void)
+{
+    return fifo.last;
+}
+
+void FifoPushLastFinished()
+{
+    if (skiersFinished == 0)
+    {
+        FifoPush(skierDB[MAX_SKIERS_ON_DB - 1]);
+    }
+    else
+    {
+        FifoPush(skierDB[skiersFinished-1]);    
+    }
+}
+
 /* [] END OF FILE */

@@ -256,7 +256,7 @@ uint32_t SaveResult(void)
     /*write time in fifo*/
     GetFinTime(&finUnixTime, &finRecentMs);
     WriteFinishTime(finUnixTime,finRecentMs);
-    FifoPush(skierDB[skiersFinished-1]);
+    FifoPushLastFinished();
     
     /*print time result last skier finished*/
     DisplayPrintLastTimeSkier(LastSecTimeOnWay(),LastMillsTimeOnWay());
