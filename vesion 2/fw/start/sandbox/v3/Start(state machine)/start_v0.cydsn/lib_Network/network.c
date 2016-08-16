@@ -260,7 +260,7 @@ uint32_t FinWriteInDB(void)
     return result;
 }
 
-uint32_t ReadRebootFinishFlag(void)
+uint32_t IsRebootFinishFlag(void)
 {
     uint32_t result;
     
@@ -277,18 +277,16 @@ uint32_t ReadRebootFinishFlag(void)
     return result;
 }
 
-void WriteRebootFlag(uint32_t status)
+void SetRebootFlag(void)
 {
-    if(status == REBOOT)
-    {
-        outData.reboot = 1;
-    }else
-    {
-        outData.reboot = 0;
-    }
+    outData.reboot = 1;
 }
 
-
+void ClearRebootFlag(void)
+{
+    inData.reboot = 0;
+    outData.reboot = 0;
+}
 /*******************************************************************************
 * Function Name: NTPsync
 ********************************************************************************

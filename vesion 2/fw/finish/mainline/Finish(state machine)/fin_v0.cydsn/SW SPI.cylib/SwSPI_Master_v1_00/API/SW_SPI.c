@@ -2,12 +2,13 @@
  *
  * File Name: `$INSTANCE_NAME`.c
  * Version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION` 
- * Copyright YOUR COMPANY, THE YEAR
+ * Copyright ANDREY TKACHOV, 2016
+ 
  * All Rights Reserved
  * UNPUBLISHED, LICENSED SOFTWARE.
  *
  * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
+ * WHICH IS THE PROPERTY OF PERSONAL LICENSE.
  *
  * ========================================
 */

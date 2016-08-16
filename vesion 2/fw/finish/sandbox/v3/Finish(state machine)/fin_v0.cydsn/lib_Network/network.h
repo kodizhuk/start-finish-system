@@ -30,7 +30,8 @@ void     SendFinStatus(uint32_t ready);
 
 /*reboot flag*/
 uint32_t IsRebootStartFlag(void);
-void     WriteRebootFlag(uint32_t status);
+void     SetRebootFlag(void);
+void     ClearRebootFlag(void);
 
 void     SendData(void);
 uint32_t ReceiveData(void);

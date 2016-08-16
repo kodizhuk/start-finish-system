@@ -110,7 +110,7 @@ static void UserFunc_2(void)
         }
         else
         {
-            tmpStruct = fifo.last;
+            tmpStruct = FifoGetLast();
         }
         result = WriteSkierResult(&tmpStruct);
         if(result != FR_OK)

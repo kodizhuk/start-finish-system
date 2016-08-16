@@ -64,7 +64,7 @@ uint32_t SystemInit(void)
     uint64_t unixTime;
     
     
-    WriteRebootFlag(REBOOT);
+    SetRebootFlag();
     LedInit();   
     DisplayStart();   
     RTC_WDT_Init(); 
@@ -85,7 +85,7 @@ uint32_t SystemInit(void)
         RTC_SetUnixTime(unixTime);
         result = DataBaseStart();
         
-        if(result == DB_START)//db_no_error
+        if(result == DB_NO_ERROR)
         {
             Display("System init...");
             result = NO_ERROR;
@@ -126,7 +126,7 @@ uint32_t TimeSynchronize(void)
         if(NTPsync() == TIME_SYNC_OK)
         {
             Display("Sync ok");
-            IsRebootStartFlag();/*clear flag*/
+            ClearRebootFlag();
             MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_OK;
@@ -134,7 +134,7 @@ uint32_t TimeSynchronize(void)
         else
         {
             Display("Sync time error");
-            WriteRebootFlag(REBOOT);//SetRebootFlag();, ClearRebootFlag();
+            SetRebootFlag();
             MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_ERR;
@@ -245,8 +245,7 @@ void SaveResult(void)
     GetFinTime(&finUnixTime, &finRecentMs);
     WriteFinishTime(finUnixTime,finRecentMs);
     
-    /*-------func in DB*/
-    FifoPush(skierDB[skiersFinished-1]);
+    FifoPushLastFinished();
     
     /*print time result last skier finished*/
     DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/

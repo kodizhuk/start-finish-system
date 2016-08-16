@@ -31,8 +31,9 @@ uint32_t NetworkStatus(void);
 void     SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs);
 uint32_t FinWriteInDB(void);
 uint32_t FinReady(void);
-uint32_t ReadRebootFinishFlag(void);
-void     WriteRebootFlag(uint32_t status);
+uint32_t IsRebootFinishFlag(void);
+void     SetRebootFlag(void);
+void     ClearRebootFlag(void);
 
 
 void     SendData(void);

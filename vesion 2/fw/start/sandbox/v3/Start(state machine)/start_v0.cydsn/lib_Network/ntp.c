@@ -1,5 +1,36 @@
 #include "ntp.h"
 
+enum NTP_STATES 
+{
+	NTP_WAIT_STX,
+	NTP_READ_ID,
+	NTP_READ_FR1,
+	NTP_READ_DA1,	
+	NTP_READ_DM1,
+	NTP_READ_FR2,
+	NTP_READ_CHS,
+	NTP_READ_ETX
+};
+
+
+#define NTP_LEN_ID  4
+#define NTP_LEN_DA1 8
+#define NTP_LEN_DM1 3
+#define NTP_LEN_CHS 8
+
+#define HALF_BYTE 4
+
+#define NTP_STX '<'
+#define NTP_ETX '>'
+#define NTP_FR1 '!'
+#define NTP_FR2 '@'
+
+uint8_t NtpLenD1, NtpLenMsD1, NtpLenId, NtpLenChS;
+
+uint8_t NtpDecodeByte(uint8_t Inp);
+uint8_t NtpCheckSymb(uint8_t Inp);
+void 	NtpResetPacket(NTPResp *Data);
+
 uint8_t NTP_STATE = 0;
 
 uint8_t NtpUnpackData(NTPResp *Data, uint8_t InByte)

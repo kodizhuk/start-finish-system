@@ -25,7 +25,8 @@ int main()
                 if(result == NO_ERROR)
                 {
                     currentState = CHECK_GATE;                   
-                }else if(result == REBOOT)  
+                }
+                else if(result == REBOOT)  
                 {
                     currentState = TIME_SYNC;
                 }
@@ -37,7 +38,8 @@ int main()
                 if(result == GATE_OPEN)
                 {
                     currentState = SAVE_RESULT;
-                }else
+                }
+                else
                 {
                     currentState = GET_FIN_STATUS;
                 }
@@ -57,7 +59,7 @@ int main()
 
 void  SystemInit(void)
 {   
-    WriteRebootFlag(REBOOT);
+    SetRebootFlag();
     LedInit();
     LedBlink(FREQ_INIT_BLINK);
     
@@ -67,7 +69,9 @@ void  SystemInit(void)
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
-    CyGlobalIntEnable; /* Enable global interrupts. */ 
+    
+    /* Enable global interrupts. */ 
+    CyGlobalIntEnable; 
 }
 
 uint32_t TimeSynchronize(void)
@@ -75,26 +79,29 @@ uint32_t TimeSynchronize(void)
     uint32_t result;
     
     LedBlink(FREQ_INIT_BLINK);
+    
     /*network connect*/
     if(NetworkStatus() == NETWORK_DISCONN)
     {
         Display("Network conn...");
         MyDelay(TIMEOUT_STATE);
-    }else
+    }
+    else
     {
         /*time sync*/
         Display("Sync time...");
         if(NTPsync() == TIME_SYNC_OK)
         {
             Display("Sync ok");
-            ReadRebootFinishFlag();
+            ClearRebootFlag();
             MyDelay(4*TIMEOUT_USER_READ_INFO);
+            
             result = TIME_SYNC_OK;
-        }else
+        }
+        else
         {
             Display("Sync time error");
-            
-            WriteRebootFlag(REBOOT);
+            SetRebootFlag();
             MyDelay(4*TIMEOUT_USER_READ_INFO);
       
             result = TIME_SYNC_ERR;
@@ -121,7 +128,7 @@ uint32_t GetFinishStatus(void)
         result = NO_ERROR;
     }
     
-    if(ReadRebootFinishFlag() == REBOOT)
+    if(IsRebootFinishFlag() == REBOOT)
     {
         result = REBOOT;    
     }
@@ -143,7 +150,8 @@ uint32_t CheckGate(void)
         LedBlink(FREQ_INIT_BLINK);
         MyDelay(TIMEOUT_USER_READ_INFO);
 
-    }else
+    }
+    else
     {
         Display("Start ready");
         SetLedState(LED_ENABLE);

@@ -276,26 +276,22 @@ uint32_t IsRebootStartFlag(void)
     return result;
 }
 
+void ClearRebootFlag(void)
+{
+    outData.reboot = 0;
+    inData.reboot = 0;
+}
 /*******************************************************************************
 * Function Name: WriteRebootFlag
 ********************************************************************************
 *
 * Summary:
 *   write reboot flag to start
-* Parametrs:
-*   REBOOT or NO_REBOOT
 *
 *******************************************************************************/
-void WriteRebootFlag(uint32_t status)
+void SetRebootFlag(void)
 {
-    if(status == REBOOT)
-    {
-        outData.reboot = 1;
-    }
-    else
-    {
-        outData.reboot = 0;
-    }
+    outData.reboot = 1;
 }
 
 
