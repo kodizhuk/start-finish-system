@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include "crc32.h"
 
-#define         CRC32_POLYNOM        0xEDB88320L
+#define         CRC32_POLYNOM       0xEDB88320L
 
 static int      crc32_tab_init       = 0;//= FALSE;
 static uint32_t    crc32_tab[256];

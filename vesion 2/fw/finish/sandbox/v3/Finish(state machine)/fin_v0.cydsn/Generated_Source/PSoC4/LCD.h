@@ -144,6 +144,10 @@ extern uint8 const CYCODE LCD_customFonts[64u];
 #define LCD_CURSOR_LEFT              (0x04u)
 #define LCD_CURSOR_RIGHT             (0x06u)
 
+/* MY CONSTANTS*/
+#define LCD_STROBE_DELAY_BW_NIBBLES    (10u)
+#define LCD_STROBE_DELAY_AF_NIBBLES    (10u)
+
 /* Point to Character Generator Ram 0 */
 #define LCD_CGRAM_0                  (0x40u)
 

@@ -1,18 +1,17 @@
 /* ========================================
  *
  * File Name: `$INSTANCE_NAME`_PVT.h
- * Version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION` 
- * Copyright ANDREY TKACHOV, 2016
- 
+ * Version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION`
+ *
+ * Copyright YOUR COMPANY, THE YEAR
  * All Rights Reserved
  * UNPUBLISHED, LICENSED SOFTWARE.
  *
  * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF PERSONAL LICENSE.
+ * WHICH IS THE PROPERTY OF your company.
  *
  * ========================================
 */
-
 
 #ifndef CY_SW_TX_UART_`$INSTANCE_NAME`_PVT_H
 #define CY_SW_TX_UART_`$INSTANCE_NAME`_PVT_H

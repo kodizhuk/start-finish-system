@@ -1,20 +1,16 @@
-/*****************************************************
+/* ========================================
  *
  * File Name: `$INSTANCE_NAME`_PVT.h
- * Version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION` 
- * Copyright ANDREY TKACHOV, 2016
- 
+ * Version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION`
+ *
+ * Copyright YOUR COMPANY, THE YEAR
  * All Rights Reserved
  * UNPUBLISHED, LICENSED SOFTWARE.
  *
- * Descriprion: 
- *  This file provides private constants and parameter values 
- *  for the Software Serial Programming Interface Component.
-
  * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF PERSONAL LICENSE.
+ * WHICH IS THE PROPERTY OF your company.
  *
- ****************************************************
+ * ========================================
 */
 
 #ifndef CY_SW_TX_UART_`$INSTANCE_NAME`_PVT_H
@@ -23,7 +19,6 @@
 #include "`$INSTANCE_NAME`.h"
 #include "CyLib.h"
     
-/* Device specific registers */
 #if (CY_PSOC4)
 
     #define `$INSTANCE_NAME`_OUTPORT_DR_REG           (*(reg32 *) `$INSTANCE_NAME`_SPIOutPort__DR)  /* Data Output Register */
@@ -67,7 +62,7 @@
 
 #endif /* CY_PSOC4 */
     
-/* Shift SPIOutPort on port*/
+/* SHIFT must be 1 or 0 */
 #if (0 == `$INSTANCE_NAME`_SPIOutPort__SHIFT)
     #define `$INSTANCE_NAME`_OUTPORT_SHIFT               (0x00u)
 #elif (1 == `$INSTANCE_NAME`_SPIOutPort__SHIFT)
@@ -84,10 +79,9 @@
     #define `$INSTANCE_NAME`_OUTPORT_SHIFT               (0x06u)
 #endif /* (0 == `$INSTANCE_NAME`_LCDPort__SHIFT) */
 
-/* OutPort mask */
+//#define `$INSTANCE_NAME`_OUTPORT_MASK                ((`$TypeReplacementString`) (`$INSTANCE_NAME`_SPIOutPort__MASK))
 #define `$INSTANCE_NAME`_OUTPORT_MASK                ((uint8) (`$INSTANCE_NAME`_SPIOutPort__MASK))
 
-/* Describe MISO pin-mode */
 #if (CY_PSOC4)
 
     #define `$INSTANCE_NAME`_DM_PIN_STEP              (3u)
@@ -123,6 +117,16 @@
 #endif /* CY_PSOC4 */
 
 /* Pin Masks */
+/*#define `$INSTANCE_NAME`_CS                     ((`$TypeReplacementString`) \
+                                                (((`$TypeReplacementString`) 0x01u) << `$INSTANCE_NAME`_SPIOutPort__SHIFT))
+#define `$INSTANCE_NAME`_CLK                     ((`$TypeReplacementString`) \
+                                                (((`$TypeReplacementString`) 0x02u) << `$INSTANCE_NAME`_SPIOutPort__SHIFT))
+#define `$INSTANCE_NAME`_MOSI                      ((`$TypeReplacementString`) \
+                                                (((`$TypeReplacementString`) 0x04u) << `$INSTANCE_NAME`_SPIOutPort__SHIFT))
+#define `$INSTANCE_NAME`_MISO                      ((`$TypeReplacementString`) \
+                                                (((`$TypeReplacementString`) 0x01u) << `$INSTANCE_NAME`_SPIInPort__SHIFT))
+*/
+
 #define `$INSTANCE_NAME`_CS                     ((uint8) \
                                                 (((uint8) 0x01u) << `$INSTANCE_NAME`_SPIOutPort__SHIFT))
 #define `$INSTANCE_NAME`_CLK                     ((uint8) \
@@ -141,19 +145,13 @@
 #define `$INSTANCE_NAME`_OUTPORT_DM1                 `$INSTANCE_NAME`_OUTPORT_DM1_REG
 #define `$INSTANCE_NAME`_OUTPORT_DM2                 `$INSTANCE_NAME`_OUTPORT_DM2_REG
 
-
-/* Common constants */
 #define BITES_ON_ONE_BYTE       (8u)
 #define SHIFT_ONE_BIT           (1u)
-
-/* Mask for testing low or high bit in one byte */
 #define MASK_HIGH_BIT       (0x80)
 #define MASK_LOW_BIT        (0x01)
 
-/* Delay low or high state in one period */
 #define DELAY_HIGH_STATE        (`$Delay_High_State`u)
 #define DELAY_LOW_STATE         (`$Delay_Low_State`u)
-
 #endif /* CY_SW_TX_UART_`$INSTANCE_NAME`_PVT_H */
 
 /* [] END OF FILE */
