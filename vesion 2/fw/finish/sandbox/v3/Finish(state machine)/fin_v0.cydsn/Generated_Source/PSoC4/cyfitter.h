@@ -1412,7 +1412,7 @@
 
 /* Miscellaneous */
 #define CY_PROJECT_NAME "fin_v0"
-#define CY_VERSION "PSoC Creator  3.3 SP2"
+#define CY_VERSION "PSoC Creator  3.3 CP3"
 #define CYDEV_BANDGAP_VOLTAGE 1.024
 #define CYDEV_BCLK__HFCLK__HZ 48000000U
 #define CYDEV_BCLK__HFCLK__KHZ 48000U

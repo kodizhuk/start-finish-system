@@ -14,8 +14,8 @@
 
 #include <stdint.h>
 
-#define CRC32_INIT			0xFFFFFFFFL
-
+#define         CRC32_INIT			0xFFFFFFFFL
+    
 #define crc32_reset(...)	(CRC32_INIT)
 #define crc32_final(crc)	(crc ^ CRC32_INIT)
 
