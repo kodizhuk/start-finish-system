@@ -150,7 +150,7 @@ PORT_DR_ADDRESS:
 FREQ:
     .word cydelayFreqHz
 BAUD_RATE:
-    .word 9600
+    .word 19200
 .endfunc
 
 .end

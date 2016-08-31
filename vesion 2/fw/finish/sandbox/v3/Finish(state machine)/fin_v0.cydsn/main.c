@@ -5,6 +5,7 @@
 int main()
 {      
     while(SystemInit() == ERROR);
+    //SystemInit();
     currentState = TIME_SYNC;
     
     for(;;)
@@ -62,8 +63,7 @@ uint32_t SystemInit(void)
 {
     uint32_t result;
     uint64_t unixTime;
-    
-    
+        
     SetRebootFlag();
     LedInit();   
     DisplayStart();   
@@ -76,7 +76,7 @@ uint32_t SystemInit(void)
     CyGlobalIntEnable;
     
     /*set unix time in RTC DS1307*/
-    //DS1307_SetUnixTime(1471006500);
+    //DS1307_SetUnixTime(1471454527);
     /*sync real time*/
     unixTime = DS1307_GetUnixTime();
     

@@ -33,6 +33,6 @@ enum PRO_ERRORS
 };
 
 uint8_t UnpackData(struct Resp *Data, uint8_t InByte);
-uint8_t PackData(char *buff, uint8_t *data, uint32_t Sequence);
+uint8_t PackData(char *buff, uint8_t *data, uint16_t Sequence);
 
 #endif

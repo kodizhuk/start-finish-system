@@ -1,16 +1,20 @@
-/* ========================================
+/*****************************************************
  *
  * File Name: SwSPI_Master_PVT.h
- * Version 1.10
- *
- * Copyright YOUR COMPANY, THE YEAR
+ * Version 1.10 
+ * Copyright ANDREY TKACHOV, 2016
+ 
  * All Rights Reserved
  * UNPUBLISHED, LICENSED SOFTWARE.
  *
+ * Descriprion: 
+ *  This file provides private constants and parameter values 
+ *  for the Software Serial Programming Interface Component.
+
  * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
+ * WHICH IS THE PROPERTY OF PERSONAL LICENSE.
  *
- * ========================================
+ ****************************************************
 */
 
 #ifndef CY_SW_TX_UART_SwSPI_Master_PVT_H
@@ -19,6 +23,7 @@
 #include "SwSPI_Master.h"
 #include "CyLib.h"
     
+/* Device specific registers */
 #if (CY_PSOC4)
 
     #define SwSPI_Master_OUTPORT_DR_REG           (*(reg32 *) SwSPI_Master_SPIOutPort__DR)  /* Data Output Register */
@@ -62,7 +67,7 @@
 
 #endif /* CY_PSOC4 */
     
-/* SHIFT must be 1 or 0 */
+/* Shift SPIOutPort on port*/
 #if (0 == SwSPI_Master_SPIOutPort__SHIFT)
     #define SwSPI_Master_OUTPORT_SHIFT               (0x00u)
 #elif (1 == SwSPI_Master_SPIOutPort__SHIFT)
@@ -79,9 +84,10 @@
     #define SwSPI_Master_OUTPORT_SHIFT               (0x06u)
 #endif /* (0 == SwSPI_Master_LCDPort__SHIFT) */
 
-//#define SwSPI_Master_OUTPORT_MASK                (() (SwSPI_Master_SPIOutPort__MASK))
+/* OutPort mask */
 #define SwSPI_Master_OUTPORT_MASK                ((uint8) (SwSPI_Master_SPIOutPort__MASK))
 
+/* Describe MISO pin-mode */
 #if (CY_PSOC4)
 
     #define SwSPI_Master_DM_PIN_STEP              (3u)
@@ -117,16 +123,6 @@
 #endif /* CY_PSOC4 */
 
 /* Pin Masks */
-/*#define SwSPI_Master_CS                     (() \
-                                                ((() 0x01u) << SwSPI_Master_SPIOutPort__SHIFT))
-#define SwSPI_Master_CLK                     (() \
-                                                ((() 0x02u) << SwSPI_Master_SPIOutPort__SHIFT))
-#define SwSPI_Master_MOSI                      (() \
-                                                ((() 0x04u) << SwSPI_Master_SPIOutPort__SHIFT))
-#define SwSPI_Master_MISO                      (() \
-                                                ((() 0x01u) << SwSPI_Master_SPIInPort__SHIFT))
-*/
-
 #define SwSPI_Master_CS                     ((uint8) \
                                                 (((uint8) 0x01u) << SwSPI_Master_SPIOutPort__SHIFT))
 #define SwSPI_Master_CLK                     ((uint8) \
@@ -145,13 +141,19 @@
 #define SwSPI_Master_OUTPORT_DM1                 SwSPI_Master_OUTPORT_DM1_REG
 #define SwSPI_Master_OUTPORT_DM2                 SwSPI_Master_OUTPORT_DM2_REG
 
+
+/* Common constants */
 #define BITES_ON_ONE_BYTE       (8u)
 #define SHIFT_ONE_BIT           (1u)
+
+/* Mask for testing low or high bit in one byte */
 #define MASK_HIGH_BIT       (0x80)
 #define MASK_LOW_BIT        (0x01)
 
+/* Delay low or high state in one period */
 #define DELAY_HIGH_STATE        (20u)
 #define DELAY_LOW_STATE         (20u)
+
 #endif /* CY_SW_TX_UART_SwSPI_Master_PVT_H */
 
 /* [] END OF FILE */

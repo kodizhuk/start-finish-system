@@ -1,6 +1,7 @@
 
 #include <CyLib.h>
 #include <LCD.h>
+#include <rtc.H>
 #include <stdio.h>
 #include "lib_DB\database.h"
 #include "lib_RTC\RTC_WDT.h"
@@ -104,7 +105,14 @@ void DisplayRealTime(void)
     uint32_t time;
     
     time = RTC_GetTime();
-    sprintf(buff, "%02lu:%02lu:%02lu      ", RTC_GetHours(time),RTC_GetMinutes(time), RTC_GetSecond(time));
+    if(RTC_GetAmPm(time) == RTC_AM)
+    {
+        sprintf(buff, "%02lu:%02lu:%02lu      ", RTC_GetHours(time),RTC_GetMinutes(time), RTC_GetSecond(time));
+    }
+    else
+    {
+        sprintf(buff, "%02lu:%02lu:%02lu      ", RTC_GetHours(time)+12,RTC_GetMinutes(time), RTC_GetSecond(time));
+    }
     LCD_Position(1,0);
     LCD_PrintString(buff);
 }

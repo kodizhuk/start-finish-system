@@ -1,20 +1,8 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
 
 #ifndef _DATABASE_H
-#define _DATABASE_H
+    #define _DATABASE_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <CyLib.h>
 
 
 #define MAX_SKIERS_ON_WAY   4u
@@ -38,8 +26,8 @@ typedef struct
 uint32_t DataBaseStart(void);
 void InitBuff();
 
-bool WriteStartTime(uint64_t unixTime, uint16_t mills);
-bool WriteFinishTime(uint64_t unixTime, uint16_t mills);
+void WriteStartTime(uint64_t unixTime, uint16_t mills);
+void WriteFinishTime(uint64_t unixTime, uint16_t mills);
 
 uint32_t TimeOnWay(uint32_t Number);
 uint32_t SkierOnWay();
