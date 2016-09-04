@@ -1,5 +1,6 @@
 #include <RTC.h>
 #include "lib_RTC\RTC_WDT.h"
+#include "lib_network\network.h"
 #include <CyLFClk.h>
 
 #define RTC_TIME_FORMAT_SHIFT       (39u)
@@ -29,6 +30,7 @@
 
 static uint64_t time;
 static uint16_t msRTC = 0;
+
 
 void CallBackCounter();
 
@@ -69,7 +71,7 @@ void RTC_WDT_Init(void)
 {
     void (*CallBackWDT0)(void);   
     CallBackWDT0 = CallBackCounter;  
-    RTC_Start();  
+    RTC_Start();
     CySysWdtSetInterruptCallback(0, CallBackWDT0);
     //WDT0_ISR_StartEx(Wdt0_Handler);
 }

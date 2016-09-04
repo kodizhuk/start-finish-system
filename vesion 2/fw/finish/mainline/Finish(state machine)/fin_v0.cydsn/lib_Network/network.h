@@ -4,6 +4,9 @@
 #include <CyLib.h>
 
 //#define DEBUG_INFO
+//#define DEBUG_TIME
+#define DEBUG_NTP
+    
     
 #define READ_OK         1
 #define NO_READ         0

@@ -317,7 +317,7 @@ void ResetPacket(struct Resp *Data)
 	Data->EndPacket = 0;
 }
 
-uint8_t PackData(char *buff, uint8_t *data, uint32_t Sequence)
+uint8_t PackData(char *buff, uint8_t *data, uint16_t Sequence)
 {
     uint32_t _crc;
     char *_p;
@@ -327,7 +327,7 @@ uint8_t PackData(char *buff, uint8_t *data, uint32_t Sequence)
     _p = (char *)data;
 
 
-    sprintf(szSeq, "%04X", (uint16_t)Sequence);
+    sprintf(szSeq, "%04X", Sequence);
     
     _crc = crc32_reset();
     _crc = crc32_calc_block((uint8_t *)"A", 1, _crc);

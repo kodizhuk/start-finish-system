@@ -708,7 +708,7 @@ void DS1307_SetUnixTime( uint64 unixTime)
     DS1307_currentTimeDate.minutes = tmpMinute;
     DS1307_currentTimeDate.hours = tmpHour;
     DS1307_currentTimeDate.AmRm = !tmpAmPmState;
-    DS1307_currentTimeDate.timeFormat = timeFormat;
+    DS1307_currentTimeDate.timeFormat = !timeFormat;
     DS1307_currentTimeDate.day = dayOfWeek;
     DS1307_currentTimeDate.month = tmpMonth;
     DS1307_currentTimeDate.year = tmpYear-2000;

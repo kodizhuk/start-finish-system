@@ -13,7 +13,7 @@
 #define RTC_HOUR24  0
 
 
-void RTC_WDT_Init();
+void     RTC_WDT_Init();
 uint64_t RTCGetUnixTime(void);
 uint32_t RTCgetRecentMs(void);
 uint64_t RTCgetTime(uint64_t timeFormat);
