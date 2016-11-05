@@ -44,8 +44,8 @@
 /*segment time*/
 #define T1                  0
 #define T2                  1
-#define T3                  0
-#define T4                  1
+#define T3                  2
+#define T4                  3
 
 #define CORRECTION_TIME     0
 

@@ -72,6 +72,7 @@ void  SystemInit(void)
     
     /* Enable global interrupts. */ 
     CyGlobalIntEnable; 
+    
 }
 
 uint32_t TimeSynchronize(void)

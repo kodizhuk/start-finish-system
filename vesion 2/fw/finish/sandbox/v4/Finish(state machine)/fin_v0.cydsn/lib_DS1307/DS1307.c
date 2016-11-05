@@ -49,10 +49,10 @@ typedef struct
 #define DS1307_YEAR_ADRESS  (0x06)
 
 /* Time format definitions */
-#define DS1307_PM                  (0u)
-#define DS1307_AM                  (1u)
-#define DS1307_12TIME_FORMAT       (0u)
-#define DS1307_24TIME_FORMAT       (1u)
+#define DS1307_PM                  (1u)
+#define DS1307_AM                  (0u)
+#define DS1307_12TIME_FORMAT       (1u)
+#define DS1307_24TIME_FORMAT       (0u)
 #define DS1307_UNIX_TIME_PM   ((12uL * 3600uL) + 1uL)
 
 /* Definition of time register fields */
@@ -314,8 +314,8 @@ static void DS1307_WriteTimeFromStruct(void)
 static uint32_t DS1307_ConstructTime(uint32 timeFormat, uint32 stateAmPm, uint32 hour, uint32 min, uint32 sec)
 {
     uint32 retVal;
-    stateAmPm = !stateAmPm;
-    timeFormat = !timeFormat;
+    stateAmPm = stateAmPm;
+    timeFormat = timeFormat;
     
     retVal  = timeFormat << DS1307_TIME_FORMAT_OFFSET;
     retVal |= stateAmPm << DS1307_PERIOD_OF_DAY_OFFSET;
@@ -526,7 +526,7 @@ void DS1307_SetUnixTime( uint64 unixTime)
     uint32 tmpVar;
     
     timeFormat = DS1307_24TIME_FORMAT;
-    tmpAmPmState = 0u;
+    tmpAmPmState = DS1307_AM;
     tmpYear = DS1307_YEAR_0;
     tmpVar = DS1307_SECONDS_PER_NONLEAP_YEAR;
 
@@ -644,7 +644,7 @@ void DS1307_SetUnixTime( uint64 unixTime)
      * it converts time to 12-Hours mode and calculates AmPm status */
     tmpHour = unixTime / DS1307_SECONDS_PER_HOUR;
     tmpVar  = tmpHour * DS1307_SECONDS_PER_HOUR;
-    if((uint32)!DS1307_24TIME_FORMAT != timeFormat)
+    if((uint32)DS1307_24TIME_FORMAT != timeFormat)
     {
         if(unixTime > DS1307_UNIX_TIME_PM)
         {
@@ -707,8 +707,8 @@ void DS1307_SetUnixTime( uint64 unixTime)
     DS1307_currentTimeDate.second = unixTime;
     DS1307_currentTimeDate.minutes = tmpMinute;
     DS1307_currentTimeDate.hours = tmpHour;
-    DS1307_currentTimeDate.AmRm = !tmpAmPmState;
-    DS1307_currentTimeDate.timeFormat = !timeFormat;
+    DS1307_currentTimeDate.AmRm = tmpAmPmState;
+    DS1307_currentTimeDate.timeFormat = timeFormat;
     DS1307_currentTimeDate.day = dayOfWeek;
     DS1307_currentTimeDate.month = tmpMonth;
     DS1307_currentTimeDate.year = tmpYear-2000;

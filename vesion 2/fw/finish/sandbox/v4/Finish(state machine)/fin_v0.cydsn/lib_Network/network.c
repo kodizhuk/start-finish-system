@@ -364,6 +364,13 @@ uint32_t NTPsync(void)
                 millisTime[T4] = RTCgetRecentMs();
                 
                 #ifdef DEBUG_NTP
+//                    millisTime[T4] = millisTime[T1]+193;
+//                    unixTime[T4] = unixTime[T1];
+//                    if(millisTime[T4] >= 1000)
+//                    {
+//                        millisTime[T4] -= 1000;
+//                        unixTime[T4]++;
+//                    }
                     debugntp_Write(1);
                     debugntp_Write(0);
                     debugntp_Write(1);
@@ -520,22 +527,12 @@ uint32_t NTPsetTimeToStart(uint32_t unixTime4, uint16_t millisTime4, uint16_t ID
     
     while((result == NO_WRITE) && (noConnect < 10))
     {      
-        #ifdef DEBUG_NTP
-            debugntp_Write(1);
-            debugntp_Write(0);           
-        #endif
         NTPsendTime(unixTime4, millisTime4,ID); 
         
         CyDelay(500);
         resultReceive = NTPreceiveTime(&unixTime[T2], &millisTime[T2], &unixTime[T3], &millisTime[T3], &IDreceivePacket);
         if((resultReceive == READ_OK) && (IDreceivePacket == ID))
         {
-            #ifdef DEBUG_NTP
-                debugntp_Write(1);
-                debugntp_Write(0);
-                debugntp_Write(1);
-                debugntp_Write(0);                
-            #endif
             result = WRITE_OK;
             #ifdef DEBUG_INFO 
                 SW_UART_DEBUG_PutString("send delivery time ok\n\r");

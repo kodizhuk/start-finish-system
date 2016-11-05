@@ -47,7 +47,7 @@ void CallBackCounter(void)
     msRTC++;
     if (msRTC == 1000u) 
     {
-        msRTC = 0u; 
+        msRTC = 7u; 
         RTC_Update();
         
         #ifdef DEBUG_RTC

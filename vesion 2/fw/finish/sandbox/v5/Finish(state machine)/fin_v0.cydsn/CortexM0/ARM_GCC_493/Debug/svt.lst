@@ -1,0 +1,2998 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"svt.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	PROTO_STATE,1,1
+  18              		.comm	LenD1,1,1
+  19              		.comm	LenD2,1,1
+  20              		.comm	LenD3,1,1
+  21              		.comm	LenSeq,1,1
+  22              		.comm	LenChS,1,1
+  23              		.comm	LenC,1,1
+  24              		.section	.rodata
+  25              		.align	2
+  26              	.LC8:
+  27 0000 25303258 		.ascii	"%02X:%08X%08X%04X%04X\000"
+  27      3A253038 
+  27      58253038 
+  27      58253034 
+  27      58253034 
+  28 0016 0000     		.align	2
+  29              	.LC10:
+  30 0018 4100     		.ascii	"A\000"
+  31 001a 0000     		.align	2
+  32              	.LC12:
+  33 001c 4600     		.ascii	"F\000"
+  34              		.section	.text.UnpackData,"ax",%progbits
+  35              		.align	2
+  36              		.global	UnpackData
+  37              		.code	16
+  38              		.thumb_func
+  39              		.type	UnpackData, %function
+  40              	UnpackData:
+  41              	.LFB2:
+  42              		.file 1 ".\\lib_Network\\svt.c"
+   1:.\lib_Network/svt.c **** #include "svt.h"
+   2:.\lib_Network/svt.c **** #include "crc32.h"
+   3:.\lib_Network/svt.c **** 
+   4:.\lib_Network/svt.c **** #define LEN_SEQ 4
+   5:.\lib_Network/svt.c **** #define LEN_COM 2
+   6:.\lib_Network/svt.c **** #define LEN_DA1 16
+   7:.\lib_Network/svt.c **** #define LEN_DA2 4
+   8:.\lib_Network/svt.c **** #define LEN_DA3 4
+   9:.\lib_Network/svt.c **** #define LEN_CHS 8
+  10:.\lib_Network/svt.c **** 
+  11:.\lib_Network/svt.c **** #define HALF_BYTE 4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 2
+
+
+  12:.\lib_Network/svt.c **** 
+  13:.\lib_Network/svt.c **** #define STX '<'
+  14:.\lib_Network/svt.c **** #define ETX '>'
+  15:.\lib_Network/svt.c **** #define FR1 '!'
+  16:.\lib_Network/svt.c **** #define FR2 ':'
+  17:.\lib_Network/svt.c **** #define FR3 '@'
+  18:.\lib_Network/svt.c **** 
+  19:.\lib_Network/svt.c **** #define STX_S                   ("<")
+  20:.\lib_Network/svt.c **** #define FRM0                    ("!")
+  21:.\lib_Network/svt.c **** #define FRM1                    ("@")
+  22:.\lib_Network/svt.c **** #define FRM2                    ("#")
+  23:.\lib_Network/svt.c **** #define ETX_S                   (">")
+  24:.\lib_Network/svt.c **** 
+  25:.\lib_Network/svt.c **** uint8_t PROTO_STATE, LenD1, LenD2, LenD3, LenSeq, LenChS, LenC;
+  26:.\lib_Network/svt.c **** 
+  27:.\lib_Network/svt.c **** enum PRO_STATES 
+  28:.\lib_Network/svt.c **** {
+  29:.\lib_Network/svt.c **** 	WAIT_STX,
+  30:.\lib_Network/svt.c **** 	READ_SQ,
+  31:.\lib_Network/svt.c **** 	READ_FR1,
+  32:.\lib_Network/svt.c **** 	READ_COM,
+  33:.\lib_Network/svt.c **** 	READ_FR2,
+  34:.\lib_Network/svt.c **** 	READ_DA1,
+  35:.\lib_Network/svt.c **** 	READ_DA2,
+  36:.\lib_Network/svt.c **** 	READ_DA3,
+  37:.\lib_Network/svt.c **** 	READ_FR3,
+  38:.\lib_Network/svt.c **** 	READ_CHS,
+  39:.\lib_Network/svt.c **** 	READ_ETX
+  40:.\lib_Network/svt.c **** };
+  41:.\lib_Network/svt.c **** 
+  42:.\lib_Network/svt.c **** uint8_t DecodeByte(uint8_t Inp);
+  43:.\lib_Network/svt.c **** uint8_t CheckSymb(uint8_t Inp);
+  44:.\lib_Network/svt.c **** void 	ResetPacket(struct Resp *Data);
+  45:.\lib_Network/svt.c **** 
+  46:.\lib_Network/svt.c **** uint8_t UnpackData(struct Resp *Data, uint8_t InByte)
+  47:.\lib_Network/svt.c **** {
+  43              		.loc 1 47 0
+  44              		.cfi_startproc
+  45 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  46              		.cfi_def_cfa_offset 20
+  47              		.cfi_offset 4, -20
+  48              		.cfi_offset 5, -16
+  49              		.cfi_offset 6, -12
+  50              		.cfi_offset 7, -8
+  51              		.cfi_offset 14, -4
+  52 0002 99B0     		sub	sp, sp, #100
+  53              		.cfi_def_cfa_offset 120
+  54 0004 04AF     		add	r7, sp, #16
+  55              		.cfi_def_cfa 7, 104
+  56 0006 F861     		str	r0, [r7, #28]
+  57 0008 0A1C     		mov	r2, r1
+  58 000a 1B23     		mov	r3, #27
+  59 000c FB18     		add	r3, r7, r3
+  60 000e 1A70     		strb	r2, [r3]
+  48:.\lib_Network/svt.c **** 	uint32_t ERR_CODE = 0;
+  61              		.loc 1 48 0
+  62 0010 0023     		mov	r3, #0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 3
+
+
+  63 0012 FB64     		str	r3, [r7, #76]
+  49:.\lib_Network/svt.c **** 	InByte = DecodeByte(InByte);
+  64              		.loc 1 49 0
+  65 0014 1B23     		mov	r3, #27
+  66 0016 FE18     		add	r6, r7, r3
+  67 0018 1B23     		mov	r3, #27
+  68 001a FB18     		add	r3, r7, r3
+  69 001c 1B78     		ldrb	r3, [r3]
+  70 001e 181C     		mov	r0, r3
+  71 0020 FFF7FEFF 		bl	DecodeByte
+  72 0024 031C     		mov	r3, r0
+  73 0026 3370     		strb	r3, [r6]
+  50:.\lib_Network/svt.c ****     if (InByte == STX)
+  74              		.loc 1 50 0
+  75 0028 1B23     		mov	r3, #27
+  76 002a FB18     		add	r3, r7, r3
+  77 002c 1B78     		ldrb	r3, [r3]
+  78 002e 3C2B     		cmp	r3, #60
+  79 0030 19D1     		bne	.L2
+  51:.\lib_Network/svt.c **** 	{
+  52:.\lib_Network/svt.c **** 	    PROTO_STATE = READ_SQ;
+  80              		.loc 1 52 0
+  81 0032 C44B     		ldr	r3, .L51
+  82 0034 0122     		mov	r2, #1
+  83 0036 1A70     		strb	r2, [r3]
+  53:.\lib_Network/svt.c **** 		ResetPacket(Data);
+  84              		.loc 1 53 0
+  85 0038 FB69     		ldr	r3, [r7, #28]
+  86 003a 181C     		mov	r0, r3
+  87 003c FFF7FEFF 		bl	ResetPacket
+  54:.\lib_Network/svt.c **** 		LenSeq = 0;
+  88              		.loc 1 54 0
+  89 0040 C14B     		ldr	r3, .L51+4
+  90 0042 0022     		mov	r2, #0
+  91 0044 1A70     		strb	r2, [r3]
+  55:.\lib_Network/svt.c **** 		LenC = 0;
+  92              		.loc 1 55 0
+  93 0046 C14B     		ldr	r3, .L51+8
+  94 0048 0022     		mov	r2, #0
+  95 004a 1A70     		strb	r2, [r3]
+  56:.\lib_Network/svt.c **** 		LenChS = 0;
+  96              		.loc 1 56 0
+  97 004c C04B     		ldr	r3, .L51+12
+  98 004e 0022     		mov	r2, #0
+  99 0050 1A70     		strb	r2, [r3]
+  57:.\lib_Network/svt.c **** 		LenD1 = 0;
+ 100              		.loc 1 57 0
+ 101 0052 C04B     		ldr	r3, .L51+16
+ 102 0054 0022     		mov	r2, #0
+ 103 0056 1A70     		strb	r2, [r3]
+  58:.\lib_Network/svt.c **** 		LenD2 = 0;
+ 104              		.loc 1 58 0
+ 105 0058 BF4B     		ldr	r3, .L51+20
+ 106 005a 0022     		mov	r2, #0
+ 107 005c 1A70     		strb	r2, [r3]
+  59:.\lib_Network/svt.c ****         LenD3 = 0;
+ 108              		.loc 1 59 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 4
+
+
+ 109 005e BF4B     		ldr	r3, .L51+24
+ 110 0060 0022     		mov	r2, #0
+ 111 0062 1A70     		strb	r2, [r3]
+ 112 0064 EFE1     		b	.L3
+ 113              	.L2:
+  60:.\lib_Network/svt.c ****     }
+  61:.\lib_Network/svt.c ****     else
+  62:.\lib_Network/svt.c ****     {
+  63:.\lib_Network/svt.c ****     	switch(PROTO_STATE){
+ 114              		.loc 1 63 0
+ 115 0066 B74B     		ldr	r3, .L51
+ 116 0068 1B78     		ldrb	r3, [r3]
+ 117 006a 0A2B     		cmp	r3, #10
+ 118 006c 00D9     		bls	.LCB67
+ 119 006e E6E1     		b	.L4	@long jump
+ 120              	.LCB67:
+ 121 0070 9A00     		lsl	r2, r3, #2
+ 122 0072 BB4B     		ldr	r3, .L51+28
+ 123 0074 D318     		add	r3, r2, r3
+ 124 0076 1B68     		ldr	r3, [r3]
+ 125 0078 9F46     		mov	pc, r3
+ 126              		.section	.rodata
+ 127 001e 0000     		.align	2
+ 128              	.L6:
+ 129 0020 3E040000 		.word	.L4
+ 130 0024 7A000000 		.word	.L5
+ 131 0028 D4000000 		.word	.L7
+ 132 002c FA000000 		.word	.L8
+ 133 0030 56010000 		.word	.L9
+ 134 0034 7C010000 		.word	.L10
+ 135 0038 FC010000 		.word	.L11
+ 136 003c 5E020000 		.word	.L12
+ 137 0040 C0020000 		.word	.L13
+ 138 0044 E6020000 		.word	.L14
+ 139 0048 64030000 		.word	.L15
+ 140              		.section	.text.UnpackData
+ 141              	.L5:
+  64:.\lib_Network/svt.c ****     		case READ_SQ:
+  65:.\lib_Network/svt.c ****     		{
+  66:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 142              		.loc 1 66 0
+ 143 007a 1B23     		mov	r3, #27
+ 144 007c FB18     		add	r3, r7, r3
+ 145 007e 1B78     		ldrb	r3, [r3]
+ 146 0080 181C     		mov	r0, r3
+ 147 0082 FFF7FEFF 		bl	CheckSymb
+ 148 0086 031E     		sub	r3, r0, #0
+ 149 0088 1ED0     		beq	.L16
+  67:.\lib_Network/svt.c ****     			{
+  68:.\lib_Network/svt.c ****     				Data->Seq |= InByte;
+ 150              		.loc 1 68 0
+ 151 008a FB69     		ldr	r3, [r7, #28]
+ 152 008c 1A88     		ldrh	r2, [r3]
+ 153 008e 1B23     		mov	r3, #27
+ 154 0090 FB18     		add	r3, r7, r3
+ 155 0092 1B78     		ldrb	r3, [r3]
+ 156 0094 9BB2     		uxth	r3, r3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 5
+
+
+ 157 0096 1343     		orr	r3, r2
+ 158 0098 9AB2     		uxth	r2, r3
+ 159 009a FB69     		ldr	r3, [r7, #28]
+ 160 009c 1A80     		strh	r2, [r3]
+  69:.\lib_Network/svt.c ****     				LenSeq++;
+ 161              		.loc 1 69 0
+ 162 009e AA4B     		ldr	r3, .L51+4
+ 163 00a0 1B78     		ldrb	r3, [r3]
+ 164 00a2 0133     		add	r3, r3, #1
+ 165 00a4 DAB2     		uxtb	r2, r3
+ 166 00a6 A84B     		ldr	r3, .L51+4
+ 167 00a8 1A70     		strb	r2, [r3]
+  70:.\lib_Network/svt.c ****     				if (LenSeq == LEN_SEQ)
+ 168              		.loc 1 70 0
+ 169 00aa A74B     		ldr	r3, .L51+4
+ 170 00ac 1B78     		ldrb	r3, [r3]
+ 171 00ae 042B     		cmp	r3, #4
+ 172 00b0 03D1     		bne	.L17
+  71:.\lib_Network/svt.c ****     				{
+  72:.\lib_Network/svt.c ****     					PROTO_STATE = READ_FR1;
+ 173              		.loc 1 72 0
+ 174 00b2 A44B     		ldr	r3, .L51
+ 175 00b4 0222     		mov	r2, #2
+ 176 00b6 1A70     		strb	r2, [r3]
+  73:.\lib_Network/svt.c ****     				}
+  74:.\lib_Network/svt.c ****     				else
+  75:.\lib_Network/svt.c ****     				{
+  76:.\lib_Network/svt.c ****     					Data->Seq = Data->Seq << HALF_BYTE;
+  77:.\lib_Network/svt.c ****     				}
+  78:.\lib_Network/svt.c ****     			}
+  79:.\lib_Network/svt.c ****     			else{
+  80:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+  81:.\lib_Network/svt.c ****     				ERR_CODE = BAD_SEQ;
+  82:.\lib_Network/svt.c ****     			}
+  83:.\lib_Network/svt.c ****     			break;
+ 177              		.loc 1 83 0
+ 178 00b8 C5E1     		b	.L3
+ 179              	.L17:
+  76:.\lib_Network/svt.c ****     				}
+ 180              		.loc 1 76 0
+ 181 00ba FB69     		ldr	r3, [r7, #28]
+ 182 00bc 1B88     		ldrh	r3, [r3]
+ 183 00be 1B01     		lsl	r3, r3, #4
+ 184 00c0 9AB2     		uxth	r2, r3
+ 185 00c2 FB69     		ldr	r3, [r7, #28]
+ 186 00c4 1A80     		strh	r2, [r3]
+ 187              		.loc 1 83 0
+ 188 00c6 BEE1     		b	.L3
+ 189              	.L16:
+  80:.\lib_Network/svt.c ****     				ERR_CODE = BAD_SEQ;
+ 190              		.loc 1 80 0
+ 191 00c8 9E4B     		ldr	r3, .L51
+ 192 00ca 0022     		mov	r2, #0
+ 193 00cc 1A70     		strb	r2, [r3]
+  81:.\lib_Network/svt.c ****     			}
+ 194              		.loc 1 81 0
+ 195 00ce 0123     		mov	r3, #1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 6
+
+
+ 196 00d0 FB64     		str	r3, [r7, #76]
+ 197              		.loc 1 83 0
+ 198 00d2 B8E1     		b	.L3
+ 199              	.L7:
+  84:.\lib_Network/svt.c ****     		}  		
+  85:.\lib_Network/svt.c ****     		case READ_FR1:
+  86:.\lib_Network/svt.c ****     		{
+  87:.\lib_Network/svt.c ****     			if (InByte == FR1)
+ 200              		.loc 1 87 0
+ 201 00d4 1B23     		mov	r3, #27
+ 202 00d6 FB18     		add	r3, r7, r3
+ 203 00d8 1B78     		ldrb	r3, [r3]
+ 204 00da 212B     		cmp	r3, #33
+ 205 00dc 03D1     		bne	.L20
+  88:.\lib_Network/svt.c ****     			{
+  89:.\lib_Network/svt.c ****     				PROTO_STATE = READ_COM;
+ 206              		.loc 1 89 0
+ 207 00de 994B     		ldr	r3, .L51
+ 208 00e0 0322     		mov	r2, #3
+ 209 00e2 1A70     		strb	r2, [r3]
+  90:.\lib_Network/svt.c ****     			}
+  91:.\lib_Network/svt.c ****     			else
+  92:.\lib_Network/svt.c ****     			{
+  93:.\lib_Network/svt.c ****     				ResetPacket(Data);
+  94:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR1;
+  95:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+  96:.\lib_Network/svt.c ****     			}
+  97:.\lib_Network/svt.c ****     			break;
+ 210              		.loc 1 97 0
+ 211 00e4 AFE1     		b	.L3
+ 212              	.L20:
+  93:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR1;
+ 213              		.loc 1 93 0
+ 214 00e6 FB69     		ldr	r3, [r7, #28]
+ 215 00e8 181C     		mov	r0, r3
+ 216 00ea FFF7FEFF 		bl	ResetPacket
+  94:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 217              		.loc 1 94 0
+ 218 00ee 0223     		mov	r3, #2
+ 219 00f0 FB64     		str	r3, [r7, #76]
+  95:.\lib_Network/svt.c ****     			}
+ 220              		.loc 1 95 0
+ 221 00f2 944B     		ldr	r3, .L51
+ 222 00f4 0022     		mov	r2, #0
+ 223 00f6 1A70     		strb	r2, [r3]
+ 224              		.loc 1 97 0
+ 225 00f8 A5E1     		b	.L3
+ 226              	.L8:
+  98:.\lib_Network/svt.c ****     		}
+  99:.\lib_Network/svt.c ****     		case READ_COM:
+ 100:.\lib_Network/svt.c ****     		{
+ 101:.\lib_Network/svt.c ****     			//printf("InByte Command: %02X\n", InByte);
+ 102:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 227              		.loc 1 102 0
+ 228 00fa 1B23     		mov	r3, #27
+ 229 00fc FB18     		add	r3, r7, r3
+ 230 00fe 1B78     		ldrb	r3, [r3]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 7
+
+
+ 231 0100 181C     		mov	r0, r3
+ 232 0102 FFF7FEFF 		bl	CheckSymb
+ 233 0106 031E     		sub	r3, r0, #0
+ 234 0108 1BD0     		beq	.L22
+ 103:.\lib_Network/svt.c ****     			{
+ 104:.\lib_Network/svt.c ****     				Data->Command |= InByte;
+ 235              		.loc 1 104 0
+ 236 010a FB69     		ldr	r3, [r7, #28]
+ 237 010c 5A68     		ldr	r2, [r3, #4]
+ 238 010e 1B23     		mov	r3, #27
+ 239 0110 FB18     		add	r3, r7, r3
+ 240 0112 1B78     		ldrb	r3, [r3]
+ 241 0114 1A43     		orr	r2, r3
+ 242 0116 FB69     		ldr	r3, [r7, #28]
+ 243 0118 5A60     		str	r2, [r3, #4]
+ 105:.\lib_Network/svt.c ****     				LenC ++;
+ 244              		.loc 1 105 0
+ 245 011a 8C4B     		ldr	r3, .L51+8
+ 246 011c 1B78     		ldrb	r3, [r3]
+ 247 011e 0133     		add	r3, r3, #1
+ 248 0120 DAB2     		uxtb	r2, r3
+ 249 0122 8A4B     		ldr	r3, .L51+8
+ 250 0124 1A70     		strb	r2, [r3]
+ 106:.\lib_Network/svt.c ****     				//printf("LenC Command: %d\n", LenC);
+ 107:.\lib_Network/svt.c ****     				if (LenC == LEN_COM)
+ 251              		.loc 1 107 0
+ 252 0126 894B     		ldr	r3, .L51+8
+ 253 0128 1B78     		ldrb	r3, [r3]
+ 254 012a 022B     		cmp	r3, #2
+ 255 012c 03D1     		bne	.L23
+ 108:.\lib_Network/svt.c ****     				{
+ 109:.\lib_Network/svt.c ****     					PROTO_STATE = READ_FR2;
+ 256              		.loc 1 109 0
+ 257 012e 854B     		ldr	r3, .L51
+ 258 0130 0422     		mov	r2, #4
+ 259 0132 1A70     		strb	r2, [r3]
+ 110:.\lib_Network/svt.c ****     				}
+ 111:.\lib_Network/svt.c ****     				else
+ 112:.\lib_Network/svt.c ****     				{
+ 113:.\lib_Network/svt.c ****     					Data->Command = Data->Command << HALF_BYTE;
+ 114:.\lib_Network/svt.c ****     				}
+ 115:.\lib_Network/svt.c ****     			}
+ 116:.\lib_Network/svt.c ****     			else
+ 117:.\lib_Network/svt.c ****     			{
+ 118:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 119:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 120:.\lib_Network/svt.c ****     				ERR_CODE = INV_COMM;
+ 121:.\lib_Network/svt.c ****     			}
+ 122:.\lib_Network/svt.c ****     			break;
+ 260              		.loc 1 122 0
+ 261 0134 87E1     		b	.L3
+ 262              	.L23:
+ 113:.\lib_Network/svt.c ****     				}
+ 263              		.loc 1 113 0
+ 264 0136 FB69     		ldr	r3, [r7, #28]
+ 265 0138 5B68     		ldr	r3, [r3, #4]
+ 266 013a 1A01     		lsl	r2, r3, #4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 8
+
+
+ 267 013c FB69     		ldr	r3, [r7, #28]
+ 268 013e 5A60     		str	r2, [r3, #4]
+ 269              		.loc 1 122 0
+ 270 0140 81E1     		b	.L3
+ 271              	.L22:
+ 118:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 272              		.loc 1 118 0
+ 273 0142 FB69     		ldr	r3, [r7, #28]
+ 274 0144 181C     		mov	r0, r3
+ 275 0146 FFF7FEFF 		bl	ResetPacket
+ 119:.\lib_Network/svt.c ****     				ERR_CODE = INV_COMM;
+ 276              		.loc 1 119 0
+ 277 014a 7E4B     		ldr	r3, .L51
+ 278 014c 0022     		mov	r2, #0
+ 279 014e 1A70     		strb	r2, [r3]
+ 120:.\lib_Network/svt.c ****     			}
+ 280              		.loc 1 120 0
+ 281 0150 0323     		mov	r3, #3
+ 282 0152 FB64     		str	r3, [r7, #76]
+ 283              		.loc 1 122 0
+ 284 0154 77E1     		b	.L3
+ 285              	.L9:
+ 123:.\lib_Network/svt.c ****     		}
+ 124:.\lib_Network/svt.c ****     		case READ_FR2:
+ 125:.\lib_Network/svt.c ****     		{
+ 126:.\lib_Network/svt.c ****     			if (InByte == FR2)
+ 286              		.loc 1 126 0
+ 287 0156 1B23     		mov	r3, #27
+ 288 0158 FB18     		add	r3, r7, r3
+ 289 015a 1B78     		ldrb	r3, [r3]
+ 290 015c 3A2B     		cmp	r3, #58
+ 291 015e 03D1     		bne	.L26
+ 127:.\lib_Network/svt.c ****     			{
+ 128:.\lib_Network/svt.c ****     				PROTO_STATE = READ_DA1;
+ 292              		.loc 1 128 0
+ 293 0160 784B     		ldr	r3, .L51
+ 294 0162 0522     		mov	r2, #5
+ 295 0164 1A70     		strb	r2, [r3]
+ 129:.\lib_Network/svt.c ****     			}
+ 130:.\lib_Network/svt.c ****     			else
+ 131:.\lib_Network/svt.c ****     			{
+ 132:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 133:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR2;
+ 134:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 135:.\lib_Network/svt.c ****     			}
+ 136:.\lib_Network/svt.c ****     			break;
+ 296              		.loc 1 136 0
+ 297 0166 6EE1     		b	.L3
+ 298              	.L26:
+ 132:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR2;
+ 299              		.loc 1 132 0
+ 300 0168 FB69     		ldr	r3, [r7, #28]
+ 301 016a 181C     		mov	r0, r3
+ 302 016c FFF7FEFF 		bl	ResetPacket
+ 133:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 303              		.loc 1 133 0
+ 304 0170 0423     		mov	r3, #4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 9
+
+
+ 305 0172 FB64     		str	r3, [r7, #76]
+ 134:.\lib_Network/svt.c ****     			}
+ 306              		.loc 1 134 0
+ 307 0174 734B     		ldr	r3, .L51
+ 308 0176 0022     		mov	r2, #0
+ 309 0178 1A70     		strb	r2, [r3]
+ 310              		.loc 1 136 0
+ 311 017a 64E1     		b	.L3
+ 312              	.L10:
+ 137:.\lib_Network/svt.c ****     		}
+ 138:.\lib_Network/svt.c ****     		case READ_DA1:
+ 139:.\lib_Network/svt.c ****     		{
+ 140:.\lib_Network/svt.c **** 
+ 141:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 313              		.loc 1 141 0
+ 314 017c 1B23     		mov	r3, #27
+ 315 017e FB18     		add	r3, r7, r3
+ 316 0180 1B78     		ldrb	r3, [r3]
+ 317 0182 181C     		mov	r0, r3
+ 318 0184 FFF7FEFF 		bl	CheckSymb
+ 319 0188 031E     		sub	r3, r0, #0
+ 320 018a 2DD0     		beq	.L28
+ 142:.\lib_Network/svt.c ****     			{
+ 143:.\lib_Network/svt.c ****     				Data->Data1 |= InByte;
+ 321              		.loc 1 143 0
+ 322 018c FB69     		ldr	r3, [r7, #28]
+ 323 018e 9A68     		ldr	r2, [r3, #8]
+ 324 0190 DB68     		ldr	r3, [r3, #12]
+ 325 0192 1B21     		mov	r1, #27
+ 326 0194 7918     		add	r1, r7, r1
+ 327 0196 0978     		ldrb	r1, [r1]
+ 328 0198 C9B2     		uxtb	r1, r1
+ 329 019a 3961     		str	r1, [r7, #16]
+ 330 019c 0021     		mov	r1, #0
+ 331 019e 7961     		str	r1, [r7, #20]
+ 332 01a0 3969     		ldr	r1, [r7, #16]
+ 333 01a2 1143     		orr	r1, r2
+ 334 01a4 B960     		str	r1, [r7, #8]
+ 335 01a6 7969     		ldr	r1, [r7, #20]
+ 336 01a8 1943     		orr	r1, r3
+ 337 01aa F960     		str	r1, [r7, #12]
+ 338 01ac FB69     		ldr	r3, [r7, #28]
+ 339 01ae B968     		ldr	r1, [r7, #8]
+ 340 01b0 FA68     		ldr	r2, [r7, #12]
+ 341 01b2 9960     		str	r1, [r3, #8]
+ 342 01b4 DA60     		str	r2, [r3, #12]
+ 144:.\lib_Network/svt.c ****     				LenD1++;
+ 343              		.loc 1 144 0
+ 344 01b6 674B     		ldr	r3, .L51+16
+ 345 01b8 1B78     		ldrb	r3, [r3]
+ 346 01ba 0133     		add	r3, r3, #1
+ 347 01bc DAB2     		uxtb	r2, r3
+ 348 01be 654B     		ldr	r3, .L51+16
+ 349 01c0 1A70     		strb	r2, [r3]
+ 145:.\lib_Network/svt.c ****     				if (LenD1 == LEN_DA1)
+ 350              		.loc 1 145 0
+ 351 01c2 644B     		ldr	r3, .L51+16
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 10
+
+
+ 352 01c4 1B78     		ldrb	r3, [r3]
+ 353 01c6 102B     		cmp	r3, #16
+ 354 01c8 03D1     		bne	.L29
+ 146:.\lib_Network/svt.c ****     				{
+ 147:.\lib_Network/svt.c ****     					PROTO_STATE = READ_DA2;
+ 355              		.loc 1 147 0
+ 356 01ca 5E4B     		ldr	r3, .L51
+ 357 01cc 0622     		mov	r2, #6
+ 358 01ce 1A70     		strb	r2, [r3]
+ 148:.\lib_Network/svt.c ****     				}
+ 149:.\lib_Network/svt.c ****     				else
+ 150:.\lib_Network/svt.c ****     				{
+ 151:.\lib_Network/svt.c ****     					Data->Data1 = Data->Data1 << HALF_BYTE;
+ 152:.\lib_Network/svt.c ****     				}
+ 153:.\lib_Network/svt.c ****     			}
+ 154:.\lib_Network/svt.c ****     			else{
+ 155:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 156:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA1;
+ 157:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 158:.\lib_Network/svt.c ****     			}
+ 159:.\lib_Network/svt.c ****     			break;
+ 359              		.loc 1 159 0
+ 360 01d0 39E1     		b	.L3
+ 361              	.L29:
+ 151:.\lib_Network/svt.c ****     				}
+ 362              		.loc 1 151 0
+ 363 01d2 FB69     		ldr	r3, [r7, #28]
+ 364 01d4 9A68     		ldr	r2, [r3, #8]
+ 365 01d6 DB68     		ldr	r3, [r3, #12]
+ 366 01d8 110F     		lsr	r1, r2, #28
+ 367 01da 1D01     		lsl	r5, r3, #4
+ 368 01dc 0D43     		orr	r5, r1
+ 369 01de 1401     		lsl	r4, r2, #4
+ 370 01e0 FB69     		ldr	r3, [r7, #28]
+ 371 01e2 9C60     		str	r4, [r3, #8]
+ 372 01e4 DD60     		str	r5, [r3, #12]
+ 373              		.loc 1 159 0
+ 374 01e6 2EE1     		b	.L3
+ 375              	.L28:
+ 155:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA1;
+ 376              		.loc 1 155 0
+ 377 01e8 FB69     		ldr	r3, [r7, #28]
+ 378 01ea 181C     		mov	r0, r3
+ 379 01ec FFF7FEFF 		bl	ResetPacket
+ 156:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 380              		.loc 1 156 0
+ 381 01f0 0523     		mov	r3, #5
+ 382 01f2 FB64     		str	r3, [r7, #76]
+ 157:.\lib_Network/svt.c ****     			}
+ 383              		.loc 1 157 0
+ 384 01f4 534B     		ldr	r3, .L51
+ 385 01f6 0022     		mov	r2, #0
+ 386 01f8 1A70     		strb	r2, [r3]
+ 387              		.loc 1 159 0
+ 388 01fa 24E1     		b	.L3
+ 389              	.L11:
+ 160:.\lib_Network/svt.c ****     		}
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 11
+
+
+ 161:.\lib_Network/svt.c ****     		case READ_DA2:
+ 162:.\lib_Network/svt.c ****     		{
+ 163:.\lib_Network/svt.c ****     			
+ 164:.\lib_Network/svt.c **** 
+ 165:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 390              		.loc 1 165 0
+ 391 01fc 1B23     		mov	r3, #27
+ 392 01fe FB18     		add	r3, r7, r3
+ 393 0200 1B78     		ldrb	r3, [r3]
+ 394 0202 181C     		mov	r0, r3
+ 395 0204 FFF7FEFF 		bl	CheckSymb
+ 396 0208 031E     		sub	r3, r0, #0
+ 397 020a 1ED0     		beq	.L32
+ 166:.\lib_Network/svt.c ****     			{
+ 167:.\lib_Network/svt.c ****     				Data->Data2 |= InByte;
+ 398              		.loc 1 167 0
+ 399 020c FB69     		ldr	r3, [r7, #28]
+ 400 020e 1A8A     		ldrh	r2, [r3, #16]
+ 401 0210 1B23     		mov	r3, #27
+ 402 0212 FB18     		add	r3, r7, r3
+ 403 0214 1B78     		ldrb	r3, [r3]
+ 404 0216 9BB2     		uxth	r3, r3
+ 405 0218 1343     		orr	r3, r2
+ 406 021a 9AB2     		uxth	r2, r3
+ 407 021c FB69     		ldr	r3, [r7, #28]
+ 408 021e 1A82     		strh	r2, [r3, #16]
+ 168:.\lib_Network/svt.c ****     				LenD2++;
+ 409              		.loc 1 168 0
+ 410 0220 4D4B     		ldr	r3, .L51+20
+ 411 0222 1B78     		ldrb	r3, [r3]
+ 412 0224 0133     		add	r3, r3, #1
+ 413 0226 DAB2     		uxtb	r2, r3
+ 414 0228 4B4B     		ldr	r3, .L51+20
+ 415 022a 1A70     		strb	r2, [r3]
+ 169:.\lib_Network/svt.c ****     				if (LenD2 == LEN_DA2)
+ 416              		.loc 1 169 0
+ 417 022c 4A4B     		ldr	r3, .L51+20
+ 418 022e 1B78     		ldrb	r3, [r3]
+ 419 0230 042B     		cmp	r3, #4
+ 420 0232 03D1     		bne	.L33
+ 170:.\lib_Network/svt.c ****     				{
+ 171:.\lib_Network/svt.c ****     					PROTO_STATE = READ_DA3;
+ 421              		.loc 1 171 0
+ 422 0234 434B     		ldr	r3, .L51
+ 423 0236 0722     		mov	r2, #7
+ 424 0238 1A70     		strb	r2, [r3]
+ 172:.\lib_Network/svt.c ****     				}
+ 173:.\lib_Network/svt.c ****     				else
+ 174:.\lib_Network/svt.c ****     				{
+ 175:.\lib_Network/svt.c ****     					Data->Data2 = Data->Data2 << HALF_BYTE;
+ 176:.\lib_Network/svt.c ****     				}
+ 177:.\lib_Network/svt.c ****     			}
+ 178:.\lib_Network/svt.c ****     			else{
+ 179:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 180:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA2;
+ 181:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 182:.\lib_Network/svt.c ****     			}
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 12
+
+
+ 183:.\lib_Network/svt.c ****     			break;
+ 425              		.loc 1 183 0
+ 426 023a 04E1     		b	.L3
+ 427              	.L33:
+ 175:.\lib_Network/svt.c ****     				}
+ 428              		.loc 1 175 0
+ 429 023c FB69     		ldr	r3, [r7, #28]
+ 430 023e 1B8A     		ldrh	r3, [r3, #16]
+ 431 0240 1B01     		lsl	r3, r3, #4
+ 432 0242 9AB2     		uxth	r2, r3
+ 433 0244 FB69     		ldr	r3, [r7, #28]
+ 434 0246 1A82     		strh	r2, [r3, #16]
+ 435              		.loc 1 183 0
+ 436 0248 FDE0     		b	.L3
+ 437              	.L32:
+ 179:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA2;
+ 438              		.loc 1 179 0
+ 439 024a FB69     		ldr	r3, [r7, #28]
+ 440 024c 181C     		mov	r0, r3
+ 441 024e FFF7FEFF 		bl	ResetPacket
+ 180:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 442              		.loc 1 180 0
+ 443 0252 0623     		mov	r3, #6
+ 444 0254 FB64     		str	r3, [r7, #76]
+ 181:.\lib_Network/svt.c ****     			}
+ 445              		.loc 1 181 0
+ 446 0256 3B4B     		ldr	r3, .L51
+ 447 0258 0022     		mov	r2, #0
+ 448 025a 1A70     		strb	r2, [r3]
+ 449              		.loc 1 183 0
+ 450 025c F3E0     		b	.L3
+ 451              	.L12:
+ 184:.\lib_Network/svt.c ****     		}
+ 185:.\lib_Network/svt.c **** 			case READ_DA3:
+ 186:.\lib_Network/svt.c ****     		{
+ 187:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 452              		.loc 1 187 0
+ 453 025e 1B23     		mov	r3, #27
+ 454 0260 FB18     		add	r3, r7, r3
+ 455 0262 1B78     		ldrb	r3, [r3]
+ 456 0264 181C     		mov	r0, r3
+ 457 0266 FFF7FEFF 		bl	CheckSymb
+ 458 026a 031E     		sub	r3, r0, #0
+ 459 026c 1ED0     		beq	.L36
+ 188:.\lib_Network/svt.c ****     			{
+ 189:.\lib_Network/svt.c ****     				Data->Data3 |= InByte;
+ 460              		.loc 1 189 0
+ 461 026e FB69     		ldr	r3, [r7, #28]
+ 462 0270 5A8A     		ldrh	r2, [r3, #18]
+ 463 0272 1B23     		mov	r3, #27
+ 464 0274 FB18     		add	r3, r7, r3
+ 465 0276 1B78     		ldrb	r3, [r3]
+ 466 0278 9BB2     		uxth	r3, r3
+ 467 027a 1343     		orr	r3, r2
+ 468 027c 9AB2     		uxth	r2, r3
+ 469 027e FB69     		ldr	r3, [r7, #28]
+ 470 0280 5A82     		strh	r2, [r3, #18]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 13
+
+
+ 190:.\lib_Network/svt.c ****     				LenD3++;
+ 471              		.loc 1 190 0
+ 472 0282 364B     		ldr	r3, .L51+24
+ 473 0284 1B78     		ldrb	r3, [r3]
+ 474 0286 0133     		add	r3, r3, #1
+ 475 0288 DAB2     		uxtb	r2, r3
+ 476 028a 344B     		ldr	r3, .L51+24
+ 477 028c 1A70     		strb	r2, [r3]
+ 191:.\lib_Network/svt.c ****     				if (LenD3 == LEN_DA3)
+ 478              		.loc 1 191 0
+ 479 028e 334B     		ldr	r3, .L51+24
+ 480 0290 1B78     		ldrb	r3, [r3]
+ 481 0292 042B     		cmp	r3, #4
+ 482 0294 03D1     		bne	.L37
+ 192:.\lib_Network/svt.c ****     				{
+ 193:.\lib_Network/svt.c ****     					PROTO_STATE = READ_FR3;
+ 483              		.loc 1 193 0
+ 484 0296 2B4B     		ldr	r3, .L51
+ 485 0298 0822     		mov	r2, #8
+ 486 029a 1A70     		strb	r2, [r3]
+ 194:.\lib_Network/svt.c ****     				}
+ 195:.\lib_Network/svt.c ****     				else
+ 196:.\lib_Network/svt.c ****     				{
+ 197:.\lib_Network/svt.c ****     					Data->Data3 = Data->Data3 << HALF_BYTE;
+ 198:.\lib_Network/svt.c ****     				}
+ 199:.\lib_Network/svt.c ****     			}
+ 200:.\lib_Network/svt.c ****     			else{
+ 201:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 202:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA3;
+ 203:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 204:.\lib_Network/svt.c ****     			}
+ 205:.\lib_Network/svt.c ****     			break;
+ 487              		.loc 1 205 0
+ 488 029c D3E0     		b	.L3
+ 489              	.L37:
+ 197:.\lib_Network/svt.c ****     				}
+ 490              		.loc 1 197 0
+ 491 029e FB69     		ldr	r3, [r7, #28]
+ 492 02a0 5B8A     		ldrh	r3, [r3, #18]
+ 493 02a2 1B01     		lsl	r3, r3, #4
+ 494 02a4 9AB2     		uxth	r2, r3
+ 495 02a6 FB69     		ldr	r3, [r7, #28]
+ 496 02a8 5A82     		strh	r2, [r3, #18]
+ 497              		.loc 1 205 0
+ 498 02aa CCE0     		b	.L3
+ 499              	.L36:
+ 201:.\lib_Network/svt.c ****     				ERR_CODE = INV_DA3;
+ 500              		.loc 1 201 0
+ 501 02ac FB69     		ldr	r3, [r7, #28]
+ 502 02ae 181C     		mov	r0, r3
+ 503 02b0 FFF7FEFF 		bl	ResetPacket
+ 202:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 504              		.loc 1 202 0
+ 505 02b4 0A23     		mov	r3, #10
+ 506 02b6 FB64     		str	r3, [r7, #76]
+ 203:.\lib_Network/svt.c ****     			}
+ 507              		.loc 1 203 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 14
+
+
+ 508 02b8 224B     		ldr	r3, .L51
+ 509 02ba 0022     		mov	r2, #0
+ 510 02bc 1A70     		strb	r2, [r3]
+ 511              		.loc 1 205 0
+ 512 02be C2E0     		b	.L3
+ 513              	.L13:
+ 206:.\lib_Network/svt.c ****     		}
+ 207:.\lib_Network/svt.c ****     		case READ_FR3:
+ 208:.\lib_Network/svt.c ****     		{
+ 209:.\lib_Network/svt.c ****     			if (InByte == FR3)
+ 514              		.loc 1 209 0
+ 515 02c0 1B23     		mov	r3, #27
+ 516 02c2 FB18     		add	r3, r7, r3
+ 517 02c4 1B78     		ldrb	r3, [r3]
+ 518 02c6 402B     		cmp	r3, #64
+ 519 02c8 03D1     		bne	.L40
+ 210:.\lib_Network/svt.c ****     			{
+ 211:.\lib_Network/svt.c ****     				PROTO_STATE = READ_CHS;
+ 520              		.loc 1 211 0
+ 521 02ca 1E4B     		ldr	r3, .L51
+ 522 02cc 0922     		mov	r2, #9
+ 523 02ce 1A70     		strb	r2, [r3]
+ 212:.\lib_Network/svt.c ****     			}
+ 213:.\lib_Network/svt.c ****     			else
+ 214:.\lib_Network/svt.c ****     			{
+ 215:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 216:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR3;
+ 217:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 218:.\lib_Network/svt.c ****     			}
+ 219:.\lib_Network/svt.c ****     			break;
+ 524              		.loc 1 219 0
+ 525 02d0 B9E0     		b	.L3
+ 526              	.L40:
+ 215:.\lib_Network/svt.c ****     				ERR_CODE = NO_FR3;
+ 527              		.loc 1 215 0
+ 528 02d2 FB69     		ldr	r3, [r7, #28]
+ 529 02d4 181C     		mov	r0, r3
+ 530 02d6 FFF7FEFF 		bl	ResetPacket
+ 216:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 531              		.loc 1 216 0
+ 532 02da 0723     		mov	r3, #7
+ 533 02dc FB64     		str	r3, [r7, #76]
+ 217:.\lib_Network/svt.c ****     			}
+ 534              		.loc 1 217 0
+ 535 02de 194B     		ldr	r3, .L51
+ 536 02e0 0022     		mov	r2, #0
+ 537 02e2 1A70     		strb	r2, [r3]
+ 538              		.loc 1 219 0
+ 539 02e4 AFE0     		b	.L3
+ 540              	.L14:
+ 220:.\lib_Network/svt.c ****     		}
+ 221:.\lib_Network/svt.c ****     		case READ_CHS:
+ 222:.\lib_Network/svt.c ****     		{
+ 223:.\lib_Network/svt.c ****     			if(CheckSymb(InByte))
+ 541              		.loc 1 223 0
+ 542 02e6 1B23     		mov	r3, #27
+ 543 02e8 FB18     		add	r3, r7, r3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 15
+
+
+ 544 02ea 1B78     		ldrb	r3, [r3]
+ 545 02ec 181C     		mov	r0, r3
+ 546 02ee FFF7FEFF 		bl	CheckSymb
+ 547 02f2 031E     		sub	r3, r0, #0
+ 548 02f4 1BD0     		beq	.L42
+ 224:.\lib_Network/svt.c ****     			{
+ 225:.\lib_Network/svt.c ****     				Data->CheckSum |= InByte;
+ 549              		.loc 1 225 0
+ 550 02f6 FB69     		ldr	r3, [r7, #28]
+ 551 02f8 5A69     		ldr	r2, [r3, #20]
+ 552 02fa 1B23     		mov	r3, #27
+ 553 02fc FB18     		add	r3, r7, r3
+ 554 02fe 1B78     		ldrb	r3, [r3]
+ 555 0300 1A43     		orr	r2, r3
+ 556 0302 FB69     		ldr	r3, [r7, #28]
+ 557 0304 5A61     		str	r2, [r3, #20]
+ 226:.\lib_Network/svt.c ****     				LenChS++;
+ 558              		.loc 1 226 0
+ 559 0306 124B     		ldr	r3, .L51+12
+ 560 0308 1B78     		ldrb	r3, [r3]
+ 561 030a 0133     		add	r3, r3, #1
+ 562 030c DAB2     		uxtb	r2, r3
+ 563 030e 104B     		ldr	r3, .L51+12
+ 564 0310 1A70     		strb	r2, [r3]
+ 227:.\lib_Network/svt.c ****     				if (LenChS == LEN_CHS)
+ 565              		.loc 1 227 0
+ 566 0312 0F4B     		ldr	r3, .L51+12
+ 567 0314 1B78     		ldrb	r3, [r3]
+ 568 0316 082B     		cmp	r3, #8
+ 569 0318 03D1     		bne	.L43
+ 228:.\lib_Network/svt.c ****     				{
+ 229:.\lib_Network/svt.c ****     					PROTO_STATE = READ_ETX;
+ 570              		.loc 1 229 0
+ 571 031a 0A4B     		ldr	r3, .L51
+ 572 031c 0A22     		mov	r2, #10
+ 573 031e 1A70     		strb	r2, [r3]
+ 230:.\lib_Network/svt.c ****     				}
+ 231:.\lib_Network/svt.c ****     				else
+ 232:.\lib_Network/svt.c ****     				{
+ 233:.\lib_Network/svt.c ****     					Data->CheckSum = Data->CheckSum << HALF_BYTE;
+ 234:.\lib_Network/svt.c ****     				}
+ 235:.\lib_Network/svt.c ****     			}
+ 236:.\lib_Network/svt.c ****     			else
+ 237:.\lib_Network/svt.c ****     			{
+ 238:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 239:.\lib_Network/svt.c ****     				ERR_CODE = INV_CKECKSUM;
+ 240:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 241:.\lib_Network/svt.c ****     			}
+ 242:.\lib_Network/svt.c ****     			break;
+ 574              		.loc 1 242 0
+ 575 0320 91E0     		b	.L3
+ 576              	.L43:
+ 233:.\lib_Network/svt.c ****     				}
+ 577              		.loc 1 233 0
+ 578 0322 FB69     		ldr	r3, [r7, #28]
+ 579 0324 5B69     		ldr	r3, [r3, #20]
+ 580 0326 1A01     		lsl	r2, r3, #4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 16
+
+
+ 581 0328 FB69     		ldr	r3, [r7, #28]
+ 582 032a 5A61     		str	r2, [r3, #20]
+ 583              		.loc 1 242 0
+ 584 032c 8BE0     		b	.L3
+ 585              	.L42:
+ 238:.\lib_Network/svt.c ****     				ERR_CODE = INV_CKECKSUM;
+ 586              		.loc 1 238 0
+ 587 032e FB69     		ldr	r3, [r7, #28]
+ 588 0330 181C     		mov	r0, r3
+ 589 0332 FFF7FEFF 		bl	ResetPacket
+ 239:.\lib_Network/svt.c ****     				PROTO_STATE = WAIT_STX;
+ 590              		.loc 1 239 0
+ 591 0336 0823     		mov	r3, #8
+ 592 0338 FB64     		str	r3, [r7, #76]
+ 240:.\lib_Network/svt.c ****     			}
+ 593              		.loc 1 240 0
+ 594 033a 024B     		ldr	r3, .L51
+ 595 033c 0022     		mov	r2, #0
+ 596 033e 1A70     		strb	r2, [r3]
+ 597              		.loc 1 242 0
+ 598 0340 81E0     		b	.L3
+ 599              	.L52:
+ 600 0342 C046     		.align	2
+ 601              	.L51:
+ 602 0344 00000000 		.word	PROTO_STATE
+ 603 0348 00000000 		.word	LenSeq
+ 604 034c 00000000 		.word	LenC
+ 605 0350 00000000 		.word	LenChS
+ 606 0354 00000000 		.word	LenD1
+ 607 0358 00000000 		.word	LenD2
+ 608 035c 00000000 		.word	LenD3
+ 609 0360 20000000 		.word	.L6
+ 610              	.L15:
+ 243:.\lib_Network/svt.c ****     		}
+ 244:.\lib_Network/svt.c ****     		case READ_ETX:
+ 245:.\lib_Network/svt.c ****     		{
+ 246:.\lib_Network/svt.c ****     			if (InByte == ETX)
+ 611              		.loc 1 246 0
+ 612 0364 1B23     		mov	r3, #27
+ 613 0366 FB18     		add	r3, r7, r3
+ 614 0368 1B78     		ldrb	r3, [r3]
+ 615 036a 3E2B     		cmp	r3, #62
+ 616 036c 5DD1     		bne	.L46
+ 617              	.LBB2:
+ 247:.\lib_Network/svt.c ****     			{
+ 248:.\lib_Network/svt.c ****                     uint32_t _tmpcrc;
+ 249:.\lib_Network/svt.c ****                     char _tmpdata[40];
+ 250:.\lib_Network/svt.c ****                     sprintf(_tmpdata, "%02X:%08X%08X%04X%04X", Data->Command, 
+ 618              		.loc 1 250 0
+ 619 036e FB69     		ldr	r3, [r7, #28]
+ 620 0370 5A68     		ldr	r2, [r3, #4]
+ 251:.\lib_Network/svt.c ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 621              		.loc 1 251 0
+ 622 0372 FB69     		ldr	r3, [r7, #28]
+ 623 0374 DC68     		ldr	r4, [r3, #12]
+ 624 0376 9B68     		ldr	r3, [r3, #8]
+ 625 0378 2300     		lsr	r3, r4, #0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 17
+
+
+ 626 037a 3B60     		str	r3, [r7]
+ 627 037c 0023     		mov	r3, #0
+ 628 037e 7B60     		str	r3, [r7, #4]
+ 250:.\lib_Network/svt.c ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 629              		.loc 1 250 0
+ 630 0380 3E68     		ldr	r6, [r7]
+ 252:.\lib_Network/svt.c ****                         (uint32_t)(Data->Data1 & 0x00000000FFFFFFFF), 
+ 631              		.loc 1 252 0
+ 632 0382 FB69     		ldr	r3, [r7, #28]
+ 633 0384 DC68     		ldr	r4, [r3, #12]
+ 634 0386 9B68     		ldr	r3, [r3, #8]
+ 250:.\lib_Network/svt.c ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 635              		.loc 1 250 0
+ 636 0388 1D1C     		mov	r5, r3
+ 253:.\lib_Network/svt.c ****                         Data->Data2, Data->Data3);
+ 637              		.loc 1 253 0
+ 638 038a FB69     		ldr	r3, [r7, #28]
+ 639 038c 1B8A     		ldrh	r3, [r3, #16]
+ 250:.\lib_Network/svt.c ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 640              		.loc 1 250 0
+ 641 038e 1C1C     		mov	r4, r3
+ 642              		.loc 1 253 0
+ 643 0390 FB69     		ldr	r3, [r7, #28]
+ 644 0392 5B8A     		ldrh	r3, [r3, #18]
+ 250:.\lib_Network/svt.c ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 645              		.loc 1 250 0
+ 646 0394 181C     		mov	r0, r3
+ 647 0396 0823     		mov	r3, #8
+ 648 0398 1821     		mov	r1, #24
+ 649 039a 7918     		add	r1, r7, r1
+ 650 039c C918     		add	r1, r1, r3
+ 651 039e 2D4B     		ldr	r3, .L53
+ 652 03a0 0095     		str	r5, [sp]
+ 653 03a2 0194     		str	r4, [sp, #4]
+ 654 03a4 0290     		str	r0, [sp, #8]
+ 655 03a6 081C     		mov	r0, r1
+ 656 03a8 191C     		mov	r1, r3
+ 657 03aa 331C     		mov	r3, r6
+ 658 03ac FFF7FEFF 		bl	sprintf
+ 254:.\lib_Network/svt.c ****                     _tmpcrc = crc32_reset();
+ 659              		.loc 1 254 0
+ 660 03b0 0123     		mov	r3, #1
+ 661 03b2 5B42     		neg	r3, r3
+ 662 03b4 BB64     		str	r3, [r7, #72]
+ 255:.\lib_Network/svt.c ****                     _tmpcrc = crc32_calc_block((uint8_t *)"A", 1, _tmpcrc);
+ 663              		.loc 1 255 0
+ 664 03b6 284A     		ldr	r2, .L53+4
+ 665 03b8 BB6C     		ldr	r3, [r7, #72]
+ 666 03ba 101C     		mov	r0, r2
+ 667 03bc 0121     		mov	r1, #1
+ 668 03be 1A1C     		mov	r2, r3
+ 669 03c0 FFF7FEFF 		bl	crc32_calc_block
+ 670 03c4 031C     		mov	r3, r0
+ 671 03c6 BB64     		str	r3, [r7, #72]
+ 256:.\lib_Network/svt.c ****                     _tmpcrc = crc32_calc_block((uint8_t *)_tmpdata, strlen(_tmpdata), _tmpcrc);
+ 672              		.loc 1 256 0
+ 673 03c8 0823     		mov	r3, #8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 18
+
+
+ 674 03ca 1822     		mov	r2, #24
+ 675 03cc 9446     		mov	ip, r2
+ 676 03ce BC44     		add	ip, ip, r7
+ 677 03d0 6344     		add	r3, r3, ip
+ 678 03d2 181C     		mov	r0, r3
+ 679 03d4 FFF7FEFF 		bl	strlen
+ 680 03d8 011C     		mov	r1, r0
+ 681 03da 0823     		mov	r3, #8
+ 682 03dc 1822     		mov	r2, #24
+ 683 03de BA18     		add	r2, r7, r2
+ 684 03e0 D218     		add	r2, r2, r3
+ 685 03e2 BB6C     		ldr	r3, [r7, #72]
+ 686 03e4 101C     		mov	r0, r2
+ 687 03e6 1A1C     		mov	r2, r3
+ 688 03e8 FFF7FEFF 		bl	crc32_calc_block
+ 689 03ec 031C     		mov	r3, r0
+ 690 03ee BB64     		str	r3, [r7, #72]
+ 257:.\lib_Network/svt.c ****     				_tmpcrc = crc32_calc_block((uint8_t *)"F", 1, _tmpcrc);
+ 691              		.loc 1 257 0
+ 692 03f0 1A4A     		ldr	r2, .L53+8
+ 693 03f2 BB6C     		ldr	r3, [r7, #72]
+ 694 03f4 101C     		mov	r0, r2
+ 695 03f6 0121     		mov	r1, #1
+ 696 03f8 1A1C     		mov	r2, r3
+ 697 03fa FFF7FEFF 		bl	crc32_calc_block
+ 698 03fe 031C     		mov	r3, r0
+ 699 0400 BB64     		str	r3, [r7, #72]
+ 258:.\lib_Network/svt.c ****                     _tmpcrc = crc32_final(_tmpcrc);
+ 700              		.loc 1 258 0
+ 701 0402 BB6C     		ldr	r3, [r7, #72]
+ 702 0404 DB43     		mvn	r3, r3
+ 703 0406 BB64     		str	r3, [r7, #72]
+ 259:.\lib_Network/svt.c ****                     if (_tmpcrc == Data->CheckSum)
+ 704              		.loc 1 259 0
+ 705 0408 FB69     		ldr	r3, [r7, #28]
+ 706 040a 5A69     		ldr	r2, [r3, #20]
+ 707 040c BB6C     		ldr	r3, [r7, #72]
+ 708 040e 9A42     		cmp	r2, r3
+ 709 0410 05D1     		bne	.L47
+ 260:.\lib_Network/svt.c ****                     {
+ 261:.\lib_Network/svt.c ****                         Data->EndPacket = 1;
+ 710              		.loc 1 261 0
+ 711 0412 FB69     		ldr	r3, [r7, #28]
+ 712 0414 0122     		mov	r2, #1
+ 713 0416 1A76     		strb	r2, [r3, #24]
+ 262:.\lib_Network/svt.c ****     				    ERR_CODE = PARSED_OK;
+ 714              		.loc 1 262 0
+ 715 0418 0023     		mov	r3, #0
+ 716 041a FB64     		str	r3, [r7, #76]
+ 717 041c 0BE0     		b	.L49
+ 718              	.L47:
+ 263:.\lib_Network/svt.c ****                     }
+ 264:.\lib_Network/svt.c ****                     else
+ 265:.\lib_Network/svt.c ****                     {
+ 266:.\lib_Network/svt.c ****                         Data->EndPacket = 0;
+ 719              		.loc 1 266 0
+ 720 041e FB69     		ldr	r3, [r7, #28]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 19
+
+
+ 721 0420 0022     		mov	r2, #0
+ 722 0422 1A76     		strb	r2, [r3, #24]
+ 267:.\lib_Network/svt.c ****                         ERR_CODE = 10;
+ 723              		.loc 1 267 0
+ 724 0424 0A23     		mov	r3, #10
+ 725 0426 FB64     		str	r3, [r7, #76]
+ 726              	.LBE2:
+ 727 0428 05E0     		b	.L49
+ 728              	.L46:
+ 268:.\lib_Network/svt.c ****                     }
+ 269:.\lib_Network/svt.c ****     			}
+ 270:.\lib_Network/svt.c ****     			else{
+ 271:.\lib_Network/svt.c ****     				ERR_CODE = NO_ETX;
+ 729              		.loc 1 271 0
+ 730 042a 0923     		mov	r3, #9
+ 731 042c FB64     		str	r3, [r7, #76]
+ 272:.\lib_Network/svt.c ****     				ResetPacket(Data);
+ 732              		.loc 1 272 0
+ 733 042e FB69     		ldr	r3, [r7, #28]
+ 734 0430 181C     		mov	r0, r3
+ 735 0432 FFF7FEFF 		bl	ResetPacket
+ 736              	.L49:
+ 273:.\lib_Network/svt.c ****     			}
+ 274:.\lib_Network/svt.c ****     			PROTO_STATE = WAIT_STX;
+ 737              		.loc 1 274 0
+ 738 0436 0A4B     		ldr	r3, .L53+12
+ 739 0438 0022     		mov	r2, #0
+ 740 043a 1A70     		strb	r2, [r3]
+ 275:.\lib_Network/svt.c ****     			break;
+ 741              		.loc 1 275 0
+ 742 043c 03E0     		b	.L3
+ 743              	.L4:
+ 276:.\lib_Network/svt.c ****     		}
+ 277:.\lib_Network/svt.c ****             default: 
+ 278:.\lib_Network/svt.c ****             {
+ 279:.\lib_Network/svt.c ****                 ResetPacket(Data);
+ 744              		.loc 1 279 0
+ 745 043e FB69     		ldr	r3, [r7, #28]
+ 746 0440 181C     		mov	r0, r3
+ 747 0442 FFF7FEFF 		bl	ResetPacket
+ 748              	.L3:
+ 280:.\lib_Network/svt.c ****             }
+ 281:.\lib_Network/svt.c ****     	}
+ 282:.\lib_Network/svt.c ****     } 
+ 283:.\lib_Network/svt.c ****     return ERR_CODE;
+ 749              		.loc 1 283 0
+ 750 0446 FB6C     		ldr	r3, [r7, #76]
+ 751 0448 DBB2     		uxtb	r3, r3
+ 284:.\lib_Network/svt.c **** }
+ 752              		.loc 1 284 0
+ 753 044a 181C     		mov	r0, r3
+ 754 044c BD46     		mov	sp, r7
+ 755 044e 15B0     		add	sp, sp, #84
+ 756              		@ sp needed
+ 757 0450 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 758              	.L54:
+ 759 0452 C046     		.align	2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 20
+
+
+ 760              	.L53:
+ 761 0454 00000000 		.word	.LC8
+ 762 0458 18000000 		.word	.LC10
+ 763 045c 1C000000 		.word	.LC12
+ 764 0460 00000000 		.word	PROTO_STATE
+ 765              		.cfi_endproc
+ 766              	.LFE2:
+ 767              		.size	UnpackData, .-UnpackData
+ 768              		.section	.text.DecodeByte,"ax",%progbits
+ 769              		.align	2
+ 770              		.global	DecodeByte
+ 771              		.code	16
+ 772              		.thumb_func
+ 773              		.type	DecodeByte, %function
+ 774              	DecodeByte:
+ 775              	.LFB3:
+ 285:.\lib_Network/svt.c **** 
+ 286:.\lib_Network/svt.c **** uint8_t DecodeByte(uint8_t Inp)
+ 287:.\lib_Network/svt.c **** {
+ 776              		.loc 1 287 0
+ 777              		.cfi_startproc
+ 778 0000 80B5     		push	{r7, lr}
+ 779              		.cfi_def_cfa_offset 8
+ 780              		.cfi_offset 7, -8
+ 781              		.cfi_offset 14, -4
+ 782 0002 82B0     		sub	sp, sp, #8
+ 783              		.cfi_def_cfa_offset 16
+ 784 0004 00AF     		add	r7, sp, #0
+ 785              		.cfi_def_cfa_register 7
+ 786 0006 021C     		mov	r2, r0
+ 787 0008 FB1D     		add	r3, r7, #7
+ 788 000a 1A70     		strb	r2, [r3]
+ 288:.\lib_Network/svt.c **** 	if ((Inp >= 'A') && (Inp <= 'F'))
+ 789              		.loc 1 288 0
+ 790 000c FB1D     		add	r3, r7, #7
+ 791 000e 1B78     		ldrb	r3, [r3]
+ 792 0010 402B     		cmp	r3, #64
+ 793 0012 09D9     		bls	.L56
+ 794              		.loc 1 288 0 is_stmt 0 discriminator 1
+ 795 0014 FB1D     		add	r3, r7, #7
+ 796 0016 1B78     		ldrb	r3, [r3]
+ 797 0018 462B     		cmp	r3, #70
+ 798 001a 05D8     		bhi	.L56
+ 289:.\lib_Network/svt.c **** 	{
+ 290:.\lib_Network/svt.c **** 		Inp -= 0x37;
+ 799              		.loc 1 290 0 is_stmt 1
+ 800 001c FB1D     		add	r3, r7, #7
+ 801 001e FA1D     		add	r2, r7, #7
+ 802 0020 1278     		ldrb	r2, [r2]
+ 803 0022 373A     		sub	r2, r2, #55
+ 804 0024 1A70     		strb	r2, [r3]
+ 805 0026 0CE0     		b	.L57
+ 806              	.L56:
+ 291:.\lib_Network/svt.c **** 	}
+ 292:.\lib_Network/svt.c **** 	else if ((Inp >= '0') && (Inp <= '9')){
+ 807              		.loc 1 292 0
+ 808 0028 FB1D     		add	r3, r7, #7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 21
+
+
+ 809 002a 1B78     		ldrb	r3, [r3]
+ 810 002c 2F2B     		cmp	r3, #47
+ 811 002e 08D9     		bls	.L57
+ 812              		.loc 1 292 0 is_stmt 0 discriminator 1
+ 813 0030 FB1D     		add	r3, r7, #7
+ 814 0032 1B78     		ldrb	r3, [r3]
+ 815 0034 392B     		cmp	r3, #57
+ 816 0036 04D8     		bhi	.L57
+ 293:.\lib_Network/svt.c **** 		Inp -= 0x30;
+ 817              		.loc 1 293 0 is_stmt 1
+ 818 0038 FB1D     		add	r3, r7, #7
+ 819 003a FA1D     		add	r2, r7, #7
+ 820 003c 1278     		ldrb	r2, [r2]
+ 821 003e 303A     		sub	r2, r2, #48
+ 822 0040 1A70     		strb	r2, [r3]
+ 823              	.L57:
+ 294:.\lib_Network/svt.c **** 	}
+ 295:.\lib_Network/svt.c **** 	return Inp;
+ 824              		.loc 1 295 0
+ 825 0042 FB1D     		add	r3, r7, #7
+ 826 0044 1B78     		ldrb	r3, [r3]
+ 296:.\lib_Network/svt.c **** }
+ 827              		.loc 1 296 0
+ 828 0046 181C     		mov	r0, r3
+ 829 0048 BD46     		mov	sp, r7
+ 830 004a 02B0     		add	sp, sp, #8
+ 831              		@ sp needed
+ 832 004c 80BD     		pop	{r7, pc}
+ 833              		.cfi_endproc
+ 834              	.LFE3:
+ 835              		.size	DecodeByte, .-DecodeByte
+ 836 004e C046     		.section	.text.CheckSymb,"ax",%progbits
+ 837              		.align	2
+ 838              		.global	CheckSymb
+ 839              		.code	16
+ 840              		.thumb_func
+ 841              		.type	CheckSymb, %function
+ 842              	CheckSymb:
+ 843              	.LFB4:
+ 297:.\lib_Network/svt.c **** 
+ 298:.\lib_Network/svt.c **** uint8_t CheckSymb(uint8_t Inp)
+ 299:.\lib_Network/svt.c **** {
+ 844              		.loc 1 299 0
+ 845              		.cfi_startproc
+ 846 0000 80B5     		push	{r7, lr}
+ 847              		.cfi_def_cfa_offset 8
+ 848              		.cfi_offset 7, -8
+ 849              		.cfi_offset 14, -4
+ 850 0002 84B0     		sub	sp, sp, #16
+ 851              		.cfi_def_cfa_offset 24
+ 852 0004 00AF     		add	r7, sp, #0
+ 853              		.cfi_def_cfa_register 7
+ 854 0006 021C     		mov	r2, r0
+ 855 0008 FB1D     		add	r3, r7, #7
+ 856 000a 1A70     		strb	r2, [r3]
+ 300:.\lib_Network/svt.c **** 	uint8_t Val = 1;
+ 857              		.loc 1 300 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 22
+
+
+ 858 000c 0F23     		mov	r3, #15
+ 859 000e FB18     		add	r3, r7, r3
+ 860 0010 0122     		mov	r2, #1
+ 861 0012 1A70     		strb	r2, [r3]
+ 301:.\lib_Network/svt.c **** 
+ 302:.\lib_Network/svt.c **** 	if ((Inp > 0xF) || (Inp < 0x0))
+ 862              		.loc 1 302 0
+ 863 0014 FB1D     		add	r3, r7, #7
+ 864 0016 1B78     		ldrb	r3, [r3]
+ 865 0018 0F2B     		cmp	r3, #15
+ 866 001a 03D9     		bls	.L60
+ 303:.\lib_Network/svt.c **** 	{
+ 304:.\lib_Network/svt.c **** 		Val = 0;
+ 867              		.loc 1 304 0
+ 868 001c 0F23     		mov	r3, #15
+ 869 001e FB18     		add	r3, r7, r3
+ 870 0020 0022     		mov	r2, #0
+ 871 0022 1A70     		strb	r2, [r3]
+ 872              	.L60:
+ 305:.\lib_Network/svt.c **** 	}
+ 306:.\lib_Network/svt.c **** 	return Val;
+ 873              		.loc 1 306 0
+ 874 0024 0F23     		mov	r3, #15
+ 875 0026 FB18     		add	r3, r7, r3
+ 876 0028 1B78     		ldrb	r3, [r3]
+ 307:.\lib_Network/svt.c **** }
+ 877              		.loc 1 307 0
+ 878 002a 181C     		mov	r0, r3
+ 879 002c BD46     		mov	sp, r7
+ 880 002e 04B0     		add	sp, sp, #16
+ 881              		@ sp needed
+ 882 0030 80BD     		pop	{r7, pc}
+ 883              		.cfi_endproc
+ 884              	.LFE4:
+ 885              		.size	CheckSymb, .-CheckSymb
+ 886 0032 C046     		.section	.text.ResetPacket,"ax",%progbits
+ 887              		.align	2
+ 888              		.global	ResetPacket
+ 889              		.code	16
+ 890              		.thumb_func
+ 891              		.type	ResetPacket, %function
+ 892              	ResetPacket:
+ 893              	.LFB5:
+ 308:.\lib_Network/svt.c **** 
+ 309:.\lib_Network/svt.c **** void ResetPacket(struct Resp *Data)
+ 310:.\lib_Network/svt.c **** {
+ 894              		.loc 1 310 0
+ 895              		.cfi_startproc
+ 896 0000 90B5     		push	{r4, r7, lr}
+ 897              		.cfi_def_cfa_offset 12
+ 898              		.cfi_offset 4, -12
+ 899              		.cfi_offset 7, -8
+ 900              		.cfi_offset 14, -4
+ 901 0002 83B0     		sub	sp, sp, #12
+ 902              		.cfi_def_cfa_offset 24
+ 903 0004 00AF     		add	r7, sp, #0
+ 904              		.cfi_def_cfa_register 7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 23
+
+
+ 905 0006 7860     		str	r0, [r7, #4]
+ 311:.\lib_Network/svt.c **** 	Data->Seq = 0;
+ 906              		.loc 1 311 0
+ 907 0008 7B68     		ldr	r3, [r7, #4]
+ 908 000a 0022     		mov	r2, #0
+ 909 000c 1A80     		strh	r2, [r3]
+ 312:.\lib_Network/svt.c **** 	Data->Command = 0;
+ 910              		.loc 1 312 0
+ 911 000e 7B68     		ldr	r3, [r7, #4]
+ 912 0010 0022     		mov	r2, #0
+ 913 0012 5A60     		str	r2, [r3, #4]
+ 313:.\lib_Network/svt.c **** 	Data->Data1 = 0;
+ 914              		.loc 1 313 0
+ 915 0014 7A68     		ldr	r2, [r7, #4]
+ 916 0016 0023     		mov	r3, #0
+ 917 0018 0024     		mov	r4, #0
+ 918 001a 9360     		str	r3, [r2, #8]
+ 919 001c D460     		str	r4, [r2, #12]
+ 314:.\lib_Network/svt.c **** 	Data->Data2 = 0;
+ 920              		.loc 1 314 0
+ 921 001e 7B68     		ldr	r3, [r7, #4]
+ 922 0020 0022     		mov	r2, #0
+ 923 0022 1A82     		strh	r2, [r3, #16]
+ 315:.\lib_Network/svt.c **** 	Data->Data3 = 0;
+ 924              		.loc 1 315 0
+ 925 0024 7B68     		ldr	r3, [r7, #4]
+ 926 0026 0022     		mov	r2, #0
+ 927 0028 5A82     		strh	r2, [r3, #18]
+ 316:.\lib_Network/svt.c **** 	Data->CheckSum = 0;
+ 928              		.loc 1 316 0
+ 929 002a 7B68     		ldr	r3, [r7, #4]
+ 930 002c 0022     		mov	r2, #0
+ 931 002e 5A61     		str	r2, [r3, #20]
+ 317:.\lib_Network/svt.c **** 	Data->EndPacket = 0;
+ 932              		.loc 1 317 0
+ 933 0030 7B68     		ldr	r3, [r7, #4]
+ 934 0032 0022     		mov	r2, #0
+ 935 0034 1A76     		strb	r2, [r3, #24]
+ 318:.\lib_Network/svt.c **** }
+ 936              		.loc 1 318 0
+ 937 0036 BD46     		mov	sp, r7
+ 938 0038 03B0     		add	sp, sp, #12
+ 939              		@ sp needed
+ 940 003a 90BD     		pop	{r4, r7, pc}
+ 941              		.cfi_endproc
+ 942              	.LFE5:
+ 943              		.size	ResetPacket, .-ResetPacket
+ 944              		.section	.rodata
+ 945              		.align	2
+ 946              	.LC14:
+ 947 004c 25303458 		.ascii	"%04X\000"
+ 947      00
+ 948 0051 000000   		.align	2
+ 949              	.LC18:
+ 950 0054 25303858 		.ascii	"%08X\000"
+ 950      00
+ 951 0059 000000   		.align	2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 24
+
+
+ 952              	.LC20:
+ 953 005c 3C00     		.ascii	"<\000"
+ 954 005e 0000     		.align	2
+ 955              	.LC22:
+ 956 0060 2100     		.ascii	"!\000"
+ 957 0062 0000     		.align	2
+ 958              	.LC24:
+ 959 0064 4000     		.ascii	"@\000"
+ 960 0066 0000     		.align	2
+ 961              	.LC26:
+ 962 0068 3E00     		.ascii	">\000"
+ 963 006a 0000     		.section	.text.PackData,"ax",%progbits
+ 964              		.align	2
+ 965              		.global	PackData
+ 966              		.code	16
+ 967              		.thumb_func
+ 968              		.type	PackData, %function
+ 969              	PackData:
+ 970              	.LFB6:
+ 319:.\lib_Network/svt.c **** 
+ 320:.\lib_Network/svt.c **** uint8_t PackData(char *buff, uint8_t *data, uint16_t Sequence)
+ 321:.\lib_Network/svt.c **** {
+ 971              		.loc 1 321 0
+ 972              		.cfi_startproc
+ 973 0000 80B5     		push	{r7, lr}
+ 974              		.cfi_def_cfa_offset 8
+ 975              		.cfi_offset 7, -8
+ 976              		.cfi_offset 14, -4
+ 977 0002 90B0     		sub	sp, sp, #64
+ 978              		.cfi_def_cfa_offset 72
+ 979 0004 00AF     		add	r7, sp, #0
+ 980              		.cfi_def_cfa_register 7
+ 981 0006 F860     		str	r0, [r7, #12]
+ 982 0008 B960     		str	r1, [r7, #8]
+ 983 000a BB1D     		add	r3, r7, #6
+ 984 000c 1A80     		strh	r2, [r3]
+ 322:.\lib_Network/svt.c ****     uint32_t _crc;
+ 323:.\lib_Network/svt.c ****     char *_p;
+ 324:.\lib_Network/svt.c ****     char szSeq[20];
+ 325:.\lib_Network/svt.c ****     char szCheckSum[20];
+ 326:.\lib_Network/svt.c ****     
+ 327:.\lib_Network/svt.c ****     _p = (char *)data;
+ 985              		.loc 1 327 0
+ 986 000e BB68     		ldr	r3, [r7, #8]
+ 987 0010 FB63     		str	r3, [r7, #60]
+ 328:.\lib_Network/svt.c **** 
+ 329:.\lib_Network/svt.c **** 
+ 330:.\lib_Network/svt.c ****     sprintf(szSeq, "%04X", Sequence);
+ 988              		.loc 1 330 0
+ 989 0012 BB1D     		add	r3, r7, #6
+ 990 0014 1B88     		ldrh	r3, [r3]
+ 991 0016 2422     		mov	r2, #36
+ 992 0018 B918     		add	r1, r7, r2
+ 993 001a 474A     		ldr	r2, .L65
+ 994 001c 081C     		mov	r0, r1
+ 995 001e 111C     		mov	r1, r2
+ 996 0020 1A1C     		mov	r2, r3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 25
+
+
+ 997 0022 FFF7FEFF 		bl	sprintf
+ 331:.\lib_Network/svt.c ****     
+ 332:.\lib_Network/svt.c ****     _crc = crc32_reset();
+ 998              		.loc 1 332 0
+ 999 0026 0123     		mov	r3, #1
+ 1000 0028 5B42     		neg	r3, r3
+ 1001 002a BB63     		str	r3, [r7, #56]
+ 333:.\lib_Network/svt.c ****     _crc = crc32_calc_block((uint8_t *)"A", 1, _crc);
+ 1002              		.loc 1 333 0
+ 1003 002c 434A     		ldr	r2, .L65+4
+ 1004 002e BB6B     		ldr	r3, [r7, #56]
+ 1005 0030 101C     		mov	r0, r2
+ 1006 0032 0121     		mov	r1, #1
+ 1007 0034 1A1C     		mov	r2, r3
+ 1008 0036 FFF7FEFF 		bl	crc32_calc_block
+ 1009 003a 031C     		mov	r3, r0
+ 1010 003c BB63     		str	r3, [r7, #56]
+ 334:.\lib_Network/svt.c ****     _crc = crc32_calc_block((uint8_t *)_p, strlen(_p), _crc);
+ 1011              		.loc 1 334 0
+ 1012 003e FB6B     		ldr	r3, [r7, #60]
+ 1013 0040 181C     		mov	r0, r3
+ 1014 0042 FFF7FEFF 		bl	strlen
+ 1015 0046 011C     		mov	r1, r0
+ 1016 0048 FA6B     		ldr	r2, [r7, #60]
+ 1017 004a BB6B     		ldr	r3, [r7, #56]
+ 1018 004c 101C     		mov	r0, r2
+ 1019 004e 1A1C     		mov	r2, r3
+ 1020 0050 FFF7FEFF 		bl	crc32_calc_block
+ 1021 0054 031C     		mov	r3, r0
+ 1022 0056 BB63     		str	r3, [r7, #56]
+ 335:.\lib_Network/svt.c ****     _crc = crc32_calc_block((uint8_t *)"F", 1, _crc);
+ 1023              		.loc 1 335 0
+ 1024 0058 394A     		ldr	r2, .L65+8
+ 1025 005a BB6B     		ldr	r3, [r7, #56]
+ 1026 005c 101C     		mov	r0, r2
+ 1027 005e 0121     		mov	r1, #1
+ 1028 0060 1A1C     		mov	r2, r3
+ 1029 0062 FFF7FEFF 		bl	crc32_calc_block
+ 1030 0066 031C     		mov	r3, r0
+ 1031 0068 BB63     		str	r3, [r7, #56]
+ 336:.\lib_Network/svt.c ****     _crc = crc32_final(_crc);
+ 1032              		.loc 1 336 0
+ 1033 006a BB6B     		ldr	r3, [r7, #56]
+ 1034 006c DB43     		mvn	r3, r3
+ 1035 006e BB63     		str	r3, [r7, #56]
+ 337:.\lib_Network/svt.c ****     
+ 338:.\lib_Network/svt.c ****     sprintf(szCheckSum, "%08X", _crc);
+ 1036              		.loc 1 338 0
+ 1037 0070 1023     		mov	r3, #16
+ 1038 0072 F918     		add	r1, r7, r3
+ 1039 0074 334A     		ldr	r2, .L65+12
+ 1040 0076 BB6B     		ldr	r3, [r7, #56]
+ 1041 0078 081C     		mov	r0, r1
+ 1042 007a 111C     		mov	r1, r2
+ 1043 007c 1A1C     		mov	r2, r3
+ 1044 007e FFF7FEFF 		bl	sprintf
+ 339:.\lib_Network/svt.c ****     
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 26
+
+
+ 340:.\lib_Network/svt.c ****     strcpy(buff, STX_S);
+ 1045              		.loc 1 340 0
+ 1046 0082 FA68     		ldr	r2, [r7, #12]
+ 1047 0084 304B     		ldr	r3, .L65+16
+ 1048 0086 111C     		mov	r1, r2
+ 1049 0088 1A1C     		mov	r2, r3
+ 1050 008a 0223     		mov	r3, #2
+ 1051 008c 081C     		mov	r0, r1
+ 1052 008e 111C     		mov	r1, r2
+ 1053 0090 1A1C     		mov	r2, r3
+ 1054 0092 FFF7FEFF 		bl	memcpy
+ 341:.\lib_Network/svt.c ****     strcat(buff, szSeq);
+ 1055              		.loc 1 341 0
+ 1056 0096 FA68     		ldr	r2, [r7, #12]
+ 1057 0098 2423     		mov	r3, #36
+ 1058 009a FB18     		add	r3, r7, r3
+ 1059 009c 101C     		mov	r0, r2
+ 1060 009e 191C     		mov	r1, r3
+ 1061 00a0 FFF7FEFF 		bl	strcat
+ 342:.\lib_Network/svt.c ****     strcat(buff, FRM0);
+ 1062              		.loc 1 342 0
+ 1063 00a4 FB68     		ldr	r3, [r7, #12]
+ 1064 00a6 181C     		mov	r0, r3
+ 1065 00a8 FFF7FEFF 		bl	strlen
+ 1066 00ac 031C     		mov	r3, r0
+ 1067 00ae 1A1C     		mov	r2, r3
+ 1068 00b0 FB68     		ldr	r3, [r7, #12]
+ 1069 00b2 9A18     		add	r2, r3, r2
+ 1070 00b4 254B     		ldr	r3, .L65+20
+ 1071 00b6 111C     		mov	r1, r2
+ 1072 00b8 1A1C     		mov	r2, r3
+ 1073 00ba 0223     		mov	r3, #2
+ 1074 00bc 081C     		mov	r0, r1
+ 1075 00be 111C     		mov	r1, r2
+ 1076 00c0 1A1C     		mov	r2, r3
+ 1077 00c2 FFF7FEFF 		bl	memcpy
+ 343:.\lib_Network/svt.c ****     strcat(buff, _p);
+ 1078              		.loc 1 343 0
+ 1079 00c6 FA68     		ldr	r2, [r7, #12]
+ 1080 00c8 FB6B     		ldr	r3, [r7, #60]
+ 1081 00ca 101C     		mov	r0, r2
+ 1082 00cc 191C     		mov	r1, r3
+ 1083 00ce FFF7FEFF 		bl	strcat
+ 344:.\lib_Network/svt.c ****     strcat(buff, FRM1);    
+ 1084              		.loc 1 344 0
+ 1085 00d2 FB68     		ldr	r3, [r7, #12]
+ 1086 00d4 181C     		mov	r0, r3
+ 1087 00d6 FFF7FEFF 		bl	strlen
+ 1088 00da 031C     		mov	r3, r0
+ 1089 00dc 1A1C     		mov	r2, r3
+ 1090 00de FB68     		ldr	r3, [r7, #12]
+ 1091 00e0 9A18     		add	r2, r3, r2
+ 1092 00e2 1B4B     		ldr	r3, .L65+24
+ 1093 00e4 111C     		mov	r1, r2
+ 1094 00e6 1A1C     		mov	r2, r3
+ 1095 00e8 0223     		mov	r3, #2
+ 1096 00ea 081C     		mov	r0, r1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 27
+
+
+ 1097 00ec 111C     		mov	r1, r2
+ 1098 00ee 1A1C     		mov	r2, r3
+ 1099 00f0 FFF7FEFF 		bl	memcpy
+ 345:.\lib_Network/svt.c ****     strcat(buff, szCheckSum);
+ 1100              		.loc 1 345 0
+ 1101 00f4 FA68     		ldr	r2, [r7, #12]
+ 1102 00f6 1023     		mov	r3, #16
+ 1103 00f8 FB18     		add	r3, r7, r3
+ 1104 00fa 101C     		mov	r0, r2
+ 1105 00fc 191C     		mov	r1, r3
+ 1106 00fe FFF7FEFF 		bl	strcat
+ 346:.\lib_Network/svt.c ****     strcat(buff, ETX_S);
+ 1107              		.loc 1 346 0
+ 1108 0102 FB68     		ldr	r3, [r7, #12]
+ 1109 0104 181C     		mov	r0, r3
+ 1110 0106 FFF7FEFF 		bl	strlen
+ 1111 010a 031C     		mov	r3, r0
+ 1112 010c 1A1C     		mov	r2, r3
+ 1113 010e FB68     		ldr	r3, [r7, #12]
+ 1114 0110 9A18     		add	r2, r3, r2
+ 1115 0112 104B     		ldr	r3, .L65+28
+ 1116 0114 111C     		mov	r1, r2
+ 1117 0116 1A1C     		mov	r2, r3
+ 1118 0118 0223     		mov	r3, #2
+ 1119 011a 081C     		mov	r0, r1
+ 1120 011c 111C     		mov	r1, r2
+ 1121 011e 1A1C     		mov	r2, r3
+ 1122 0120 FFF7FEFF 		bl	memcpy
+ 347:.\lib_Network/svt.c ****     
+ 348:.\lib_Network/svt.c ****     return strlen(buff);
+ 1123              		.loc 1 348 0
+ 1124 0124 FB68     		ldr	r3, [r7, #12]
+ 1125 0126 181C     		mov	r0, r3
+ 1126 0128 FFF7FEFF 		bl	strlen
+ 1127 012c 031C     		mov	r3, r0
+ 1128 012e DBB2     		uxtb	r3, r3
+ 349:.\lib_Network/svt.c **** }
+ 1129              		.loc 1 349 0
+ 1130 0130 181C     		mov	r0, r3
+ 1131 0132 BD46     		mov	sp, r7
+ 1132 0134 10B0     		add	sp, sp, #64
+ 1133              		@ sp needed
+ 1134 0136 80BD     		pop	{r7, pc}
+ 1135              	.L66:
+ 1136              		.align	2
+ 1137              	.L65:
+ 1138 0138 4C000000 		.word	.LC14
+ 1139 013c 18000000 		.word	.LC10
+ 1140 0140 1C000000 		.word	.LC12
+ 1141 0144 54000000 		.word	.LC18
+ 1142 0148 5C000000 		.word	.LC20
+ 1143 014c 60000000 		.word	.LC22
+ 1144 0150 64000000 		.word	.LC24
+ 1145 0154 68000000 		.word	.LC26
+ 1146              		.cfi_endproc
+ 1147              	.LFE6:
+ 1148              		.size	PackData, .-PackData
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 28
+
+
+ 1149              		.text
+ 1150              	.Letext0:
+ 1151              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\3.3\\psoc creator\\import\\gnu\\arm\\4.9.
+ 1152              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\3.3\\psoc creator\\import\\gnu\\arm\\4.9.
+ 1153              		.file 4 ".\\lib_Network\\svt.h"
+ 1154              		.file 5 "<built-in>"
+ 1155              		.section	.debug_info,"",%progbits
+ 1156              	.Ldebug_info0:
+ 1157 0000 37040000 		.4byte	0x437
+ 1158 0004 0400     		.2byte	0x4
+ 1159 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1160 000a 04       		.byte	0x4
+ 1161 000b 01       		.uleb128 0x1
+ 1162 000c 13030000 		.4byte	.LASF74
+ 1163 0010 01       		.byte	0x1
+ 1164 0011 9B020000 		.4byte	.LASF75
+ 1165 0015 2F010000 		.4byte	.LASF76
+ 1166 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 1167 001d 00000000 		.4byte	0
+ 1168 0021 00000000 		.4byte	.Ldebug_line0
+ 1169 0025 02       		.uleb128 0x2
+ 1170 0026 01       		.byte	0x1
+ 1171 0027 06       		.byte	0x6
+ 1172 0028 63000000 		.4byte	.LASF0
+ 1173 002c 03       		.uleb128 0x3
+ 1174 002d 2E000000 		.4byte	.LASF3
+ 1175 0031 02       		.byte	0x2
+ 1176 0032 1D       		.byte	0x1d
+ 1177 0033 37000000 		.4byte	0x37
+ 1178 0037 02       		.uleb128 0x2
+ 1179 0038 01       		.byte	0x1
+ 1180 0039 08       		.byte	0x8
+ 1181 003a 64020000 		.4byte	.LASF1
+ 1182 003e 02       		.uleb128 0x2
+ 1183 003f 02       		.byte	0x2
+ 1184 0040 05       		.byte	0x5
+ 1185 0041 7D020000 		.4byte	.LASF2
+ 1186 0045 03       		.uleb128 0x3
+ 1187 0046 C4020000 		.4byte	.LASF4
+ 1188 004a 02       		.byte	0x2
+ 1189 004b 2B       		.byte	0x2b
+ 1190 004c 50000000 		.4byte	0x50
+ 1191 0050 02       		.uleb128 0x2
+ 1192 0051 02       		.byte	0x2
+ 1193 0052 07       		.byte	0x7
+ 1194 0053 1C010000 		.4byte	.LASF5
+ 1195 0057 02       		.uleb128 0x2
+ 1196 0058 04       		.byte	0x4
+ 1197 0059 05       		.byte	0x5
+ 1198 005a 80000000 		.4byte	.LASF6
+ 1199 005e 03       		.uleb128 0x3
+ 1200 005f BA000000 		.4byte	.LASF7
+ 1201 0063 02       		.byte	0x2
+ 1202 0064 41       		.byte	0x41
+ 1203 0065 69000000 		.4byte	0x69
+ 1204 0069 02       		.uleb128 0x2
+ 1205 006a 04       		.byte	0x4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 29
+
+
+ 1206 006b 07       		.byte	0x7
+ 1207 006c FB000000 		.4byte	.LASF8
+ 1208 0070 02       		.uleb128 0x2
+ 1209 0071 08       		.byte	0x8
+ 1210 0072 05       		.byte	0x5
+ 1211 0073 55000000 		.4byte	.LASF9
+ 1212 0077 03       		.uleb128 0x3
+ 1213 0078 32020000 		.4byte	.LASF10
+ 1214 007c 02       		.byte	0x2
+ 1215 007d 5B       		.byte	0x5b
+ 1216 007e 82000000 		.4byte	0x82
+ 1217 0082 02       		.uleb128 0x2
+ 1218 0083 08       		.byte	0x8
+ 1219 0084 07       		.byte	0x7
+ 1220 0085 38000000 		.4byte	.LASF11
+ 1221 0089 04       		.uleb128 0x4
+ 1222 008a 04       		.byte	0x4
+ 1223 008b 05       		.byte	0x5
+ 1224 008c 696E7400 		.ascii	"int\000"
+ 1225 0090 02       		.uleb128 0x2
+ 1226 0091 04       		.byte	0x4
+ 1227 0092 07       		.byte	0x7
+ 1228 0093 E5000000 		.4byte	.LASF12
+ 1229 0097 03       		.uleb128 0x3
+ 1230 0098 06030000 		.4byte	.LASF13
+ 1231 009c 03       		.byte	0x3
+ 1232 009d 15       		.byte	0x15
+ 1233 009e 2C000000 		.4byte	0x2c
+ 1234 00a2 03       		.uleb128 0x3
+ 1235 00a3 89000000 		.4byte	.LASF14
+ 1236 00a7 03       		.byte	0x3
+ 1237 00a8 21       		.byte	0x21
+ 1238 00a9 45000000 		.4byte	0x45
+ 1239 00ad 03       		.uleb128 0x3
+ 1240 00ae B6020000 		.4byte	.LASF15
+ 1241 00b2 03       		.byte	0x3
+ 1242 00b3 2D       		.byte	0x2d
+ 1243 00b4 5E000000 		.4byte	0x5e
+ 1244 00b8 03       		.uleb128 0x3
+ 1245 00b9 25000000 		.4byte	.LASF16
+ 1246 00bd 03       		.byte	0x3
+ 1247 00be 39       		.byte	0x39
+ 1248 00bf 77000000 		.4byte	0x77
+ 1249 00c3 02       		.uleb128 0x2
+ 1250 00c4 04       		.byte	0x4
+ 1251 00c5 07       		.byte	0x7
+ 1252 00c6 FF010000 		.4byte	.LASF17
+ 1253 00ca 05       		.uleb128 0x5
+ 1254 00cb 04       		.byte	0x4
+ 1255 00cc D0000000 		.4byte	0xd0
+ 1256 00d0 02       		.uleb128 0x2
+ 1257 00d1 01       		.byte	0x1
+ 1258 00d2 08       		.byte	0x8
+ 1259 00d3 BF020000 		.4byte	.LASF18
+ 1260 00d7 05       		.uleb128 0x5
+ 1261 00d8 04       		.byte	0x4
+ 1262 00d9 DD000000 		.4byte	0xdd
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 30
+
+
+ 1263 00dd 06       		.uleb128 0x6
+ 1264 00de D0000000 		.4byte	0xd0
+ 1265 00e2 02       		.uleb128 0x2
+ 1266 00e3 04       		.byte	0x4
+ 1267 00e4 04       		.byte	0x4
+ 1268 00e5 3D020000 		.4byte	.LASF19
+ 1269 00e9 02       		.uleb128 0x2
+ 1270 00ea 08       		.byte	0x8
+ 1271 00eb 04       		.byte	0x4
+ 1272 00ec 92000000 		.4byte	.LASF20
+ 1273 00f0 07       		.uleb128 0x7
+ 1274 00f1 12020000 		.4byte	.LASF77
+ 1275 00f5 20       		.byte	0x20
+ 1276 00f6 04       		.byte	0x4
+ 1277 00f7 08       		.byte	0x8
+ 1278 00f8 51010000 		.4byte	0x151
+ 1279 00fc 08       		.uleb128 0x8
+ 1280 00fd 53657100 		.ascii	"Seq\000"
+ 1281 0101 04       		.byte	0x4
+ 1282 0102 0A       		.byte	0xa
+ 1283 0103 A2000000 		.4byte	0xa2
+ 1284 0107 00       		.byte	0
+ 1285 0108 09       		.uleb128 0x9
+ 1286 0109 AB000000 		.4byte	.LASF21
+ 1287 010d 04       		.byte	0x4
+ 1288 010e 0B       		.byte	0xb
+ 1289 010f 89000000 		.4byte	0x89
+ 1290 0113 04       		.byte	0x4
+ 1291 0114 09       		.uleb128 0x9
+ 1292 0115 8F010000 		.4byte	.LASF22
+ 1293 0119 04       		.byte	0x4
+ 1294 011a 0C       		.byte	0xc
+ 1295 011b B8000000 		.4byte	0xb8
+ 1296 011f 08       		.byte	0x8
+ 1297 0120 09       		.uleb128 0x9
+ 1298 0121 95010000 		.4byte	.LASF23
+ 1299 0125 04       		.byte	0x4
+ 1300 0126 0D       		.byte	0xd
+ 1301 0127 A2000000 		.4byte	0xa2
+ 1302 012b 10       		.byte	0x10
+ 1303 012c 09       		.uleb128 0x9
+ 1304 012d 9B010000 		.4byte	.LASF24
+ 1305 0131 04       		.byte	0x4
+ 1306 0132 0E       		.byte	0xe
+ 1307 0133 A2000000 		.4byte	0xa2
+ 1308 0137 12       		.byte	0x12
+ 1309 0138 09       		.uleb128 0x9
+ 1310 0139 43020000 		.4byte	.LASF25
+ 1311 013d 04       		.byte	0x4
+ 1312 013e 0F       		.byte	0xf
+ 1313 013f AD000000 		.4byte	0xad
+ 1314 0143 14       		.byte	0x14
+ 1315 0144 09       		.uleb128 0x9
+ 1316 0145 A8030000 		.4byte	.LASF26
+ 1317 0149 04       		.byte	0x4
+ 1318 014a 10       		.byte	0x10
+ 1319 014b 97000000 		.4byte	0x97
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 31
+
+
+ 1320 014f 18       		.byte	0x18
+ 1321 0150 00       		.byte	0
+ 1322 0151 0A       		.uleb128 0xa
+ 1323 0152 90020000 		.4byte	.LASF38
+ 1324 0156 01       		.byte	0x1
+ 1325 0157 04       		.byte	0x4
+ 1326 0158 14       		.byte	0x14
+ 1327 0159 A0010000 		.4byte	0x1a0
+ 1328 015d 0B       		.uleb128 0xb
+ 1329 015e 08020000 		.4byte	.LASF27
+ 1330 0162 00       		.sleb128 0
+ 1331 0163 0B       		.uleb128 0xb
+ 1332 0164 CD010000 		.4byte	.LASF28
+ 1333 0168 01       		.sleb128 1
+ 1334 0169 0B       		.uleb128 0xb
+ 1335 016a B3000000 		.4byte	.LASF29
+ 1336 016e 02       		.sleb128 2
+ 1337 016f 0B       		.uleb128 0xb
+ 1338 0170 1C000000 		.4byte	.LASF30
+ 1339 0174 03       		.sleb128 3
+ 1340 0175 0B       		.uleb128 0xb
+ 1341 0176 A1030000 		.4byte	.LASF31
+ 1342 017a 04       		.sleb128 4
+ 1343 017b 0B       		.uleb128 0xb
+ 1344 017c 4C020000 		.4byte	.LASF32
+ 1345 0180 05       		.sleb128 5
+ 1346 0181 0B       		.uleb128 0xb
+ 1347 0182 54020000 		.4byte	.LASF33
+ 1348 0186 06       		.sleb128 6
+ 1349 0187 0B       		.uleb128 0xb
+ 1350 0188 C5000000 		.4byte	.LASF34
+ 1351 018c 07       		.sleb128 7
+ 1352 018d 0B       		.uleb128 0xb
+ 1353 018e F0020000 		.4byte	.LASF35
+ 1354 0192 08       		.sleb128 8
+ 1355 0193 0B       		.uleb128 0xb
+ 1356 0194 CF020000 		.4byte	.LASF36
+ 1357 0198 09       		.sleb128 9
+ 1358 0199 0B       		.uleb128 0xb
+ 1359 019a 5C020000 		.4byte	.LASF37
+ 1360 019e 0A       		.sleb128 10
+ 1361 019f 00       		.byte	0
+ 1362 01a0 0A       		.uleb128 0xa
+ 1363 01a1 A8010000 		.4byte	.LASF39
+ 1364 01a5 01       		.byte	0x1
+ 1365 01a6 01       		.byte	0x1
+ 1366 01a7 1B       		.byte	0x1b
+ 1367 01a8 EF010000 		.4byte	0x1ef
+ 1368 01ac 0B       		.uleb128 0xb
+ 1369 01ad D6020000 		.4byte	.LASF40
+ 1370 01b1 00       		.sleb128 0
+ 1371 01b2 0B       		.uleb128 0xb
+ 1372 01b3 E8020000 		.4byte	.LASF41
+ 1373 01b7 01       		.sleb128 1
+ 1374 01b8 0B       		.uleb128 0xb
+ 1375 01b9 D5010000 		.4byte	.LASF42
+ 1376 01bd 02       		.sleb128 2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 32
+
+
+ 1377 01be 0B       		.uleb128 0xb
+ 1378 01bf 87020000 		.4byte	.LASF43
+ 1379 01c3 03       		.sleb128 3
+ 1380 01c4 0B       		.uleb128 0xb
+ 1381 01c5 DE010000 		.4byte	.LASF44
+ 1382 01c9 04       		.sleb128 4
+ 1383 01ca 0B       		.uleb128 0xb
+ 1384 01cb 17020000 		.4byte	.LASF45
+ 1385 01cf 05       		.sleb128 5
+ 1386 01d0 0B       		.uleb128 0xb
+ 1387 01d1 20020000 		.4byte	.LASF46
+ 1388 01d5 06       		.sleb128 6
+ 1389 01d6 0B       		.uleb128 0xb
+ 1390 01d7 29020000 		.4byte	.LASF47
+ 1391 01db 07       		.sleb128 7
+ 1392 01dc 0B       		.uleb128 0xb
+ 1393 01dd E7010000 		.4byte	.LASF48
+ 1394 01e1 08       		.sleb128 8
+ 1395 01e2 0B       		.uleb128 0xb
+ 1396 01e3 DF020000 		.4byte	.LASF49
+ 1397 01e7 09       		.sleb128 9
+ 1398 01e8 0B       		.uleb128 0xb
+ 1399 01e9 00000000 		.4byte	.LASF50
+ 1400 01ed 0A       		.sleb128 10
+ 1401 01ee 00       		.byte	0
+ 1402 01ef 0C       		.uleb128 0xc
+ 1403 01f0 09000000 		.4byte	.LASF56
+ 1404 01f4 01       		.byte	0x1
+ 1405 01f5 2E       		.byte	0x2e
+ 1406 01f6 97000000 		.4byte	0x97
+ 1407 01fa 00000000 		.4byte	.LFB2
+ 1408 01fe 64040000 		.4byte	.LFE2-.LFB2
+ 1409 0202 01       		.uleb128 0x1
+ 1410 0203 9C       		.byte	0x9c
+ 1411 0204 73020000 		.4byte	0x273
+ 1412 0208 0D       		.uleb128 0xd
+ 1413 0209 0E030000 		.4byte	.LASF51
+ 1414 020d 01       		.byte	0x1
+ 1415 020e 2E       		.byte	0x2e
+ 1416 020f 73020000 		.4byte	0x273
+ 1417 0213 03       		.uleb128 0x3
+ 1418 0214 91       		.byte	0x91
+ 1419 0215 B47F     		.sleb128 -76
+ 1420 0217 0D       		.uleb128 0xd
+ 1421 0218 A1010000 		.4byte	.LASF52
+ 1422 021c 01       		.byte	0x1
+ 1423 021d 2E       		.byte	0x2e
+ 1424 021e 97000000 		.4byte	0x97
+ 1425 0222 03       		.uleb128 0x3
+ 1426 0223 91       		.byte	0x91
+ 1427 0224 B37F     		.sleb128 -77
+ 1428 0226 0E       		.uleb128 0xe
+ 1429 0227 DC000000 		.4byte	.LASF53
+ 1430 022b 01       		.byte	0x1
+ 1431 022c 30       		.byte	0x30
+ 1432 022d AD000000 		.4byte	0xad
+ 1433 0231 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 33
+
+
+ 1434 0232 91       		.byte	0x91
+ 1435 0233 64       		.sleb128 -28
+ 1436 0234 0F       		.uleb128 0xf
+ 1437 0235 6E030000 		.4byte	.LBB2
+ 1438 0239 BA000000 		.4byte	.LBE2-.LBB2
+ 1439 023d 0E       		.uleb128 0xe
+ 1440 023e F7010000 		.4byte	.LASF54
+ 1441 0242 01       		.byte	0x1
+ 1442 0243 F8       		.byte	0xf8
+ 1443 0244 AD000000 		.4byte	0xad
+ 1444 0248 02       		.uleb128 0x2
+ 1445 0249 91       		.byte	0x91
+ 1446 024a 60       		.sleb128 -32
+ 1447 024b 0E       		.uleb128 0xe
+ 1448 024c F2000000 		.4byte	.LASF55
+ 1449 0250 01       		.byte	0x1
+ 1450 0251 F9       		.byte	0xf9
+ 1451 0252 79020000 		.4byte	0x279
+ 1452 0256 03       		.uleb128 0x3
+ 1453 0257 91       		.byte	0x91
+ 1454 0258 B87F     		.sleb128 -72
+ 1455 025a 10       		.uleb128 0x10
+ 1456 025b 14000000 		.4byte	.LASF66
+ 1457 025f 05       		.byte	0x5
+ 1458 0260 00       		.byte	0
+ 1459 0261 89000000 		.4byte	0x89
+ 1460 0265 11       		.uleb128 0x11
+ 1461 0266 CA000000 		.4byte	0xca
+ 1462 026a 11       		.uleb128 0x11
+ 1463 026b D7000000 		.4byte	0xd7
+ 1464 026f 12       		.uleb128 0x12
+ 1465 0270 00       		.byte	0
+ 1466 0271 00       		.byte	0
+ 1467 0272 00       		.byte	0
+ 1468 0273 05       		.uleb128 0x5
+ 1469 0274 04       		.byte	0x4
+ 1470 0275 F0000000 		.4byte	0xf0
+ 1471 0279 13       		.uleb128 0x13
+ 1472 027a D0000000 		.4byte	0xd0
+ 1473 027e 89020000 		.4byte	0x289
+ 1474 0282 14       		.uleb128 0x14
+ 1475 0283 C3000000 		.4byte	0xc3
+ 1476 0287 27       		.byte	0x27
+ 1477 0288 00       		.byte	0
+ 1478 0289 15       		.uleb128 0x15
+ 1479 028a CC000000 		.4byte	.LASF57
+ 1480 028e 01       		.byte	0x1
+ 1481 028f 1E01     		.2byte	0x11e
+ 1482 0291 97000000 		.4byte	0x97
+ 1483 0295 00000000 		.4byte	.LFB3
+ 1484 0299 4E000000 		.4byte	.LFE3-.LFB3
+ 1485 029d 01       		.uleb128 0x1
+ 1486 029e 9C       		.byte	0x9c
+ 1487 029f B3020000 		.4byte	0x2b3
+ 1488 02a3 16       		.uleb128 0x16
+ 1489 02a4 496E7000 		.ascii	"Inp\000"
+ 1490 02a8 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 34
+
+
+ 1491 02a9 1E01     		.2byte	0x11e
+ 1492 02ab 97000000 		.4byte	0x97
+ 1493 02af 02       		.uleb128 0x2
+ 1494 02b0 91       		.byte	0x91
+ 1495 02b1 77       		.sleb128 -9
+ 1496 02b2 00       		.byte	0
+ 1497 02b3 15       		.uleb128 0x15
+ 1498 02b4 0D010000 		.4byte	.LASF58
+ 1499 02b8 01       		.byte	0x1
+ 1500 02b9 2A01     		.2byte	0x12a
+ 1501 02bb 97000000 		.4byte	0x97
+ 1502 02bf 00000000 		.4byte	.LFB4
+ 1503 02c3 32000000 		.4byte	.LFE4-.LFB4
+ 1504 02c7 01       		.uleb128 0x1
+ 1505 02c8 9C       		.byte	0x9c
+ 1506 02c9 EC020000 		.4byte	0x2ec
+ 1507 02cd 16       		.uleb128 0x16
+ 1508 02ce 496E7000 		.ascii	"Inp\000"
+ 1509 02d2 01       		.byte	0x1
+ 1510 02d3 2A01     		.2byte	0x12a
+ 1511 02d5 97000000 		.4byte	0x97
+ 1512 02d9 02       		.uleb128 0x2
+ 1513 02da 91       		.byte	0x91
+ 1514 02db 6F       		.sleb128 -17
+ 1515 02dc 17       		.uleb128 0x17
+ 1516 02dd 56616C00 		.ascii	"Val\000"
+ 1517 02e1 01       		.byte	0x1
+ 1518 02e2 2C01     		.2byte	0x12c
+ 1519 02e4 97000000 		.4byte	0x97
+ 1520 02e8 02       		.uleb128 0x2
+ 1521 02e9 91       		.byte	0x91
+ 1522 02ea 77       		.sleb128 -9
+ 1523 02eb 00       		.byte	0
+ 1524 02ec 18       		.uleb128 0x18
+ 1525 02ed 74000000 		.4byte	.LASF78
+ 1526 02f1 01       		.byte	0x1
+ 1527 02f2 3501     		.2byte	0x135
+ 1528 02f4 00000000 		.4byte	.LFB5
+ 1529 02f8 3C000000 		.4byte	.LFE5-.LFB5
+ 1530 02fc 01       		.uleb128 0x1
+ 1531 02fd 9C       		.byte	0x9c
+ 1532 02fe 12030000 		.4byte	0x312
+ 1533 0302 19       		.uleb128 0x19
+ 1534 0303 0E030000 		.4byte	.LASF51
+ 1535 0307 01       		.byte	0x1
+ 1536 0308 3501     		.2byte	0x135
+ 1537 030a 73020000 		.4byte	0x273
+ 1538 030e 02       		.uleb128 0x2
+ 1539 030f 91       		.byte	0x91
+ 1540 0310 6C       		.sleb128 -20
+ 1541 0311 00       		.byte	0
+ 1542 0312 1A       		.uleb128 0x1a
+ 1543 0313 B8010000 		.4byte	.LASF59
+ 1544 0317 01       		.byte	0x1
+ 1545 0318 4001     		.2byte	0x140
+ 1546 031a 97000000 		.4byte	0x97
+ 1547 031e 00000000 		.4byte	.LFB6
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 35
+
+
+ 1548 0322 58010000 		.4byte	.LFE6-.LFB6
+ 1549 0326 01       		.uleb128 0x1
+ 1550 0327 9C       		.byte	0x9c
+ 1551 0328 AD030000 		.4byte	0x3ad
+ 1552 032c 19       		.uleb128 0x19
+ 1553 032d 6F000000 		.4byte	.LASF60
+ 1554 0331 01       		.byte	0x1
+ 1555 0332 4001     		.2byte	0x140
+ 1556 0334 CA000000 		.4byte	0xca
+ 1557 0338 02       		.uleb128 0x2
+ 1558 0339 91       		.byte	0x91
+ 1559 033a 44       		.sleb128 -60
+ 1560 033b 19       		.uleb128 0x19
+ 1561 033c 17010000 		.4byte	.LASF61
+ 1562 0340 01       		.byte	0x1
+ 1563 0341 4001     		.2byte	0x140
+ 1564 0343 AD030000 		.4byte	0x3ad
+ 1565 0347 02       		.uleb128 0x2
+ 1566 0348 91       		.byte	0x91
+ 1567 0349 40       		.sleb128 -64
+ 1568 034a 19       		.uleb128 0x19
+ 1569 034b FD020000 		.4byte	.LASF62
+ 1570 034f 01       		.byte	0x1
+ 1571 0350 4001     		.2byte	0x140
+ 1572 0352 A2000000 		.4byte	0xa2
+ 1573 0356 03       		.uleb128 0x3
+ 1574 0357 91       		.byte	0x91
+ 1575 0358 BE7F     		.sleb128 -66
+ 1576 035a 1B       		.uleb128 0x1b
+ 1577 035b D7000000 		.4byte	.LASF63
+ 1578 035f 01       		.byte	0x1
+ 1579 0360 4201     		.2byte	0x142
+ 1580 0362 AD000000 		.4byte	0xad
+ 1581 0366 02       		.uleb128 0x2
+ 1582 0367 91       		.byte	0x91
+ 1583 0368 70       		.sleb128 -16
+ 1584 0369 17       		.uleb128 0x17
+ 1585 036a 5F7000   		.ascii	"_p\000"
+ 1586 036d 01       		.byte	0x1
+ 1587 036e 4301     		.2byte	0x143
+ 1588 0370 CA000000 		.4byte	0xca
+ 1589 0374 02       		.uleb128 0x2
+ 1590 0375 91       		.byte	0x91
+ 1591 0376 74       		.sleb128 -12
+ 1592 0377 1B       		.uleb128 0x1b
+ 1593 0378 4F000000 		.4byte	.LASF64
+ 1594 037c 01       		.byte	0x1
+ 1595 037d 4401     		.2byte	0x144
+ 1596 037f B3030000 		.4byte	0x3b3
+ 1597 0383 02       		.uleb128 0x2
+ 1598 0384 91       		.byte	0x91
+ 1599 0385 5C       		.sleb128 -36
+ 1600 0386 1B       		.uleb128 0x1b
+ 1601 0387 72020000 		.4byte	.LASF65
+ 1602 038b 01       		.byte	0x1
+ 1603 038c 4501     		.2byte	0x145
+ 1604 038e B3030000 		.4byte	0x3b3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 36
+
+
+ 1605 0392 02       		.uleb128 0x2
+ 1606 0393 91       		.byte	0x91
+ 1607 0394 48       		.sleb128 -56
+ 1608 0395 10       		.uleb128 0x10
+ 1609 0396 14000000 		.4byte	.LASF66
+ 1610 039a 05       		.byte	0x5
+ 1611 039b 00       		.byte	0
+ 1612 039c 89000000 		.4byte	0x89
+ 1613 03a0 11       		.uleb128 0x11
+ 1614 03a1 CA000000 		.4byte	0xca
+ 1615 03a5 11       		.uleb128 0x11
+ 1616 03a6 D7000000 		.4byte	0xd7
+ 1617 03aa 12       		.uleb128 0x12
+ 1618 03ab 00       		.byte	0
+ 1619 03ac 00       		.byte	0
+ 1620 03ad 05       		.uleb128 0x5
+ 1621 03ae 04       		.byte	0x4
+ 1622 03af 97000000 		.4byte	0x97
+ 1623 03b3 13       		.uleb128 0x13
+ 1624 03b4 D0000000 		.4byte	0xd0
+ 1625 03b8 C3030000 		.4byte	0x3c3
+ 1626 03bc 14       		.uleb128 0x14
+ 1627 03bd C3000000 		.4byte	0xc3
+ 1628 03c1 13       		.byte	0x13
+ 1629 03c2 00       		.byte	0
+ 1630 03c3 1C       		.uleb128 0x1c
+ 1631 03c4 C1010000 		.4byte	.LASF67
+ 1632 03c8 01       		.byte	0x1
+ 1633 03c9 19       		.byte	0x19
+ 1634 03ca 97000000 		.4byte	0x97
+ 1635 03ce 05       		.uleb128 0x5
+ 1636 03cf 03       		.byte	0x3
+ 1637 03d0 00000000 		.4byte	PROTO_STATE
+ 1638 03d4 1C       		.uleb128 0x1c
+ 1639 03d5 99000000 		.4byte	.LASF68
+ 1640 03d9 01       		.byte	0x1
+ 1641 03da 19       		.byte	0x19
+ 1642 03db 97000000 		.4byte	0x97
+ 1643 03df 05       		.uleb128 0x5
+ 1644 03e0 03       		.byte	0x3
+ 1645 03e1 00000000 		.4byte	LenD1
+ 1646 03e5 1C       		.uleb128 0x1c
+ 1647 03e6 9F000000 		.4byte	.LASF69
+ 1648 03ea 01       		.byte	0x1
+ 1649 03eb 19       		.byte	0x19
+ 1650 03ec 97000000 		.4byte	0x97
+ 1651 03f0 05       		.uleb128 0x5
+ 1652 03f1 03       		.byte	0x3
+ 1653 03f2 00000000 		.4byte	LenD2
+ 1654 03f6 1C       		.uleb128 0x1c
+ 1655 03f7 A5000000 		.4byte	.LASF70
+ 1656 03fb 01       		.byte	0x1
+ 1657 03fc 19       		.byte	0x19
+ 1658 03fd 97000000 		.4byte	0x97
+ 1659 0401 05       		.uleb128 0x5
+ 1660 0402 03       		.byte	0x3
+ 1661 0403 00000000 		.4byte	LenD3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 37
+
+
+ 1662 0407 1C       		.uleb128 0x1c
+ 1663 0408 F0010000 		.4byte	.LASF71
+ 1664 040c 01       		.byte	0x1
+ 1665 040d 19       		.byte	0x19
+ 1666 040e 97000000 		.4byte	0x97
+ 1667 0412 05       		.uleb128 0x5
+ 1668 0413 03       		.byte	0x3
+ 1669 0414 00000000 		.4byte	LenSeq
+ 1670 0418 1C       		.uleb128 0x1c
+ 1671 0419 AF020000 		.4byte	.LASF72
+ 1672 041d 01       		.byte	0x1
+ 1673 041e 19       		.byte	0x19
+ 1674 041f 97000000 		.4byte	0x97
+ 1675 0423 05       		.uleb128 0x5
+ 1676 0424 03       		.byte	0x3
+ 1677 0425 00000000 		.4byte	LenChS
+ 1678 0429 1C       		.uleb128 0x1c
+ 1679 042a B3010000 		.4byte	.LASF73
+ 1680 042e 01       		.byte	0x1
+ 1681 042f 19       		.byte	0x19
+ 1682 0430 97000000 		.4byte	0x97
+ 1683 0434 05       		.uleb128 0x5
+ 1684 0435 03       		.byte	0x3
+ 1685 0436 00000000 		.4byte	LenC
+ 1686 043a 00       		.byte	0
+ 1687              		.section	.debug_abbrev,"",%progbits
+ 1688              	.Ldebug_abbrev0:
+ 1689 0000 01       		.uleb128 0x1
+ 1690 0001 11       		.uleb128 0x11
+ 1691 0002 01       		.byte	0x1
+ 1692 0003 25       		.uleb128 0x25
+ 1693 0004 0E       		.uleb128 0xe
+ 1694 0005 13       		.uleb128 0x13
+ 1695 0006 0B       		.uleb128 0xb
+ 1696 0007 03       		.uleb128 0x3
+ 1697 0008 0E       		.uleb128 0xe
+ 1698 0009 1B       		.uleb128 0x1b
+ 1699 000a 0E       		.uleb128 0xe
+ 1700 000b 55       		.uleb128 0x55
+ 1701 000c 17       		.uleb128 0x17
+ 1702 000d 11       		.uleb128 0x11
+ 1703 000e 01       		.uleb128 0x1
+ 1704 000f 10       		.uleb128 0x10
+ 1705 0010 17       		.uleb128 0x17
+ 1706 0011 00       		.byte	0
+ 1707 0012 00       		.byte	0
+ 1708 0013 02       		.uleb128 0x2
+ 1709 0014 24       		.uleb128 0x24
+ 1710 0015 00       		.byte	0
+ 1711 0016 0B       		.uleb128 0xb
+ 1712 0017 0B       		.uleb128 0xb
+ 1713 0018 3E       		.uleb128 0x3e
+ 1714 0019 0B       		.uleb128 0xb
+ 1715 001a 03       		.uleb128 0x3
+ 1716 001b 0E       		.uleb128 0xe
+ 1717 001c 00       		.byte	0
+ 1718 001d 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 38
+
+
+ 1719 001e 03       		.uleb128 0x3
+ 1720 001f 16       		.uleb128 0x16
+ 1721 0020 00       		.byte	0
+ 1722 0021 03       		.uleb128 0x3
+ 1723 0022 0E       		.uleb128 0xe
+ 1724 0023 3A       		.uleb128 0x3a
+ 1725 0024 0B       		.uleb128 0xb
+ 1726 0025 3B       		.uleb128 0x3b
+ 1727 0026 0B       		.uleb128 0xb
+ 1728 0027 49       		.uleb128 0x49
+ 1729 0028 13       		.uleb128 0x13
+ 1730 0029 00       		.byte	0
+ 1731 002a 00       		.byte	0
+ 1732 002b 04       		.uleb128 0x4
+ 1733 002c 24       		.uleb128 0x24
+ 1734 002d 00       		.byte	0
+ 1735 002e 0B       		.uleb128 0xb
+ 1736 002f 0B       		.uleb128 0xb
+ 1737 0030 3E       		.uleb128 0x3e
+ 1738 0031 0B       		.uleb128 0xb
+ 1739 0032 03       		.uleb128 0x3
+ 1740 0033 08       		.uleb128 0x8
+ 1741 0034 00       		.byte	0
+ 1742 0035 00       		.byte	0
+ 1743 0036 05       		.uleb128 0x5
+ 1744 0037 0F       		.uleb128 0xf
+ 1745 0038 00       		.byte	0
+ 1746 0039 0B       		.uleb128 0xb
+ 1747 003a 0B       		.uleb128 0xb
+ 1748 003b 49       		.uleb128 0x49
+ 1749 003c 13       		.uleb128 0x13
+ 1750 003d 00       		.byte	0
+ 1751 003e 00       		.byte	0
+ 1752 003f 06       		.uleb128 0x6
+ 1753 0040 26       		.uleb128 0x26
+ 1754 0041 00       		.byte	0
+ 1755 0042 49       		.uleb128 0x49
+ 1756 0043 13       		.uleb128 0x13
+ 1757 0044 00       		.byte	0
+ 1758 0045 00       		.byte	0
+ 1759 0046 07       		.uleb128 0x7
+ 1760 0047 13       		.uleb128 0x13
+ 1761 0048 01       		.byte	0x1
+ 1762 0049 03       		.uleb128 0x3
+ 1763 004a 0E       		.uleb128 0xe
+ 1764 004b 0B       		.uleb128 0xb
+ 1765 004c 0B       		.uleb128 0xb
+ 1766 004d 3A       		.uleb128 0x3a
+ 1767 004e 0B       		.uleb128 0xb
+ 1768 004f 3B       		.uleb128 0x3b
+ 1769 0050 0B       		.uleb128 0xb
+ 1770 0051 01       		.uleb128 0x1
+ 1771 0052 13       		.uleb128 0x13
+ 1772 0053 00       		.byte	0
+ 1773 0054 00       		.byte	0
+ 1774 0055 08       		.uleb128 0x8
+ 1775 0056 0D       		.uleb128 0xd
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 39
+
+
+ 1776 0057 00       		.byte	0
+ 1777 0058 03       		.uleb128 0x3
+ 1778 0059 08       		.uleb128 0x8
+ 1779 005a 3A       		.uleb128 0x3a
+ 1780 005b 0B       		.uleb128 0xb
+ 1781 005c 3B       		.uleb128 0x3b
+ 1782 005d 0B       		.uleb128 0xb
+ 1783 005e 49       		.uleb128 0x49
+ 1784 005f 13       		.uleb128 0x13
+ 1785 0060 38       		.uleb128 0x38
+ 1786 0061 0B       		.uleb128 0xb
+ 1787 0062 00       		.byte	0
+ 1788 0063 00       		.byte	0
+ 1789 0064 09       		.uleb128 0x9
+ 1790 0065 0D       		.uleb128 0xd
+ 1791 0066 00       		.byte	0
+ 1792 0067 03       		.uleb128 0x3
+ 1793 0068 0E       		.uleb128 0xe
+ 1794 0069 3A       		.uleb128 0x3a
+ 1795 006a 0B       		.uleb128 0xb
+ 1796 006b 3B       		.uleb128 0x3b
+ 1797 006c 0B       		.uleb128 0xb
+ 1798 006d 49       		.uleb128 0x49
+ 1799 006e 13       		.uleb128 0x13
+ 1800 006f 38       		.uleb128 0x38
+ 1801 0070 0B       		.uleb128 0xb
+ 1802 0071 00       		.byte	0
+ 1803 0072 00       		.byte	0
+ 1804 0073 0A       		.uleb128 0xa
+ 1805 0074 04       		.uleb128 0x4
+ 1806 0075 01       		.byte	0x1
+ 1807 0076 03       		.uleb128 0x3
+ 1808 0077 0E       		.uleb128 0xe
+ 1809 0078 0B       		.uleb128 0xb
+ 1810 0079 0B       		.uleb128 0xb
+ 1811 007a 3A       		.uleb128 0x3a
+ 1812 007b 0B       		.uleb128 0xb
+ 1813 007c 3B       		.uleb128 0x3b
+ 1814 007d 0B       		.uleb128 0xb
+ 1815 007e 01       		.uleb128 0x1
+ 1816 007f 13       		.uleb128 0x13
+ 1817 0080 00       		.byte	0
+ 1818 0081 00       		.byte	0
+ 1819 0082 0B       		.uleb128 0xb
+ 1820 0083 28       		.uleb128 0x28
+ 1821 0084 00       		.byte	0
+ 1822 0085 03       		.uleb128 0x3
+ 1823 0086 0E       		.uleb128 0xe
+ 1824 0087 1C       		.uleb128 0x1c
+ 1825 0088 0D       		.uleb128 0xd
+ 1826 0089 00       		.byte	0
+ 1827 008a 00       		.byte	0
+ 1828 008b 0C       		.uleb128 0xc
+ 1829 008c 2E       		.uleb128 0x2e
+ 1830 008d 01       		.byte	0x1
+ 1831 008e 3F       		.uleb128 0x3f
+ 1832 008f 19       		.uleb128 0x19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 40
+
+
+ 1833 0090 03       		.uleb128 0x3
+ 1834 0091 0E       		.uleb128 0xe
+ 1835 0092 3A       		.uleb128 0x3a
+ 1836 0093 0B       		.uleb128 0xb
+ 1837 0094 3B       		.uleb128 0x3b
+ 1838 0095 0B       		.uleb128 0xb
+ 1839 0096 27       		.uleb128 0x27
+ 1840 0097 19       		.uleb128 0x19
+ 1841 0098 49       		.uleb128 0x49
+ 1842 0099 13       		.uleb128 0x13
+ 1843 009a 11       		.uleb128 0x11
+ 1844 009b 01       		.uleb128 0x1
+ 1845 009c 12       		.uleb128 0x12
+ 1846 009d 06       		.uleb128 0x6
+ 1847 009e 40       		.uleb128 0x40
+ 1848 009f 18       		.uleb128 0x18
+ 1849 00a0 9642     		.uleb128 0x2116
+ 1850 00a2 19       		.uleb128 0x19
+ 1851 00a3 01       		.uleb128 0x1
+ 1852 00a4 13       		.uleb128 0x13
+ 1853 00a5 00       		.byte	0
+ 1854 00a6 00       		.byte	0
+ 1855 00a7 0D       		.uleb128 0xd
+ 1856 00a8 05       		.uleb128 0x5
+ 1857 00a9 00       		.byte	0
+ 1858 00aa 03       		.uleb128 0x3
+ 1859 00ab 0E       		.uleb128 0xe
+ 1860 00ac 3A       		.uleb128 0x3a
+ 1861 00ad 0B       		.uleb128 0xb
+ 1862 00ae 3B       		.uleb128 0x3b
+ 1863 00af 0B       		.uleb128 0xb
+ 1864 00b0 49       		.uleb128 0x49
+ 1865 00b1 13       		.uleb128 0x13
+ 1866 00b2 02       		.uleb128 0x2
+ 1867 00b3 18       		.uleb128 0x18
+ 1868 00b4 00       		.byte	0
+ 1869 00b5 00       		.byte	0
+ 1870 00b6 0E       		.uleb128 0xe
+ 1871 00b7 34       		.uleb128 0x34
+ 1872 00b8 00       		.byte	0
+ 1873 00b9 03       		.uleb128 0x3
+ 1874 00ba 0E       		.uleb128 0xe
+ 1875 00bb 3A       		.uleb128 0x3a
+ 1876 00bc 0B       		.uleb128 0xb
+ 1877 00bd 3B       		.uleb128 0x3b
+ 1878 00be 0B       		.uleb128 0xb
+ 1879 00bf 49       		.uleb128 0x49
+ 1880 00c0 13       		.uleb128 0x13
+ 1881 00c1 02       		.uleb128 0x2
+ 1882 00c2 18       		.uleb128 0x18
+ 1883 00c3 00       		.byte	0
+ 1884 00c4 00       		.byte	0
+ 1885 00c5 0F       		.uleb128 0xf
+ 1886 00c6 0B       		.uleb128 0xb
+ 1887 00c7 01       		.byte	0x1
+ 1888 00c8 11       		.uleb128 0x11
+ 1889 00c9 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 41
+
+
+ 1890 00ca 12       		.uleb128 0x12
+ 1891 00cb 06       		.uleb128 0x6
+ 1892 00cc 00       		.byte	0
+ 1893 00cd 00       		.byte	0
+ 1894 00ce 10       		.uleb128 0x10
+ 1895 00cf 2E       		.uleb128 0x2e
+ 1896 00d0 01       		.byte	0x1
+ 1897 00d1 3F       		.uleb128 0x3f
+ 1898 00d2 19       		.uleb128 0x19
+ 1899 00d3 03       		.uleb128 0x3
+ 1900 00d4 0E       		.uleb128 0xe
+ 1901 00d5 3A       		.uleb128 0x3a
+ 1902 00d6 0B       		.uleb128 0xb
+ 1903 00d7 3B       		.uleb128 0x3b
+ 1904 00d8 0B       		.uleb128 0xb
+ 1905 00d9 27       		.uleb128 0x27
+ 1906 00da 19       		.uleb128 0x19
+ 1907 00db 49       		.uleb128 0x49
+ 1908 00dc 13       		.uleb128 0x13
+ 1909 00dd 3C       		.uleb128 0x3c
+ 1910 00de 19       		.uleb128 0x19
+ 1911 00df 00       		.byte	0
+ 1912 00e0 00       		.byte	0
+ 1913 00e1 11       		.uleb128 0x11
+ 1914 00e2 05       		.uleb128 0x5
+ 1915 00e3 00       		.byte	0
+ 1916 00e4 49       		.uleb128 0x49
+ 1917 00e5 13       		.uleb128 0x13
+ 1918 00e6 00       		.byte	0
+ 1919 00e7 00       		.byte	0
+ 1920 00e8 12       		.uleb128 0x12
+ 1921 00e9 18       		.uleb128 0x18
+ 1922 00ea 00       		.byte	0
+ 1923 00eb 00       		.byte	0
+ 1924 00ec 00       		.byte	0
+ 1925 00ed 13       		.uleb128 0x13
+ 1926 00ee 01       		.uleb128 0x1
+ 1927 00ef 01       		.byte	0x1
+ 1928 00f0 49       		.uleb128 0x49
+ 1929 00f1 13       		.uleb128 0x13
+ 1930 00f2 01       		.uleb128 0x1
+ 1931 00f3 13       		.uleb128 0x13
+ 1932 00f4 00       		.byte	0
+ 1933 00f5 00       		.byte	0
+ 1934 00f6 14       		.uleb128 0x14
+ 1935 00f7 21       		.uleb128 0x21
+ 1936 00f8 00       		.byte	0
+ 1937 00f9 49       		.uleb128 0x49
+ 1938 00fa 13       		.uleb128 0x13
+ 1939 00fb 2F       		.uleb128 0x2f
+ 1940 00fc 0B       		.uleb128 0xb
+ 1941 00fd 00       		.byte	0
+ 1942 00fe 00       		.byte	0
+ 1943 00ff 15       		.uleb128 0x15
+ 1944 0100 2E       		.uleb128 0x2e
+ 1945 0101 01       		.byte	0x1
+ 1946 0102 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 42
+
+
+ 1947 0103 19       		.uleb128 0x19
+ 1948 0104 03       		.uleb128 0x3
+ 1949 0105 0E       		.uleb128 0xe
+ 1950 0106 3A       		.uleb128 0x3a
+ 1951 0107 0B       		.uleb128 0xb
+ 1952 0108 3B       		.uleb128 0x3b
+ 1953 0109 05       		.uleb128 0x5
+ 1954 010a 27       		.uleb128 0x27
+ 1955 010b 19       		.uleb128 0x19
+ 1956 010c 49       		.uleb128 0x49
+ 1957 010d 13       		.uleb128 0x13
+ 1958 010e 11       		.uleb128 0x11
+ 1959 010f 01       		.uleb128 0x1
+ 1960 0110 12       		.uleb128 0x12
+ 1961 0111 06       		.uleb128 0x6
+ 1962 0112 40       		.uleb128 0x40
+ 1963 0113 18       		.uleb128 0x18
+ 1964 0114 9742     		.uleb128 0x2117
+ 1965 0116 19       		.uleb128 0x19
+ 1966 0117 01       		.uleb128 0x1
+ 1967 0118 13       		.uleb128 0x13
+ 1968 0119 00       		.byte	0
+ 1969 011a 00       		.byte	0
+ 1970 011b 16       		.uleb128 0x16
+ 1971 011c 05       		.uleb128 0x5
+ 1972 011d 00       		.byte	0
+ 1973 011e 03       		.uleb128 0x3
+ 1974 011f 08       		.uleb128 0x8
+ 1975 0120 3A       		.uleb128 0x3a
+ 1976 0121 0B       		.uleb128 0xb
+ 1977 0122 3B       		.uleb128 0x3b
+ 1978 0123 05       		.uleb128 0x5
+ 1979 0124 49       		.uleb128 0x49
+ 1980 0125 13       		.uleb128 0x13
+ 1981 0126 02       		.uleb128 0x2
+ 1982 0127 18       		.uleb128 0x18
+ 1983 0128 00       		.byte	0
+ 1984 0129 00       		.byte	0
+ 1985 012a 17       		.uleb128 0x17
+ 1986 012b 34       		.uleb128 0x34
+ 1987 012c 00       		.byte	0
+ 1988 012d 03       		.uleb128 0x3
+ 1989 012e 08       		.uleb128 0x8
+ 1990 012f 3A       		.uleb128 0x3a
+ 1991 0130 0B       		.uleb128 0xb
+ 1992 0131 3B       		.uleb128 0x3b
+ 1993 0132 05       		.uleb128 0x5
+ 1994 0133 49       		.uleb128 0x49
+ 1995 0134 13       		.uleb128 0x13
+ 1996 0135 02       		.uleb128 0x2
+ 1997 0136 18       		.uleb128 0x18
+ 1998 0137 00       		.byte	0
+ 1999 0138 00       		.byte	0
+ 2000 0139 18       		.uleb128 0x18
+ 2001 013a 2E       		.uleb128 0x2e
+ 2002 013b 01       		.byte	0x1
+ 2003 013c 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 43
+
+
+ 2004 013d 19       		.uleb128 0x19
+ 2005 013e 03       		.uleb128 0x3
+ 2006 013f 0E       		.uleb128 0xe
+ 2007 0140 3A       		.uleb128 0x3a
+ 2008 0141 0B       		.uleb128 0xb
+ 2009 0142 3B       		.uleb128 0x3b
+ 2010 0143 05       		.uleb128 0x5
+ 2011 0144 27       		.uleb128 0x27
+ 2012 0145 19       		.uleb128 0x19
+ 2013 0146 11       		.uleb128 0x11
+ 2014 0147 01       		.uleb128 0x1
+ 2015 0148 12       		.uleb128 0x12
+ 2016 0149 06       		.uleb128 0x6
+ 2017 014a 40       		.uleb128 0x40
+ 2018 014b 18       		.uleb128 0x18
+ 2019 014c 9742     		.uleb128 0x2117
+ 2020 014e 19       		.uleb128 0x19
+ 2021 014f 01       		.uleb128 0x1
+ 2022 0150 13       		.uleb128 0x13
+ 2023 0151 00       		.byte	0
+ 2024 0152 00       		.byte	0
+ 2025 0153 19       		.uleb128 0x19
+ 2026 0154 05       		.uleb128 0x5
+ 2027 0155 00       		.byte	0
+ 2028 0156 03       		.uleb128 0x3
+ 2029 0157 0E       		.uleb128 0xe
+ 2030 0158 3A       		.uleb128 0x3a
+ 2031 0159 0B       		.uleb128 0xb
+ 2032 015a 3B       		.uleb128 0x3b
+ 2033 015b 05       		.uleb128 0x5
+ 2034 015c 49       		.uleb128 0x49
+ 2035 015d 13       		.uleb128 0x13
+ 2036 015e 02       		.uleb128 0x2
+ 2037 015f 18       		.uleb128 0x18
+ 2038 0160 00       		.byte	0
+ 2039 0161 00       		.byte	0
+ 2040 0162 1A       		.uleb128 0x1a
+ 2041 0163 2E       		.uleb128 0x2e
+ 2042 0164 01       		.byte	0x1
+ 2043 0165 3F       		.uleb128 0x3f
+ 2044 0166 19       		.uleb128 0x19
+ 2045 0167 03       		.uleb128 0x3
+ 2046 0168 0E       		.uleb128 0xe
+ 2047 0169 3A       		.uleb128 0x3a
+ 2048 016a 0B       		.uleb128 0xb
+ 2049 016b 3B       		.uleb128 0x3b
+ 2050 016c 05       		.uleb128 0x5
+ 2051 016d 27       		.uleb128 0x27
+ 2052 016e 19       		.uleb128 0x19
+ 2053 016f 49       		.uleb128 0x49
+ 2054 0170 13       		.uleb128 0x13
+ 2055 0171 11       		.uleb128 0x11
+ 2056 0172 01       		.uleb128 0x1
+ 2057 0173 12       		.uleb128 0x12
+ 2058 0174 06       		.uleb128 0x6
+ 2059 0175 40       		.uleb128 0x40
+ 2060 0176 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 44
+
+
+ 2061 0177 9642     		.uleb128 0x2116
+ 2062 0179 19       		.uleb128 0x19
+ 2063 017a 01       		.uleb128 0x1
+ 2064 017b 13       		.uleb128 0x13
+ 2065 017c 00       		.byte	0
+ 2066 017d 00       		.byte	0
+ 2067 017e 1B       		.uleb128 0x1b
+ 2068 017f 34       		.uleb128 0x34
+ 2069 0180 00       		.byte	0
+ 2070 0181 03       		.uleb128 0x3
+ 2071 0182 0E       		.uleb128 0xe
+ 2072 0183 3A       		.uleb128 0x3a
+ 2073 0184 0B       		.uleb128 0xb
+ 2074 0185 3B       		.uleb128 0x3b
+ 2075 0186 05       		.uleb128 0x5
+ 2076 0187 49       		.uleb128 0x49
+ 2077 0188 13       		.uleb128 0x13
+ 2078 0189 02       		.uleb128 0x2
+ 2079 018a 18       		.uleb128 0x18
+ 2080 018b 00       		.byte	0
+ 2081 018c 00       		.byte	0
+ 2082 018d 1C       		.uleb128 0x1c
+ 2083 018e 34       		.uleb128 0x34
+ 2084 018f 00       		.byte	0
+ 2085 0190 03       		.uleb128 0x3
+ 2086 0191 0E       		.uleb128 0xe
+ 2087 0192 3A       		.uleb128 0x3a
+ 2088 0193 0B       		.uleb128 0xb
+ 2089 0194 3B       		.uleb128 0x3b
+ 2090 0195 0B       		.uleb128 0xb
+ 2091 0196 49       		.uleb128 0x49
+ 2092 0197 13       		.uleb128 0x13
+ 2093 0198 3F       		.uleb128 0x3f
+ 2094 0199 19       		.uleb128 0x19
+ 2095 019a 02       		.uleb128 0x2
+ 2096 019b 18       		.uleb128 0x18
+ 2097 019c 00       		.byte	0
+ 2098 019d 00       		.byte	0
+ 2099 019e 00       		.byte	0
+ 2100              		.section	.debug_aranges,"",%progbits
+ 2101 0000 3C000000 		.4byte	0x3c
+ 2102 0004 0200     		.2byte	0x2
+ 2103 0006 00000000 		.4byte	.Ldebug_info0
+ 2104 000a 04       		.byte	0x4
+ 2105 000b 00       		.byte	0
+ 2106 000c 0000     		.2byte	0
+ 2107 000e 0000     		.2byte	0
+ 2108 0010 00000000 		.4byte	.LFB2
+ 2109 0014 64040000 		.4byte	.LFE2-.LFB2
+ 2110 0018 00000000 		.4byte	.LFB3
+ 2111 001c 4E000000 		.4byte	.LFE3-.LFB3
+ 2112 0020 00000000 		.4byte	.LFB4
+ 2113 0024 32000000 		.4byte	.LFE4-.LFB4
+ 2114 0028 00000000 		.4byte	.LFB5
+ 2115 002c 3C000000 		.4byte	.LFE5-.LFB5
+ 2116 0030 00000000 		.4byte	.LFB6
+ 2117 0034 58010000 		.4byte	.LFE6-.LFB6
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 45
+
+
+ 2118 0038 00000000 		.4byte	0
+ 2119 003c 00000000 		.4byte	0
+ 2120              		.section	.debug_ranges,"",%progbits
+ 2121              	.Ldebug_ranges0:
+ 2122 0000 00000000 		.4byte	.LFB2
+ 2123 0004 64040000 		.4byte	.LFE2
+ 2124 0008 00000000 		.4byte	.LFB3
+ 2125 000c 4E000000 		.4byte	.LFE3
+ 2126 0010 00000000 		.4byte	.LFB4
+ 2127 0014 32000000 		.4byte	.LFE4
+ 2128 0018 00000000 		.4byte	.LFB5
+ 2129 001c 3C000000 		.4byte	.LFE5
+ 2130 0020 00000000 		.4byte	.LFB6
+ 2131 0024 58010000 		.4byte	.LFE6
+ 2132 0028 00000000 		.4byte	0
+ 2133 002c 00000000 		.4byte	0
+ 2134              		.section	.debug_line,"",%progbits
+ 2135              	.Ldebug_line0:
+ 2136 0000 65020000 		.section	.debug_str,"MS",%progbits,1
+ 2136      02003901 
+ 2136      00000201 
+ 2136      FB0E0D00 
+ 2136      01010101 
+ 2137              	.LASF50:
+ 2138 0000 52454144 		.ascii	"READ_ETX\000"
+ 2138      5F455458 
+ 2138      00
+ 2139              	.LASF56:
+ 2140 0009 556E7061 		.ascii	"UnpackData\000"
+ 2140      636B4461 
+ 2140      746100
+ 2141              	.LASF66:
+ 2142 0014 73707269 		.ascii	"sprintf\000"
+ 2142      6E746600 
+ 2143              	.LASF30:
+ 2144 001c 494E565F 		.ascii	"INV_COMM\000"
+ 2144      434F4D4D 
+ 2144      00
+ 2145              	.LASF16:
+ 2146 0025 75696E74 		.ascii	"uint64_t\000"
+ 2146      36345F74 
+ 2146      00
+ 2147              	.LASF3:
+ 2148 002e 5F5F7569 		.ascii	"__uint8_t\000"
+ 2148      6E74385F 
+ 2148      7400
+ 2149              	.LASF11:
+ 2150 0038 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2150      206C6F6E 
+ 2150      6720756E 
+ 2150      7369676E 
+ 2150      65642069 
+ 2151              	.LASF64:
+ 2152 004f 737A5365 		.ascii	"szSeq\000"
+ 2152      7100
+ 2153              	.LASF9:
+ 2154 0055 6C6F6E67 		.ascii	"long long int\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 46
+
+
+ 2154      206C6F6E 
+ 2154      6720696E 
+ 2154      7400
+ 2155              	.LASF0:
+ 2156 0063 7369676E 		.ascii	"signed char\000"
+ 2156      65642063 
+ 2156      68617200 
+ 2157              	.LASF60:
+ 2158 006f 62756666 		.ascii	"buff\000"
+ 2158      00
+ 2159              	.LASF78:
+ 2160 0074 52657365 		.ascii	"ResetPacket\000"
+ 2160      74506163 
+ 2160      6B657400 
+ 2161              	.LASF6:
+ 2162 0080 6C6F6E67 		.ascii	"long int\000"
+ 2162      20696E74 
+ 2162      00
+ 2163              	.LASF14:
+ 2164 0089 75696E74 		.ascii	"uint16_t\000"
+ 2164      31365F74 
+ 2164      00
+ 2165              	.LASF20:
+ 2166 0092 646F7562 		.ascii	"double\000"
+ 2166      6C6500
+ 2167              	.LASF68:
+ 2168 0099 4C656E44 		.ascii	"LenD1\000"
+ 2168      3100
+ 2169              	.LASF69:
+ 2170 009f 4C656E44 		.ascii	"LenD2\000"
+ 2170      3200
+ 2171              	.LASF70:
+ 2172 00a5 4C656E44 		.ascii	"LenD3\000"
+ 2172      3300
+ 2173              	.LASF21:
+ 2174 00ab 436F6D6D 		.ascii	"Command\000"
+ 2174      616E6400 
+ 2175              	.LASF29:
+ 2176 00b3 4E4F5F46 		.ascii	"NO_FR1\000"
+ 2176      523100
+ 2177              	.LASF7:
+ 2178 00ba 5F5F7569 		.ascii	"__uint32_t\000"
+ 2178      6E743332 
+ 2178      5F7400
+ 2179              	.LASF34:
+ 2180 00c5 4E4F5F46 		.ascii	"NO_FR3\000"
+ 2180      523300
+ 2181              	.LASF57:
+ 2182 00cc 4465636F 		.ascii	"DecodeByte\000"
+ 2182      64654279 
+ 2182      746500
+ 2183              	.LASF63:
+ 2184 00d7 5F637263 		.ascii	"_crc\000"
+ 2184      00
+ 2185              	.LASF53:
+ 2186 00dc 4552525F 		.ascii	"ERR_CODE\000"
+ 2186      434F4445 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 47
+
+
+ 2186      00
+ 2187              	.LASF12:
+ 2188 00e5 756E7369 		.ascii	"unsigned int\000"
+ 2188      676E6564 
+ 2188      20696E74 
+ 2188      00
+ 2189              	.LASF55:
+ 2190 00f2 5F746D70 		.ascii	"_tmpdata\000"
+ 2190      64617461 
+ 2190      00
+ 2191              	.LASF8:
+ 2192 00fb 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2192      20756E73 
+ 2192      69676E65 
+ 2192      6420696E 
+ 2192      7400
+ 2193              	.LASF58:
+ 2194 010d 43686563 		.ascii	"CheckSymb\000"
+ 2194      6B53796D 
+ 2194      6200
+ 2195              	.LASF61:
+ 2196 0117 64617461 		.ascii	"data\000"
+ 2196      00
+ 2197              	.LASF5:
+ 2198 011c 73686F72 		.ascii	"short unsigned int\000"
+ 2198      7420756E 
+ 2198      7369676E 
+ 2198      65642069 
+ 2198      6E7400
+ 2199              	.LASF76:
+ 2200 012f 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 2200      79707265 
+ 2200      73735C73 
+ 2200      79737465 
+ 2200      6D2D7374 
+ 2201 015d 6973685C 		.ascii	"ish\\sandbox\\v3\\Finish(state machine)\\fin_v0.cyd"
+ 2201      73616E64 
+ 2201      626F785C 
+ 2201      76335C46 
+ 2201      696E6973 
+ 2202 018c 736E00   		.ascii	"sn\000"
+ 2203              	.LASF22:
+ 2204 018f 44617461 		.ascii	"Data1\000"
+ 2204      3100
+ 2205              	.LASF23:
+ 2206 0195 44617461 		.ascii	"Data2\000"
+ 2206      3200
+ 2207              	.LASF24:
+ 2208 019b 44617461 		.ascii	"Data3\000"
+ 2208      3300
+ 2209              	.LASF52:
+ 2210 01a1 496E4279 		.ascii	"InByte\000"
+ 2210      746500
+ 2211              	.LASF39:
+ 2212 01a8 50524F5F 		.ascii	"PRO_STATES\000"
+ 2212      53544154 
+ 2212      455300
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 48
+
+
+ 2213              	.LASF73:
+ 2214 01b3 4C656E43 		.ascii	"LenC\000"
+ 2214      00
+ 2215              	.LASF59:
+ 2216 01b8 5061636B 		.ascii	"PackData\000"
+ 2216      44617461 
+ 2216      00
+ 2217              	.LASF67:
+ 2218 01c1 50524F54 		.ascii	"PROTO_STATE\000"
+ 2218      4F5F5354 
+ 2218      41544500 
+ 2219              	.LASF28:
+ 2220 01cd 4241445F 		.ascii	"BAD_SEQ\000"
+ 2220      53455100 
+ 2221              	.LASF42:
+ 2222 01d5 52454144 		.ascii	"READ_FR1\000"
+ 2222      5F465231 
+ 2222      00
+ 2223              	.LASF44:
+ 2224 01de 52454144 		.ascii	"READ_FR2\000"
+ 2224      5F465232 
+ 2224      00
+ 2225              	.LASF48:
+ 2226 01e7 52454144 		.ascii	"READ_FR3\000"
+ 2226      5F465233 
+ 2226      00
+ 2227              	.LASF71:
+ 2228 01f0 4C656E53 		.ascii	"LenSeq\000"
+ 2228      657100
+ 2229              	.LASF54:
+ 2230 01f7 5F746D70 		.ascii	"_tmpcrc\000"
+ 2230      63726300 
+ 2231              	.LASF17:
+ 2232 01ff 73697A65 		.ascii	"sizetype\000"
+ 2232      74797065 
+ 2232      00
+ 2233              	.LASF27:
+ 2234 0208 50415253 		.ascii	"PARSED_OK\000"
+ 2234      45445F4F 
+ 2234      4B00
+ 2235              	.LASF77:
+ 2236 0212 52657370 		.ascii	"Resp\000"
+ 2236      00
+ 2237              	.LASF45:
+ 2238 0217 52454144 		.ascii	"READ_DA1\000"
+ 2238      5F444131 
+ 2238      00
+ 2239              	.LASF46:
+ 2240 0220 52454144 		.ascii	"READ_DA2\000"
+ 2240      5F444132 
+ 2240      00
+ 2241              	.LASF47:
+ 2242 0229 52454144 		.ascii	"READ_DA3\000"
+ 2242      5F444133 
+ 2242      00
+ 2243              	.LASF10:
+ 2244 0232 5F5F7569 		.ascii	"__uint64_t\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 49
+
+
+ 2244      6E743634 
+ 2244      5F7400
+ 2245              	.LASF19:
+ 2246 023d 666C6F61 		.ascii	"float\000"
+ 2246      7400
+ 2247              	.LASF25:
+ 2248 0243 43686563 		.ascii	"CheckSum\000"
+ 2248      6B53756D 
+ 2248      00
+ 2249              	.LASF32:
+ 2250 024c 494E565F 		.ascii	"INV_DA1\000"
+ 2250      44413100 
+ 2251              	.LASF33:
+ 2252 0254 494E565F 		.ascii	"INV_DA2\000"
+ 2252      44413200 
+ 2253              	.LASF37:
+ 2254 025c 494E565F 		.ascii	"INV_DA3\000"
+ 2254      44413300 
+ 2255              	.LASF1:
+ 2256 0264 756E7369 		.ascii	"unsigned char\000"
+ 2256      676E6564 
+ 2256      20636861 
+ 2256      7200
+ 2257              	.LASF65:
+ 2258 0272 737A4368 		.ascii	"szCheckSum\000"
+ 2258      65636B53 
+ 2258      756D00
+ 2259              	.LASF2:
+ 2260 027d 73686F72 		.ascii	"short int\000"
+ 2260      7420696E 
+ 2260      7400
+ 2261              	.LASF43:
+ 2262 0287 52454144 		.ascii	"READ_COM\000"
+ 2262      5F434F4D 
+ 2262      00
+ 2263              	.LASF38:
+ 2264 0290 50524F5F 		.ascii	"PRO_ERRORS\000"
+ 2264      4552524F 
+ 2264      525300
+ 2265              	.LASF75:
+ 2266 029b 2E5C6C69 		.ascii	".\\lib_Network\\svt.c\000"
+ 2266      625F4E65 
+ 2266      74776F72 
+ 2266      6B5C7376 
+ 2266      742E6300 
+ 2267              	.LASF72:
+ 2268 02af 4C656E43 		.ascii	"LenChS\000"
+ 2268      685300
+ 2269              	.LASF15:
+ 2270 02b6 75696E74 		.ascii	"uint32_t\000"
+ 2270      33325F74 
+ 2270      00
+ 2271              	.LASF18:
+ 2272 02bf 63686172 		.ascii	"char\000"
+ 2272      00
+ 2273              	.LASF4:
+ 2274 02c4 5F5F7569 		.ascii	"__uint16_t\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2seFW3.s 			page 50
+
+
+ 2274      6E743136 
+ 2274      5F7400
+ 2275              	.LASF36:
+ 2276 02cf 4E4F5F45 		.ascii	"NO_ETX\000"
+ 2276      545800
+ 2277              	.LASF40:
+ 2278 02d6 57414954 		.ascii	"WAIT_STX\000"
+ 2278      5F535458 
+ 2278      00
+ 2279              	.LASF49:
+ 2280 02df 52454144 		.ascii	"READ_CHS\000"
+ 2280      5F434853 
+ 2280      00
+ 2281              	.LASF41:
+ 2282 02e8 52454144 		.ascii	"READ_SQ\000"
+ 2282      5F535100 
+ 2283              	.LASF35:
+ 2284 02f0 494E565F 		.ascii	"INV_CKECKSUM\000"
+ 2284      434B4543 
+ 2284      4B53554D 
+ 2284      00
+ 2285              	.LASF62:
+ 2286 02fd 53657175 		.ascii	"Sequence\000"
+ 2286      656E6365 
+ 2286      00
+ 2287              	.LASF13:
+ 2288 0306 75696E74 		.ascii	"uint8_t\000"
+ 2288      385F7400 
+ 2289              	.LASF51:
+ 2290 030e 44617461 		.ascii	"Data\000"
+ 2290      00
+ 2291              	.LASF74:
+ 2292 0313 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 2292      4320342E 
+ 2292      392E3320 
+ 2292      32303135 
+ 2292      30333033 
+ 2293 0346 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 2293      20726576 
+ 2293      6973696F 
+ 2293      6E203232 
+ 2293      31323230 
+ 2294 0379 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 2294      66756E63 
+ 2294      74696F6E 
+ 2294      2D736563 
+ 2294      74696F6E 
+ 2295              	.LASF31:
+ 2296 03a1 4E4F5F46 		.ascii	"NO_FR2\000"
+ 2296      523200
+ 2297              	.LASF26:
+ 2298 03a8 456E6450 		.ascii	"EndPacket\000"
+ 2298      61636B65 
+ 2298      7400
+ 2299              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

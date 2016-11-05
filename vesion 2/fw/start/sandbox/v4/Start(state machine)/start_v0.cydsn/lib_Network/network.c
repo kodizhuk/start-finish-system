@@ -48,8 +48,8 @@
 /*segment time*/
 #define T1                  0
 #define T2                  1
-#define T3                  0
-#define T4                  1
+#define T3                  2
+#define T4                  3
 
 #define CORRECTION_TIME     0
 
@@ -386,20 +386,10 @@ uint32_t NTPsync(void)
                 unixTime[T3] = RTCGetUnixTime();
                 
                 #ifdef DEBUG_NTP
-                    millisTime[T3] = millisTime[T2]+122;
-                    if(millisTime[T3] >= 1000)
-                    {
-                        unixTime[T3]++;
-                        millisTime[T3] -= 1000;
-                    }
                     debugntp_Write(1);
                     debugntp_Write(0);
                     debugntp_Write(1);
                     debugntp_Write(0);                        
-                #endif
-                #ifdef DEBUG_INFO
-                    sprintf(uartBuff,"\n\rT3 %u:%u\n\r",unixTime[T3],millisTime[T3]); 
-                    SW_UART_DEBUG_PutString(uartBuff);
                 #endif
                 
                 if((unixTime[T2] == unixTime[T3]) || ((unixTime[T2] == (unixTime[T3])-1)))
@@ -407,8 +397,10 @@ uint32_t NTPsync(void)
                     NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDreceivePacket);
 
                     #ifdef DEBUG_INFO
-                        sprintf(uartBuff,"receive and send time %u:%u - %u:%u\n\r",unixTime[T2],millisTime[T2],unixTime[T3],millisTime[T3]); 
+                        sprintf(uartBuff,"receive and send time %u:%u",unixTime[T2],millisTime[T2]); 
                         SW_UART_DEBUG_PutString(uartBuff);
+                        sprintf(uartBuff,"- %u:%u\n\r",unixTime[T3],millisTime[T3]); 
+                        SW_UART_DEBUG_PutString(uartBuff);                        
                     #endif
                 }
                 i=0;
@@ -447,12 +439,6 @@ uint32_t ReceiveRealTime(void)
     
     while(result == NO_READ && noConnect < NUM_CONNECT_ATTEMPS)
     {
-            #ifdef DEBUG_TIME
-                debug_Write(1);
-                debug_Write(0);
-                debug_Write(1);
-                debug_Write(0);
-            #endif
         result = NTPreceiveTime(&unixTime[T1], &millisTime[T1], &IDpacket,SAVE_TIME);
 
         if((result == READ_OK) && (IDpacket == 1))
@@ -528,6 +514,9 @@ uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDr
             }
             else
             {
+                /*set real time*/
+                RTCSync(recvDataNTP.Data1, recvDataNTP.DataMs1);
+                
                 /*save time T2*/
                 *millisTime2 = RTCgetRecentMs();
                 *unixTime2 = RTC_GetUnixTime();
@@ -540,8 +529,7 @@ uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDr
                     sprintf(uartBuff,"\n\rT2 %u:%u\n\r",*unixTime2,*millisTime2); 
                     SW_UART_DEBUG_PutString(uartBuff);
                 #endif
-                /*set real time*/
-                RTCSync(recvDataNTP.Data1, recvDataNTP.DataMs1);
+                
             }
 
             return READ_OK;

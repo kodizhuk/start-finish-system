@@ -76,7 +76,7 @@ uint32_t SystemInit(void)
     CyGlobalIntEnable;
     
     /*set unix time in RTC DS1307*/
-    //DS1307_SetUnixTime(1472757695);
+    //DS1307_SetUnixTime(1476097337);
     /*sync real time*/
     unixTime = DS1307_GetUnixTime();
     

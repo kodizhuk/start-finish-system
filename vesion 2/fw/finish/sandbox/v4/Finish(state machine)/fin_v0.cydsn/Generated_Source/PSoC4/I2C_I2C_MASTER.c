@@ -578,7 +578,6 @@ uint32 I2C_I2CMasterSendStop(void)
     resetIp   = 0u;
     errStatus = I2C_I2C_MSTR_NOT_READY;
 
-	I2C_DisableInt();
     /* Check FSM state before generating Stop condition */
     if(I2C_CHECK_I2C_MASTER_ACTIVE)
     {
@@ -623,8 +622,7 @@ uint32 I2C_I2CMasterSendStop(void)
             I2C_SCB_SW_RESET;
         }
     }
-	I2C_EnableInt();
-	
+
     return(errStatus);
 }
 
