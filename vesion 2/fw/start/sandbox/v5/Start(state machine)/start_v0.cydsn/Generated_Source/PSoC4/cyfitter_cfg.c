@@ -1,7 +1,7 @@
 /*******************************************************************************
 * File Name: cyfitter_cfg.c
 * 
-* PSoC Creator  3.3 SP2
+* PSoC Creator  4.0
 *
 * Description:
 * This file contains device initialization code.
@@ -22,6 +22,7 @@
 #include "CyLib.h"
 #include "CyLFClk.h"
 #include "cyfitter_cfg.h"
+#include "cyapicallbacks.h"
 
 
 #if defined(__GNUC__) || defined(__ARMCC_VERSION)
@@ -79,11 +80,13 @@ static void CYCONFIGCPYCODE(void *dest, const void *src, size_t n)
 
 
 
+
 /* Clock startup error codes                                                   */
 #define CYCLOCKSTART_NO_ERROR    0u
 #define CYCLOCKSTART_XTAL_ERROR  1u
 #define CYCLOCKSTART_32KHZ_ERROR 2u
 #define CYCLOCKSTART_PLL_ERROR   3u
+
 
 #ifdef CY_NEED_CYCLOCKSTARTUPERROR
 /*******************************************************************************
@@ -109,6 +112,14 @@ static void CyClockStartupError(uint8 errorCode)
     /* To remove the compiler warning if errorCode not used.                */
     errorCode = errorCode;
 
+    /* If we have a clock startup error (bad MHz crystal, PLL lock, etc.),  */
+    /* we will end up here to allow the customer to implement something to  */
+    /* deal with the clock condition.                                       */
+
+#ifdef CY_CFG_CLOCK_STARTUP_ERROR_CALLBACK
+	CY_CFG_Clock_Startup_ErrorCallback();
+#else
+	/*  If not using CY_CFG_CLOCK_STARTUP_ERROR_CALLBACK, place your clock startup code here. */
     /* `#START CyClockStartupError` */
 
     /* If we have a clock startup error (bad MHz crystal, PLL lock, etc.),  */
@@ -120,6 +131,7 @@ static void CyClockStartupError(uint8 errorCode)
     /* If nothing else, stop here since the clocks have not started         */
     /* correctly.                                                           */
     while(1) {}
+#endif /* CY_CFG_CLOCK_STARTUP_ERROR_CALLBACK */ 
 }
 #endif
 
@@ -207,6 +219,8 @@ static void ClockSetup(void)
 	/* Enable fast start mode for XO */
 	CY_SET_REG32((void*)CYREG_BLE_BLERD_BB_XO, CY_GET_REG32((void*)CYREG_BLE_BLERD_BB_XO) | (uint32)0x02u);
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_BLE_BLERD_BB_XO_CAPTRIM), 0x00003E2Du);
+	/*Set XTAL(ECO) divider*/
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_BLE_BLESS_XTAL_CLK_DIV_CONFIG), 0x00000000u);
 	/* Disable Crystal Stable Interrupt before enabling ECO */
 	CY_SET_REG32((void*)CYREG_BLE_BLESS_LL_DSM_CTRL, CY_GET_REG32((void*)CYREG_BLE_BLESS_LL_DSM_CTRL) & (~(uint32)0x08u));
 	/* Start the ECO and do not check status since it is not needed for HFCLK */
@@ -318,7 +332,7 @@ void cyfitter_cfg(void)
 			{0x4Fu, 0x01u},
 			{0x50u, 0x18u},
 			{0x56u, 0x08u},
-			{0x5Au, 0x0Bu},
+			{0x5Au, 0x0Au},
 			{0x5Bu, 0x04u},
 			{0x5Du, 0x99u},
 			{0x5Fu, 0x01u},
@@ -357,10 +371,10 @@ void cyfitter_cfg(void)
 			{0xCFu, 0x01u},
 			{0xD0u, 0x18u},
 			{0xD2u, 0x80u},
-			{0xD8u, 0x0Bu},
+			{0xD8u, 0x0Au},
 			{0xD9u, 0x04u},
-			{0xDAu, 0x0Bu},
-			{0xDBu, 0x0Au},
+			{0xDAu, 0x0Au},
+			{0xDBu, 0x0Bu},
 			{0xDCu, 0x09u},
 			{0xDDu, 0x99u},
 			{0xDFu, 0x01u},
@@ -390,10 +404,10 @@ void cyfitter_cfg(void)
 			{0x45u, 0x08u},
 			{0x46u, 0x02u},
 			{0x58u, 0xA0u},
-			{0x60u, 0x02u},
+			{0x60u, 0x08u},
 			{0x62u, 0xA0u},
 			{0x77u, 0x40u},
-			{0x78u, 0x02u},
+			{0x78u, 0x08u},
 			{0x7Eu, 0xA0u},
 			{0x8Cu, 0xA0u},
 			{0xC0u, 0x90u},
@@ -403,7 +417,7 @@ void cyfitter_cfg(void)
 			{0xD0u, 0x5Au},
 			{0xD6u, 0x0Cu},
 			{0xD8u, 0x0Cu},
-			{0xDEu, 0xC1u},
+			{0xDEu, 0xC2u},
 			{0x40u, 0x31u},
 			{0x45u, 0xECu},
 			{0x47u, 0x20u},
@@ -416,8 +430,8 @@ void cyfitter_cfg(void)
 			{0x4Fu, 0x01u},
 			{0x50u, 0x18u},
 			{0x54u, 0x01u},
-			{0x5Au, 0x0Bu},
-			{0x5Bu, 0x0Bu},
+			{0x5Au, 0x0Au},
+			{0x5Bu, 0x0Au},
 			{0x5Du, 0x99u},
 			{0x5Fu, 0x01u},
 			{0x60u, 0x40u},
@@ -434,16 +448,16 @@ void cyfitter_cfg(void)
 			{0x4Fu, 0x05u},
 			{0x56u, 0x02u},
 			{0x5Fu, 0x45u},
-			{0x7Eu, 0x80u},
+			{0x7Eu, 0x20u},
 			{0x93u, 0x40u},
 			{0x9Eu, 0x02u},
 			{0xA1u, 0x08u},
-			{0xA2u, 0x80u},
+			{0xA2u, 0x20u},
 			{0xABu, 0x20u},
 			{0xAFu, 0x10u},
 			{0xD0u, 0x50u},
 			{0xD6u, 0xD0u},
-			{0xDEu, 0x80u},
+			{0xDEu, 0x40u},
 			{0x03u, 0x08u},
 			{0xC0u, 0x40u},
 			{0x6Fu, 0x04u},
