@@ -188,7 +188,8 @@ uint32_t  ReceiveData(void)
                     if(inData.newSkier == NEW_SKIER_IN_TARCK )
                     {
                         WriteStartTime(inData.unixStartTime, inData.startMsTime);
-                        BLE_sendOneSkierTimeStart(inData.unixStartTime, inData.startMsTime);
+                        BLE_sendOneSkierTimeStart(inData.unixStartTime, inData.startMsTime,GetIDskierStarted(),SkierOnWay(),MAX_SKIERS_ON_WAY);
+                        IncrementID();
                     }
                     
                     /*next packet*/

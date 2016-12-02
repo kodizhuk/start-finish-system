@@ -7,6 +7,7 @@
 
 int notifycaiton;
 uint32_t bleUnixTime = 0;
+uint8_t adminIsOnly = 0;
 
 uint16_t sendIdSkier = 0;
 uint16_t sendBufferStart[LENGHT_DATA_BUFFER];
@@ -67,6 +68,17 @@ void BleCallBack(uint32 event, void* eventParam)
                 }
             }
             
+//            /* request write the Admin only value */
+            if(wrReqParam->handleValPair.attrHandle == CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHAR_HANDLE)
+            {
+                /* only update the value and write the response if the requested write is allowed */
+                if(CYBLE_GATT_ERR_NONE == CyBle_GattsWriteAttributeValue(&wrReqParam->handleValPair, 0, &cyBle_connHandle, CYBLE_GATT_DB_PEER_INITIATED))
+                {
+                    adminIsOnly = wrReqParam->handleValPair.value.val[0];
+                    CyBle_GattsWriteRsp(cyBle_connHandle);
+                }
+            }
+            
             /* request to update the  notification */
             if(wrReqParam->handleValPair.attrHandle == CYBLE_SFSYSTEMSERVICE_ID_ID_CCCD_DESC_HANDLE ||
             wrReqParam->handleValPair.attrHandle == CYBLE_SFSYSTEMSERVICE_TIME_START_TIMESTARTCCCD_DESC_HANDLE ||
@@ -102,12 +114,16 @@ void updateData(void)
     if (notifycaiton  )
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
         
+    CyDelay(50);
+        
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_START_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferStart;
     tempHandle.value.len = 8;
     CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
     if (notifycaiton  )
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
+        
+    CyDelay(50);
     
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_FINISH_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferFinish;
@@ -115,6 +131,9 @@ void updateData(void)
     CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
     if (notifycaiton  )
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle); 
+        
+    CyDelay(50);
+    CyBle_ProcessEvents();
     
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_RESULT_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferResult;
@@ -122,6 +141,8 @@ void updateData(void)
     CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
     if (notifycaiton  )
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
+        
+    CyDelay(50);
         
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferStatus;
@@ -131,37 +152,20 @@ void updateData(void)
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
 }
 
-static void updateTimeOneSkier(void)
+
+/***************************************************************
+ * Function to update the id skier state in the GATT database
+ **************************************************************/
+void updateStatusData(void)
 {
     CYBLE_GATTS_HANDLE_VALUE_NTF_T 	tempHandle;
     
     if(CyBle_GetState() != CYBLE_STATE_CONNECTED)
         return;
-    
-    tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_ID_CHAR_HANDLE;
-  	tempHandle.value.val = (uint8 *) &sendIdSkier;
-    tempHandle.value.len = 2;
-    CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );
-    if (notifycaiton  )
-        CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
-        
-    tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_START_CHAR_HANDLE;
-  	tempHandle.value.val = (uint8 *) &sendBufferStart;
-    tempHandle.value.len = 8;
-    CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
-    if (notifycaiton  )
-        CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
-    
-    tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_FINISH_CHAR_HANDLE;
-  	tempHandle.value.val = (uint8 *) &sendBufferFinish;
-    tempHandle.value.len = 8;
-    CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
-    if (notifycaiton  )
-        CyBle_GattsNotification(cyBle_connHandle,&tempHandle); 
-    
-    tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_RESULT_CHAR_HANDLE;
-  	tempHandle.value.val = (uint8 *) &sendBufferResult;
-    tempHandle.value.len = 8;
+           
+    tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_CHAR_HANDLE;
+  	tempHandle.value.val = (uint8 *) &sendBufferStatus;
+    tempHandle.value.len = 7;
     CyBle_GattsWriteAttributeValue(&tempHandle,0,&cyBle_connHandle,CYBLE_GATT_DB_LOCALLY_INITIATED );  
     if (notifycaiton  )
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
@@ -197,7 +201,21 @@ uint32_t BLE_getUnixTime(void)
     }
 }
 
-void BLE_sendOneSkierTime(skierDB_El *data)
+uint8_t BLE_getFlagAdminOnly(void)
+{
+    if(adminIsOnly == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        adminIsOnly = 0;
+        return 1;
+    }
+}
+
+void BLE_sendOneSkierTimeResult(skierDB_El *data, uint8_t idSkier,
+                            uint8_t numSkierOnWay, uint8_t maxSkierOnWay)
 {   
     RTC_DATE_TIME time;
     
@@ -220,11 +238,19 @@ void BLE_sendOneSkierTime(skierDB_El *data)
     sendBufferResult[BLE_SEND_SEC] = (data->secondsWay) - minResult*60;
     sendBufferResult[BLE_SEND_MS] = data->millsWay;
     
-    //updateTimeOneSkier();
+    sendIdSkier = idSkier;
+    
+    sendBufferStatus[3] = numSkierOnWay/10;
+    sendBufferStatus[4] = numSkierOnWay%10;
+    sendBufferStatus[5] = maxSkierOnWay/10;
+    sendBufferStatus[6] = maxSkierOnWay%10;
+
     updateData();
+
 }
 
-void BLE_sendOneSkierTimeStart(uint64_t unixTime, uint16_t mills)
+void BLE_sendOneSkierTimeStart(uint64_t unixTime, uint16_t mills, uint8_t idSkier,
+                                    uint8_t numSkierOnWay, uint8_t maxSkierOnWay)
 {
     RTC_DATE_TIME time;
     
@@ -235,26 +261,29 @@ void BLE_sendOneSkierTimeStart(uint64_t unixTime, uint16_t mills)
     sendBufferStart[2] = RTC_GetSecond(time.time);
     sendBufferStart[3] = mills;
     
-    sendBufferFinish[0] = 0;
-    sendBufferFinish[1] = 0;
-    sendBufferFinish[2] = 0;
-    sendBufferFinish[3] = 0;
+    int i;
+    for(i=0;i<4;i++)
+    {
+        sendBufferFinish[i] = 0;
+        sendBufferResult[i] = 0;
+    }
     
-    sendBufferResult[0] = 0;
-    sendBufferResult[1] = 0;
-    sendBufferResult[2] = 0;
-    sendBufferResult[3] = 0;
+    sendIdSkier = idSkier;
     
-    //updateTimeOneSkier();
+    sendBufferStatus[3] = numSkierOnWay/10;
+    sendBufferStatus[4] = numSkierOnWay%10;
+    sendBufferStatus[5] = maxSkierOnWay/10;
+    sendBufferStatus[6] = maxSkierOnWay%10;
+    
     updateData();
 }
 
 
-void BLE_sendAllSkierTime(uint16_t IdSkier,uint16_t sendStartTime[],uint16_t sendFinishTime[],
-                          uint16_t sendResultTime[],uint8_t sendStatus[])
+void BLE_sendOneSkierTimeAll(uint16_t IdSkier,uint16_t sendStartTime[],uint16_t sendFinishTime[],
+                          uint16_t sendResultTime[])
 {
     sendIdSkier = IdSkier;
-    
+  
     sendBufferStart[0] = sendStartTime[0];
     sendBufferStart[1] = sendStartTime[1];
     sendBufferStart[2] = sendStartTime[2];
@@ -269,15 +298,58 @@ void BLE_sendAllSkierTime(uint16_t IdSkier,uint16_t sendStartTime[],uint16_t sen
     sendBufferResult[1] = sendResultTime[1];
     sendBufferResult[2] = sendResultTime[2];
     sendBufferResult[3] = sendResultTime[3];
-    
-    sendBufferStatus[0] = sendStatus[0];
-    sendBufferStatus[1] = sendStatus[1];
-    sendBufferStatus[2] = sendStatus[2];
-    sendBufferStatus[3] = sendStatus[3];
-    sendBufferStatus[4] = sendStatus[4];
-    sendBufferStatus[5] = sendStatus[5];
-    sendBufferStatus[6] = sendStatus[6];
-    
+      
     updateData();
+}
+
+void BLE_sendSystemStatus(BLEStatusFlag systemStatus)
+{
+    static uint8_t oldSystemStatus;
+    
+    if(systemStatus == STATUS_OK)
+        sendBufferStatus[BLE_SEND_SYSTEM_STATUS] = 1;
+    else
+        sendBufferStatus[BLE_SEND_SYSTEM_STATUS] = 0;
+    
+    /*if new status, status update*/
+    if(oldSystemStatus != sendBufferStatus[BLE_SEND_SYSTEM_STATUS])
+    {
+        updateStatusData();
+        oldSystemStatus =  sendBufferStatus[BLE_SEND_SYSTEM_STATUS];
+    }
+}
+
+void BLE_sendSDcardStatus(BLEStatusFlag SDStatus)
+{
+    static uint8_t oldSDStatus ;
+    
+    if(SDStatus == STATUS_OK)
+        sendBufferStatus[BLE_SEND_SD_STATUS] = 1;
+    else
+        sendBufferStatus[BLE_SEND_SD_STATUS] = 0;
+    
+    /*if new status, status update*/
+    if(oldSDStatus != sendBufferStatus[BLE_SEND_SD_STATUS])
+    {
+        updateStatusData();
+        oldSDStatus =  sendBufferStatus[BLE_SEND_SD_STATUS];
+    }
+}
+
+void BLE_sendNetworkStatus(BLEStatusFlag NerworkStatus)
+{
+    static uint8_t oldNetworkStatus ;
+    
+    if(NerworkStatus == STATUS_OK)
+        sendBufferStatus[BLE_SEND_NETWORK_STATUS] = 1; 
+    else
+        sendBufferStatus[BLE_SEND_NETWORK_STATUS] = 0;    
+    
+    /*if new status, status update*/
+    if(oldNetworkStatus != sendBufferStatus[BLE_SEND_NETWORK_STATUS])
+    {
+        updateStatusData();
+        oldNetworkStatus =  sendBufferStatus[BLE_SEND_NETWORK_STATUS];
+    }
 }
 /* [] END OF FILE */

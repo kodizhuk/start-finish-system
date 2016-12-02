@@ -24,6 +24,8 @@ FIL fileO;      /* File info */
 DWORD createFlag;  
 
 static char nameFile[LEN_NAME];
+static uint32_t idSkier = 1;
+static uint32_t position = 1;
 
 /*******************************************************************************
 * Function Name: LogStart
@@ -90,7 +92,7 @@ uint32_t WriteSkierResult(skierDB_El *data)
         char writeData[LEN_DATA_ALL];
         
         RTC_DATE_TIME time;
-        static uint32_t position = 1;
+        
         
         /*read unix time*/
         RTC_UnixToDateTime(&time, data->unixStartSkier, RTC_24_HOURS_FORMAT);
@@ -123,110 +125,120 @@ uint32_t WriteSkierResult(skierDB_El *data)
 }
 
 /*read and send bluetooth skier result*/
-uint32_t ReadSkierResult(void)
+uint32_t ReadSkierResultAndSendBLE(void)
 {
     uint32_t resultF;
     char line[82];
     
     /*for send to buetooth*/
     uint16_t sendIdSkier ;
-    uint16_t sendStartTime[LENGHT_DATA_BUFFER] = {0,0,0,0};
-    uint16_t sendFinishTime[LENGHT_DATA_BUFFER] = {0,0,0,0};
-    uint16_t sendResultTime[LENGHT_DATA_BUFFER] = {0,0,0,0};
-    uint8_t  sendStatus[LENGHT_STATUS_BUFFER]  = {1,1,1,0,1,0,4};
+    uint16_t sendStartTime[LENGHT_DATA_BUFFER];
+    uint16_t sendFinishTime[LENGHT_DATA_BUFFER];
+    uint16_t sendResultTime[LENGHT_DATA_BUFFER];
     
     createFlag = 0;    
     resultF = f_open(&fileO, nameFile, FA_READ , &createFlag);
     
     SW_UART_DEBUG_PutString("read file\n\r");
-//    while (f_gets(line, sizeof line, &fileO))
-//    {    
-//        uint32_t pointer = 0;
-//        uint32_t coeff = 1;
-//        uint8_t counterMas = 0;
-//        
-//        typedef enum {MAS_START_TIME,MAS_FINISH_TIME, MAS_RESULT_TIME}numMas;
-//        numMas currentMas ;
-//        
-//        if(isdigit(line[pointer]))
-//        {
-//            /*write id skier*/
-//            sendIdSkier = 0;
-//            while(isdigit(line[pointer]))
-//            {
-//                sendIdSkier = sendIdSkier*coeff + (line[pointer]-'0');
-//                pointer++;
-//                coeff *= 10;
-//            }
-//            
-//            currentMas = MAS_START_TIME;
-//            while((line[pointer] != '\n') && (line[pointer] != '\r'))
-//            {            
-//                /*write time start skier*/
-//                coeff = 1;
-//                counterMas = 0;
-//                while(isdigit(line[pointer]) || (line[pointer] == ':'))
-//                {
-//                    if(line[pointer] == ':')
-//                    {
-//                        counterMas++;
-//                        coeff = 1;
-//                    }
-//                    else
-//                    {
-//                        switch (currentMas){
-//                            case MAS_START_TIME:
-//                                sendStartTime[counterMas] = sendStartTime[counterMas]*coeff + (line[pointer]-'0');
-//                                break;
-//                            case MAS_FINISH_TIME:
-//                                sendFinishTime[counterMas] = sendFinishTime[counterMas]*coeff + (line[pointer]-'0');
-//                                break;
-//                            case MAS_RESULT_TIME:
-//                                sendResultTime[counterMas+2] = sendResultTime[counterMas+2]*coeff + (line[pointer]-'0');
-//                                break;
-//                        }
-//                        coeff = 10;
-//                    }
-//                    pointer++;
-//                }
-//                if(coeff != 1)
-//                {
-//                    if(currentMas == MAS_RESULT_TIME)
-//                    {
-//                        currentMas = MAS_START_TIME;
-//                    }else{
-//                        currentMas++;
-//                    }
-//                    
-//                    counterMas = 0;
-//                    
-//                }
-//                pointer++;
-//            }
-//                        
-//            SW_UART_DEBUG_PutString(line);
-//            SW_UART_DEBUG_PutString("\n\r");
-//            
-//
-//            BLE_sendAllSkierTime(sendIdSkier, sendStartTime, sendFinishTime, sendResultTime, sendStatus);
-//            //BLE_processEvents();
-//            
-//            int i;
-//            for(i=0;i<4; i++)
-//            {
-//                sendStartTime[i] = 0;
-//                sendFinishTime[i] = 0;
-//                sendResultTime[i] = 0;
-//            }
-//        }
-//    }
+    while (f_gets(line, sizeof line, &fileO))
+    {    
+        uint32_t pointer = 0;
+        uint32_t coeff = 1;
+        uint8_t counterMas = 0;
         
-    int i;
-    for()
-    BLE_sendAllSkierTime(sendIdSkier, sendStartTime, sendFinishTime, sendResultTime, sendStatus);
-    
+        typedef enum {MAS_START_TIME,MAS_FINISH_TIME, MAS_RESULT_TIME}numMas;
+        numMas currentMas ;
+        
+        if(isdigit(line[pointer]))
+        {
+            /*clear buffer*/
+            int i;
+            for(i=0;i<4; i++)
+            {
+                sendStartTime[i] = 0;
+                sendFinishTime[i] = 0;
+                sendResultTime[i] = 0;
+            }
+            
+            /*write id skier*/
+            sendIdSkier = 0;
+            while(isdigit(line[pointer]))
+            {
+                sendIdSkier = sendIdSkier*coeff + (line[pointer]-'0');
+                pointer++;
+                coeff *= 10;
+            }
+            
+            currentMas = MAS_START_TIME;
+            while((line[pointer] != '\n') && (line[pointer] != '\r'))
+            {            
+                /*write time start skier*/
+                coeff = 1;
+                counterMas = 0;
+                while(isdigit(line[pointer]) || (line[pointer] == ':'))
+                {
+                    if(line[pointer] == ':')
+                    {
+                        counterMas++;
+                        coeff = 1;
+                    }
+                    else
+                    {
+                        switch (currentMas){
+                            case MAS_START_TIME:
+                                sendStartTime[counterMas] = sendStartTime[counterMas]*coeff + (line[pointer]-'0');
+                                break;
+                            case MAS_FINISH_TIME:
+                                sendFinishTime[counterMas] = sendFinishTime[counterMas]*coeff + (line[pointer]-'0');
+                                break;
+                            case MAS_RESULT_TIME:
+                                sendResultTime[counterMas+2] = sendResultTime[counterMas+2]*coeff + (line[pointer]-'0');
+                                break;
+                        }
+                        coeff = 10;
+                    }
+                    pointer++;
+                }
+                if(coeff != 1)
+                {
+                    if(currentMas == MAS_RESULT_TIME)
+                    {
+                        currentMas = MAS_START_TIME;
+                    }else{
+                        currentMas++;
+                    }
+                    
+                    counterMas = 0;
+                    
+                }
+                pointer++;
+            }
+                        
+            SW_UART_DEBUG_PutString(line);
+            SW_UART_DEBUG_PutString("\n\r");
+            
+            BLE_sendOneSkierTimeAll(sendIdSkier, sendStartTime, sendFinishTime, sendResultTime);
+            BLE_processEvents();
+            CyDelay(100);
+        }
+    }
     resultF = f_close(&fileO);
         
     return resultF;
+}
+
+uint32_t GetIDskierStarted(void)
+{
+    return idSkier;
+}
+
+uint32_t GetIDskierFinished(void)
+{
+    return position-1;
+}
+
+void IncrementID(void)
+{
+    idSkier++;
 }
 /* [] END OF FILE */

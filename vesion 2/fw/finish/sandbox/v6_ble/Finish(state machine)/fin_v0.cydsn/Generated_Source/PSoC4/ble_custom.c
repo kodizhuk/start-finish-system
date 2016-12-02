@@ -92,7 +92,18 @@ const CYBLE_CUSTOMS_T cyBle_customs[0x01u] = {
                 /* Array of Descriptors handles */
                 {
                     0x0023u, /* Handle of the Characteristic User Description descriptor */ 
-                    0x0024u, /* Handle of the Client Characteristic Configuration descriptor */ 
+                    CYBLE_GATT_INVALID_ATTR_HANDLE_VALUE, 
+                }, 
+            },
+
+            /* adminOnly characteristic */
+            {
+                0x0025u, /* Handle of the adminOnly characteristic */ 
+                
+                /* Array of Descriptors handles */
+                {
+                    0x0026u, /* Handle of the Characteristic User Description descriptor */ 
+                    CYBLE_GATT_INVALID_ATTR_HANDLE_VALUE, 
                 }, 
             },
         }, 

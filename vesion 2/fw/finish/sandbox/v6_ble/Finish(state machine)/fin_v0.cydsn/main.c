@@ -126,6 +126,7 @@ uint32_t TimeSynchronize(void)
         {
             Display("Sync ok");
             ClearRebootFlag();
+            BLE_sendSystemStatus(STATUS_OK);
             MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_OK;
@@ -134,6 +135,7 @@ uint32_t TimeSynchronize(void)
         {
             Display("Sync time error");
             SetRebootFlag();
+            BLE_sendSystemStatus(STATUS_ERROR);
             MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_ERR;
@@ -248,10 +250,7 @@ void SaveResult(void)
     
     /*print time result last skier finished*/
     DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/
-    MyDelay(2*TIMEOUT_USER_READ_INFO);
-    
-    ReadSkierResult();
-  
+    MyDelay(2*TIMEOUT_USER_READ_INFO);  
 }
 
 /* [] END OF FILE */

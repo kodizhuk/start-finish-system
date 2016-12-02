@@ -126,7 +126,8 @@ static void UserFunc_2(void)
         {
             writeFlag = WRITE_NO_ERROR;
         }
-        BLE_sendOneSkierTime(&tmpStruct);
+        
+        BLE_sendOneSkierTimeResult(&tmpStruct,GetIDskierFinished(),SkierOnWay(),MAX_SKIERS_ON_WAY);
     }
 }
 
@@ -136,20 +137,24 @@ static void UserFunc_3(void)
     if(SDinsert_Read() == 0)
     {
         DisplayIndicatorSD(SD_INSERT);
+        BLE_sendSDcardStatus(STATUS_OK);
     }
     else
     {
         DisplayIndicatorSD(SD_NO_INSERT);
+        BLE_sendSDcardStatus(STATUS_ERROR);
     }
     
     /*printindicator network*/
     if(NetworkStatus() == NETWORK_CONNECT)
     {
         DisplayIndicatorNetwork(CONNECT);
+        BLE_sendNetworkStatus(STATUS_OK);
     }
     else
     {
         DisplayIndicatorNetwork(DISCONNECT);
+        BLE_sendNetworkStatus(STATUS_ERROR);
     }  
 }
 
@@ -176,5 +181,11 @@ static void UserFunc_5(void)
         RTC_SetUnixTime(unixTime);
         oldUnixTime = unixTime;
         SetRebootFlag();
+    }
+    
+    /*if  admin , read skier time from SD card and send bluetooth*/
+    if(BLE_getFlagAdminOnly() != 0)
+    {
+        ReadSkierResultAndSendBLE();
     }
 }

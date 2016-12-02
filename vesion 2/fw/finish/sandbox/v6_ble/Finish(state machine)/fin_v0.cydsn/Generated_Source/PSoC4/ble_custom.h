@@ -26,7 +26,7 @@
 /* Maximum supported Custom Services */
 #define CYBLE_CUSTOMS_SERVICE_COUNT                  (0x01u)
 #define CYBLE_CUSTOMC_SERVICE_COUNT                  (0x00u)
-#define CYBLE_CUSTOM_SERVICE_CHAR_COUNT              (0x06u)
+#define CYBLE_CUSTOM_SERVICE_CHAR_COUNT              (0x07u)
 #define CYBLE_CUSTOM_SERVICE_CHAR_DESCRIPTORS_COUNT  (0x02u)
 
 /* Below are the indexes and handles of the defined Custom Services and their characteristics */
@@ -48,7 +48,8 @@
 #define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_STATUSCCCD_DESC_INDEX   (0x01u) /* Index of statusCCCd descriptor */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHAR_INDEX   (0x05u) /* Index of unixTime characteristic */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHARACTERISTIC_USER_DESCRIPTION_DESC_INDEX   (0x00u) /* Index of Characteristic User Description descriptor */
-#define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x01u) /* Index of Client Characteristic Configuration descriptor */
+#define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHAR_INDEX   (0x06u) /* Index of adminOnly characteristic */
+#define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHARACTERISTIC_USER_DESCRIPTION_DESC_INDEX   (0x00u) /* Index of Characteristic User Description descriptor */
 
 
 #define CYBLE_SFSYSTEMSERVICE_SERVICE_HANDLE   (0x000Cu) /* Handle of SFsystemService service */
@@ -69,7 +70,8 @@
 #define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_STATUSCCCD_DESC_HANDLE   (0x0020u) /* Handle of statusCCCd descriptor */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHAR_HANDLE   (0x0022u) /* Handle of unixTime characteristic */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0023u) /* Handle of Characteristic User Description descriptor */
-#define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x0024u) /* Handle of Client Characteristic Configuration descriptor */
+#define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHAR_HANDLE   (0x0025u) /* Handle of adminOnly characteristic */
+#define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0026u) /* Handle of Characteristic User Description descriptor */
 
 
 
