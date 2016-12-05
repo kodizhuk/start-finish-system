@@ -203,13 +203,22 @@ uint32_t BLE_getUnixTime(void)
 
 uint8_t BLE_getFlagAdminOnly(void)
 {
+//    if((CyBle_GetState() != CYBLE_STATE_CONNECTED) || statusBLE == 0)
+//        return 0;
+    
     if(adminIsOnly == 0)
     {
+        #ifdef DEBUG_BLE
+        SW_UART_DEBUG_PutString("admin only 0\n\r");
+        #endif
         return 0;
     }
     else
     {
         adminIsOnly = 0;
+        #ifdef DEBUG_BLE
+        SW_UART_DEBUG_PutString("admin only 1\n\r");
+        #endif
         return 1;
     }
 }

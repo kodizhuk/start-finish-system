@@ -4,7 +4,7 @@
     #include "project.h"
     #include "lib_DB\database.h"
     
-    #define DEBUG_BLE
+//    #define DEBUG_BLE
     
     #define LENGHT_DATA_BUFFER 4
     #define LENGHT_STATUS_BUFFER 7

@@ -208,7 +208,13 @@ uint32_t CheckReady(void)
     {
         result = REBOOT;
     }
-       
+    
+    /*if  admin , read skier time from SD card and send bluetooth*/
+    if(BLE_getFlagAdminOnly() != 0)
+    {
+        ReadSkierResultAndSendBLE();
+    }
+           
     return result;
 }
 
@@ -250,7 +256,7 @@ void SaveResult(void)
     
     /*print time result last skier finished*/
     DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/
-    MyDelay(2*TIMEOUT_USER_READ_INFO);  
+    MyDelay(2*TIMEOUT_USER_READ_INFO);
 }
 
 /* [] END OF FILE */

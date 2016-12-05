@@ -182,10 +182,4 @@ static void UserFunc_5(void)
         oldUnixTime = unixTime;
         SetRebootFlag();
     }
-    
-    /*if  admin , read skier time from SD card and send bluetooth*/
-    if(BLE_getFlagAdminOnly() != 0)
-    {
-        ReadSkierResultAndSendBLE();
-    }
 }
