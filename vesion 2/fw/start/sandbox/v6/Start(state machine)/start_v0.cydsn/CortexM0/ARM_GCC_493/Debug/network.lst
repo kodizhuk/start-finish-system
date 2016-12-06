@@ -1,0 +1,3814 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"network.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	inData,24,8
+  18              		.comm	outData,24,8
+  19              		.comm	previousData,100,4
+  20              		.bss
+  21              		.align	2
+  22              	networkStatus:
+  23 0000 00000000 		.space	4
+  24              		.align	2
+  25              	noConnect:
+  26 0004 00000000 		.space	4
+  27              		.align	2
+  28              	finNoReady:
+  29 0008 00000000 		.space	4
+  30              		.comm	unixTime,16,4
+  31              		.comm	millisTime,8,4
+  32              		.section	.text.InitNetwork,"ax",%progbits
+  33              		.align	2
+  34              		.global	InitNetwork
+  35              		.code	16
+  36              		.thumb_func
+  37              		.type	InitNetwork, %function
+  38              	InitNetwork:
+  39              	.LFB28:
+  40              		.file 1 "lib_Network\\network.c"
+   1:lib_Network/network.c **** 
+   2:lib_Network/network.c **** #include "lib_Network\network.h"
+   3:lib_Network/network.c **** #include <UART_XB.h>
+   4:lib_Network/network.c **** #include <UART_XB_SPI_UART.h>
+   5:lib_Network/network.c **** #include <RTC.h>
+   6:lib_Network/network.c **** 
+   7:lib_Network/network.c **** #ifdef DEBUG_INFO
+   8:lib_Network/network.c ****     #include "SW_UART_DEBUG.h"
+   9:lib_Network/network.c **** #endif
+  10:lib_Network/network.c **** #ifdef DEBUG_TIME
+  11:lib_Network/network.c ****     #include <debug.h>
+  12:lib_Network/network.c **** #endif
+  13:lib_Network/network.c **** #ifdef DEBUG_NTP
+  14:lib_Network/network.c ****     #include <debugntp.h>
+  15:lib_Network/network.c **** #endif
+  16:lib_Network/network.c **** 
+  17:lib_Network/network.c **** #include <stdio.h>
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 2
+
+
+  18:lib_Network/network.c **** #include "lib_Network\svt.h"
+  19:lib_Network/network.c **** #include "lib_RTC\RTC_WDT.h"
+  20:lib_Network/network.c **** #include "lib_Network\ntp.h"
+  21:lib_Network/network.c **** #include "lib_Display\display.h"
+  22:lib_Network/network.c **** 
+  23:lib_Network/network.c **** #define MIN_DELAYMS 150
+  24:lib_Network/network.c **** 
+  25:lib_Network/network.c **** /*size buffer*/
+  26:lib_Network/network.c **** #define DATA_BUFFER   50
+  27:lib_Network/network.c **** #define RX_BUFFER   
+  28:lib_Network/network.c **** 
+  29:lib_Network/network.c **** #define ADRESS_READY        8
+  30:lib_Network/network.c **** #define ADRESS_REBOOT       9
+  31:lib_Network/network.c **** #define ADRESS_COUNT_SK     10
+  32:lib_Network/network.c **** 
+  33:lib_Network/network.c **** #define MASK_HIGH   0xFFFFFFFF00000000
+  34:lib_Network/network.c **** #define MASK_LOW    0x00000000FFFFFFFF
+  35:lib_Network/network.c **** #define DATA_SHIFT  32
+  36:lib_Network/network.c **** 
+  37:lib_Network/network.c **** #define TIMEOUT_FIN_READY   3
+  38:lib_Network/network.c **** 
+  39:lib_Network/network.c **** /*for NTP protocol*/
+  40:lib_Network/network.c **** #define NUM_TRY_SYNC        14
+  41:lib_Network/network.c **** #define NUM_CONNECT_ATTEMPS 1000
+  42:lib_Network/network.c **** 
+  43:lib_Network/network.c **** #define SAVE_TIME           1
+  44:lib_Network/network.c **** #define NETWORK_TIMEOUT     50
+  45:lib_Network/network.c **** #define NEW_SKIER_IN_TARCK   1
+  46:lib_Network/network.c **** 
+  47:lib_Network/network.c **** 
+  48:lib_Network/network.c **** /*segment time*/
+  49:lib_Network/network.c **** #define T1                  0
+  50:lib_Network/network.c **** #define T2                  1
+  51:lib_Network/network.c **** #define T3                  2
+  52:lib_Network/network.c **** #define T4                  3
+  53:lib_Network/network.c **** 
+  54:lib_Network/network.c **** #define CORRECTION_TIME     0
+  55:lib_Network/network.c **** 
+  56:lib_Network/network.c **** typedef struct
+  57:lib_Network/network.c **** {
+  58:lib_Network/network.c ****     uint8_t IDpacket;
+  59:lib_Network/network.c ****     uint8_t ready;
+  60:lib_Network/network.c ****     uint8_t reboot;
+  61:lib_Network/network.c ****     uint8_t countSkiers;
+  62:lib_Network/network.c ****     uint64_t tmpTime;
+  63:lib_Network/network.c ****     uint16_t tmpMsTime;
+  64:lib_Network/network.c ****     uint8_t readStatus;
+  65:lib_Network/network.c **** }FinishData;
+  66:lib_Network/network.c **** 
+  67:lib_Network/network.c **** typedef struct
+  68:lib_Network/network.c **** {
+  69:lib_Network/network.c ****     uint8_t IDpacket;
+  70:lib_Network/network.c ****     uint64_t unixStartTime;
+  71:lib_Network/network.c ****     uint16_t startMsTime;
+  72:lib_Network/network.c ****     uint8_t newSkier;
+  73:lib_Network/network.c ****     uint8_t writeStatus;
+  74:lib_Network/network.c ****     uint8_t reboot;     /*reboot=1, not reboot=0*/
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 3
+
+
+  75:lib_Network/network.c **** }StartData;
+  76:lib_Network/network.c **** 
+  77:lib_Network/network.c **** FinishData inData;
+  78:lib_Network/network.c **** StartData outData;
+  79:lib_Network/network.c **** 
+  80:lib_Network/network.c **** char previousData[100];
+  81:lib_Network/network.c **** 
+  82:lib_Network/network.c **** static uint32_t networkStatus;
+  83:lib_Network/network.c **** static int noConnect;
+  84:lib_Network/network.c **** static int finNoReady;
+  85:lib_Network/network.c **** uint32_t unixTime[4];
+  86:lib_Network/network.c **** uint16_t millisTime[4];
+  87:lib_Network/network.c **** 
+  88:lib_Network/network.c **** #ifdef DEBUG_INFO
+  89:lib_Network/network.c ****     char uartBuff[50];
+  90:lib_Network/network.c **** #endif
+  91:lib_Network/network.c **** 
+  92:lib_Network/network.c **** uint32_t ReceiveRealTime(void);
+  93:lib_Network/network.c **** void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint16_t 
+  94:lib_Network/network.c **** uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint16_t *IDreceive, uint32_t saveTi
+  95:lib_Network/network.c **** 
+  96:lib_Network/network.c **** /*******************************************************************************
+  97:lib_Network/network.c **** * Function Name: InitNetwork
+  98:lib_Network/network.c **** ********************************************************************************
+  99:lib_Network/network.c **** *
+ 100:lib_Network/network.c **** * Summary:
+ 101:lib_Network/network.c **** *   initialization UART for XBee module
+ 102:lib_Network/network.c **** *
+ 103:lib_Network/network.c **** *******************************************************************************/
+ 104:lib_Network/network.c **** void InitNetwork(void)
+ 105:lib_Network/network.c **** {
+  41              		.loc 1 105 0
+  42              		.cfi_startproc
+  43 0000 80B5     		push	{r7, lr}
+  44              		.cfi_def_cfa_offset 8
+  45              		.cfi_offset 7, -8
+  46              		.cfi_offset 14, -4
+  47 0002 00AF     		add	r7, sp, #0
+  48              		.cfi_def_cfa_register 7
+ 106:lib_Network/network.c ****     UART_XB_Start();
+  49              		.loc 1 106 0
+  50 0004 FFF7FEFF 		bl	UART_XB_Start
+ 107:lib_Network/network.c ****     
+ 108:lib_Network/network.c ****     #ifdef DEBUG_INFO
+ 109:lib_Network/network.c ****         SW_UART_DEBUG_Start();
+ 110:lib_Network/network.c ****         SW_UART_DEBUG_PutString("HElLO, IM READY(start)\n\r");
+ 111:lib_Network/network.c ****     #endif
+ 112:lib_Network/network.c ****     
+ 113:lib_Network/network.c ****     inData.readStatus = NO_READ;
+  51              		.loc 1 113 0
+  52 0008 074B     		ldr	r3, .L2
+  53 000a 0022     		mov	r2, #0
+  54 000c 9A74     		strb	r2, [r3, #18]
+ 114:lib_Network/network.c ****     outData.writeStatus = WRITE_OK;
+  55              		.loc 1 114 0
+  56 000e 074B     		ldr	r3, .L2+4
+  57 0010 0122     		mov	r2, #1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 4
+
+
+  58 0012 DA74     		strb	r2, [r3, #19]
+ 115:lib_Network/network.c ****     outData.IDpacket = 0xFF;
+  59              		.loc 1 115 0
+  60 0014 054B     		ldr	r3, .L2+4
+  61 0016 FF22     		mov	r2, #255
+  62 0018 1A70     		strb	r2, [r3]
+ 116:lib_Network/network.c ****     networkStatus = NETWORK_DISCONN;   
+  63              		.loc 1 116 0
+  64 001a 054B     		ldr	r3, .L2+8
+  65 001c 0022     		mov	r2, #0
+  66 001e 1A60     		str	r2, [r3]
+ 117:lib_Network/network.c ****     UART_XB_SpiUartClearRxBuffer();
+  67              		.loc 1 117 0
+  68 0020 FFF7FEFF 		bl	UART_XB_SpiUartClearRxBuffer
+ 118:lib_Network/network.c **** }
+  69              		.loc 1 118 0
+  70 0024 BD46     		mov	sp, r7
+  71              		@ sp needed
+  72 0026 80BD     		pop	{r7, pc}
+  73              	.L3:
+  74              		.align	2
+  75              	.L2:
+  76 0028 00000000 		.word	inData
+  77 002c 00000000 		.word	outData
+  78 0030 00000000 		.word	networkStatus
+  79              		.cfi_endproc
+  80              	.LFE28:
+  81              		.size	InitNetwork, .-InitNetwork
+  82              		.section	.rodata
+  83              		.align	2
+  84              	.LC6:
+  85 0000 25303258 		.ascii	"%02X:%08X%08X%04X%02X%02X\000"
+  85      3A253038 
+  85      58253038 
+  85      58253034 
+  85      58253032 
+  86              		.section	.text.SendData,"ax",%progbits
+  87              		.align	2
+  88              		.global	SendData
+  89              		.code	16
+  90              		.thumb_func
+  91              		.type	SendData, %function
+  92              	SendData:
+  93              	.LFB29:
+ 119:lib_Network/network.c **** 
+ 120:lib_Network/network.c **** /*******************************************************************************
+ 121:lib_Network/network.c **** * Function Name: SendData
+ 122:lib_Network/network.c **** ********************************************************************************
+ 123:lib_Network/network.c **** *
+ 124:lib_Network/network.c **** * Summary:
+ 125:lib_Network/network.c **** *   send data to start from struct "outData"
+ 126:lib_Network/network.c **** *
+ 127:lib_Network/network.c **** *******************************************************************************/
+ 128:lib_Network/network.c **** void SendData(void)
+ 129:lib_Network/network.c **** {
+  94              		.loc 1 129 0
+  95              		.cfi_startproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 5
+
+
+  96 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  97              		.cfi_def_cfa_offset 20
+  98              		.cfi_offset 4, -20
+  99              		.cfi_offset 5, -16
+ 100              		.cfi_offset 6, -12
+ 101              		.cfi_offset 7, -8
+ 102              		.cfi_offset 14, -4
+ 103 0002 9FB0     		sub	sp, sp, #124
+ 104              		.cfi_def_cfa_offset 144
+ 105 0004 04AF     		add	r7, sp, #16
+ 106              		.cfi_def_cfa 7, 128
+ 130:lib_Network/network.c ****     if(outData.writeStatus == NO_WRITE && inData.readStatus == READ_OK)
+ 107              		.loc 1 130 0
+ 108 0006 314B     		ldr	r3, .L7
+ 109 0008 DB7C     		ldrb	r3, [r3, #19]
+ 110 000a 002B     		cmp	r3, #0
+ 111 000c 5AD1     		bne	.L4
+ 112              		.loc 1 130 0 is_stmt 0 discriminator 1
+ 113 000e 304B     		ldr	r3, .L7+4
+ 114 0010 9B7C     		ldrb	r3, [r3, #18]
+ 115 0012 012B     		cmp	r3, #1
+ 116 0014 56D1     		bne	.L4
+ 131:lib_Network/network.c ****     { 
+ 132:lib_Network/network.c ****         if (inData.IDpacket == outData.IDpacket)
+ 117              		.loc 1 132 0 is_stmt 1
+ 118 0016 2E4B     		ldr	r3, .L7+4
+ 119 0018 1878     		ldrb	r0, [r3]
+ 120 001a 2C4B     		ldr	r3, .L7
+ 121 001c 1B78     		ldrb	r3, [r3]
+ 122 001e 9842     		cmp	r0, r3
+ 123 0020 0AD1     		bne	.L6
+ 133:lib_Network/network.c ****         {
+ 134:lib_Network/network.c ****             /*send previous packet*/
+ 135:lib_Network/network.c ****             
+ 136:lib_Network/network.c ****             UART_XB_UartPutString(previousData);
+ 124              		.loc 1 136 0
+ 125 0022 2C4B     		ldr	r3, .L7+8
+ 126 0024 181C     		mov	r0, r3
+ 127 0026 FFF7FEFF 		bl	UART_XB_UartPutString
+ 137:lib_Network/network.c ****             outData.writeStatus = WRITE_OK;
+ 128              		.loc 1 137 0
+ 129 002a 284B     		ldr	r3, .L7
+ 130 002c 0122     		mov	r2, #1
+ 131 002e DA74     		strb	r2, [r3, #19]
+ 138:lib_Network/network.c ****             inData.readStatus = NO_READ;
+ 132              		.loc 1 138 0
+ 133 0030 274B     		ldr	r3, .L7+4
+ 134 0032 0022     		mov	r2, #0
+ 135 0034 9A74     		strb	r2, [r3, #18]
+ 136 0036 45E0     		b	.L4
+ 137              	.L6:
+ 138              	.LBB2:
+ 139:lib_Network/network.c ****         }
+ 140:lib_Network/network.c ****         else
+ 141:lib_Network/network.c ****         {
+ 142:lib_Network/network.c ****             /*send nex packet*/
+ 143:lib_Network/network.c ****             
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 6
+
+
+ 144:lib_Network/network.c ****             char sendBuffer[DATA_BUFFER];
+ 145:lib_Network/network.c ****             char sendData[DATA_BUFFER];
+ 146:lib_Network/network.c ****             
+ 147:lib_Network/network.c ****             /*pack data*/
+ 148:lib_Network/network.c ****             sprintf(sendData,"%02X:%08X%08X%04X%02X%02X",
+ 149:lib_Network/network.c ****                     0u,
+ 150:lib_Network/network.c ****                     (uint32_t)((outData.unixStartTime & MASK_HIGH) >> DATA_SHIFT), 
+ 139              		.loc 1 150 0
+ 140 0038 244B     		ldr	r3, .L7
+ 141 003a DC68     		ldr	r4, [r3, #12]
+ 142 003c 9B68     		ldr	r3, [r3, #8]
+ 143 003e 2100     		lsr	r1, r4, #0
+ 144 0040 0023     		mov	r3, #0
+ 145 0042 1A1C     		mov	r2, r3
+ 148:lib_Network/network.c ****                     0u,
+ 146              		.loc 1 148 0
+ 147 0044 0E1C     		mov	r6, r1
+ 151:lib_Network/network.c ****                     (uint32_t)(outData.unixStartTime & MASK_LOW), 
+ 148              		.loc 1 151 0
+ 149 0046 214B     		ldr	r3, .L7
+ 150 0048 DC68     		ldr	r4, [r3, #12]
+ 151 004a 9B68     		ldr	r3, [r3, #8]
+ 148:lib_Network/network.c ****                     0u,
+ 152              		.loc 1 148 0
+ 153 004c 1D1C     		mov	r5, r3
+ 152:lib_Network/network.c ****                     outData.startMsTime, 
+ 154              		.loc 1 152 0
+ 155 004e 1F4B     		ldr	r3, .L7
+ 156 0050 1B8A     		ldrh	r3, [r3, #16]
+ 148:lib_Network/network.c ****                     0u,
+ 157              		.loc 1 148 0
+ 158 0052 1C1C     		mov	r4, r3
+ 153:lib_Network/network.c ****                     outData.newSkier, 
+ 159              		.loc 1 153 0
+ 160 0054 1D4B     		ldr	r3, .L7
+ 161 0056 9B7C     		ldrb	r3, [r3, #18]
+ 148:lib_Network/network.c ****                     0u,
+ 162              		.loc 1 148 0
+ 163 0058 181C     		mov	r0, r3
+ 154:lib_Network/network.c ****                     outData.reboot);
+ 164              		.loc 1 154 0
+ 165 005a 1C4B     		ldr	r3, .L7
+ 166 005c 1B7D     		ldrb	r3, [r3, #20]
+ 148:lib_Network/network.c ****                     0u,
+ 167              		.loc 1 148 0
+ 168 005e 191C     		mov	r1, r3
+ 169 0060 3423     		mov	r3, #52
+ 170 0062 FA18     		add	r2, r7, r3
+ 171 0064 1C4B     		ldr	r3, .L7+12
+ 172 0066 0095     		str	r5, [sp]
+ 173 0068 0194     		str	r4, [sp, #4]
+ 174 006a 0290     		str	r0, [sp, #8]
+ 175 006c 0391     		str	r1, [sp, #12]
+ 176 006e 101C     		mov	r0, r2
+ 177 0070 191C     		mov	r1, r3
+ 178 0072 0022     		mov	r2, #0
+ 179 0074 331C     		mov	r3, r6
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 7
+
+
+ 180 0076 FFF7FEFF 		bl	sprintf
+ 155:lib_Network/network.c ****             
+ 156:lib_Network/network.c ****             
+ 157:lib_Network/network.c ****             PackData(sendBuffer, (uint8_t *)sendData, inData.IDpacket);
+ 181              		.loc 1 157 0
+ 182 007a 154B     		ldr	r3, .L7+4
+ 183 007c 1B78     		ldrb	r3, [r3]
+ 184 007e 9BB2     		uxth	r3, r3
+ 185 0080 391C     		mov	r1, r7
+ 186 0082 3422     		mov	r2, #52
+ 187 0084 BA18     		add	r2, r7, r2
+ 188 0086 081C     		mov	r0, r1
+ 189 0088 111C     		mov	r1, r2
+ 190 008a 1A1C     		mov	r2, r3
+ 191 008c FFF7FEFF 		bl	PackData
+ 158:lib_Network/network.c ****             UART_XB_UartPutString(sendBuffer);            
+ 192              		.loc 1 158 0
+ 193 0090 3B1C     		mov	r3, r7
+ 194 0092 181C     		mov	r0, r3
+ 195 0094 FFF7FEFF 		bl	UART_XB_UartPutString
+ 159:lib_Network/network.c **** 
+ 160:lib_Network/network.c ****             outData.newSkier = !NEW_SKIER_IN_TARCK;
+ 196              		.loc 1 160 0
+ 197 0098 0C4B     		ldr	r3, .L7
+ 198 009a 0022     		mov	r2, #0
+ 199 009c 9A74     		strb	r2, [r3, #18]
+ 161:lib_Network/network.c ****                 
+ 162:lib_Network/network.c ****             outData.writeStatus = WRITE_OK;
+ 200              		.loc 1 162 0
+ 201 009e 0B4B     		ldr	r3, .L7
+ 202 00a0 0122     		mov	r2, #1
+ 203 00a2 DA74     		strb	r2, [r3, #19]
+ 163:lib_Network/network.c ****             outData.IDpacket = inData.IDpacket;
+ 204              		.loc 1 163 0
+ 205 00a4 0A4B     		ldr	r3, .L7+4
+ 206 00a6 1A78     		ldrb	r2, [r3]
+ 207 00a8 084B     		ldr	r3, .L7
+ 208 00aa 1A70     		strb	r2, [r3]
+ 164:lib_Network/network.c ****             inData.readStatus = NO_READ;
+ 209              		.loc 1 164 0
+ 210 00ac 084B     		ldr	r3, .L7+4
+ 211 00ae 0022     		mov	r2, #0
+ 212 00b0 9A74     		strb	r2, [r3, #18]
+ 165:lib_Network/network.c ****             strcpy(previousData, sendBuffer);
+ 213              		.loc 1 165 0
+ 214 00b2 084A     		ldr	r2, .L7+8
+ 215 00b4 3B1C     		mov	r3, r7
+ 216 00b6 101C     		mov	r0, r2
+ 217 00b8 191C     		mov	r1, r3
+ 218 00ba FFF7FEFF 		bl	strcpy
+ 166:lib_Network/network.c ****             
+ 167:lib_Network/network.c ****             CyDelay(50);
+ 219              		.loc 1 167 0
+ 220 00be 3220     		mov	r0, #50
+ 221 00c0 FFF7FEFF 		bl	CyDelay
+ 222              	.L4:
+ 223              	.LBE2:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 8
+
+
+ 168:lib_Network/network.c ****         }
+ 169:lib_Network/network.c ****     }
+ 170:lib_Network/network.c **** }
+ 224              		.loc 1 170 0
+ 225 00c4 BD46     		mov	sp, r7
+ 226 00c6 1BB0     		add	sp, sp, #108
+ 227              		@ sp needed
+ 228 00c8 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 229              	.L8:
+ 230 00ca C046     		.align	2
+ 231              	.L7:
+ 232 00cc 00000000 		.word	outData
+ 233 00d0 00000000 		.word	inData
+ 234 00d4 00000000 		.word	previousData
+ 235 00d8 00000000 		.word	.LC6
+ 236              		.cfi_endproc
+ 237              	.LFE29:
+ 238              		.size	SendData, .-SendData
+ 239              		.section	.text.ReceiveData,"ax",%progbits
+ 240              		.align	2
+ 241              		.global	ReceiveData
+ 242              		.code	16
+ 243              		.thumb_func
+ 244              		.type	ReceiveData, %function
+ 245              	ReceiveData:
+ 246              	.LFB30:
+ 171:lib_Network/network.c **** 
+ 172:lib_Network/network.c **** 
+ 173:lib_Network/network.c **** /*******************************************************************************
+ 174:lib_Network/network.c **** * Function Name: ReceiveData
+ 175:lib_Network/network.c **** ********************************************************************************
+ 176:lib_Network/network.c **** *
+ 177:lib_Network/network.c **** * Summary:
+ 178:lib_Network/network.c **** *   receive data from start in struct "inData"
+ 179:lib_Network/network.c **** * Return:
+ 180:lib_Network/network.c **** *   NETWORK_CONNECT or NETWORK_DISCONNECT
+ 181:lib_Network/network.c **** *
+ 182:lib_Network/network.c **** *******************************************************************************/
+ 183:lib_Network/network.c **** uint32_t ReceiveData(void)
+ 184:lib_Network/network.c **** {
+ 247              		.loc 1 184 0
+ 248              		.cfi_startproc
+ 249 0000 80B5     		push	{r7, lr}
+ 250              		.cfi_def_cfa_offset 8
+ 251              		.cfi_offset 7, -8
+ 252              		.cfi_offset 14, -4
+ 253 0002 8AB0     		sub	sp, sp, #40
+ 254              		.cfi_def_cfa_offset 48
+ 255 0004 00AF     		add	r7, sp, #0
+ 256              		.cfi_def_cfa_register 7
+ 185:lib_Network/network.c ****     if(outData.writeStatus == WRITE_OK && inData.readStatus == NO_READ)
+ 257              		.loc 1 185 0
+ 258 0006 2D4B     		ldr	r3, .L17
+ 259 0008 DB7C     		ldrb	r3, [r3, #19]
+ 260 000a 012B     		cmp	r3, #1
+ 261 000c 51D1     		bne	.L10
+ 262              		.loc 1 185 0 is_stmt 0 discriminator 1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 9
+
+
+ 263 000e 2C4B     		ldr	r3, .L17+4
+ 264 0010 9B7C     		ldrb	r3, [r3, #18]
+ 265 0012 002B     		cmp	r3, #0
+ 266 0014 4DD1     		bne	.L10
+ 267              	.LBB3:
+ 186:lib_Network/network.c ****     {
+ 187:lib_Network/network.c ****         uint32_t byte;
+ 188:lib_Network/network.c ****         struct Resp recvData;
+ 189:lib_Network/network.c ****           
+ 190:lib_Network/network.c ****         while((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
+ 268              		.loc 1 190 0 is_stmt 1
+ 269 0016 35E0     		b	.L11
+ 270              	.L14:
+ 191:lib_Network/network.c ****         { 
+ 192:lib_Network/network.c ****             UnpackData(&recvData, (uint8_t)(byte & 0xFF));
+ 271              		.loc 1 192 0
+ 272 0018 7B6A     		ldr	r3, [r7, #36]
+ 273 001a DBB2     		uxtb	r3, r3
+ 274 001c 3A1C     		mov	r2, r7
+ 275 001e 101C     		mov	r0, r2
+ 276 0020 191C     		mov	r1, r3
+ 277 0022 FFF7FEFF 		bl	UnpackData
+ 193:lib_Network/network.c ****             
+ 194:lib_Network/network.c ****             CyDelay(2);
+ 278              		.loc 1 194 0
+ 279 0026 0220     		mov	r0, #2
+ 280 0028 FFF7FEFF 		bl	CyDelay
+ 195:lib_Network/network.c ****             
+ 196:lib_Network/network.c ****             if(recvData.EndPacket == 1)
+ 281              		.loc 1 196 0
+ 282 002c 3B1C     		mov	r3, r7
+ 283 002e 1B7E     		ldrb	r3, [r3, #24]
+ 284 0030 012B     		cmp	r3, #1
+ 285 0032 27D1     		bne	.L11
+ 197:lib_Network/network.c ****             {                      
+ 198:lib_Network/network.c ****                 inData.IDpacket = recvData.Seq;
+ 286              		.loc 1 198 0
+ 287 0034 3B1C     		mov	r3, r7
+ 288 0036 1B88     		ldrh	r3, [r3]
+ 289 0038 DAB2     		uxtb	r2, r3
+ 290 003a 214B     		ldr	r3, .L17+4
+ 291 003c 1A70     		strb	r2, [r3]
+ 199:lib_Network/network.c ****                 
+ 200:lib_Network/network.c ****                 inData.readStatus = READ_OK;
+ 292              		.loc 1 200 0
+ 293 003e 204B     		ldr	r3, .L17+4
+ 294 0040 0122     		mov	r2, #1
+ 295 0042 9A74     		strb	r2, [r3, #18]
+ 201:lib_Network/network.c ****                 outData.writeStatus = NO_WRITE;
+ 296              		.loc 1 201 0
+ 297 0044 1D4B     		ldr	r3, .L17
+ 298 0046 0022     		mov	r2, #0
+ 299 0048 DA74     		strb	r2, [r3, #19]
+ 202:lib_Network/network.c ****                 
+ 203:lib_Network/network.c ****                 /*connect network*/
+ 204:lib_Network/network.c ****                 networkStatus = NETWORK_CONN;
+ 300              		.loc 1 204 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 10
+
+
+ 301 004a 1E4B     		ldr	r3, .L17+8
+ 302 004c 0122     		mov	r2, #1
+ 303 004e 1A60     		str	r2, [r3]
+ 205:lib_Network/network.c ****                 noConnect = 0;
+ 304              		.loc 1 205 0
+ 305 0050 1D4B     		ldr	r3, .L17+12
+ 306 0052 0022     		mov	r2, #0
+ 307 0054 1A60     		str	r2, [r3]
+ 206:lib_Network/network.c ****                 /*write data*/
+ 207:lib_Network/network.c ****                 inData.countSkiers = (recvData.Data3 & 0x00FF) << 8;
+ 308              		.loc 1 207 0
+ 309 0056 3B1C     		mov	r3, r7
+ 310 0058 5B8A     		ldrh	r3, [r3, #18]
+ 311 005a 1B02     		lsl	r3, r3, #8
+ 312 005c DAB2     		uxtb	r2, r3
+ 313 005e 184B     		ldr	r3, .L17+4
+ 314 0060 DA70     		strb	r2, [r3, #3]
+ 208:lib_Network/network.c ****                 //inData.unixStartTime = recvData.Data1;
+ 209:lib_Network/network.c ****                 inData.ready = (recvData.Data2 & 0xFF00) >> 8;
+ 315              		.loc 1 209 0
+ 316 0062 3B1C     		mov	r3, r7
+ 317 0064 1B8A     		ldrh	r3, [r3, #16]
+ 318 0066 1B0A     		lsr	r3, r3, #8
+ 319 0068 9BB2     		uxth	r3, r3
+ 320 006a DAB2     		uxtb	r2, r3
+ 321 006c 144B     		ldr	r3, .L17+4
+ 322 006e 5A70     		strb	r2, [r3, #1]
+ 210:lib_Network/network.c ****                 inData.reboot = recvData.Data2 & 0x00FF;
+ 323              		.loc 1 210 0
+ 324 0070 3B1C     		mov	r3, r7
+ 325 0072 1B8A     		ldrh	r3, [r3, #16]
+ 326 0074 DAB2     		uxtb	r2, r3
+ 327 0076 124B     		ldr	r3, .L17+4
+ 328 0078 9A70     		strb	r2, [r3, #2]
+ 211:lib_Network/network.c ****                 
+ 212:lib_Network/network.c ****                 CyDelay(50);
+ 329              		.loc 1 212 0
+ 330 007a 3220     		mov	r0, #50
+ 331 007c FFF7FEFF 		bl	CyDelay
+ 213:lib_Network/network.c **** 
+ 214:lib_Network/network.c ****                 return  NETWORK_CONN;  
+ 332              		.loc 1 214 0
+ 333 0080 0123     		mov	r3, #1
+ 334 0082 17E0     		b	.L16
+ 335              	.L11:
+ 190:lib_Network/network.c ****         { 
+ 336              		.loc 1 190 0
+ 337 0084 FFF7FEFF 		bl	UART_XB_SpiUartGetRxBufferSize
+ 338 0088 031E     		sub	r3, r0, #0
+ 339 008a 06D0     		beq	.L13
+ 190:lib_Network/network.c ****         { 
+ 340              		.loc 1 190 0 is_stmt 0 discriminator 1
+ 341 008c FFF7FEFF 		bl	UART_XB_UartGetChar
+ 342 0090 031C     		mov	r3, r0
+ 343 0092 7B62     		str	r3, [r7, #36]
+ 344 0094 7B6A     		ldr	r3, [r7, #36]
+ 345 0096 002B     		cmp	r3, #0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 11
+
+
+ 346 0098 BED1     		bne	.L14
+ 347              	.L13:
+ 215:lib_Network/network.c ****             }
+ 216:lib_Network/network.c ****         }
+ 217:lib_Network/network.c ****         
+ 218:lib_Network/network.c ****         /*tyme to respond*/
+ 219:lib_Network/network.c ****         if(noConnect++ >= NETWORK_TIMEOUT)
+ 348              		.loc 1 219 0 is_stmt 1
+ 349 009a 0B4B     		ldr	r3, .L17+12
+ 350 009c 1B68     		ldr	r3, [r3]
+ 351 009e 591C     		add	r1, r3, #1
+ 352 00a0 094A     		ldr	r2, .L17+12
+ 353 00a2 1160     		str	r1, [r2]
+ 354 00a4 312B     		cmp	r3, #49
+ 355 00a6 02DD     		ble	.L15
+ 220:lib_Network/network.c ****         {
+ 221:lib_Network/network.c ****             networkStatus = NETWORK_DISCONN;
+ 356              		.loc 1 221 0
+ 357 00a8 064B     		ldr	r3, .L17+8
+ 358 00aa 0022     		mov	r2, #0
+ 359 00ac 1A60     		str	r2, [r3]
+ 360              	.L15:
+ 222:lib_Network/network.c ****         }
+ 223:lib_Network/network.c ****         return  NETWORK_DISCONN;
+ 361              		.loc 1 223 0
+ 362 00ae 0023     		mov	r3, #0
+ 363 00b0 00E0     		b	.L16
+ 364              	.L10:
+ 365              	.LBE3:
+ 224:lib_Network/network.c ****     }
+ 225:lib_Network/network.c ****     return 0;
+ 366              		.loc 1 225 0
+ 367 00b2 0023     		mov	r3, #0
+ 368              	.L16:
+ 226:lib_Network/network.c **** }
+ 369              		.loc 1 226 0 discriminator 1
+ 370 00b4 181C     		mov	r0, r3
+ 371 00b6 BD46     		mov	sp, r7
+ 372 00b8 0AB0     		add	sp, sp, #40
+ 373              		@ sp needed
+ 374 00ba 80BD     		pop	{r7, pc}
+ 375              	.L18:
+ 376              		.align	2
+ 377              	.L17:
+ 378 00bc 00000000 		.word	outData
+ 379 00c0 00000000 		.word	inData
+ 380 00c4 00000000 		.word	networkStatus
+ 381 00c8 04000000 		.word	noConnect
+ 382              		.cfi_endproc
+ 383              	.LFE30:
+ 384              		.size	ReceiveData, .-ReceiveData
+ 385              		.section	.text.NetworkStatus,"ax",%progbits
+ 386              		.align	2
+ 387              		.global	NetworkStatus
+ 388              		.code	16
+ 389              		.thumb_func
+ 390              		.type	NetworkStatus, %function
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 12
+
+
+ 391              	NetworkStatus:
+ 392              	.LFB31:
+ 227:lib_Network/network.c **** 
+ 228:lib_Network/network.c **** /*******************************************************************************
+ 229:lib_Network/network.c **** * Function Name: NetworkStatus
+ 230:lib_Network/network.c **** ********************************************************************************
+ 231:lib_Network/network.c **** *
+ 232:lib_Network/network.c **** * Summary:
+ 233:lib_Network/network.c **** *   read network status
+ 234:lib_Network/network.c **** * Return:
+ 235:lib_Network/network.c **** *   NETWORK_CONNECT or NETWORK_DISCONNECT
+ 236:lib_Network/network.c **** *
+ 237:lib_Network/network.c **** *******************************************************************************/
+ 238:lib_Network/network.c **** uint32_t NetworkStatus(void)
+ 239:lib_Network/network.c **** {
+ 393              		.loc 1 239 0
+ 394              		.cfi_startproc
+ 395 0000 80B5     		push	{r7, lr}
+ 396              		.cfi_def_cfa_offset 8
+ 397              		.cfi_offset 7, -8
+ 398              		.cfi_offset 14, -4
+ 399 0002 00AF     		add	r7, sp, #0
+ 400              		.cfi_def_cfa_register 7
+ 240:lib_Network/network.c ****     return networkStatus;
+ 401              		.loc 1 240 0
+ 402 0004 024B     		ldr	r3, .L21
+ 403 0006 1B68     		ldr	r3, [r3]
+ 241:lib_Network/network.c **** }
+ 404              		.loc 1 241 0
+ 405 0008 181C     		mov	r0, r3
+ 406 000a BD46     		mov	sp, r7
+ 407              		@ sp needed
+ 408 000c 80BD     		pop	{r7, pc}
+ 409              	.L22:
+ 410 000e C046     		.align	2
+ 411              	.L21:
+ 412 0010 00000000 		.word	networkStatus
+ 413              		.cfi_endproc
+ 414              	.LFE31:
+ 415              		.size	NetworkStatus, .-NetworkStatus
+ 416              		.section	.text.SendSkierStart,"ax",%progbits
+ 417              		.align	2
+ 418              		.global	SendSkierStart
+ 419              		.code	16
+ 420              		.thumb_func
+ 421              		.type	SendSkierStart, %function
+ 422              	SendSkierStart:
+ 423              	.LFB32:
+ 242:lib_Network/network.c **** 
+ 243:lib_Network/network.c **** 
+ 244:lib_Network/network.c **** 
+ 245:lib_Network/network.c **** void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs)
+ 246:lib_Network/network.c **** {
+ 424              		.loc 1 246 0
+ 425              		.cfi_startproc
+ 426 0000 90B5     		push	{r4, r7, lr}
+ 427              		.cfi_def_cfa_offset 12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 13
+
+
+ 428              		.cfi_offset 4, -12
+ 429              		.cfi_offset 7, -8
+ 430              		.cfi_offset 14, -4
+ 431 0002 85B0     		sub	sp, sp, #20
+ 432              		.cfi_def_cfa_offset 32
+ 433 0004 00AF     		add	r7, sp, #0
+ 434              		.cfi_def_cfa_register 7
+ 435 0006 B860     		str	r0, [r7, #8]
+ 436 0008 F960     		str	r1, [r7, #12]
+ 437 000a 7A60     		str	r2, [r7, #4]
+ 247:lib_Network/network.c ****     outData.unixStartTime = unixTimeStart;
+ 438              		.loc 1 247 0
+ 439 000c 074A     		ldr	r2, .L24
+ 440 000e BB68     		ldr	r3, [r7, #8]
+ 441 0010 FC68     		ldr	r4, [r7, #12]
+ 442 0012 9360     		str	r3, [r2, #8]
+ 443 0014 D460     		str	r4, [r2, #12]
+ 248:lib_Network/network.c ****     outData.startMsTime = recentMs;
+ 444              		.loc 1 248 0
+ 445 0016 7B68     		ldr	r3, [r7, #4]
+ 446 0018 9AB2     		uxth	r2, r3
+ 447 001a 044B     		ldr	r3, .L24
+ 448 001c 1A82     		strh	r2, [r3, #16]
+ 249:lib_Network/network.c ****     outData.newSkier = NEW_SKIER_IN_TARCK;
+ 449              		.loc 1 249 0
+ 450 001e 034B     		ldr	r3, .L24
+ 451 0020 0122     		mov	r2, #1
+ 452 0022 9A74     		strb	r2, [r3, #18]
+ 250:lib_Network/network.c **** }
+ 453              		.loc 1 250 0
+ 454 0024 BD46     		mov	sp, r7
+ 455 0026 05B0     		add	sp, sp, #20
+ 456              		@ sp needed
+ 457 0028 90BD     		pop	{r4, r7, pc}
+ 458              	.L25:
+ 459 002a C046     		.align	2
+ 460              	.L24:
+ 461 002c 00000000 		.word	outData
+ 462              		.cfi_endproc
+ 463              	.LFE32:
+ 464              		.size	SendSkierStart, .-SendSkierStart
+ 465              		.section	.text.FinReady,"ax",%progbits
+ 466              		.align	2
+ 467              		.global	FinReady
+ 468              		.code	16
+ 469              		.thumb_func
+ 470              		.type	FinReady, %function
+ 471              	FinReady:
+ 472              	.LFB33:
+ 251:lib_Network/network.c **** 
+ 252:lib_Network/network.c **** 
+ 253:lib_Network/network.c **** uint32_t FinReady(void)
+ 254:lib_Network/network.c **** {
+ 473              		.loc 1 254 0
+ 474              		.cfi_startproc
+ 475 0000 80B5     		push	{r7, lr}
+ 476              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 14
+
+
+ 477              		.cfi_offset 7, -8
+ 478              		.cfi_offset 14, -4
+ 479 0002 00AF     		add	r7, sp, #0
+ 480              		.cfi_def_cfa_register 7
+ 255:lib_Network/network.c ****     return inData.ready;
+ 481              		.loc 1 255 0
+ 482 0004 024B     		ldr	r3, .L28
+ 483 0006 5B78     		ldrb	r3, [r3, #1]
+ 256:lib_Network/network.c **** }
+ 484              		.loc 1 256 0
+ 485 0008 181C     		mov	r0, r3
+ 486 000a BD46     		mov	sp, r7
+ 487              		@ sp needed
+ 488 000c 80BD     		pop	{r7, pc}
+ 489              	.L29:
+ 490 000e C046     		.align	2
+ 491              	.L28:
+ 492 0010 00000000 		.word	inData
+ 493              		.cfi_endproc
+ 494              	.LFE33:
+ 495              		.size	FinReady, .-FinReady
+ 496              		.section	.text.FinWriteInDB,"ax",%progbits
+ 497              		.align	2
+ 498              		.global	FinWriteInDB
+ 499              		.code	16
+ 500              		.thumb_func
+ 501              		.type	FinWriteInDB, %function
+ 502              	FinWriteInDB:
+ 503              	.LFB34:
+ 257:lib_Network/network.c **** 
+ 258:lib_Network/network.c **** 
+ 259:lib_Network/network.c **** uint32_t FinWriteInDB(void)
+ 260:lib_Network/network.c **** {
+ 504              		.loc 1 260 0
+ 505              		.cfi_startproc
+ 506 0000 80B5     		push	{r7, lr}
+ 507              		.cfi_def_cfa_offset 8
+ 508              		.cfi_offset 7, -8
+ 509              		.cfi_offset 14, -4
+ 510 0002 82B0     		sub	sp, sp, #8
+ 511              		.cfi_def_cfa_offset 16
+ 512 0004 00AF     		add	r7, sp, #0
+ 513              		.cfi_def_cfa_register 7
+ 261:lib_Network/network.c ****     uint32_t result;
+ 262:lib_Network/network.c ****     
+ 263:lib_Network/network.c ****     if(outData.newSkier == NEW_SKIER_IN_TARCK)
+ 514              		.loc 1 263 0
+ 515 0006 074B     		ldr	r3, .L34
+ 516 0008 9B7C     		ldrb	r3, [r3, #18]
+ 517 000a 012B     		cmp	r3, #1
+ 518 000c 02D1     		bne	.L31
+ 264:lib_Network/network.c ****     {
+ 265:lib_Network/network.c ****         result = NO_WRITE;
+ 519              		.loc 1 265 0
+ 520 000e 0023     		mov	r3, #0
+ 521 0010 7B60     		str	r3, [r7, #4]
+ 522 0012 01E0     		b	.L32
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 15
+
+
+ 523              	.L31:
+ 266:lib_Network/network.c ****     }
+ 267:lib_Network/network.c ****     else
+ 268:lib_Network/network.c ****     {
+ 269:lib_Network/network.c ****         result = WRITE_OK;
+ 524              		.loc 1 269 0
+ 525 0014 0123     		mov	r3, #1
+ 526 0016 7B60     		str	r3, [r7, #4]
+ 527              	.L32:
+ 270:lib_Network/network.c ****     }
+ 271:lib_Network/network.c ****     
+ 272:lib_Network/network.c ****     return result;
+ 528              		.loc 1 272 0
+ 529 0018 7B68     		ldr	r3, [r7, #4]
+ 273:lib_Network/network.c **** }
+ 530              		.loc 1 273 0
+ 531 001a 181C     		mov	r0, r3
+ 532 001c BD46     		mov	sp, r7
+ 533 001e 02B0     		add	sp, sp, #8
+ 534              		@ sp needed
+ 535 0020 80BD     		pop	{r7, pc}
+ 536              	.L35:
+ 537 0022 C046     		.align	2
+ 538              	.L34:
+ 539 0024 00000000 		.word	outData
+ 540              		.cfi_endproc
+ 541              	.LFE34:
+ 542              		.size	FinWriteInDB, .-FinWriteInDB
+ 543              		.section	.text.IsRebootFinishFlag,"ax",%progbits
+ 544              		.align	2
+ 545              		.global	IsRebootFinishFlag
+ 546              		.code	16
+ 547              		.thumb_func
+ 548              		.type	IsRebootFinishFlag, %function
+ 549              	IsRebootFinishFlag:
+ 550              	.LFB35:
+ 274:lib_Network/network.c **** 
+ 275:lib_Network/network.c **** uint32_t IsRebootFinishFlag(void)
+ 276:lib_Network/network.c **** {
+ 551              		.loc 1 276 0
+ 552              		.cfi_startproc
+ 553 0000 80B5     		push	{r7, lr}
+ 554              		.cfi_def_cfa_offset 8
+ 555              		.cfi_offset 7, -8
+ 556              		.cfi_offset 14, -4
+ 557 0002 82B0     		sub	sp, sp, #8
+ 558              		.cfi_def_cfa_offset 16
+ 559 0004 00AF     		add	r7, sp, #0
+ 560              		.cfi_def_cfa_register 7
+ 277:lib_Network/network.c ****     uint32_t result;
+ 278:lib_Network/network.c ****     
+ 279:lib_Network/network.c ****     if(inData.reboot == 1 && outData.reboot == 0)
+ 561              		.loc 1 279 0
+ 562 0006 0D4B     		ldr	r3, .L40
+ 563 0008 9B78     		ldrb	r3, [r3, #2]
+ 564 000a 012B     		cmp	r3, #1
+ 565 000c 09D1     		bne	.L37
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 16
+
+
+ 566              		.loc 1 279 0 is_stmt 0 discriminator 1
+ 567 000e 0C4B     		ldr	r3, .L40+4
+ 568 0010 1B7D     		ldrb	r3, [r3, #20]
+ 569 0012 002B     		cmp	r3, #0
+ 570 0014 05D1     		bne	.L37
+ 280:lib_Network/network.c ****     {
+ 281:lib_Network/network.c ****         result = REBOOT;
+ 571              		.loc 1 281 0 is_stmt 1
+ 572 0016 FF23     		mov	r3, #255
+ 573 0018 7B60     		str	r3, [r7, #4]
+ 282:lib_Network/network.c ****         inData.reboot = 0;
+ 574              		.loc 1 282 0
+ 575 001a 084B     		ldr	r3, .L40
+ 576 001c 0022     		mov	r2, #0
+ 577 001e 9A70     		strb	r2, [r3, #2]
+ 578 0020 07E0     		b	.L38
+ 579              	.L37:
+ 283:lib_Network/network.c ****     }
+ 284:lib_Network/network.c ****     else
+ 285:lib_Network/network.c ****     {
+ 286:lib_Network/network.c ****         outData.reboot = 0;
+ 580              		.loc 1 286 0
+ 581 0022 074B     		ldr	r3, .L40+4
+ 582 0024 0022     		mov	r2, #0
+ 583 0026 1A75     		strb	r2, [r3, #20]
+ 287:lib_Network/network.c ****         inData.reboot = 0;
+ 584              		.loc 1 287 0
+ 585 0028 044B     		ldr	r3, .L40
+ 586 002a 0022     		mov	r2, #0
+ 587 002c 9A70     		strb	r2, [r3, #2]
+ 288:lib_Network/network.c ****         result = NO_REBOOT;
+ 588              		.loc 1 288 0
+ 589 002e FE23     		mov	r3, #254
+ 590 0030 7B60     		str	r3, [r7, #4]
+ 591              	.L38:
+ 289:lib_Network/network.c ****     }
+ 290:lib_Network/network.c ****     return result;
+ 592              		.loc 1 290 0
+ 593 0032 7B68     		ldr	r3, [r7, #4]
+ 291:lib_Network/network.c **** }
+ 594              		.loc 1 291 0
+ 595 0034 181C     		mov	r0, r3
+ 596 0036 BD46     		mov	sp, r7
+ 597 0038 02B0     		add	sp, sp, #8
+ 598              		@ sp needed
+ 599 003a 80BD     		pop	{r7, pc}
+ 600              	.L41:
+ 601              		.align	2
+ 602              	.L40:
+ 603 003c 00000000 		.word	inData
+ 604 0040 00000000 		.word	outData
+ 605              		.cfi_endproc
+ 606              	.LFE35:
+ 607              		.size	IsRebootFinishFlag, .-IsRebootFinishFlag
+ 608              		.section	.text.SetRebootFlag,"ax",%progbits
+ 609              		.align	2
+ 610              		.global	SetRebootFlag
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 17
+
+
+ 611              		.code	16
+ 612              		.thumb_func
+ 613              		.type	SetRebootFlag, %function
+ 614              	SetRebootFlag:
+ 615              	.LFB36:
+ 292:lib_Network/network.c **** 
+ 293:lib_Network/network.c **** void SetRebootFlag(void)
+ 294:lib_Network/network.c **** {
+ 616              		.loc 1 294 0
+ 617              		.cfi_startproc
+ 618 0000 80B5     		push	{r7, lr}
+ 619              		.cfi_def_cfa_offset 8
+ 620              		.cfi_offset 7, -8
+ 621              		.cfi_offset 14, -4
+ 622 0002 00AF     		add	r7, sp, #0
+ 623              		.cfi_def_cfa_register 7
+ 295:lib_Network/network.c ****     outData.reboot = 1;
+ 624              		.loc 1 295 0
+ 625 0004 024B     		ldr	r3, .L43
+ 626 0006 0122     		mov	r2, #1
+ 627 0008 1A75     		strb	r2, [r3, #20]
+ 296:lib_Network/network.c **** }
+ 628              		.loc 1 296 0
+ 629 000a BD46     		mov	sp, r7
+ 630              		@ sp needed
+ 631 000c 80BD     		pop	{r7, pc}
+ 632              	.L44:
+ 633 000e C046     		.align	2
+ 634              	.L43:
+ 635 0010 00000000 		.word	outData
+ 636              		.cfi_endproc
+ 637              	.LFE36:
+ 638              		.size	SetRebootFlag, .-SetRebootFlag
+ 639              		.section	.text.ClearRebootFlag,"ax",%progbits
+ 640              		.align	2
+ 641              		.global	ClearRebootFlag
+ 642              		.code	16
+ 643              		.thumb_func
+ 644              		.type	ClearRebootFlag, %function
+ 645              	ClearRebootFlag:
+ 646              	.LFB37:
+ 297:lib_Network/network.c **** 
+ 298:lib_Network/network.c **** void ClearRebootFlag(void)
+ 299:lib_Network/network.c **** {
+ 647              		.loc 1 299 0
+ 648              		.cfi_startproc
+ 649 0000 80B5     		push	{r7, lr}
+ 650              		.cfi_def_cfa_offset 8
+ 651              		.cfi_offset 7, -8
+ 652              		.cfi_offset 14, -4
+ 653 0002 00AF     		add	r7, sp, #0
+ 654              		.cfi_def_cfa_register 7
+ 300:lib_Network/network.c ****     inData.reboot = 0;
+ 655              		.loc 1 300 0
+ 656 0004 034B     		ldr	r3, .L46
+ 657 0006 0022     		mov	r2, #0
+ 658 0008 9A70     		strb	r2, [r3, #2]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 18
+
+
+ 301:lib_Network/network.c ****     outData.reboot = 0;
+ 659              		.loc 1 301 0
+ 660 000a 034B     		ldr	r3, .L46+4
+ 661 000c 0022     		mov	r2, #0
+ 662 000e 1A75     		strb	r2, [r3, #20]
+ 302:lib_Network/network.c **** }
+ 663              		.loc 1 302 0
+ 664 0010 BD46     		mov	sp, r7
+ 665              		@ sp needed
+ 666 0012 80BD     		pop	{r7, pc}
+ 667              	.L47:
+ 668              		.align	2
+ 669              	.L46:
+ 670 0014 00000000 		.word	inData
+ 671 0018 00000000 		.word	outData
+ 672              		.cfi_endproc
+ 673              	.LFE37:
+ 674              		.size	ClearRebootFlag, .-ClearRebootFlag
+ 675              		.section	.text.NTPsync,"ax",%progbits
+ 676              		.align	2
+ 677              		.global	NTPsync
+ 678              		.code	16
+ 679              		.thumb_func
+ 680              		.type	NTPsync, %function
+ 681              	NTPsync:
+ 682              	.LFB38:
+ 303:lib_Network/network.c **** 
+ 304:lib_Network/network.c **** 
+ 305:lib_Network/network.c **** /*******************************************************************************
+ 306:lib_Network/network.c **** * Function Name: NTPsync
+ 307:lib_Network/network.c **** ********************************************************************************
+ 308:lib_Network/network.c **** *
+ 309:lib_Network/network.c **** * Summary:
+ 310:lib_Network/network.c **** *   NTP time synchronization protocol on
+ 311:lib_Network/network.c **** * Return:
+ 312:lib_Network/network.c **** *   TIME_SYNC_OK or TIME_SYNC_ERR
+ 313:lib_Network/network.c **** *
+ 314:lib_Network/network.c **** *******************************************************************************/
+ 315:lib_Network/network.c **** uint32_t NTPsync(void)
+ 316:lib_Network/network.c **** {
+ 683              		.loc 1 316 0
+ 684              		.cfi_startproc
+ 685 0000 90B5     		push	{r4, r7, lr}
+ 686              		.cfi_def_cfa_offset 12
+ 687              		.cfi_offset 4, -12
+ 688              		.cfi_offset 7, -8
+ 689              		.cfi_offset 14, -4
+ 690 0002 89B0     		sub	sp, sp, #36
+ 691              		.cfi_def_cfa_offset 48
+ 692 0004 02AF     		add	r7, sp, #8
+ 693              		.cfi_def_cfa 7, 40
+ 317:lib_Network/network.c ****     int i;
+ 318:lib_Network/network.c ****     uint16_t result;
+ 319:lib_Network/network.c ****     uint16_t IDreceivePacket;
+ 320:lib_Network/network.c ****     uint16_t lastIDpacket;
+ 321:lib_Network/network.c ****     uint32_t resultReceive;
+ 322:lib_Network/network.c ****     
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 19
+
+
+ 323:lib_Network/network.c ****     /*calculaiton delivery time*/
+ 324:lib_Network/network.c ****     lastIDpacket = 1;
+ 694              		.loc 1 324 0
+ 695 0006 0823     		mov	r3, #8
+ 696 0008 FB18     		add	r3, r7, r3
+ 697 000a 0122     		mov	r2, #1
+ 698 000c 1A80     		strh	r2, [r3]
+ 325:lib_Network/network.c ****     result = TIME_SYNC_ERR;
+ 699              		.loc 1 325 0
+ 700 000e 1223     		mov	r3, #18
+ 701 0010 FB18     		add	r3, r7, r3
+ 702 0012 0122     		mov	r2, #1
+ 703 0014 1A80     		strh	r2, [r3]
+ 326:lib_Network/network.c ****     
+ 327:lib_Network/network.c ****     #ifdef DEBUG_INFO
+ 328:lib_Network/network.c ****         SW_UART_DEBUG_PutString("start ntp sync start\n\r");
+ 329:lib_Network/network.c ****     #endif  
+ 330:lib_Network/network.c ****     
+ 331:lib_Network/network.c ****     for(i=1; (i < 2000) && (result == TIME_SYNC_ERR); )
+ 704              		.loc 1 331 0
+ 705 0016 0123     		mov	r3, #1
+ 706 0018 7B61     		str	r3, [r7, #20]
+ 707 001a 9FE0     		b	.L49
+ 708              	.L59:
+ 332:lib_Network/network.c ****     {      
+ 333:lib_Network/network.c ****         /*receive time */
+ 334:lib_Network/network.c ****         resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, !SAVE_TIME)
+ 709              		.loc 1 334 0
+ 710 001c 5849     		ldr	r1, .L61
+ 711 001e 594A     		ldr	r2, .L61+4
+ 712 0020 BB1C     		add	r3, r7, #2
+ 713 0022 081C     		mov	r0, r1
+ 714 0024 111C     		mov	r1, r2
+ 715 0026 1A1C     		mov	r2, r3
+ 716 0028 0023     		mov	r3, #0
+ 717 002a FFF7FEFF 		bl	NTPreceiveTime
+ 718 002e 031C     		mov	r3, r0
+ 719 0030 7B60     		str	r3, [r7, #4]
+ 335:lib_Network/network.c ****         CyDelay(9);
+ 720              		.loc 1 335 0
+ 721 0032 0920     		mov	r0, #9
+ 722 0034 FFF7FEFF 		bl	CyDelay
+ 336:lib_Network/network.c **** 
+ 337:lib_Network/network.c ****         if(resultReceive == READ_OK)
+ 723              		.loc 1 337 0
+ 724 0038 7B68     		ldr	r3, [r7, #4]
+ 725 003a 012B     		cmp	r3, #1
+ 726 003c 00D0     		beq	.LCB601
+ 727 003e 84E0     		b	.L50	@long jump
+ 728              	.LCB601:
+ 338:lib_Network/network.c ****         {          
+ 339:lib_Network/network.c ****             if(IDreceivePacket == 0)
+ 729              		.loc 1 339 0
+ 730 0040 BB1C     		add	r3, r7, #2
+ 731 0042 1B88     		ldrh	r3, [r3]
+ 732 0044 002B     		cmp	r3, #0
+ 733 0046 52D1     		bne	.L51
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 20
+
+
+ 734              	.LBB4:
+ 340:lib_Network/network.c ****             {
+ 341:lib_Network/network.c ****                 /*receive delivery time*/
+ 342:lib_Network/network.c ****                 uint32_t unixTimeReal;
+ 343:lib_Network/network.c ****                 uint16_t millisTimeReal;
+ 344:lib_Network/network.c ****                 
+ 345:lib_Network/network.c ****                 unixTimeReal = RTC_GetUnixTime();
+ 735              		.loc 1 345 0
+ 736 0048 FFF7FEFF 		bl	RTC_GetUnixTime
+ 737 004c 031C     		mov	r3, r0
+ 738 004e 0C1C     		mov	r4, r1
+ 739 0050 FB60     		str	r3, [r7, #12]
+ 346:lib_Network/network.c ****                 millisTimeReal = RTCgetRecentMs();
+ 740              		.loc 1 346 0
+ 741 0052 FFF7FEFF 		bl	RTCgetRecentMs
+ 742 0056 021C     		mov	r2, r0
+ 743 0058 0A23     		mov	r3, #10
+ 744 005a FB18     		add	r3, r7, r3
+ 745 005c 1A80     		strh	r2, [r3]
+ 347:lib_Network/network.c ****                 
+ 348:lib_Network/network.c ****                 unixTimeReal += unixTime[T2];
+ 746              		.loc 1 348 0
+ 747 005e 4A4B     		ldr	r3, .L61+8
+ 748 0060 5B68     		ldr	r3, [r3, #4]
+ 749 0062 FA68     		ldr	r2, [r7, #12]
+ 750 0064 D318     		add	r3, r2, r3
+ 751 0066 FB60     		str	r3, [r7, #12]
+ 349:lib_Network/network.c ****                 if((millisTimeReal += millisTime[T2]) >= 1000)
+ 752              		.loc 1 349 0
+ 753 0068 484B     		ldr	r3, .L61+12
+ 754 006a 5988     		ldrh	r1, [r3, #2]
+ 755 006c 0A23     		mov	r3, #10
+ 756 006e FB18     		add	r3, r7, r3
+ 757 0070 0A22     		mov	r2, #10
+ 758 0072 BA18     		add	r2, r7, r2
+ 759 0074 1288     		ldrh	r2, [r2]
+ 760 0076 8A18     		add	r2, r1, r2
+ 761 0078 1A80     		strh	r2, [r3]
+ 762 007a 0A23     		mov	r3, #10
+ 763 007c FB18     		add	r3, r7, r3
+ 764 007e 1B88     		ldrh	r3, [r3]
+ 765 0080 434A     		ldr	r2, .L61+16
+ 766 0082 9342     		cmp	r3, r2
+ 767 0084 0BD9     		bls	.L52
+ 350:lib_Network/network.c ****                 {
+ 351:lib_Network/network.c ****                     unixTimeReal++;
+ 768              		.loc 1 351 0
+ 769 0086 FB68     		ldr	r3, [r7, #12]
+ 770 0088 0133     		add	r3, r3, #1
+ 771 008a FB60     		str	r3, [r7, #12]
+ 352:lib_Network/network.c ****                     millisTimeReal -= 1000;
+ 772              		.loc 1 352 0
+ 773 008c 0A23     		mov	r3, #10
+ 774 008e FB18     		add	r3, r7, r3
+ 775 0090 0A22     		mov	r2, #10
+ 776 0092 BA18     		add	r2, r7, r2
+ 777 0094 1288     		ldrh	r2, [r2]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 21
+
+
+ 778 0096 3F49     		ldr	r1, .L61+20
+ 779 0098 8C46     		mov	ip, r1
+ 780 009a 6244     		add	r2, r2, ip
+ 781 009c 1A80     		strh	r2, [r3]
+ 782              	.L52:
+ 353:lib_Network/network.c ****                 }
+ 354:lib_Network/network.c ****                 
+ 355:lib_Network/network.c ****                 RTCSync(unixTimeReal, millisTimeReal);
+ 783              		.loc 1 355 0
+ 784 009e FA68     		ldr	r2, [r7, #12]
+ 785 00a0 0A23     		mov	r3, #10
+ 786 00a2 FB18     		add	r3, r7, r3
+ 787 00a4 1B88     		ldrh	r3, [r3]
+ 788 00a6 101C     		mov	r0, r2
+ 789 00a8 191C     		mov	r1, r3
+ 790 00aa FFF7FEFF 		bl	RTCSync
+ 356:lib_Network/network.c ****                 
+ 357:lib_Network/network.c ****                 NTPsendTime(0,0,0,0,IDreceivePacket);
+ 791              		.loc 1 357 0
+ 792 00ae BB1C     		add	r3, r7, #2
+ 793 00b0 1B88     		ldrh	r3, [r3]
+ 794 00b2 0093     		str	r3, [sp]
+ 795 00b4 0020     		mov	r0, #0
+ 796 00b6 0021     		mov	r1, #0
+ 797 00b8 0022     		mov	r2, #0
+ 798 00ba 0023     		mov	r3, #0
+ 799 00bc FFF7FEFF 		bl	NTPsendTime
+ 358:lib_Network/network.c ****                 
+ 359:lib_Network/network.c ****                 #ifdef DEBUG_NTP
+ 360:lib_Network/network.c **** //                    debugntp_Write(1);
+ 361:lib_Network/network.c **** //                    debugntp_Write(0);
+ 362:lib_Network/network.c **** //                    debugntp_Write(1);
+ 363:lib_Network/network.c **** //                    debugntp_Write(0);                        
+ 364:lib_Network/network.c ****                 #endif
+ 365:lib_Network/network.c ****                 
+ 366:lib_Network/network.c ****                 result = TIME_SYNC_OK;
+ 800              		.loc 1 366 0
+ 801 00c0 1223     		mov	r3, #18
+ 802 00c2 FB18     		add	r3, r7, r3
+ 803 00c4 0022     		mov	r2, #0
+ 804 00c6 1A80     		strh	r2, [r3]
+ 367:lib_Network/network.c ****                 i = NUM_TRY_SYNC;
+ 805              		.loc 1 367 0
+ 806 00c8 0E23     		mov	r3, #14
+ 807 00ca 7B61     		str	r3, [r7, #20]
+ 368:lib_Network/network.c ****                 
+ 369:lib_Network/network.c ****                 /*display loading sync time*/
+ 370:lib_Network/network.c ****                 for(i=0;i<13;i++)
+ 808              		.loc 1 370 0
+ 809 00cc 0023     		mov	r3, #0
+ 810 00ce 7B61     		str	r3, [r7, #20]
+ 811 00d0 09E0     		b	.L53
+ 812              	.L54:
+ 371:lib_Network/network.c ****                 {
+ 372:lib_Network/network.c ****                     DisplayLoading(i);
+ 813              		.loc 1 372 0 discriminator 3
+ 814 00d2 7B69     		ldr	r3, [r7, #20]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 22
+
+
+ 815 00d4 181C     		mov	r0, r3
+ 816 00d6 FFF7FEFF 		bl	DisplayLoading
+ 373:lib_Network/network.c ****                     CyDelay(100);
+ 817              		.loc 1 373 0 discriminator 3
+ 818 00da 6420     		mov	r0, #100
+ 819 00dc FFF7FEFF 		bl	CyDelay
+ 370:lib_Network/network.c ****                 {
+ 820              		.loc 1 370 0 discriminator 3
+ 821 00e0 7B69     		ldr	r3, [r7, #20]
+ 822 00e2 0133     		add	r3, r3, #1
+ 823 00e4 7B61     		str	r3, [r7, #20]
+ 824              	.L53:
+ 370:lib_Network/network.c ****                 {
+ 825              		.loc 1 370 0 is_stmt 0 discriminator 1
+ 826 00e6 7B69     		ldr	r3, [r7, #20]
+ 827 00e8 0C2B     		cmp	r3, #12
+ 828 00ea F2DD     		ble	.L54
+ 829              	.LBE4:
+ 830 00ec 36E0     		b	.L49
+ 831              	.L51:
+ 374:lib_Network/network.c ****                 }
+ 375:lib_Network/network.c ****                 
+ 376:lib_Network/network.c ****                 #ifdef DEBUG_INFO
+ 377:lib_Network/network.c ****                     sprintf(uartBuff,"receive delivery time %u:%u\n\r", unixTime[T2], millisTime[T2
+ 378:lib_Network/network.c ****                     SW_UART_DEBUG_PutString(uartBuff);
+ 379:lib_Network/network.c ****                 #endif                    
+ 380:lib_Network/network.c ****             }
+ 381:lib_Network/network.c ****             else //if(IDreceivePacket != 0)
+ 382:lib_Network/network.c ****             {
+ 383:lib_Network/network.c ****                 /*no error, send time*/
+ 384:lib_Network/network.c ****                 CyDelay(100);
+ 832              		.loc 1 384 0 is_stmt 1
+ 833 00ee 6420     		mov	r0, #100
+ 834 00f0 FFF7FEFF 		bl	CyDelay
+ 385:lib_Network/network.c ****                 millisTime[T3] = RTCgetRecentMs();
+ 835              		.loc 1 385 0
+ 836 00f4 FFF7FEFF 		bl	RTCgetRecentMs
+ 837 00f8 031C     		mov	r3, r0
+ 838 00fa 9AB2     		uxth	r2, r3
+ 839 00fc 234B     		ldr	r3, .L61+12
+ 840 00fe 9A80     		strh	r2, [r3, #4]
+ 386:lib_Network/network.c ****                 unixTime[T3] = RTCGetUnixTime();
+ 841              		.loc 1 386 0
+ 842 0100 FFF7FEFF 		bl	RTCGetUnixTime
+ 843 0104 031C     		mov	r3, r0
+ 844 0106 0C1C     		mov	r4, r1
+ 845 0108 1A1C     		mov	r2, r3
+ 846 010a 1F4B     		ldr	r3, .L61+8
+ 847 010c 9A60     		str	r2, [r3, #8]
+ 387:lib_Network/network.c ****                 
+ 388:lib_Network/network.c ****                 #ifdef DEBUG_NTP
+ 389:lib_Network/network.c ****                     debugntp_Write(1);
+ 390:lib_Network/network.c ****                     debugntp_Write(0);
+ 391:lib_Network/network.c ****                     debugntp_Write(1);
+ 392:lib_Network/network.c ****                     debugntp_Write(0);                        
+ 393:lib_Network/network.c ****                 #endif
+ 394:lib_Network/network.c ****                 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 23
+
+
+ 395:lib_Network/network.c ****                 if((unixTime[T2] == unixTime[T3]) || ((unixTime[T2] == (unixTime[T3])-1)))
+ 848              		.loc 1 395 0
+ 849 010e 1E4B     		ldr	r3, .L61+8
+ 850 0110 5A68     		ldr	r2, [r3, #4]
+ 851 0112 1D4B     		ldr	r3, .L61+8
+ 852 0114 9B68     		ldr	r3, [r3, #8]
+ 853 0116 9A42     		cmp	r2, r3
+ 854 0118 06D0     		beq	.L56
+ 855              		.loc 1 395 0 is_stmt 0 discriminator 1
+ 856 011a 1B4B     		ldr	r3, .L61+8
+ 857 011c 5A68     		ldr	r2, [r3, #4]
+ 858 011e 1A4B     		ldr	r3, .L61+8
+ 859 0120 9B68     		ldr	r3, [r3, #8]
+ 860 0122 013B     		sub	r3, r3, #1
+ 861 0124 9A42     		cmp	r2, r3
+ 862 0126 0DD1     		bne	.L57
+ 863              	.L56:
+ 396:lib_Network/network.c ****                 {
+ 397:lib_Network/network.c ****                     NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDrecei
+ 864              		.loc 1 397 0 is_stmt 1
+ 865 0128 174B     		ldr	r3, .L61+8
+ 866 012a 5868     		ldr	r0, [r3, #4]
+ 867 012c 164B     		ldr	r3, .L61+8
+ 868 012e 9968     		ldr	r1, [r3, #8]
+ 869 0130 164B     		ldr	r3, .L61+12
+ 870 0132 5A88     		ldrh	r2, [r3, #2]
+ 871 0134 154B     		ldr	r3, .L61+12
+ 872 0136 9C88     		ldrh	r4, [r3, #4]
+ 873 0138 BB1C     		add	r3, r7, #2
+ 874 013a 1B88     		ldrh	r3, [r3]
+ 875 013c 0093     		str	r3, [sp]
+ 876 013e 231C     		mov	r3, r4
+ 877 0140 FFF7FEFF 		bl	NTPsendTime
+ 878              	.L57:
+ 398:lib_Network/network.c **** 
+ 399:lib_Network/network.c ****                     #ifdef DEBUG_INFO
+ 400:lib_Network/network.c ****                         sprintf(uartBuff,"receive and send time %u:%u",unixTime[T2],millisTime[T2])
+ 401:lib_Network/network.c ****                         SW_UART_DEBUG_PutString(uartBuff);
+ 402:lib_Network/network.c ****                         sprintf(uartBuff,"- %u:%u\n\r",unixTime[T3],millisTime[T3]); 
+ 403:lib_Network/network.c ****                         SW_UART_DEBUG_PutString(uartBuff);                        
+ 404:lib_Network/network.c ****                     #endif
+ 405:lib_Network/network.c ****                 }
+ 406:lib_Network/network.c ****                 i=0;
+ 879              		.loc 1 406 0
+ 880 0144 0023     		mov	r3, #0
+ 881 0146 7B61     		str	r3, [r7, #20]
+ 882 0148 08E0     		b	.L49
+ 883              	.L50:
+ 407:lib_Network/network.c ****             }           
+ 408:lib_Network/network.c ****         }
+ 409:lib_Network/network.c ****         else 
+ 410:lib_Network/network.c ****         {
+ 411:lib_Network/network.c ****             i++;
+ 884              		.loc 1 411 0
+ 885 014a 7B69     		ldr	r3, [r7, #20]
+ 886 014c 0133     		add	r3, r3, #1
+ 887 014e 7B61     		str	r3, [r7, #20]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 24
+
+
+ 888 0150 1223     		mov	r3, #18
+ 889 0152 FB18     		add	r3, r7, r3
+ 890 0154 1222     		mov	r2, #18
+ 891 0156 BA18     		add	r2, r7, r2
+ 892 0158 1288     		ldrh	r2, [r2]
+ 893 015a 1A80     		strh	r2, [r3]
+ 894              	.L49:
+ 331:lib_Network/network.c ****     {      
+ 895              		.loc 1 331 0 discriminator 1
+ 896 015c 7B69     		ldr	r3, [r7, #20]
+ 897 015e 0E4A     		ldr	r2, .L61+24
+ 898 0160 9342     		cmp	r3, r2
+ 899 0162 05DC     		bgt	.L58
+ 331:lib_Network/network.c ****     {      
+ 900              		.loc 1 331 0 is_stmt 0 discriminator 2
+ 901 0164 1223     		mov	r3, #18
+ 902 0166 FB18     		add	r3, r7, r3
+ 903 0168 1B88     		ldrh	r3, [r3]
+ 904 016a 012B     		cmp	r3, #1
+ 905 016c 00D1     		bne	.LCB762
+ 906 016e 55E7     		b	.L59	@long jump
+ 907              	.LCB762:
+ 908              	.L58:
+ 412:lib_Network/network.c ****         }
+ 413:lib_Network/network.c ****     }
+ 414:lib_Network/network.c **** 
+ 415:lib_Network/network.c ****     return result;
+ 909              		.loc 1 415 0 is_stmt 1
+ 910 0170 1223     		mov	r3, #18
+ 911 0172 FB18     		add	r3, r7, r3
+ 912 0174 1B88     		ldrh	r3, [r3]
+ 416:lib_Network/network.c **** }
+ 913              		.loc 1 416 0
+ 914 0176 181C     		mov	r0, r3
+ 915 0178 BD46     		mov	sp, r7
+ 916 017a 07B0     		add	sp, sp, #28
+ 917              		@ sp needed
+ 918 017c 90BD     		pop	{r4, r7, pc}
+ 919              	.L62:
+ 920 017e C046     		.align	2
+ 921              	.L61:
+ 922 0180 04000000 		.word	unixTime+4
+ 923 0184 02000000 		.word	millisTime+2
+ 924 0188 00000000 		.word	unixTime
+ 925 018c 00000000 		.word	millisTime
+ 926 0190 E7030000 		.word	999
+ 927 0194 18FCFFFF 		.word	-1000
+ 928 0198 CF070000 		.word	1999
+ 929              		.cfi_endproc
+ 930              	.LFE38:
+ 931              		.size	NTPsync, .-NTPsync
+ 932              		.section	.text.ReceiveRealTime,"ax",%progbits
+ 933              		.align	2
+ 934              		.global	ReceiveRealTime
+ 935              		.code	16
+ 936              		.thumb_func
+ 937              		.type	ReceiveRealTime, %function
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 25
+
+
+ 938              	ReceiveRealTime:
+ 939              	.LFB39:
+ 417:lib_Network/network.c **** 
+ 418:lib_Network/network.c **** /*******************************************************************************
+ 419:lib_Network/network.c **** * Function Name: ReceiveRealTime
+ 420:lib_Network/network.c **** ********************************************************************************
+ 421:lib_Network/network.c **** *
+ 422:lib_Network/network.c **** * Summary:
+ 423:lib_Network/network.c **** *   receive and set real time
+ 424:lib_Network/network.c **** * Return:
+ 425:lib_Network/network.c **** *   READ_OK or NO_READ
+ 426:lib_Network/network.c **** *
+ 427:lib_Network/network.c **** *******************************************************************************/
+ 428:lib_Network/network.c **** uint32_t ReceiveRealTime(void)
+ 429:lib_Network/network.c **** {
+ 940              		.loc 1 429 0
+ 941              		.cfi_startproc
+ 942 0000 80B5     		push	{r7, lr}
+ 943              		.cfi_def_cfa_offset 8
+ 944              		.cfi_offset 7, -8
+ 945              		.cfi_offset 14, -4
+ 946 0002 84B0     		sub	sp, sp, #16
+ 947              		.cfi_def_cfa_offset 24
+ 948 0004 02AF     		add	r7, sp, #8
+ 949              		.cfi_def_cfa 7, 16
+ 430:lib_Network/network.c ****     uint32_t result;
+ 431:lib_Network/network.c ****     uint16_t IDpacket;
+ 432:lib_Network/network.c ****     
+ 433:lib_Network/network.c ****     result = NO_READ;
+ 950              		.loc 1 433 0
+ 951 0006 0023     		mov	r3, #0
+ 952 0008 7B60     		str	r3, [r7, #4]
+ 434:lib_Network/network.c ****     noConnect = 0;
+ 953              		.loc 1 434 0
+ 954 000a 294B     		ldr	r3, .L70
+ 955 000c 0022     		mov	r2, #0
+ 956 000e 1A60     		str	r2, [r3]
+ 435:lib_Network/network.c ****     
+ 436:lib_Network/network.c ****     #ifdef DEBUG_INFO
+ 437:lib_Network/network.c ****         SW_UART_DEBUG_PutString("start receive real time\n\r");
+ 438:lib_Network/network.c ****     #endif
+ 439:lib_Network/network.c ****     
+ 440:lib_Network/network.c ****     while(result == NO_READ && noConnect < NUM_CONNECT_ATTEMPS)
+ 957              		.loc 1 440 0
+ 958 0010 40E0     		b	.L64
+ 959              	.L68:
+ 441:lib_Network/network.c ****     {
+ 442:lib_Network/network.c ****         result = NTPreceiveTime(&unixTime[T1], &millisTime[T1], &IDpacket,SAVE_TIME);
+ 960              		.loc 1 442 0
+ 961 0012 2849     		ldr	r1, .L70+4
+ 962 0014 284A     		ldr	r2, .L70+8
+ 963 0016 BB1C     		add	r3, r7, #2
+ 964 0018 081C     		mov	r0, r1
+ 965 001a 111C     		mov	r1, r2
+ 966 001c 1A1C     		mov	r2, r3
+ 967 001e 0123     		mov	r3, #1
+ 968 0020 FFF7FEFF 		bl	NTPreceiveTime
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 26
+
+
+ 969 0024 031C     		mov	r3, r0
+ 970 0026 7B60     		str	r3, [r7, #4]
+ 443:lib_Network/network.c **** 
+ 444:lib_Network/network.c ****         if((result == READ_OK) && (IDpacket == 1))
+ 971              		.loc 1 444 0
+ 972 0028 7B68     		ldr	r3, [r7, #4]
+ 973 002a 012B     		cmp	r3, #1
+ 974 002c 28D1     		bne	.L65
+ 975              		.loc 1 444 0 is_stmt 0 discriminator 1
+ 976 002e BB1C     		add	r3, r7, #2
+ 977 0030 1B88     		ldrh	r3, [r3]
+ 978 0032 012B     		cmp	r3, #1
+ 979 0034 24D1     		bne	.L65
+ 445:lib_Network/network.c ****         {
+ 446:lib_Network/network.c ****             if((millisTime[T1]) > 1000)
+ 980              		.loc 1 446 0 is_stmt 1
+ 981 0036 204B     		ldr	r3, .L70+8
+ 982 0038 1A88     		ldrh	r2, [r3]
+ 983 003a FA23     		mov	r3, #250
+ 984 003c 9B00     		lsl	r3, r3, #2
+ 985 003e 9A42     		cmp	r2, r3
+ 986 0040 0CD9     		bls	.L66
+ 447:lib_Network/network.c ****             {
+ 448:lib_Network/network.c ****                 unixTime[T1]++;
+ 987              		.loc 1 448 0
+ 988 0042 1C4B     		ldr	r3, .L70+4
+ 989 0044 1B68     		ldr	r3, [r3]
+ 990 0046 5A1C     		add	r2, r3, #1
+ 991 0048 1A4B     		ldr	r3, .L70+4
+ 992 004a 1A60     		str	r2, [r3]
+ 449:lib_Network/network.c ****                 millisTime[T1] -= 1000;
+ 993              		.loc 1 449 0
+ 994 004c 1A4B     		ldr	r3, .L70+8
+ 995 004e 1B88     		ldrh	r3, [r3]
+ 996 0050 1A4A     		ldr	r2, .L70+12
+ 997 0052 9446     		mov	ip, r2
+ 998 0054 6344     		add	r3, r3, ip
+ 999 0056 9AB2     		uxth	r2, r3
+ 1000 0058 174B     		ldr	r3, .L70+8
+ 1001 005a 1A80     		strh	r2, [r3]
+ 1002              	.L66:
+ 450:lib_Network/network.c ****             }
+ 451:lib_Network/network.c ****             
+ 452:lib_Network/network.c ****             RTCSync(unixTime[T1], millisTime[T1]);
+ 1003              		.loc 1 452 0
+ 1004 005c 154B     		ldr	r3, .L70+4
+ 1005 005e 1A68     		ldr	r2, [r3]
+ 1006 0060 154B     		ldr	r3, .L70+8
+ 1007 0062 1B88     		ldrh	r3, [r3]
+ 1008 0064 101C     		mov	r0, r2
+ 1009 0066 191C     		mov	r1, r3
+ 1010 0068 FFF7FEFF 		bl	RTCSync
+ 453:lib_Network/network.c **** 
+ 454:lib_Network/network.c ****             NTPsendTime(0,0,0,0,IDpacket);
+ 1011              		.loc 1 454 0
+ 1012 006c BB1C     		add	r3, r7, #2
+ 1013 006e 1B88     		ldrh	r3, [r3]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 27
+
+
+ 1014 0070 0093     		str	r3, [sp]
+ 1015 0072 0020     		mov	r0, #0
+ 1016 0074 0021     		mov	r1, #0
+ 1017 0076 0022     		mov	r2, #0
+ 1018 0078 0023     		mov	r3, #0
+ 1019 007a FFF7FEFF 		bl	NTPsendTime
+ 1020 007e 09E0     		b	.L64
+ 1021              	.L65:
+ 455:lib_Network/network.c ****             
+ 456:lib_Network/network.c ****             #ifdef DEBUG_INFO
+ 457:lib_Network/network.c ****                 sprintf(uartBuff,"set time %u:%u\n\r",unixTime[T1],millisTime[T1]);
+ 458:lib_Network/network.c ****                 SW_UART_DEBUG_PutString(uartBuff);
+ 459:lib_Network/network.c ****             #endif
+ 460:lib_Network/network.c ****         }
+ 461:lib_Network/network.c ****         else
+ 462:lib_Network/network.c ****         {
+ 463:lib_Network/network.c ****             result = NO_READ;
+ 1022              		.loc 1 463 0
+ 1023 0080 0023     		mov	r3, #0
+ 1024 0082 7B60     		str	r3, [r7, #4]
+ 464:lib_Network/network.c ****             noConnect++;
+ 1025              		.loc 1 464 0
+ 1026 0084 0A4B     		ldr	r3, .L70
+ 1027 0086 1B68     		ldr	r3, [r3]
+ 1028 0088 5A1C     		add	r2, r3, #1
+ 1029 008a 094B     		ldr	r3, .L70
+ 1030 008c 1A60     		str	r2, [r3]
+ 465:lib_Network/network.c ****             CyDelay(100);
+ 1031              		.loc 1 465 0
+ 1032 008e 6420     		mov	r0, #100
+ 1033 0090 FFF7FEFF 		bl	CyDelay
+ 1034              	.L64:
+ 440:lib_Network/network.c ****     {
+ 1035              		.loc 1 440 0
+ 1036 0094 7B68     		ldr	r3, [r7, #4]
+ 1037 0096 002B     		cmp	r3, #0
+ 1038 0098 04D1     		bne	.L67
+ 440:lib_Network/network.c ****     {
+ 1039              		.loc 1 440 0 is_stmt 0 discriminator 1
+ 1040 009a 054B     		ldr	r3, .L70
+ 1041 009c 1B68     		ldr	r3, [r3]
+ 1042 009e 084A     		ldr	r2, .L70+16
+ 1043 00a0 9342     		cmp	r3, r2
+ 1044 00a2 B6DD     		ble	.L68
+ 1045              	.L67:
+ 466:lib_Network/network.c ****         }
+ 467:lib_Network/network.c ****     }
+ 468:lib_Network/network.c ****     
+ 469:lib_Network/network.c ****     return result;
+ 1046              		.loc 1 469 0 is_stmt 1
+ 1047 00a4 7B68     		ldr	r3, [r7, #4]
+ 470:lib_Network/network.c **** }
+ 1048              		.loc 1 470 0
+ 1049 00a6 181C     		mov	r0, r3
+ 1050 00a8 BD46     		mov	sp, r7
+ 1051 00aa 02B0     		add	sp, sp, #8
+ 1052              		@ sp needed
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 28
+
+
+ 1053 00ac 80BD     		pop	{r7, pc}
+ 1054              	.L71:
+ 1055 00ae C046     		.align	2
+ 1056              	.L70:
+ 1057 00b0 04000000 		.word	noConnect
+ 1058 00b4 00000000 		.word	unixTime
+ 1059 00b8 00000000 		.word	millisTime
+ 1060 00bc 18FCFFFF 		.word	-1000
+ 1061 00c0 E7030000 		.word	999
+ 1062              		.cfi_endproc
+ 1063              	.LFE39:
+ 1064              		.size	ReceiveRealTime, .-ReceiveRealTime
+ 1065              		.section	.text.NTPreceiveTime,"ax",%progbits
+ 1066              		.align	2
+ 1067              		.global	NTPreceiveTime
+ 1068              		.code	16
+ 1069              		.thumb_func
+ 1070              		.type	NTPreceiveTime, %function
+ 1071              	NTPreceiveTime:
+ 1072              	.LFB40:
+ 471:lib_Network/network.c **** /*******************************************************************************
+ 472:lib_Network/network.c **** * Function Name: NTPreceiveTime
+ 473:lib_Network/network.c **** ********************************************************************************
+ 474:lib_Network/network.c **** *
+ 475:lib_Network/network.c **** * Summary:
+ 476:lib_Network/network.c **** *   receive time to NTP protocol
+ 477:lib_Network/network.c **** * Parametrs:
+ 478:lib_Network/network.c **** *   *unixTime2 - time in unix format
+ 479:lib_Network/network.c **** *   *millisTime2 - millis time
+ 480:lib_Network/network.c **** *   *IDreceive - ID packet
+ 481:lib_Network/network.c **** *   saveTime - command save time from finish
+ 482:lib_Network/network.c **** * Return:
+ 483:lib_Network/network.c **** *   READ_OK or NO_READ
+ 484:lib_Network/network.c **** *
+ 485:lib_Network/network.c **** *******************************************************************************/
+ 486:lib_Network/network.c **** uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDreceive,uint32_t sav
+ 487:lib_Network/network.c **** {
+ 1073              		.loc 1 487 0
+ 1074              		.cfi_startproc
+ 1075 0000 90B5     		push	{r4, r7, lr}
+ 1076              		.cfi_def_cfa_offset 12
+ 1077              		.cfi_offset 4, -12
+ 1078              		.cfi_offset 7, -8
+ 1079              		.cfi_offset 14, -4
+ 1080 0002 8DB0     		sub	sp, sp, #52
+ 1081              		.cfi_def_cfa_offset 64
+ 1082 0004 00AF     		add	r7, sp, #0
+ 1083              		.cfi_def_cfa_register 7
+ 1084 0006 F860     		str	r0, [r7, #12]
+ 1085 0008 B960     		str	r1, [r7, #8]
+ 1086 000a 7A60     		str	r2, [r7, #4]
+ 1087 000c 3B60     		str	r3, [r7]
+ 488:lib_Network/network.c ****     uint8_t byte;
+ 489:lib_Network/network.c ****     uint32_t result;
+ 490:lib_Network/network.c ****     
+ 491:lib_Network/network.c ****     result = READ_OK;
+ 1088              		.loc 1 491 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 29
+
+
+ 1089 000e 0123     		mov	r3, #1
+ 1090 0010 FB62     		str	r3, [r7, #44]
+ 492:lib_Network/network.c ****     
+ 493:lib_Network/network.c ****     NTPResp recvDataNTP;
+ 494:lib_Network/network.c ****     while((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
+ 1091              		.loc 1 494 0
+ 1092 0012 45E0     		b	.L73
+ 1093              	.L80:
+ 495:lib_Network/network.c ****     {                    
+ 496:lib_Network/network.c ****         result = NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
+ 1094              		.loc 1 496 0
+ 1095 0014 1423     		mov	r3, #20
+ 1096 0016 FA18     		add	r2, r7, r3
+ 1097 0018 2B23     		mov	r3, #43
+ 1098 001a FB18     		add	r3, r7, r3
+ 1099 001c 1B78     		ldrb	r3, [r3]
+ 1100 001e 101C     		mov	r0, r2
+ 1101 0020 191C     		mov	r1, r3
+ 1102 0022 FFF7FEFF 		bl	NtpUnpackData
+ 1103 0026 031C     		mov	r3, r0
+ 1104 0028 FB62     		str	r3, [r7, #44]
+ 497:lib_Network/network.c ****         
+ 498:lib_Network/network.c ****         CyDelay(1);
+ 1105              		.loc 1 498 0
+ 1106 002a 0120     		mov	r0, #1
+ 1107 002c FFF7FEFF 		bl	CyDelay
+ 499:lib_Network/network.c ****                     
+ 500:lib_Network/network.c ****         if(recvDataNTP.EndPacket == 1)
+ 1108              		.loc 1 500 0
+ 1109 0030 1423     		mov	r3, #20
+ 1110 0032 FB18     		add	r3, r7, r3
+ 1111 0034 1B7C     		ldrb	r3, [r3, #16]
+ 1112 0036 012B     		cmp	r3, #1
+ 1113 0038 30D1     		bne	.L74
+ 501:lib_Network/network.c ****         {
+ 502:lib_Network/network.c ****             /*save unix time*/            
+ 503:lib_Network/network.c ****             *IDreceive = recvDataNTP.Id;
+ 1114              		.loc 1 503 0
+ 1115 003a 1423     		mov	r3, #20
+ 1116 003c FB18     		add	r3, r7, r3
+ 1117 003e 1A88     		ldrh	r2, [r3]
+ 1118 0040 7B68     		ldr	r3, [r7, #4]
+ 1119 0042 1A80     		strh	r2, [r3]
+ 504:lib_Network/network.c ****             #ifdef DEBUG_INFO
+ 505:lib_Network/network.c ****                 sprintf(uartBuff,"receive ID=%u",recvDataNTP.Id);
+ 506:lib_Network/network.c ****                 SW_UART_DEBUG_PutString(uartBuff);
+ 507:lib_Network/network.c ****             #endif
+ 508:lib_Network/network.c ****             
+ 509:lib_Network/network.c ****             if((saveTime == SAVE_TIME) || (recvDataNTP.Id == 0))
+ 1120              		.loc 1 509 0
+ 1121 0044 3B68     		ldr	r3, [r7]
+ 1122 0046 012B     		cmp	r3, #1
+ 1123 0048 04D0     		beq	.L75
+ 1124              		.loc 1 509 0 is_stmt 0 discriminator 1
+ 1125 004a 1423     		mov	r3, #20
+ 1126 004c FB18     		add	r3, r7, r3
+ 1127 004e 1B88     		ldrh	r3, [r3]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 30
+
+
+ 1128 0050 002B     		cmp	r3, #0
+ 1129 0052 0AD1     		bne	.L76
+ 1130              	.L75:
+ 510:lib_Network/network.c ****             {
+ 511:lib_Network/network.c ****                 /*save receive data*/
+ 512:lib_Network/network.c ****                 *unixTime2 = recvDataNTP.Data1;
+ 1131              		.loc 1 512 0 is_stmt 1
+ 1132 0054 1423     		mov	r3, #20
+ 1133 0056 FB18     		add	r3, r7, r3
+ 1134 0058 5A68     		ldr	r2, [r3, #4]
+ 1135 005a FB68     		ldr	r3, [r7, #12]
+ 1136 005c 1A60     		str	r2, [r3]
+ 513:lib_Network/network.c ****                 *millisTime2 = recvDataNTP.DataMs1;
+ 1137              		.loc 1 513 0
+ 1138 005e 1423     		mov	r3, #20
+ 1139 0060 FB18     		add	r3, r7, r3
+ 1140 0062 1A89     		ldrh	r2, [r3, #8]
+ 1141 0064 BB68     		ldr	r3, [r7, #8]
+ 1142 0066 1A80     		strh	r2, [r3]
+ 1143 0068 16E0     		b	.L77
+ 1144              	.L76:
+ 514:lib_Network/network.c ****             }
+ 515:lib_Network/network.c ****             else
+ 516:lib_Network/network.c ****             {
+ 517:lib_Network/network.c ****                 /*set real time*/
+ 518:lib_Network/network.c ****                 RTCSync(recvDataNTP.Data1, recvDataNTP.DataMs1);
+ 1145              		.loc 1 518 0
+ 1146 006a 1423     		mov	r3, #20
+ 1147 006c FB18     		add	r3, r7, r3
+ 1148 006e 5A68     		ldr	r2, [r3, #4]
+ 1149 0070 1423     		mov	r3, #20
+ 1150 0072 FB18     		add	r3, r7, r3
+ 1151 0074 1B89     		ldrh	r3, [r3, #8]
+ 1152 0076 101C     		mov	r0, r2
+ 1153 0078 191C     		mov	r1, r3
+ 1154 007a FFF7FEFF 		bl	RTCSync
+ 519:lib_Network/network.c ****                 
+ 520:lib_Network/network.c ****                 /*save time T2*/
+ 521:lib_Network/network.c ****                 *millisTime2 = RTCgetRecentMs();
+ 1155              		.loc 1 521 0
+ 1156 007e FFF7FEFF 		bl	RTCgetRecentMs
+ 1157 0082 031C     		mov	r3, r0
+ 1158 0084 9AB2     		uxth	r2, r3
+ 1159 0086 BB68     		ldr	r3, [r7, #8]
+ 1160 0088 1A80     		strh	r2, [r3]
+ 522:lib_Network/network.c ****                 *unixTime2 = RTC_GetUnixTime();
+ 1161              		.loc 1 522 0
+ 1162 008a FFF7FEFF 		bl	RTC_GetUnixTime
+ 1163 008e 031C     		mov	r3, r0
+ 1164 0090 0C1C     		mov	r4, r1
+ 1165 0092 1A1C     		mov	r2, r3
+ 1166 0094 FB68     		ldr	r3, [r7, #12]
+ 1167 0096 1A60     		str	r2, [r3]
+ 1168              	.L77:
+ 523:lib_Network/network.c ****                 
+ 524:lib_Network/network.c ****                 #ifdef DEBUG_NTP
+ 525:lib_Network/network.c ****                     debugntp_Write(1);
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 31
+
+
+ 526:lib_Network/network.c ****                     debugntp_Write(0);
+ 527:lib_Network/network.c ****                 #endif
+ 528:lib_Network/network.c ****                 #ifdef DEBUG_INFO
+ 529:lib_Network/network.c ****                     sprintf(uartBuff,"\n\rT2 %u:%u\n\r",*unixTime2,*millisTime2); 
+ 530:lib_Network/network.c ****                     SW_UART_DEBUG_PutString(uartBuff);
+ 531:lib_Network/network.c ****                 #endif
+ 532:lib_Network/network.c ****                 
+ 533:lib_Network/network.c ****             }
+ 534:lib_Network/network.c **** 
+ 535:lib_Network/network.c ****             return READ_OK;
+ 1169              		.loc 1 535 0
+ 1170 0098 0123     		mov	r3, #1
+ 1171 009a 13E0     		b	.L81
+ 1172              	.L74:
+ 536:lib_Network/network.c ****         }
+ 537:lib_Network/network.c ****         result = NO_READ;
+ 1173              		.loc 1 537 0
+ 1174 009c 0023     		mov	r3, #0
+ 1175 009e FB62     		str	r3, [r7, #44]
+ 1176              	.L73:
+ 494:lib_Network/network.c ****     {                    
+ 1177              		.loc 1 494 0
+ 1178 00a0 FFF7FEFF 		bl	UART_XB_SpiUartGetRxBufferSize
+ 1179 00a4 031E     		sub	r3, r0, #0
+ 1180 00a6 0AD0     		beq	.L79
+ 494:lib_Network/network.c ****     {                    
+ 1181              		.loc 1 494 0 is_stmt 0 discriminator 1
+ 1182 00a8 FFF7FEFF 		bl	UART_XB_UartGetChar
+ 1183 00ac 021C     		mov	r2, r0
+ 1184 00ae 2B23     		mov	r3, #43
+ 1185 00b0 FB18     		add	r3, r7, r3
+ 1186 00b2 1A70     		strb	r2, [r3]
+ 1187 00b4 2B23     		mov	r3, #43
+ 1188 00b6 FB18     		add	r3, r7, r3
+ 1189 00b8 1B78     		ldrb	r3, [r3]
+ 1190 00ba 002B     		cmp	r3, #0
+ 1191 00bc AAD1     		bne	.L80
+ 1192              	.L79:
+ 538:lib_Network/network.c ****     }
+ 539:lib_Network/network.c ****     result = NO_READ;
+ 1193              		.loc 1 539 0 is_stmt 1
+ 1194 00be 0023     		mov	r3, #0
+ 1195 00c0 FB62     		str	r3, [r7, #44]
+ 540:lib_Network/network.c ****     
+ 541:lib_Network/network.c ****     return result;
+ 1196              		.loc 1 541 0
+ 1197 00c2 FB6A     		ldr	r3, [r7, #44]
+ 1198              	.L81:
+ 542:lib_Network/network.c **** }
+ 1199              		.loc 1 542 0 discriminator 1
+ 1200 00c4 181C     		mov	r0, r3
+ 1201 00c6 BD46     		mov	sp, r7
+ 1202 00c8 0DB0     		add	sp, sp, #52
+ 1203              		@ sp needed
+ 1204 00ca 90BD     		pop	{r4, r7, pc}
+ 1205              		.cfi_endproc
+ 1206              	.LFE40:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 32
+
+
+ 1207              		.size	NTPreceiveTime, .-NTPreceiveTime
+ 1208              		.section	.rodata
+ 1209 001a 0000     		.align	2
+ 1210              	.LC28:
+ 1211 001c 25303858 		.ascii	"%08X%03X%08X%03X\000"
+ 1211      25303358 
+ 1211      25303858 
+ 1211      25303358 
+ 1211      00
+ 1212 002d 000000   		.section	.text.NTPsendTime,"ax",%progbits
+ 1213              		.align	2
+ 1214              		.global	NTPsendTime
+ 1215              		.code	16
+ 1216              		.thumb_func
+ 1217              		.type	NTPsendTime, %function
+ 1218              	NTPsendTime:
+ 1219              	.LFB41:
+ 543:lib_Network/network.c **** 
+ 544:lib_Network/network.c **** /*******************************************************************************
+ 545:lib_Network/network.c **** * Function Name: NTPsendTime
+ 546:lib_Network/network.c **** ********************************************************************************
+ 547:lib_Network/network.c **** *
+ 548:lib_Network/network.c **** * Summary:
+ 549:lib_Network/network.c **** *   send time t2 and t3 to NTP protocol
+ 550:lib_Network/network.c **** * Parametrs:
+ 551:lib_Network/network.c **** *   unixTime2,unixTime3 - time in unix format
+ 552:lib_Network/network.c **** *   millis2, millis3 - millis time
+ 553:lib_Network/network.c **** *   ID - ID packet
+ 554:lib_Network/network.c **** *
+ 555:lib_Network/network.c **** *******************************************************************************/
+ 556:lib_Network/network.c **** void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint16_t 
+ 557:lib_Network/network.c **** {
+ 1220              		.loc 1 557 0
+ 1221              		.cfi_startproc
+ 1222 0000 B0B5     		push	{r4, r5, r7, lr}
+ 1223              		.cfi_def_cfa_offset 16
+ 1224              		.cfi_offset 4, -16
+ 1225              		.cfi_offset 5, -12
+ 1226              		.cfi_offset 7, -8
+ 1227              		.cfi_offset 14, -4
+ 1228 0002 A0B0     		sub	sp, sp, #128
+ 1229              		.cfi_def_cfa_offset 144
+ 1230 0004 02AF     		add	r7, sp, #8
+ 1231              		.cfi_def_cfa 7, 136
+ 1232 0006 F860     		str	r0, [r7, #12]
+ 1233 0008 B960     		str	r1, [r7, #8]
+ 1234 000a 191C     		mov	r1, r3
+ 1235 000c BB1D     		add	r3, r7, #6
+ 1236 000e 1A80     		strh	r2, [r3]
+ 1237 0010 3B1D     		add	r3, r7, #4
+ 1238 0012 0A1C     		add	r2, r1, #0
+ 1239 0014 1A80     		strh	r2, [r3]
+ 558:lib_Network/network.c ****     char sendBuffer[DATA_BUFFER];
+ 559:lib_Network/network.c ****     char sendData[DATA_BUFFER];
+ 560:lib_Network/network.c ****     
+ 561:lib_Network/network.c ****     /*pack data*/
+ 562:lib_Network/network.c ****     sprintf(sendData,"%08X%03X%08X%03X", unixTime2, millis2, unixTime3, millis3); 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 33
+
+
+ 1240              		.loc 1 562 0
+ 1241 0016 BB1D     		add	r3, r7, #6
+ 1242 0018 1C88     		ldrh	r4, [r3]
+ 1243 001a 3B1D     		add	r3, r7, #4
+ 1244 001c 1B88     		ldrh	r3, [r3]
+ 1245 001e 1022     		mov	r2, #16
+ 1246 0020 B818     		add	r0, r7, r2
+ 1247 0022 0E49     		ldr	r1, .L83
+ 1248 0024 FD68     		ldr	r5, [r7, #12]
+ 1249 0026 BA68     		ldr	r2, [r7, #8]
+ 1250 0028 0092     		str	r2, [sp]
+ 1251 002a 0193     		str	r3, [sp, #4]
+ 1252 002c 2A1C     		mov	r2, r5
+ 1253 002e 231C     		mov	r3, r4
+ 1254 0030 FFF7FEFF 		bl	sprintf
+ 563:lib_Network/network.c ****     PackData(sendBuffer, (uint8_t *)sendData, ID);
+ 1255              		.loc 1 563 0
+ 1256 0034 4423     		mov	r3, #68
+ 1257 0036 F918     		add	r1, r7, r3
+ 1258 0038 1023     		mov	r3, #16
+ 1259 003a FA18     		add	r2, r7, r3
+ 1260 003c 8823     		mov	r3, #136
+ 1261 003e FB18     		add	r3, r7, r3
+ 1262 0040 1B88     		ldrh	r3, [r3]
+ 1263 0042 081C     		mov	r0, r1
+ 1264 0044 111C     		mov	r1, r2
+ 1265 0046 1A1C     		mov	r2, r3
+ 1266 0048 FFF7FEFF 		bl	PackData
+ 564:lib_Network/network.c ****     UART_XB_UartPutString(sendBuffer);
+ 1267              		.loc 1 564 0
+ 1268 004c 4423     		mov	r3, #68
+ 1269 004e FB18     		add	r3, r7, r3
+ 1270 0050 181C     		mov	r0, r3
+ 1271 0052 FFF7FEFF 		bl	UART_XB_UartPutString
+ 565:lib_Network/network.c ****     
+ 566:lib_Network/network.c ****     #ifdef DEBUG_INFO
+ 567:lib_Network/network.c ****        //SW_UART_DEBUG_PutString(sendBuffer);
+ 568:lib_Network/network.c ****        //SW_UART_DEBUG_PutString("\n\r"); 
+ 569:lib_Network/network.c ****     #endif
+ 570:lib_Network/network.c **** }
+ 1272              		.loc 1 570 0
+ 1273 0056 BD46     		mov	sp, r7
+ 1274 0058 1EB0     		add	sp, sp, #120
+ 1275              		@ sp needed
+ 1276 005a B0BD     		pop	{r4, r5, r7, pc}
+ 1277              	.L84:
+ 1278              		.align	2
+ 1279              	.L83:
+ 1280 005c 1C000000 		.word	.LC28
+ 1281              		.cfi_endproc
+ 1282              	.LFE41:
+ 1283              		.size	NTPsendTime, .-NTPsendTime
+ 1284              		.text
+ 1285              	.Letext0:
+ 1286              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 1287              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 1288              		.file 4 "./lib_Network\\svt.h"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 34
+
+
+ 1289              		.file 5 "./lib_Network\\ntp.h"
+ 1290              		.section	.debug_info,"",%progbits
+ 1291              	.Ldebug_info0:
+ 1292 0000 55060000 		.4byte	0x655
+ 1293 0004 0400     		.2byte	0x4
+ 1294 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1295 000a 04       		.byte	0x4
+ 1296 000b 01       		.uleb128 0x1
+ 1297 000c 0D030000 		.4byte	.LASF84
+ 1298 0010 01       		.byte	0x1
+ 1299 0011 E8020000 		.4byte	.LASF85
+ 1300 0015 3B000000 		.4byte	.LASF86
+ 1301 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 1302 001d 00000000 		.4byte	0
+ 1303 0021 00000000 		.4byte	.Ldebug_line0
+ 1304 0025 02       		.uleb128 0x2
+ 1305 0026 01       		.byte	0x1
+ 1306 0027 06       		.byte	0x6
+ 1307 0028 3C020000 		.4byte	.LASF0
+ 1308 002c 03       		.uleb128 0x3
+ 1309 002d F3010000 		.4byte	.LASF3
+ 1310 0031 02       		.byte	0x2
+ 1311 0032 1D       		.byte	0x1d
+ 1312 0033 37000000 		.4byte	0x37
+ 1313 0037 02       		.uleb128 0x2
+ 1314 0038 01       		.byte	0x1
+ 1315 0039 08       		.byte	0x8
+ 1316 003a 17020000 		.4byte	.LASF1
+ 1317 003e 02       		.uleb128 0x2
+ 1318 003f 02       		.byte	0x2
+ 1319 0040 05       		.byte	0x5
+ 1320 0041 2D010000 		.4byte	.LASF2
+ 1321 0045 03       		.uleb128 0x3
+ 1322 0046 13010000 		.4byte	.LASF4
+ 1323 004a 02       		.byte	0x2
+ 1324 004b 2B       		.byte	0x2b
+ 1325 004c 50000000 		.4byte	0x50
+ 1326 0050 02       		.uleb128 0x2
+ 1327 0051 02       		.byte	0x2
+ 1328 0052 07       		.byte	0x7
+ 1329 0053 A9030000 		.4byte	.LASF5
+ 1330 0057 02       		.uleb128 0x2
+ 1331 0058 04       		.byte	0x4
+ 1332 0059 05       		.byte	0x5
+ 1333 005a BB010000 		.4byte	.LASF6
+ 1334 005e 03       		.uleb128 0x3
+ 1335 005f FE000000 		.4byte	.LASF7
+ 1336 0063 02       		.byte	0x2
+ 1337 0064 41       		.byte	0x41
+ 1338 0065 69000000 		.4byte	0x69
+ 1339 0069 02       		.uleb128 0x2
+ 1340 006a 04       		.byte	0x4
+ 1341 006b 07       		.byte	0x7
+ 1342 006c A1020000 		.4byte	.LASF8
+ 1343 0070 02       		.uleb128 0x2
+ 1344 0071 08       		.byte	0x8
+ 1345 0072 05       		.byte	0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 35
+
+
+ 1346 0073 92010000 		.4byte	.LASF9
+ 1347 0077 03       		.uleb128 0x3
+ 1348 0078 DD030000 		.4byte	.LASF10
+ 1349 007c 02       		.byte	0x2
+ 1350 007d 5B       		.byte	0x5b
+ 1351 007e 82000000 		.4byte	0x82
+ 1352 0082 02       		.uleb128 0x2
+ 1353 0083 08       		.byte	0x8
+ 1354 0084 07       		.byte	0x7
+ 1355 0085 48020000 		.4byte	.LASF11
+ 1356 0089 04       		.uleb128 0x4
+ 1357 008a 04       		.byte	0x4
+ 1358 008b 05       		.byte	0x5
+ 1359 008c 696E7400 		.ascii	"int\000"
+ 1360 0090 02       		.uleb128 0x2
+ 1361 0091 04       		.byte	0x4
+ 1362 0092 07       		.byte	0x7
+ 1363 0093 8B020000 		.4byte	.LASF12
+ 1364 0097 03       		.uleb128 0x3
+ 1365 0098 4D010000 		.4byte	.LASF13
+ 1366 009c 03       		.byte	0x3
+ 1367 009d 15       		.byte	0x15
+ 1368 009e 2C000000 		.4byte	0x2c
+ 1369 00a2 03       		.uleb128 0x3
+ 1370 00a3 98020000 		.4byte	.LASF14
+ 1371 00a7 03       		.byte	0x3
+ 1372 00a8 21       		.byte	0x21
+ 1373 00a9 45000000 		.4byte	0x45
+ 1374 00ad 03       		.uleb128 0x3
+ 1375 00ae 6C020000 		.4byte	.LASF15
+ 1376 00b2 03       		.byte	0x3
+ 1377 00b3 2D       		.byte	0x2d
+ 1378 00b4 5E000000 		.4byte	0x5e
+ 1379 00b8 03       		.uleb128 0x3
+ 1380 00b9 AE000000 		.4byte	.LASF16
+ 1381 00bd 03       		.byte	0x3
+ 1382 00be 39       		.byte	0x39
+ 1383 00bf 77000000 		.4byte	0x77
+ 1384 00c3 02       		.uleb128 0x2
+ 1385 00c4 04       		.byte	0x4
+ 1386 00c5 04       		.byte	0x4
+ 1387 00c6 82010000 		.4byte	.LASF17
+ 1388 00ca 02       		.uleb128 0x2
+ 1389 00cb 08       		.byte	0x8
+ 1390 00cc 04       		.byte	0x4
+ 1391 00cd 10040000 		.4byte	.LASF18
+ 1392 00d1 02       		.uleb128 0x2
+ 1393 00d2 01       		.byte	0x1
+ 1394 00d3 08       		.byte	0x8
+ 1395 00d4 E3020000 		.4byte	.LASF19
+ 1396 00d8 02       		.uleb128 0x2
+ 1397 00d9 04       		.byte	0x4
+ 1398 00da 07       		.byte	0x7
+ 1399 00db C8000000 		.4byte	.LASF20
+ 1400 00df 05       		.uleb128 0x5
+ 1401 00e0 38040000 		.4byte	.LASF87
+ 1402 00e4 20       		.byte	0x20
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 36
+
+
+ 1403 00e5 04       		.byte	0x4
+ 1404 00e6 0D       		.byte	0xd
+ 1405 00e7 40010000 		.4byte	0x140
+ 1406 00eb 06       		.uleb128 0x6
+ 1407 00ec 53657100 		.ascii	"Seq\000"
+ 1408 00f0 04       		.byte	0x4
+ 1409 00f1 0F       		.byte	0xf
+ 1410 00f2 A2000000 		.4byte	0xa2
+ 1411 00f6 00       		.byte	0
+ 1412 00f7 07       		.uleb128 0x7
+ 1413 00f8 D0020000 		.4byte	.LASF21
+ 1414 00fc 04       		.byte	0x4
+ 1415 00fd 10       		.byte	0x10
+ 1416 00fe 89000000 		.4byte	0x89
+ 1417 0102 04       		.byte	0x4
+ 1418 0103 07       		.uleb128 0x7
+ 1419 0104 D1030000 		.4byte	.LASF22
+ 1420 0108 04       		.byte	0x4
+ 1421 0109 11       		.byte	0x11
+ 1422 010a B8000000 		.4byte	0xb8
+ 1423 010e 08       		.byte	0x8
+ 1424 010f 07       		.uleb128 0x7
+ 1425 0110 D7030000 		.4byte	.LASF23
+ 1426 0114 04       		.byte	0x4
+ 1427 0115 12       		.byte	0x12
+ 1428 0116 A2000000 		.4byte	0xa2
+ 1429 011a 10       		.byte	0x10
+ 1430 011b 07       		.uleb128 0x7
+ 1431 011c 45040000 		.4byte	.LASF24
+ 1432 0120 04       		.byte	0x4
+ 1433 0121 13       		.byte	0x13
+ 1434 0122 A2000000 		.4byte	0xa2
+ 1435 0126 12       		.byte	0x12
+ 1436 0127 07       		.uleb128 0x7
+ 1437 0128 0E020000 		.4byte	.LASF25
+ 1438 012c 04       		.byte	0x4
+ 1439 012d 14       		.byte	0x14
+ 1440 012e AD000000 		.4byte	0xad
+ 1441 0132 14       		.byte	0x14
+ 1442 0133 07       		.uleb128 0x7
+ 1443 0134 88010000 		.4byte	.LASF26
+ 1444 0138 04       		.byte	0x4
+ 1445 0139 15       		.byte	0x15
+ 1446 013a 97000000 		.4byte	0x97
+ 1447 013e 18       		.byte	0x18
+ 1448 013f 00       		.byte	0
+ 1449 0140 08       		.uleb128 0x8
+ 1450 0141 14       		.byte	0x14
+ 1451 0142 05       		.byte	0x5
+ 1452 0143 07       		.byte	0x7
+ 1453 0144 84010000 		.4byte	0x184
+ 1454 0148 06       		.uleb128 0x6
+ 1455 0149 496400   		.ascii	"Id\000"
+ 1456 014c 05       		.byte	0x5
+ 1457 014d 09       		.byte	0x9
+ 1458 014e A2000000 		.4byte	0xa2
+ 1459 0152 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 37
+
+
+ 1460 0153 07       		.uleb128 0x7
+ 1461 0154 D1030000 		.4byte	.LASF22
+ 1462 0158 05       		.byte	0x5
+ 1463 0159 0A       		.byte	0xa
+ 1464 015a AD000000 		.4byte	0xad
+ 1465 015e 04       		.byte	0x4
+ 1466 015f 07       		.uleb128 0x7
+ 1467 0160 18000000 		.4byte	.LASF27
+ 1468 0164 05       		.byte	0x5
+ 1469 0165 0B       		.byte	0xb
+ 1470 0166 A2000000 		.4byte	0xa2
+ 1471 016a 08       		.byte	0x8
+ 1472 016b 07       		.uleb128 0x7
+ 1473 016c 0E020000 		.4byte	.LASF25
+ 1474 0170 05       		.byte	0x5
+ 1475 0171 0C       		.byte	0xc
+ 1476 0172 AD000000 		.4byte	0xad
+ 1477 0176 0C       		.byte	0xc
+ 1478 0177 07       		.uleb128 0x7
+ 1479 0178 88010000 		.4byte	.LASF26
+ 1480 017c 05       		.byte	0x5
+ 1481 017d 0D       		.byte	0xd
+ 1482 017e 97000000 		.4byte	0x97
+ 1483 0182 10       		.byte	0x10
+ 1484 0183 00       		.byte	0
+ 1485 0184 03       		.uleb128 0x3
+ 1486 0185 07000000 		.4byte	.LASF28
+ 1487 0189 05       		.byte	0x5
+ 1488 018a 0E       		.byte	0xe
+ 1489 018b 40010000 		.4byte	0x140
+ 1490 018f 08       		.uleb128 0x8
+ 1491 0190 18       		.byte	0x18
+ 1492 0191 01       		.byte	0x1
+ 1493 0192 38       		.byte	0x38
+ 1494 0193 EC010000 		.4byte	0x1ec
+ 1495 0197 07       		.uleb128 0x7
+ 1496 0198 C7020000 		.4byte	.LASF29
+ 1497 019c 01       		.byte	0x1
+ 1498 019d 3A       		.byte	0x3a
+ 1499 019e 97000000 		.4byte	0x97
+ 1500 01a2 00       		.byte	0
+ 1501 01a3 07       		.uleb128 0x7
+ 1502 01a4 07030000 		.4byte	.LASF30
+ 1503 01a8 01       		.byte	0x1
+ 1504 01a9 3B       		.byte	0x3b
+ 1505 01aa 97000000 		.4byte	0x97
+ 1506 01ae 01       		.byte	0x1
+ 1507 01af 07       		.uleb128 0x7
+ 1508 01b0 C1000000 		.4byte	.LASF31
+ 1509 01b4 01       		.byte	0x1
+ 1510 01b5 3C       		.byte	0x3c
+ 1511 01b6 97000000 		.4byte	0x97
+ 1512 01ba 02       		.byte	0x2
+ 1513 01bb 07       		.uleb128 0x7
+ 1514 01bc 7F040000 		.4byte	.LASF32
+ 1515 01c0 01       		.byte	0x1
+ 1516 01c1 3D       		.byte	0x3d
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 38
+
+
+ 1517 01c2 97000000 		.4byte	0x97
+ 1518 01c6 03       		.byte	0x3
+ 1519 01c7 07       		.uleb128 0x7
+ 1520 01c8 BF020000 		.4byte	.LASF33
+ 1521 01cc 01       		.byte	0x1
+ 1522 01cd 3E       		.byte	0x3e
+ 1523 01ce B8000000 		.4byte	0xb8
+ 1524 01d2 08       		.byte	0x8
+ 1525 01d3 07       		.uleb128 0x7
+ 1526 01d4 04020000 		.4byte	.LASF34
+ 1527 01d8 01       		.byte	0x1
+ 1528 01d9 3F       		.byte	0x3f
+ 1529 01da A2000000 		.4byte	0xa2
+ 1530 01de 10       		.byte	0x10
+ 1531 01df 07       		.uleb128 0x7
+ 1532 01e0 D8020000 		.4byte	.LASF35
+ 1533 01e4 01       		.byte	0x1
+ 1534 01e5 40       		.byte	0x40
+ 1535 01e6 97000000 		.4byte	0x97
+ 1536 01ea 12       		.byte	0x12
+ 1537 01eb 00       		.byte	0
+ 1538 01ec 03       		.uleb128 0x3
+ 1539 01ed A0010000 		.4byte	.LASF36
+ 1540 01f1 01       		.byte	0x1
+ 1541 01f2 41       		.byte	0x41
+ 1542 01f3 8F010000 		.4byte	0x18f
+ 1543 01f7 08       		.uleb128 0x8
+ 1544 01f8 18       		.byte	0x18
+ 1545 01f9 01       		.byte	0x1
+ 1546 01fa 43       		.byte	0x43
+ 1547 01fb 48020000 		.4byte	0x248
+ 1548 01ff 07       		.uleb128 0x7
+ 1549 0200 C7020000 		.4byte	.LASF29
+ 1550 0204 01       		.byte	0x1
+ 1551 0205 45       		.byte	0x45
+ 1552 0206 97000000 		.4byte	0x97
+ 1553 020a 00       		.byte	0
+ 1554 020b 07       		.uleb128 0x7
+ 1555 020c 9B030000 		.4byte	.LASF37
+ 1556 0210 01       		.byte	0x1
+ 1557 0211 46       		.byte	0x46
+ 1558 0212 B8000000 		.4byte	0xb8
+ 1559 0216 08       		.byte	0x8
+ 1560 0217 07       		.uleb128 0x7
+ 1561 0218 F2000000 		.4byte	.LASF38
+ 1562 021c 01       		.byte	0x1
+ 1563 021d 47       		.byte	0x47
+ 1564 021e A2000000 		.4byte	0xa2
+ 1565 0222 10       		.byte	0x10
+ 1566 0223 07       		.uleb128 0x7
+ 1567 0224 0F000000 		.4byte	.LASF39
+ 1568 0228 01       		.byte	0x1
+ 1569 0229 48       		.byte	0x48
+ 1570 022a 97000000 		.4byte	0x97
+ 1571 022e 12       		.byte	0x12
+ 1572 022f 07       		.uleb128 0x7
+ 1573 0230 E7010000 		.4byte	.LASF40
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 39
+
+
+ 1574 0234 01       		.byte	0x1
+ 1575 0235 49       		.byte	0x49
+ 1576 0236 97000000 		.4byte	0x97
+ 1577 023a 13       		.byte	0x13
+ 1578 023b 07       		.uleb128 0x7
+ 1579 023c C1000000 		.4byte	.LASF31
+ 1580 0240 01       		.byte	0x1
+ 1581 0241 4A       		.byte	0x4a
+ 1582 0242 97000000 		.4byte	0x97
+ 1583 0246 14       		.byte	0x14
+ 1584 0247 00       		.byte	0
+ 1585 0248 03       		.uleb128 0x3
+ 1586 0249 63010000 		.4byte	.LASF41
+ 1587 024d 01       		.byte	0x1
+ 1588 024e 4B       		.byte	0x4b
+ 1589 024f F7010000 		.4byte	0x1f7
+ 1590 0253 09       		.uleb128 0x9
+ 1591 0254 B3020000 		.4byte	.LASF56
+ 1592 0258 01       		.byte	0x1
+ 1593 0259 68       		.byte	0x68
+ 1594 025a 00000000 		.4byte	.LFB28
+ 1595 025e 34000000 		.4byte	.LFE28-.LFB28
+ 1596 0262 01       		.uleb128 0x1
+ 1597 0263 9C       		.byte	0x9c
+ 1598 0264 0A       		.uleb128 0xa
+ 1599 0265 29000000 		.4byte	.LASF46
+ 1600 0269 01       		.byte	0x1
+ 1601 026a 80       		.byte	0x80
+ 1602 026b 00000000 		.4byte	.LFB29
+ 1603 026f DC000000 		.4byte	.LFE29-.LFB29
+ 1604 0273 01       		.uleb128 0x1
+ 1605 0274 9C       		.byte	0x9c
+ 1606 0275 A2020000 		.4byte	0x2a2
+ 1607 0279 0B       		.uleb128 0xb
+ 1608 027a 38000000 		.4byte	.LBB2
+ 1609 027e 8C000000 		.4byte	.LBE2-.LBB2
+ 1610 0282 0C       		.uleb128 0xc
+ 1611 0283 42010000 		.4byte	.LASF42
+ 1612 0287 01       		.byte	0x1
+ 1613 0288 90       		.byte	0x90
+ 1614 0289 A2020000 		.4byte	0x2a2
+ 1615 028d 03       		.uleb128 0x3
+ 1616 028e 91       		.byte	0x91
+ 1617 028f 807F     		.sleb128 -128
+ 1618 0291 0C       		.uleb128 0xc
+ 1619 0292 32000000 		.4byte	.LASF43
+ 1620 0296 01       		.byte	0x1
+ 1621 0297 91       		.byte	0x91
+ 1622 0298 A2020000 		.4byte	0x2a2
+ 1623 029c 03       		.uleb128 0x3
+ 1624 029d 91       		.byte	0x91
+ 1625 029e B47F     		.sleb128 -76
+ 1626 02a0 00       		.byte	0
+ 1627 02a1 00       		.byte	0
+ 1628 02a2 0D       		.uleb128 0xd
+ 1629 02a3 D1000000 		.4byte	0xd1
+ 1630 02a7 B2020000 		.4byte	0x2b2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 40
+
+
+ 1631 02ab 0E       		.uleb128 0xe
+ 1632 02ac D8000000 		.4byte	0xd8
+ 1633 02b0 31       		.byte	0x31
+ 1634 02b1 00       		.byte	0
+ 1635 02b2 0F       		.uleb128 0xf
+ 1636 02b3 4B040000 		.4byte	.LASF52
+ 1637 02b7 01       		.byte	0x1
+ 1638 02b8 B7       		.byte	0xb7
+ 1639 02b9 AD000000 		.4byte	0xad
+ 1640 02bd 00000000 		.4byte	.LFB30
+ 1641 02c1 CC000000 		.4byte	.LFE30-.LFB30
+ 1642 02c5 01       		.uleb128 0x1
+ 1643 02c6 9C       		.byte	0x9c
+ 1644 02c7 F2020000 		.4byte	0x2f2
+ 1645 02cb 0B       		.uleb128 0xb
+ 1646 02cc 16000000 		.4byte	.LBB3
+ 1647 02d0 9C000000 		.4byte	.LBE3-.LBB3
+ 1648 02d4 0C       		.uleb128 0xc
+ 1649 02d5 33040000 		.4byte	.LASF44
+ 1650 02d9 01       		.byte	0x1
+ 1651 02da BB       		.byte	0xbb
+ 1652 02db AD000000 		.4byte	0xad
+ 1653 02df 02       		.uleb128 0x2
+ 1654 02e0 91       		.byte	0x91
+ 1655 02e1 74       		.sleb128 -12
+ 1656 02e2 0C       		.uleb128 0xc
+ 1657 02e3 D1000000 		.4byte	.LASF45
+ 1658 02e7 01       		.byte	0x1
+ 1659 02e8 BC       		.byte	0xbc
+ 1660 02e9 DF000000 		.4byte	0xdf
+ 1661 02ed 02       		.uleb128 0x2
+ 1662 02ee 91       		.byte	0x91
+ 1663 02ef 50       		.sleb128 -48
+ 1664 02f0 00       		.byte	0
+ 1665 02f1 00       		.byte	0
+ 1666 02f2 10       		.uleb128 0x10
+ 1667 02f3 55010000 		.4byte	.LASF50
+ 1668 02f7 01       		.byte	0x1
+ 1669 02f8 EE       		.byte	0xee
+ 1670 02f9 AD000000 		.4byte	0xad
+ 1671 02fd 00000000 		.4byte	.LFB31
+ 1672 0301 14000000 		.4byte	.LFE31-.LFB31
+ 1673 0305 01       		.uleb128 0x1
+ 1674 0306 9C       		.byte	0x9c
+ 1675 0307 11       		.uleb128 0x11
+ 1676 0308 70040000 		.4byte	.LASF47
+ 1677 030c 01       		.byte	0x1
+ 1678 030d F5       		.byte	0xf5
+ 1679 030e 00000000 		.4byte	.LFB32
+ 1680 0312 30000000 		.4byte	.LFE32-.LFB32
+ 1681 0316 01       		.uleb128 0x1
+ 1682 0317 9C       		.byte	0x9c
+ 1683 0318 39030000 		.4byte	0x339
+ 1684 031c 12       		.uleb128 0x12
+ 1685 031d 7D020000 		.4byte	.LASF48
+ 1686 0321 01       		.byte	0x1
+ 1687 0322 F5       		.byte	0xf5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 41
+
+
+ 1688 0323 B8000000 		.4byte	0xb8
+ 1689 0327 02       		.uleb128 0x2
+ 1690 0328 91       		.byte	0x91
+ 1691 0329 68       		.sleb128 -24
+ 1692 032a 12       		.uleb128 0x12
+ 1693 032b BC030000 		.4byte	.LASF49
+ 1694 032f 01       		.byte	0x1
+ 1695 0330 F5       		.byte	0xf5
+ 1696 0331 AD000000 		.4byte	0xad
+ 1697 0335 02       		.uleb128 0x2
+ 1698 0336 91       		.byte	0x91
+ 1699 0337 64       		.sleb128 -28
+ 1700 0338 00       		.byte	0
+ 1701 0339 10       		.uleb128 0x10
+ 1702 033a FE020000 		.4byte	.LASF51
+ 1703 033e 01       		.byte	0x1
+ 1704 033f FD       		.byte	0xfd
+ 1705 0340 AD000000 		.4byte	0xad
+ 1706 0344 00000000 		.4byte	.LFB33
+ 1707 0348 14000000 		.4byte	.LFE33-.LFB33
+ 1708 034c 01       		.uleb128 0x1
+ 1709 034d 9C       		.byte	0x9c
+ 1710 034e 13       		.uleb128 0x13
+ 1711 034f 03040000 		.4byte	.LASF53
+ 1712 0353 01       		.byte	0x1
+ 1713 0354 0301     		.2byte	0x103
+ 1714 0356 AD000000 		.4byte	0xad
+ 1715 035a 00000000 		.4byte	.LFB34
+ 1716 035e 28000000 		.4byte	.LFE34-.LFB34
+ 1717 0362 01       		.uleb128 0x1
+ 1718 0363 9C       		.byte	0x9c
+ 1719 0364 78030000 		.4byte	0x378
+ 1720 0368 14       		.uleb128 0x14
+ 1721 0369 00000000 		.4byte	.LASF54
+ 1722 036d 01       		.byte	0x1
+ 1723 036e 0501     		.2byte	0x105
+ 1724 0370 AD000000 		.4byte	0xad
+ 1725 0374 02       		.uleb128 0x2
+ 1726 0375 91       		.byte	0x91
+ 1727 0376 74       		.sleb128 -12
+ 1728 0377 00       		.byte	0
+ 1729 0378 13       		.uleb128 0x13
+ 1730 0379 9B000000 		.4byte	.LASF55
+ 1731 037d 01       		.byte	0x1
+ 1732 037e 1301     		.2byte	0x113
+ 1733 0380 AD000000 		.4byte	0xad
+ 1734 0384 00000000 		.4byte	.LFB35
+ 1735 0388 44000000 		.4byte	.LFE35-.LFB35
+ 1736 038c 01       		.uleb128 0x1
+ 1737 038d 9C       		.byte	0x9c
+ 1738 038e A2030000 		.4byte	0x3a2
+ 1739 0392 14       		.uleb128 0x14
+ 1740 0393 00000000 		.4byte	.LASF54
+ 1741 0397 01       		.byte	0x1
+ 1742 0398 1501     		.2byte	0x115
+ 1743 039a AD000000 		.4byte	0xad
+ 1744 039e 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 42
+
+
+ 1745 039f 91       		.byte	0x91
+ 1746 03a0 74       		.sleb128 -12
+ 1747 03a1 00       		.byte	0
+ 1748 03a2 15       		.uleb128 0x15
+ 1749 03a3 CC010000 		.4byte	.LASF57
+ 1750 03a7 01       		.byte	0x1
+ 1751 03a8 2501     		.2byte	0x125
+ 1752 03aa 00000000 		.4byte	.LFB36
+ 1753 03ae 14000000 		.4byte	.LFE36-.LFB36
+ 1754 03b2 01       		.uleb128 0x1
+ 1755 03b3 9C       		.byte	0x9c
+ 1756 03b4 15       		.uleb128 0x15
+ 1757 03b5 F3030000 		.4byte	.LASF58
+ 1758 03b9 01       		.byte	0x1
+ 1759 03ba 2A01     		.2byte	0x12a
+ 1760 03bc 00000000 		.4byte	.LFB37
+ 1761 03c0 1C000000 		.4byte	.LFE37-.LFB37
+ 1762 03c4 01       		.uleb128 0x1
+ 1763 03c5 9C       		.byte	0x9c
+ 1764 03c6 16       		.uleb128 0x16
+ 1765 03c7 3D040000 		.4byte	.LASF59
+ 1766 03cb 01       		.byte	0x1
+ 1767 03cc 3B01     		.2byte	0x13b
+ 1768 03ce AD000000 		.4byte	0xad
+ 1769 03d2 00000000 		.4byte	.LFB38
+ 1770 03d6 9C010000 		.4byte	.LFE38-.LFB38
+ 1771 03da 01       		.uleb128 0x1
+ 1772 03db 9C       		.byte	0x9c
+ 1773 03dc 52040000 		.4byte	0x452
+ 1774 03e0 17       		.uleb128 0x17
+ 1775 03e1 6900     		.ascii	"i\000"
+ 1776 03e3 01       		.byte	0x1
+ 1777 03e4 3D01     		.2byte	0x13d
+ 1778 03e6 89000000 		.4byte	0x89
+ 1779 03ea 02       		.uleb128 0x2
+ 1780 03eb 91       		.byte	0x91
+ 1781 03ec 6C       		.sleb128 -20
+ 1782 03ed 14       		.uleb128 0x14
+ 1783 03ee 00000000 		.4byte	.LASF54
+ 1784 03f2 01       		.byte	0x1
+ 1785 03f3 3E01     		.2byte	0x13e
+ 1786 03f5 A2000000 		.4byte	0xa2
+ 1787 03f9 02       		.uleb128 0x2
+ 1788 03fa 91       		.byte	0x91
+ 1789 03fb 6A       		.sleb128 -22
+ 1790 03fc 14       		.uleb128 0x14
+ 1791 03fd E2000000 		.4byte	.LASF60
+ 1792 0401 01       		.byte	0x1
+ 1793 0402 3F01     		.2byte	0x13f
+ 1794 0404 A2000000 		.4byte	0xa2
+ 1795 0408 02       		.uleb128 0x2
+ 1796 0409 91       		.byte	0x91
+ 1797 040a 5A       		.sleb128 -38
+ 1798 040b 14       		.uleb128 0x14
+ 1799 040c DA010000 		.4byte	.LASF61
+ 1800 0410 01       		.byte	0x1
+ 1801 0411 4001     		.2byte	0x140
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 43
+
+
+ 1802 0413 A2000000 		.4byte	0xa2
+ 1803 0417 02       		.uleb128 0x2
+ 1804 0418 91       		.byte	0x91
+ 1805 0419 60       		.sleb128 -32
+ 1806 041a 14       		.uleb128 0x14
+ 1807 041b 25040000 		.4byte	.LASF62
+ 1808 041f 01       		.byte	0x1
+ 1809 0420 4101     		.2byte	0x141
+ 1810 0422 AD000000 		.4byte	0xad
+ 1811 0426 02       		.uleb128 0x2
+ 1812 0427 91       		.byte	0x91
+ 1813 0428 5C       		.sleb128 -36
+ 1814 0429 0B       		.uleb128 0xb
+ 1815 042a 48000000 		.4byte	.LBB4
+ 1816 042e A4000000 		.4byte	.LBE4-.LBB4
+ 1817 0432 14       		.uleb128 0x14
+ 1818 0433 5F020000 		.4byte	.LASF63
+ 1819 0437 01       		.byte	0x1
+ 1820 0438 5601     		.2byte	0x156
+ 1821 043a AD000000 		.4byte	0xad
+ 1822 043e 02       		.uleb128 0x2
+ 1823 043f 91       		.byte	0x91
+ 1824 0440 64       		.sleb128 -28
+ 1825 0441 14       		.uleb128 0x14
+ 1826 0442 1E010000 		.4byte	.LASF64
+ 1827 0446 01       		.byte	0x1
+ 1828 0447 5701     		.2byte	0x157
+ 1829 0449 A2000000 		.4byte	0xa2
+ 1830 044d 02       		.uleb128 0x2
+ 1831 044e 91       		.byte	0x91
+ 1832 044f 62       		.sleb128 -30
+ 1833 0450 00       		.byte	0
+ 1834 0451 00       		.byte	0
+ 1835 0452 16       		.uleb128 0x16
+ 1836 0453 AB010000 		.4byte	.LASF65
+ 1837 0457 01       		.byte	0x1
+ 1838 0458 AC01     		.2byte	0x1ac
+ 1839 045a AD000000 		.4byte	0xad
+ 1840 045e 00000000 		.4byte	.LFB39
+ 1841 0462 C4000000 		.4byte	.LFE39-.LFB39
+ 1842 0466 01       		.uleb128 0x1
+ 1843 0467 9C       		.byte	0x9c
+ 1844 0468 8B040000 		.4byte	0x48b
+ 1845 046c 14       		.uleb128 0x14
+ 1846 046d 00000000 		.4byte	.LASF54
+ 1847 0471 01       		.byte	0x1
+ 1848 0472 AE01     		.2byte	0x1ae
+ 1849 0474 AD000000 		.4byte	0xad
+ 1850 0478 02       		.uleb128 0x2
+ 1851 0479 91       		.byte	0x91
+ 1852 047a 74       		.sleb128 -12
+ 1853 047b 14       		.uleb128 0x14
+ 1854 047c C7020000 		.4byte	.LASF29
+ 1855 0480 01       		.byte	0x1
+ 1856 0481 AF01     		.2byte	0x1af
+ 1857 0483 A2000000 		.4byte	0xa2
+ 1858 0487 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 44
+
+
+ 1859 0488 91       		.byte	0x91
+ 1860 0489 72       		.sleb128 -14
+ 1861 048a 00       		.byte	0
+ 1862 048b 16       		.uleb128 0x16
+ 1863 048c 61040000 		.4byte	.LASF66
+ 1864 0490 01       		.byte	0x1
+ 1865 0491 E601     		.2byte	0x1e6
+ 1866 0493 AD000000 		.4byte	0xad
+ 1867 0497 00000000 		.4byte	.LFB40
+ 1868 049b CC000000 		.4byte	.LFE40-.LFB40
+ 1869 049f 01       		.uleb128 0x1
+ 1870 04a0 9C       		.byte	0x9c
+ 1871 04a1 0F050000 		.4byte	0x50f
+ 1872 04a5 18       		.uleb128 0x18
+ 1873 04a6 25020000 		.4byte	.LASF67
+ 1874 04aa 01       		.byte	0x1
+ 1875 04ab E601     		.2byte	0x1e6
+ 1876 04ad 0F050000 		.4byte	0x50f
+ 1877 04b1 02       		.uleb128 0x2
+ 1878 04b2 91       		.byte	0x91
+ 1879 04b3 4C       		.sleb128 -52
+ 1880 04b4 18       		.uleb128 0x18
+ 1881 04b5 C5030000 		.4byte	.LASF68
+ 1882 04b9 01       		.byte	0x1
+ 1883 04ba E601     		.2byte	0x1e6
+ 1884 04bc 15050000 		.4byte	0x515
+ 1885 04c0 02       		.uleb128 0x2
+ 1886 04c1 91       		.byte	0x91
+ 1887 04c2 48       		.sleb128 -56
+ 1888 04c3 18       		.uleb128 0x18
+ 1889 04c4 57040000 		.4byte	.LASF69
+ 1890 04c8 01       		.byte	0x1
+ 1891 04c9 E601     		.2byte	0x1e6
+ 1892 04cb 15050000 		.4byte	0x515
+ 1893 04cf 02       		.uleb128 0x2
+ 1894 04d0 91       		.byte	0x91
+ 1895 04d1 44       		.sleb128 -60
+ 1896 04d2 18       		.uleb128 0x18
+ 1897 04d3 6D010000 		.4byte	.LASF70
+ 1898 04d7 01       		.byte	0x1
+ 1899 04d8 E601     		.2byte	0x1e6
+ 1900 04da AD000000 		.4byte	0xad
+ 1901 04de 02       		.uleb128 0x2
+ 1902 04df 91       		.byte	0x91
+ 1903 04e0 40       		.sleb128 -64
+ 1904 04e1 14       		.uleb128 0x14
+ 1905 04e2 33040000 		.4byte	.LASF44
+ 1906 04e6 01       		.byte	0x1
+ 1907 04e7 E801     		.2byte	0x1e8
+ 1908 04e9 97000000 		.4byte	0x97
+ 1909 04ed 02       		.uleb128 0x2
+ 1910 04ee 91       		.byte	0x91
+ 1911 04ef 6B       		.sleb128 -21
+ 1912 04f0 14       		.uleb128 0x14
+ 1913 04f1 00000000 		.4byte	.LASF54
+ 1914 04f5 01       		.byte	0x1
+ 1915 04f6 E901     		.2byte	0x1e9
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 45
+
+
+ 1916 04f8 AD000000 		.4byte	0xad
+ 1917 04fc 02       		.uleb128 0x2
+ 1918 04fd 91       		.byte	0x91
+ 1919 04fe 6C       		.sleb128 -20
+ 1920 04ff 14       		.uleb128 0x14
+ 1921 0500 76010000 		.4byte	.LASF71
+ 1922 0504 01       		.byte	0x1
+ 1923 0505 ED01     		.2byte	0x1ed
+ 1924 0507 84010000 		.4byte	0x184
+ 1925 050b 02       		.uleb128 0x2
+ 1926 050c 91       		.byte	0x91
+ 1927 050d 54       		.sleb128 -44
+ 1928 050e 00       		.byte	0
+ 1929 050f 19       		.uleb128 0x19
+ 1930 0510 04       		.byte	0x4
+ 1931 0511 AD000000 		.4byte	0xad
+ 1932 0515 19       		.uleb128 0x19
+ 1933 0516 04       		.byte	0x4
+ 1934 0517 A2000000 		.4byte	0xa2
+ 1935 051b 1A       		.uleb128 0x1a
+ 1936 051c 8B040000 		.4byte	.LASF72
+ 1937 0520 01       		.byte	0x1
+ 1938 0521 2C02     		.2byte	0x22c
+ 1939 0523 00000000 		.4byte	.LFB41
+ 1940 0527 60000000 		.4byte	.LFE41-.LFB41
+ 1941 052b 01       		.uleb128 0x1
+ 1942 052c 9C       		.byte	0x9c
+ 1943 052d A0050000 		.4byte	0x5a0
+ 1944 0531 18       		.uleb128 0x18
+ 1945 0532 25020000 		.4byte	.LASF67
+ 1946 0536 01       		.byte	0x1
+ 1947 0537 2C02     		.2byte	0x22c
+ 1948 0539 AD000000 		.4byte	0xad
+ 1949 053d 03       		.uleb128 0x3
+ 1950 053e 91       		.byte	0x91
+ 1951 053f 847F     		.sleb128 -124
+ 1952 0541 18       		.uleb128 0x18
+ 1953 0542 09010000 		.4byte	.LASF73
+ 1954 0546 01       		.byte	0x1
+ 1955 0547 2C02     		.2byte	0x22c
+ 1956 0549 AD000000 		.4byte	0xad
+ 1957 054d 03       		.uleb128 0x3
+ 1958 054e 91       		.byte	0x91
+ 1959 054f 807F     		.sleb128 -128
+ 1960 0551 18       		.uleb128 0x18
+ 1961 0552 75020000 		.4byte	.LASF74
+ 1962 0556 01       		.byte	0x1
+ 1963 0557 2C02     		.2byte	0x22c
+ 1964 0559 A2000000 		.4byte	0xa2
+ 1965 055d 03       		.uleb128 0x3
+ 1966 055e 91       		.byte	0x91
+ 1967 055f FE7E     		.sleb128 -130
+ 1968 0561 18       		.uleb128 0x18
+ 1969 0562 DA000000 		.4byte	.LASF75
+ 1970 0566 01       		.byte	0x1
+ 1971 0567 2C02     		.2byte	0x22c
+ 1972 0569 A2000000 		.4byte	0xa2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 46
+
+
+ 1973 056d 03       		.uleb128 0x3
+ 1974 056e 91       		.byte	0x91
+ 1975 056f FC7E     		.sleb128 -132
+ 1976 0571 1B       		.uleb128 0x1b
+ 1977 0572 494400   		.ascii	"ID\000"
+ 1978 0575 01       		.byte	0x1
+ 1979 0576 2C02     		.2byte	0x22c
+ 1980 0578 A2000000 		.4byte	0xa2
+ 1981 057c 02       		.uleb128 0x2
+ 1982 057d 91       		.byte	0x91
+ 1983 057e 00       		.sleb128 0
+ 1984 057f 14       		.uleb128 0x14
+ 1985 0580 42010000 		.4byte	.LASF42
+ 1986 0584 01       		.byte	0x1
+ 1987 0585 2E02     		.2byte	0x22e
+ 1988 0587 A2020000 		.4byte	0x2a2
+ 1989 058b 03       		.uleb128 0x3
+ 1990 058c 91       		.byte	0x91
+ 1991 058d BC7F     		.sleb128 -68
+ 1992 058f 14       		.uleb128 0x14
+ 1993 0590 32000000 		.4byte	.LASF43
+ 1994 0594 01       		.byte	0x1
+ 1995 0595 2F02     		.2byte	0x22f
+ 1996 0597 A2020000 		.4byte	0x2a2
+ 1997 059b 03       		.uleb128 0x3
+ 1998 059c 91       		.byte	0x91
+ 1999 059d 887F     		.sleb128 -120
+ 2000 059f 00       		.byte	0
+ 2001 05a0 0C       		.uleb128 0xc
+ 2002 05a1 17040000 		.4byte	.LASF76
+ 2003 05a5 01       		.byte	0x1
+ 2004 05a6 52       		.byte	0x52
+ 2005 05a7 AD000000 		.4byte	0xad
+ 2006 05ab 05       		.uleb128 0x5
+ 2007 05ac 03       		.byte	0x3
+ 2008 05ad 00000000 		.4byte	networkStatus
+ 2009 05b1 0C       		.uleb128 0xc
+ 2010 05b2 B7000000 		.4byte	.LASF77
+ 2011 05b6 01       		.byte	0x1
+ 2012 05b7 53       		.byte	0x53
+ 2013 05b8 89000000 		.4byte	0x89
+ 2014 05bc 05       		.uleb128 0x5
+ 2015 05bd 03       		.byte	0x3
+ 2016 05be 04000000 		.4byte	noConnect
+ 2017 05c2 0C       		.uleb128 0xc
+ 2018 05c3 37010000 		.4byte	.LASF78
+ 2019 05c7 01       		.byte	0x1
+ 2020 05c8 54       		.byte	0x54
+ 2021 05c9 89000000 		.4byte	0x89
+ 2022 05cd 05       		.uleb128 0x5
+ 2023 05ce 03       		.byte	0x3
+ 2024 05cf 08000000 		.4byte	finNoReady
+ 2025 05d3 1C       		.uleb128 0x1c
+ 2026 05d4 FD010000 		.4byte	.LASF79
+ 2027 05d8 01       		.byte	0x1
+ 2028 05d9 4D       		.byte	0x4d
+ 2029 05da EC010000 		.4byte	0x1ec
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 47
+
+
+ 2030 05de 05       		.uleb128 0x5
+ 2031 05df 03       		.byte	0x3
+ 2032 05e0 00000000 		.4byte	inData
+ 2033 05e4 1C       		.uleb128 0x1c
+ 2034 05e5 C4010000 		.4byte	.LASF80
+ 2035 05e9 01       		.byte	0x1
+ 2036 05ea 4E       		.byte	0x4e
+ 2037 05eb 48020000 		.4byte	0x248
+ 2038 05ef 05       		.uleb128 0x5
+ 2039 05f0 03       		.byte	0x3
+ 2040 05f1 00000000 		.4byte	outData
+ 2041 05f5 0D       		.uleb128 0xd
+ 2042 05f6 D1000000 		.4byte	0xd1
+ 2043 05fa 05060000 		.4byte	0x605
+ 2044 05fe 0E       		.uleb128 0xe
+ 2045 05ff D8000000 		.4byte	0xd8
+ 2046 0603 63       		.byte	0x63
+ 2047 0604 00       		.byte	0
+ 2048 0605 1C       		.uleb128 0x1c
+ 2049 0606 2F020000 		.4byte	.LASF81
+ 2050 060a 01       		.byte	0x1
+ 2051 060b 50       		.byte	0x50
+ 2052 060c F5050000 		.4byte	0x5f5
+ 2053 0610 05       		.uleb128 0x5
+ 2054 0611 03       		.byte	0x3
+ 2055 0612 00000000 		.4byte	previousData
+ 2056 0616 0D       		.uleb128 0xd
+ 2057 0617 AD000000 		.4byte	0xad
+ 2058 061b 26060000 		.4byte	0x626
+ 2059 061f 0E       		.uleb128 0xe
+ 2060 0620 D8000000 		.4byte	0xd8
+ 2061 0624 03       		.byte	0x3
+ 2062 0625 00       		.byte	0
+ 2063 0626 1C       		.uleb128 0x1c
+ 2064 0627 20000000 		.4byte	.LASF82
+ 2065 062b 01       		.byte	0x1
+ 2066 062c 55       		.byte	0x55
+ 2067 062d 16060000 		.4byte	0x616
+ 2068 0631 05       		.uleb128 0x5
+ 2069 0632 03       		.byte	0x3
+ 2070 0633 00000000 		.4byte	unixTime
+ 2071 0637 0D       		.uleb128 0xd
+ 2072 0638 A2000000 		.4byte	0xa2
+ 2073 063c 47060000 		.4byte	0x647
+ 2074 0640 0E       		.uleb128 0xe
+ 2075 0641 D8000000 		.4byte	0xd8
+ 2076 0645 03       		.byte	0x3
+ 2077 0646 00       		.byte	0
+ 2078 0647 1C       		.uleb128 0x1c
+ 2079 0648 E8030000 		.4byte	.LASF83
+ 2080 064c 01       		.byte	0x1
+ 2081 064d 56       		.byte	0x56
+ 2082 064e 37060000 		.4byte	0x637
+ 2083 0652 05       		.uleb128 0x5
+ 2084 0653 03       		.byte	0x3
+ 2085 0654 00000000 		.4byte	millisTime
+ 2086 0658 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 48
+
+
+ 2087              		.section	.debug_abbrev,"",%progbits
+ 2088              	.Ldebug_abbrev0:
+ 2089 0000 01       		.uleb128 0x1
+ 2090 0001 11       		.uleb128 0x11
+ 2091 0002 01       		.byte	0x1
+ 2092 0003 25       		.uleb128 0x25
+ 2093 0004 0E       		.uleb128 0xe
+ 2094 0005 13       		.uleb128 0x13
+ 2095 0006 0B       		.uleb128 0xb
+ 2096 0007 03       		.uleb128 0x3
+ 2097 0008 0E       		.uleb128 0xe
+ 2098 0009 1B       		.uleb128 0x1b
+ 2099 000a 0E       		.uleb128 0xe
+ 2100 000b 55       		.uleb128 0x55
+ 2101 000c 17       		.uleb128 0x17
+ 2102 000d 11       		.uleb128 0x11
+ 2103 000e 01       		.uleb128 0x1
+ 2104 000f 10       		.uleb128 0x10
+ 2105 0010 17       		.uleb128 0x17
+ 2106 0011 00       		.byte	0
+ 2107 0012 00       		.byte	0
+ 2108 0013 02       		.uleb128 0x2
+ 2109 0014 24       		.uleb128 0x24
+ 2110 0015 00       		.byte	0
+ 2111 0016 0B       		.uleb128 0xb
+ 2112 0017 0B       		.uleb128 0xb
+ 2113 0018 3E       		.uleb128 0x3e
+ 2114 0019 0B       		.uleb128 0xb
+ 2115 001a 03       		.uleb128 0x3
+ 2116 001b 0E       		.uleb128 0xe
+ 2117 001c 00       		.byte	0
+ 2118 001d 00       		.byte	0
+ 2119 001e 03       		.uleb128 0x3
+ 2120 001f 16       		.uleb128 0x16
+ 2121 0020 00       		.byte	0
+ 2122 0021 03       		.uleb128 0x3
+ 2123 0022 0E       		.uleb128 0xe
+ 2124 0023 3A       		.uleb128 0x3a
+ 2125 0024 0B       		.uleb128 0xb
+ 2126 0025 3B       		.uleb128 0x3b
+ 2127 0026 0B       		.uleb128 0xb
+ 2128 0027 49       		.uleb128 0x49
+ 2129 0028 13       		.uleb128 0x13
+ 2130 0029 00       		.byte	0
+ 2131 002a 00       		.byte	0
+ 2132 002b 04       		.uleb128 0x4
+ 2133 002c 24       		.uleb128 0x24
+ 2134 002d 00       		.byte	0
+ 2135 002e 0B       		.uleb128 0xb
+ 2136 002f 0B       		.uleb128 0xb
+ 2137 0030 3E       		.uleb128 0x3e
+ 2138 0031 0B       		.uleb128 0xb
+ 2139 0032 03       		.uleb128 0x3
+ 2140 0033 08       		.uleb128 0x8
+ 2141 0034 00       		.byte	0
+ 2142 0035 00       		.byte	0
+ 2143 0036 05       		.uleb128 0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 49
+
+
+ 2144 0037 13       		.uleb128 0x13
+ 2145 0038 01       		.byte	0x1
+ 2146 0039 03       		.uleb128 0x3
+ 2147 003a 0E       		.uleb128 0xe
+ 2148 003b 0B       		.uleb128 0xb
+ 2149 003c 0B       		.uleb128 0xb
+ 2150 003d 3A       		.uleb128 0x3a
+ 2151 003e 0B       		.uleb128 0xb
+ 2152 003f 3B       		.uleb128 0x3b
+ 2153 0040 0B       		.uleb128 0xb
+ 2154 0041 01       		.uleb128 0x1
+ 2155 0042 13       		.uleb128 0x13
+ 2156 0043 00       		.byte	0
+ 2157 0044 00       		.byte	0
+ 2158 0045 06       		.uleb128 0x6
+ 2159 0046 0D       		.uleb128 0xd
+ 2160 0047 00       		.byte	0
+ 2161 0048 03       		.uleb128 0x3
+ 2162 0049 08       		.uleb128 0x8
+ 2163 004a 3A       		.uleb128 0x3a
+ 2164 004b 0B       		.uleb128 0xb
+ 2165 004c 3B       		.uleb128 0x3b
+ 2166 004d 0B       		.uleb128 0xb
+ 2167 004e 49       		.uleb128 0x49
+ 2168 004f 13       		.uleb128 0x13
+ 2169 0050 38       		.uleb128 0x38
+ 2170 0051 0B       		.uleb128 0xb
+ 2171 0052 00       		.byte	0
+ 2172 0053 00       		.byte	0
+ 2173 0054 07       		.uleb128 0x7
+ 2174 0055 0D       		.uleb128 0xd
+ 2175 0056 00       		.byte	0
+ 2176 0057 03       		.uleb128 0x3
+ 2177 0058 0E       		.uleb128 0xe
+ 2178 0059 3A       		.uleb128 0x3a
+ 2179 005a 0B       		.uleb128 0xb
+ 2180 005b 3B       		.uleb128 0x3b
+ 2181 005c 0B       		.uleb128 0xb
+ 2182 005d 49       		.uleb128 0x49
+ 2183 005e 13       		.uleb128 0x13
+ 2184 005f 38       		.uleb128 0x38
+ 2185 0060 0B       		.uleb128 0xb
+ 2186 0061 00       		.byte	0
+ 2187 0062 00       		.byte	0
+ 2188 0063 08       		.uleb128 0x8
+ 2189 0064 13       		.uleb128 0x13
+ 2190 0065 01       		.byte	0x1
+ 2191 0066 0B       		.uleb128 0xb
+ 2192 0067 0B       		.uleb128 0xb
+ 2193 0068 3A       		.uleb128 0x3a
+ 2194 0069 0B       		.uleb128 0xb
+ 2195 006a 3B       		.uleb128 0x3b
+ 2196 006b 0B       		.uleb128 0xb
+ 2197 006c 01       		.uleb128 0x1
+ 2198 006d 13       		.uleb128 0x13
+ 2199 006e 00       		.byte	0
+ 2200 006f 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 50
+
+
+ 2201 0070 09       		.uleb128 0x9
+ 2202 0071 2E       		.uleb128 0x2e
+ 2203 0072 00       		.byte	0
+ 2204 0073 3F       		.uleb128 0x3f
+ 2205 0074 19       		.uleb128 0x19
+ 2206 0075 03       		.uleb128 0x3
+ 2207 0076 0E       		.uleb128 0xe
+ 2208 0077 3A       		.uleb128 0x3a
+ 2209 0078 0B       		.uleb128 0xb
+ 2210 0079 3B       		.uleb128 0x3b
+ 2211 007a 0B       		.uleb128 0xb
+ 2212 007b 27       		.uleb128 0x27
+ 2213 007c 19       		.uleb128 0x19
+ 2214 007d 11       		.uleb128 0x11
+ 2215 007e 01       		.uleb128 0x1
+ 2216 007f 12       		.uleb128 0x12
+ 2217 0080 06       		.uleb128 0x6
+ 2218 0081 40       		.uleb128 0x40
+ 2219 0082 18       		.uleb128 0x18
+ 2220 0083 9642     		.uleb128 0x2116
+ 2221 0085 19       		.uleb128 0x19
+ 2222 0086 00       		.byte	0
+ 2223 0087 00       		.byte	0
+ 2224 0088 0A       		.uleb128 0xa
+ 2225 0089 2E       		.uleb128 0x2e
+ 2226 008a 01       		.byte	0x1
+ 2227 008b 3F       		.uleb128 0x3f
+ 2228 008c 19       		.uleb128 0x19
+ 2229 008d 03       		.uleb128 0x3
+ 2230 008e 0E       		.uleb128 0xe
+ 2231 008f 3A       		.uleb128 0x3a
+ 2232 0090 0B       		.uleb128 0xb
+ 2233 0091 3B       		.uleb128 0x3b
+ 2234 0092 0B       		.uleb128 0xb
+ 2235 0093 27       		.uleb128 0x27
+ 2236 0094 19       		.uleb128 0x19
+ 2237 0095 11       		.uleb128 0x11
+ 2238 0096 01       		.uleb128 0x1
+ 2239 0097 12       		.uleb128 0x12
+ 2240 0098 06       		.uleb128 0x6
+ 2241 0099 40       		.uleb128 0x40
+ 2242 009a 18       		.uleb128 0x18
+ 2243 009b 9642     		.uleb128 0x2116
+ 2244 009d 19       		.uleb128 0x19
+ 2245 009e 01       		.uleb128 0x1
+ 2246 009f 13       		.uleb128 0x13
+ 2247 00a0 00       		.byte	0
+ 2248 00a1 00       		.byte	0
+ 2249 00a2 0B       		.uleb128 0xb
+ 2250 00a3 0B       		.uleb128 0xb
+ 2251 00a4 01       		.byte	0x1
+ 2252 00a5 11       		.uleb128 0x11
+ 2253 00a6 01       		.uleb128 0x1
+ 2254 00a7 12       		.uleb128 0x12
+ 2255 00a8 06       		.uleb128 0x6
+ 2256 00a9 00       		.byte	0
+ 2257 00aa 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 51
+
+
+ 2258 00ab 0C       		.uleb128 0xc
+ 2259 00ac 34       		.uleb128 0x34
+ 2260 00ad 00       		.byte	0
+ 2261 00ae 03       		.uleb128 0x3
+ 2262 00af 0E       		.uleb128 0xe
+ 2263 00b0 3A       		.uleb128 0x3a
+ 2264 00b1 0B       		.uleb128 0xb
+ 2265 00b2 3B       		.uleb128 0x3b
+ 2266 00b3 0B       		.uleb128 0xb
+ 2267 00b4 49       		.uleb128 0x49
+ 2268 00b5 13       		.uleb128 0x13
+ 2269 00b6 02       		.uleb128 0x2
+ 2270 00b7 18       		.uleb128 0x18
+ 2271 00b8 00       		.byte	0
+ 2272 00b9 00       		.byte	0
+ 2273 00ba 0D       		.uleb128 0xd
+ 2274 00bb 01       		.uleb128 0x1
+ 2275 00bc 01       		.byte	0x1
+ 2276 00bd 49       		.uleb128 0x49
+ 2277 00be 13       		.uleb128 0x13
+ 2278 00bf 01       		.uleb128 0x1
+ 2279 00c0 13       		.uleb128 0x13
+ 2280 00c1 00       		.byte	0
+ 2281 00c2 00       		.byte	0
+ 2282 00c3 0E       		.uleb128 0xe
+ 2283 00c4 21       		.uleb128 0x21
+ 2284 00c5 00       		.byte	0
+ 2285 00c6 49       		.uleb128 0x49
+ 2286 00c7 13       		.uleb128 0x13
+ 2287 00c8 2F       		.uleb128 0x2f
+ 2288 00c9 0B       		.uleb128 0xb
+ 2289 00ca 00       		.byte	0
+ 2290 00cb 00       		.byte	0
+ 2291 00cc 0F       		.uleb128 0xf
+ 2292 00cd 2E       		.uleb128 0x2e
+ 2293 00ce 01       		.byte	0x1
+ 2294 00cf 3F       		.uleb128 0x3f
+ 2295 00d0 19       		.uleb128 0x19
+ 2296 00d1 03       		.uleb128 0x3
+ 2297 00d2 0E       		.uleb128 0xe
+ 2298 00d3 3A       		.uleb128 0x3a
+ 2299 00d4 0B       		.uleb128 0xb
+ 2300 00d5 3B       		.uleb128 0x3b
+ 2301 00d6 0B       		.uleb128 0xb
+ 2302 00d7 27       		.uleb128 0x27
+ 2303 00d8 19       		.uleb128 0x19
+ 2304 00d9 49       		.uleb128 0x49
+ 2305 00da 13       		.uleb128 0x13
+ 2306 00db 11       		.uleb128 0x11
+ 2307 00dc 01       		.uleb128 0x1
+ 2308 00dd 12       		.uleb128 0x12
+ 2309 00de 06       		.uleb128 0x6
+ 2310 00df 40       		.uleb128 0x40
+ 2311 00e0 18       		.uleb128 0x18
+ 2312 00e1 9642     		.uleb128 0x2116
+ 2313 00e3 19       		.uleb128 0x19
+ 2314 00e4 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 52
+
+
+ 2315 00e5 13       		.uleb128 0x13
+ 2316 00e6 00       		.byte	0
+ 2317 00e7 00       		.byte	0
+ 2318 00e8 10       		.uleb128 0x10
+ 2319 00e9 2E       		.uleb128 0x2e
+ 2320 00ea 00       		.byte	0
+ 2321 00eb 3F       		.uleb128 0x3f
+ 2322 00ec 19       		.uleb128 0x19
+ 2323 00ed 03       		.uleb128 0x3
+ 2324 00ee 0E       		.uleb128 0xe
+ 2325 00ef 3A       		.uleb128 0x3a
+ 2326 00f0 0B       		.uleb128 0xb
+ 2327 00f1 3B       		.uleb128 0x3b
+ 2328 00f2 0B       		.uleb128 0xb
+ 2329 00f3 27       		.uleb128 0x27
+ 2330 00f4 19       		.uleb128 0x19
+ 2331 00f5 49       		.uleb128 0x49
+ 2332 00f6 13       		.uleb128 0x13
+ 2333 00f7 11       		.uleb128 0x11
+ 2334 00f8 01       		.uleb128 0x1
+ 2335 00f9 12       		.uleb128 0x12
+ 2336 00fa 06       		.uleb128 0x6
+ 2337 00fb 40       		.uleb128 0x40
+ 2338 00fc 18       		.uleb128 0x18
+ 2339 00fd 9742     		.uleb128 0x2117
+ 2340 00ff 19       		.uleb128 0x19
+ 2341 0100 00       		.byte	0
+ 2342 0101 00       		.byte	0
+ 2343 0102 11       		.uleb128 0x11
+ 2344 0103 2E       		.uleb128 0x2e
+ 2345 0104 01       		.byte	0x1
+ 2346 0105 3F       		.uleb128 0x3f
+ 2347 0106 19       		.uleb128 0x19
+ 2348 0107 03       		.uleb128 0x3
+ 2349 0108 0E       		.uleb128 0xe
+ 2350 0109 3A       		.uleb128 0x3a
+ 2351 010a 0B       		.uleb128 0xb
+ 2352 010b 3B       		.uleb128 0x3b
+ 2353 010c 0B       		.uleb128 0xb
+ 2354 010d 27       		.uleb128 0x27
+ 2355 010e 19       		.uleb128 0x19
+ 2356 010f 11       		.uleb128 0x11
+ 2357 0110 01       		.uleb128 0x1
+ 2358 0111 12       		.uleb128 0x12
+ 2359 0112 06       		.uleb128 0x6
+ 2360 0113 40       		.uleb128 0x40
+ 2361 0114 18       		.uleb128 0x18
+ 2362 0115 9742     		.uleb128 0x2117
+ 2363 0117 19       		.uleb128 0x19
+ 2364 0118 01       		.uleb128 0x1
+ 2365 0119 13       		.uleb128 0x13
+ 2366 011a 00       		.byte	0
+ 2367 011b 00       		.byte	0
+ 2368 011c 12       		.uleb128 0x12
+ 2369 011d 05       		.uleb128 0x5
+ 2370 011e 00       		.byte	0
+ 2371 011f 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 53
+
+
+ 2372 0120 0E       		.uleb128 0xe
+ 2373 0121 3A       		.uleb128 0x3a
+ 2374 0122 0B       		.uleb128 0xb
+ 2375 0123 3B       		.uleb128 0x3b
+ 2376 0124 0B       		.uleb128 0xb
+ 2377 0125 49       		.uleb128 0x49
+ 2378 0126 13       		.uleb128 0x13
+ 2379 0127 02       		.uleb128 0x2
+ 2380 0128 18       		.uleb128 0x18
+ 2381 0129 00       		.byte	0
+ 2382 012a 00       		.byte	0
+ 2383 012b 13       		.uleb128 0x13
+ 2384 012c 2E       		.uleb128 0x2e
+ 2385 012d 01       		.byte	0x1
+ 2386 012e 3F       		.uleb128 0x3f
+ 2387 012f 19       		.uleb128 0x19
+ 2388 0130 03       		.uleb128 0x3
+ 2389 0131 0E       		.uleb128 0xe
+ 2390 0132 3A       		.uleb128 0x3a
+ 2391 0133 0B       		.uleb128 0xb
+ 2392 0134 3B       		.uleb128 0x3b
+ 2393 0135 05       		.uleb128 0x5
+ 2394 0136 27       		.uleb128 0x27
+ 2395 0137 19       		.uleb128 0x19
+ 2396 0138 49       		.uleb128 0x49
+ 2397 0139 13       		.uleb128 0x13
+ 2398 013a 11       		.uleb128 0x11
+ 2399 013b 01       		.uleb128 0x1
+ 2400 013c 12       		.uleb128 0x12
+ 2401 013d 06       		.uleb128 0x6
+ 2402 013e 40       		.uleb128 0x40
+ 2403 013f 18       		.uleb128 0x18
+ 2404 0140 9742     		.uleb128 0x2117
+ 2405 0142 19       		.uleb128 0x19
+ 2406 0143 01       		.uleb128 0x1
+ 2407 0144 13       		.uleb128 0x13
+ 2408 0145 00       		.byte	0
+ 2409 0146 00       		.byte	0
+ 2410 0147 14       		.uleb128 0x14
+ 2411 0148 34       		.uleb128 0x34
+ 2412 0149 00       		.byte	0
+ 2413 014a 03       		.uleb128 0x3
+ 2414 014b 0E       		.uleb128 0xe
+ 2415 014c 3A       		.uleb128 0x3a
+ 2416 014d 0B       		.uleb128 0xb
+ 2417 014e 3B       		.uleb128 0x3b
+ 2418 014f 05       		.uleb128 0x5
+ 2419 0150 49       		.uleb128 0x49
+ 2420 0151 13       		.uleb128 0x13
+ 2421 0152 02       		.uleb128 0x2
+ 2422 0153 18       		.uleb128 0x18
+ 2423 0154 00       		.byte	0
+ 2424 0155 00       		.byte	0
+ 2425 0156 15       		.uleb128 0x15
+ 2426 0157 2E       		.uleb128 0x2e
+ 2427 0158 00       		.byte	0
+ 2428 0159 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 54
+
+
+ 2429 015a 19       		.uleb128 0x19
+ 2430 015b 03       		.uleb128 0x3
+ 2431 015c 0E       		.uleb128 0xe
+ 2432 015d 3A       		.uleb128 0x3a
+ 2433 015e 0B       		.uleb128 0xb
+ 2434 015f 3B       		.uleb128 0x3b
+ 2435 0160 05       		.uleb128 0x5
+ 2436 0161 27       		.uleb128 0x27
+ 2437 0162 19       		.uleb128 0x19
+ 2438 0163 11       		.uleb128 0x11
+ 2439 0164 01       		.uleb128 0x1
+ 2440 0165 12       		.uleb128 0x12
+ 2441 0166 06       		.uleb128 0x6
+ 2442 0167 40       		.uleb128 0x40
+ 2443 0168 18       		.uleb128 0x18
+ 2444 0169 9742     		.uleb128 0x2117
+ 2445 016b 19       		.uleb128 0x19
+ 2446 016c 00       		.byte	0
+ 2447 016d 00       		.byte	0
+ 2448 016e 16       		.uleb128 0x16
+ 2449 016f 2E       		.uleb128 0x2e
+ 2450 0170 01       		.byte	0x1
+ 2451 0171 3F       		.uleb128 0x3f
+ 2452 0172 19       		.uleb128 0x19
+ 2453 0173 03       		.uleb128 0x3
+ 2454 0174 0E       		.uleb128 0xe
+ 2455 0175 3A       		.uleb128 0x3a
+ 2456 0176 0B       		.uleb128 0xb
+ 2457 0177 3B       		.uleb128 0x3b
+ 2458 0178 05       		.uleb128 0x5
+ 2459 0179 27       		.uleb128 0x27
+ 2460 017a 19       		.uleb128 0x19
+ 2461 017b 49       		.uleb128 0x49
+ 2462 017c 13       		.uleb128 0x13
+ 2463 017d 11       		.uleb128 0x11
+ 2464 017e 01       		.uleb128 0x1
+ 2465 017f 12       		.uleb128 0x12
+ 2466 0180 06       		.uleb128 0x6
+ 2467 0181 40       		.uleb128 0x40
+ 2468 0182 18       		.uleb128 0x18
+ 2469 0183 9642     		.uleb128 0x2116
+ 2470 0185 19       		.uleb128 0x19
+ 2471 0186 01       		.uleb128 0x1
+ 2472 0187 13       		.uleb128 0x13
+ 2473 0188 00       		.byte	0
+ 2474 0189 00       		.byte	0
+ 2475 018a 17       		.uleb128 0x17
+ 2476 018b 34       		.uleb128 0x34
+ 2477 018c 00       		.byte	0
+ 2478 018d 03       		.uleb128 0x3
+ 2479 018e 08       		.uleb128 0x8
+ 2480 018f 3A       		.uleb128 0x3a
+ 2481 0190 0B       		.uleb128 0xb
+ 2482 0191 3B       		.uleb128 0x3b
+ 2483 0192 05       		.uleb128 0x5
+ 2484 0193 49       		.uleb128 0x49
+ 2485 0194 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 55
+
+
+ 2486 0195 02       		.uleb128 0x2
+ 2487 0196 18       		.uleb128 0x18
+ 2488 0197 00       		.byte	0
+ 2489 0198 00       		.byte	0
+ 2490 0199 18       		.uleb128 0x18
+ 2491 019a 05       		.uleb128 0x5
+ 2492 019b 00       		.byte	0
+ 2493 019c 03       		.uleb128 0x3
+ 2494 019d 0E       		.uleb128 0xe
+ 2495 019e 3A       		.uleb128 0x3a
+ 2496 019f 0B       		.uleb128 0xb
+ 2497 01a0 3B       		.uleb128 0x3b
+ 2498 01a1 05       		.uleb128 0x5
+ 2499 01a2 49       		.uleb128 0x49
+ 2500 01a3 13       		.uleb128 0x13
+ 2501 01a4 02       		.uleb128 0x2
+ 2502 01a5 18       		.uleb128 0x18
+ 2503 01a6 00       		.byte	0
+ 2504 01a7 00       		.byte	0
+ 2505 01a8 19       		.uleb128 0x19
+ 2506 01a9 0F       		.uleb128 0xf
+ 2507 01aa 00       		.byte	0
+ 2508 01ab 0B       		.uleb128 0xb
+ 2509 01ac 0B       		.uleb128 0xb
+ 2510 01ad 49       		.uleb128 0x49
+ 2511 01ae 13       		.uleb128 0x13
+ 2512 01af 00       		.byte	0
+ 2513 01b0 00       		.byte	0
+ 2514 01b1 1A       		.uleb128 0x1a
+ 2515 01b2 2E       		.uleb128 0x2e
+ 2516 01b3 01       		.byte	0x1
+ 2517 01b4 3F       		.uleb128 0x3f
+ 2518 01b5 19       		.uleb128 0x19
+ 2519 01b6 03       		.uleb128 0x3
+ 2520 01b7 0E       		.uleb128 0xe
+ 2521 01b8 3A       		.uleb128 0x3a
+ 2522 01b9 0B       		.uleb128 0xb
+ 2523 01ba 3B       		.uleb128 0x3b
+ 2524 01bb 05       		.uleb128 0x5
+ 2525 01bc 27       		.uleb128 0x27
+ 2526 01bd 19       		.uleb128 0x19
+ 2527 01be 11       		.uleb128 0x11
+ 2528 01bf 01       		.uleb128 0x1
+ 2529 01c0 12       		.uleb128 0x12
+ 2530 01c1 06       		.uleb128 0x6
+ 2531 01c2 40       		.uleb128 0x40
+ 2532 01c3 18       		.uleb128 0x18
+ 2533 01c4 9642     		.uleb128 0x2116
+ 2534 01c6 19       		.uleb128 0x19
+ 2535 01c7 01       		.uleb128 0x1
+ 2536 01c8 13       		.uleb128 0x13
+ 2537 01c9 00       		.byte	0
+ 2538 01ca 00       		.byte	0
+ 2539 01cb 1B       		.uleb128 0x1b
+ 2540 01cc 05       		.uleb128 0x5
+ 2541 01cd 00       		.byte	0
+ 2542 01ce 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 56
+
+
+ 2543 01cf 08       		.uleb128 0x8
+ 2544 01d0 3A       		.uleb128 0x3a
+ 2545 01d1 0B       		.uleb128 0xb
+ 2546 01d2 3B       		.uleb128 0x3b
+ 2547 01d3 05       		.uleb128 0x5
+ 2548 01d4 49       		.uleb128 0x49
+ 2549 01d5 13       		.uleb128 0x13
+ 2550 01d6 02       		.uleb128 0x2
+ 2551 01d7 18       		.uleb128 0x18
+ 2552 01d8 00       		.byte	0
+ 2553 01d9 00       		.byte	0
+ 2554 01da 1C       		.uleb128 0x1c
+ 2555 01db 34       		.uleb128 0x34
+ 2556 01dc 00       		.byte	0
+ 2557 01dd 03       		.uleb128 0x3
+ 2558 01de 0E       		.uleb128 0xe
+ 2559 01df 3A       		.uleb128 0x3a
+ 2560 01e0 0B       		.uleb128 0xb
+ 2561 01e1 3B       		.uleb128 0x3b
+ 2562 01e2 0B       		.uleb128 0xb
+ 2563 01e3 49       		.uleb128 0x49
+ 2564 01e4 13       		.uleb128 0x13
+ 2565 01e5 3F       		.uleb128 0x3f
+ 2566 01e6 19       		.uleb128 0x19
+ 2567 01e7 02       		.uleb128 0x2
+ 2568 01e8 18       		.uleb128 0x18
+ 2569 01e9 00       		.byte	0
+ 2570 01ea 00       		.byte	0
+ 2571 01eb 00       		.byte	0
+ 2572              		.section	.debug_aranges,"",%progbits
+ 2573 0000 84000000 		.4byte	0x84
+ 2574 0004 0200     		.2byte	0x2
+ 2575 0006 00000000 		.4byte	.Ldebug_info0
+ 2576 000a 04       		.byte	0x4
+ 2577 000b 00       		.byte	0
+ 2578 000c 0000     		.2byte	0
+ 2579 000e 0000     		.2byte	0
+ 2580 0010 00000000 		.4byte	.LFB28
+ 2581 0014 34000000 		.4byte	.LFE28-.LFB28
+ 2582 0018 00000000 		.4byte	.LFB29
+ 2583 001c DC000000 		.4byte	.LFE29-.LFB29
+ 2584 0020 00000000 		.4byte	.LFB30
+ 2585 0024 CC000000 		.4byte	.LFE30-.LFB30
+ 2586 0028 00000000 		.4byte	.LFB31
+ 2587 002c 14000000 		.4byte	.LFE31-.LFB31
+ 2588 0030 00000000 		.4byte	.LFB32
+ 2589 0034 30000000 		.4byte	.LFE32-.LFB32
+ 2590 0038 00000000 		.4byte	.LFB33
+ 2591 003c 14000000 		.4byte	.LFE33-.LFB33
+ 2592 0040 00000000 		.4byte	.LFB34
+ 2593 0044 28000000 		.4byte	.LFE34-.LFB34
+ 2594 0048 00000000 		.4byte	.LFB35
+ 2595 004c 44000000 		.4byte	.LFE35-.LFB35
+ 2596 0050 00000000 		.4byte	.LFB36
+ 2597 0054 14000000 		.4byte	.LFE36-.LFB36
+ 2598 0058 00000000 		.4byte	.LFB37
+ 2599 005c 1C000000 		.4byte	.LFE37-.LFB37
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 57
+
+
+ 2600 0060 00000000 		.4byte	.LFB38
+ 2601 0064 9C010000 		.4byte	.LFE38-.LFB38
+ 2602 0068 00000000 		.4byte	.LFB39
+ 2603 006c C4000000 		.4byte	.LFE39-.LFB39
+ 2604 0070 00000000 		.4byte	.LFB40
+ 2605 0074 CC000000 		.4byte	.LFE40-.LFB40
+ 2606 0078 00000000 		.4byte	.LFB41
+ 2607 007c 60000000 		.4byte	.LFE41-.LFB41
+ 2608 0080 00000000 		.4byte	0
+ 2609 0084 00000000 		.4byte	0
+ 2610              		.section	.debug_ranges,"",%progbits
+ 2611              	.Ldebug_ranges0:
+ 2612 0000 00000000 		.4byte	.LFB28
+ 2613 0004 34000000 		.4byte	.LFE28
+ 2614 0008 00000000 		.4byte	.LFB29
+ 2615 000c DC000000 		.4byte	.LFE29
+ 2616 0010 00000000 		.4byte	.LFB30
+ 2617 0014 CC000000 		.4byte	.LFE30
+ 2618 0018 00000000 		.4byte	.LFB31
+ 2619 001c 14000000 		.4byte	.LFE31
+ 2620 0020 00000000 		.4byte	.LFB32
+ 2621 0024 30000000 		.4byte	.LFE32
+ 2622 0028 00000000 		.4byte	.LFB33
+ 2623 002c 14000000 		.4byte	.LFE33
+ 2624 0030 00000000 		.4byte	.LFB34
+ 2625 0034 28000000 		.4byte	.LFE34
+ 2626 0038 00000000 		.4byte	.LFB35
+ 2627 003c 44000000 		.4byte	.LFE35
+ 2628 0040 00000000 		.4byte	.LFB36
+ 2629 0044 14000000 		.4byte	.LFE36
+ 2630 0048 00000000 		.4byte	.LFB37
+ 2631 004c 1C000000 		.4byte	.LFE37
+ 2632 0050 00000000 		.4byte	.LFB38
+ 2633 0054 9C010000 		.4byte	.LFE38
+ 2634 0058 00000000 		.4byte	.LFB39
+ 2635 005c C4000000 		.4byte	.LFE39
+ 2636 0060 00000000 		.4byte	.LFB40
+ 2637 0064 CC000000 		.4byte	.LFE40
+ 2638 0068 00000000 		.4byte	.LFB41
+ 2639 006c 60000000 		.4byte	.LFE41
+ 2640 0070 00000000 		.4byte	0
+ 2641 0074 00000000 		.4byte	0
+ 2642              		.section	.debug_line,"",%progbits
+ 2643              	.Ldebug_line0:
+ 2644 0000 46030000 		.section	.debug_str,"MS",%progbits,1
+ 2644      02004401 
+ 2644      00000201 
+ 2644      FB0E0D00 
+ 2644      01010101 
+ 2645              	.LASF54:
+ 2646 0000 72657375 		.ascii	"result\000"
+ 2646      6C7400
+ 2647              	.LASF28:
+ 2648 0007 4E545052 		.ascii	"NTPResp\000"
+ 2648      65737000 
+ 2649              	.LASF39:
+ 2650 000f 6E657753 		.ascii	"newSkier\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 58
+
+
+ 2650      6B696572 
+ 2650      00
+ 2651              	.LASF27:
+ 2652 0018 44617461 		.ascii	"DataMs1\000"
+ 2652      4D733100 
+ 2653              	.LASF82:
+ 2654 0020 756E6978 		.ascii	"unixTime\000"
+ 2654      54696D65 
+ 2654      00
+ 2655              	.LASF46:
+ 2656 0029 53656E64 		.ascii	"SendData\000"
+ 2656      44617461 
+ 2656      00
+ 2657              	.LASF43:
+ 2658 0032 73656E64 		.ascii	"sendData\000"
+ 2658      44617461 
+ 2658      00
+ 2659              	.LASF86:
+ 2660 003b 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\sta"
+ 2660      79707265 
+ 2660      73735C73 
+ 2660      79737465 
+ 2660      6D2D7374 
+ 2661 0069 72745C73 		.ascii	"rt\\sandbox\\v6\\Start(state machine)\\start_v0.cyd"
+ 2661      616E6462 
+ 2661      6F785C76 
+ 2661      365C5374 
+ 2661      61727428 
+ 2662 0098 736E00   		.ascii	"sn\000"
+ 2663              	.LASF55:
+ 2664 009b 49735265 		.ascii	"IsRebootFinishFlag\000"
+ 2664      626F6F74 
+ 2664      46696E69 
+ 2664      7368466C 
+ 2664      616700
+ 2665              	.LASF16:
+ 2666 00ae 75696E74 		.ascii	"uint64_t\000"
+ 2666      36345F74 
+ 2666      00
+ 2667              	.LASF77:
+ 2668 00b7 6E6F436F 		.ascii	"noConnect\000"
+ 2668      6E6E6563 
+ 2668      7400
+ 2669              	.LASF31:
+ 2670 00c1 7265626F 		.ascii	"reboot\000"
+ 2670      6F7400
+ 2671              	.LASF20:
+ 2672 00c8 73697A65 		.ascii	"sizetype\000"
+ 2672      74797065 
+ 2672      00
+ 2673              	.LASF45:
+ 2674 00d1 72656376 		.ascii	"recvData\000"
+ 2674      44617461 
+ 2674      00
+ 2675              	.LASF75:
+ 2676 00da 6D696C6C 		.ascii	"millis3\000"
+ 2676      69733300 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 59
+
+
+ 2677              	.LASF60:
+ 2678 00e2 49447265 		.ascii	"IDreceivePacket\000"
+ 2678      63656976 
+ 2678      65506163 
+ 2678      6B657400 
+ 2679              	.LASF38:
+ 2680 00f2 73746172 		.ascii	"startMsTime\000"
+ 2680      744D7354 
+ 2680      696D6500 
+ 2681              	.LASF7:
+ 2682 00fe 5F5F7569 		.ascii	"__uint32_t\000"
+ 2682      6E743332 
+ 2682      5F7400
+ 2683              	.LASF73:
+ 2684 0109 756E6978 		.ascii	"unixTime3\000"
+ 2684      54696D65 
+ 2684      3300
+ 2685              	.LASF4:
+ 2686 0113 5F5F7569 		.ascii	"__uint16_t\000"
+ 2686      6E743136 
+ 2686      5F7400
+ 2687              	.LASF64:
+ 2688 011e 6D696C6C 		.ascii	"millisTimeReal\000"
+ 2688      69735469 
+ 2688      6D655265 
+ 2688      616C00
+ 2689              	.LASF2:
+ 2690 012d 73686F72 		.ascii	"short int\000"
+ 2690      7420696E 
+ 2690      7400
+ 2691              	.LASF78:
+ 2692 0137 66696E4E 		.ascii	"finNoReady\000"
+ 2692      6F526561 
+ 2692      647900
+ 2693              	.LASF42:
+ 2694 0142 73656E64 		.ascii	"sendBuffer\000"
+ 2694      42756666 
+ 2694      657200
+ 2695              	.LASF13:
+ 2696 014d 75696E74 		.ascii	"uint8_t\000"
+ 2696      385F7400 
+ 2697              	.LASF50:
+ 2698 0155 4E657477 		.ascii	"NetworkStatus\000"
+ 2698      6F726B53 
+ 2698      74617475 
+ 2698      7300
+ 2699              	.LASF41:
+ 2700 0163 53746172 		.ascii	"StartData\000"
+ 2700      74446174 
+ 2700      6100
+ 2701              	.LASF70:
+ 2702 016d 73617665 		.ascii	"saveTime\000"
+ 2702      54696D65 
+ 2702      00
+ 2703              	.LASF71:
+ 2704 0176 72656376 		.ascii	"recvDataNTP\000"
+ 2704      44617461 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 60
+
+
+ 2704      4E545000 
+ 2705              	.LASF17:
+ 2706 0182 666C6F61 		.ascii	"float\000"
+ 2706      7400
+ 2707              	.LASF26:
+ 2708 0188 456E6450 		.ascii	"EndPacket\000"
+ 2708      61636B65 
+ 2708      7400
+ 2709              	.LASF9:
+ 2710 0192 6C6F6E67 		.ascii	"long long int\000"
+ 2710      206C6F6E 
+ 2710      6720696E 
+ 2710      7400
+ 2711              	.LASF36:
+ 2712 01a0 46696E69 		.ascii	"FinishData\000"
+ 2712      73684461 
+ 2712      746100
+ 2713              	.LASF65:
+ 2714 01ab 52656365 		.ascii	"ReceiveRealTime\000"
+ 2714      69766552 
+ 2714      65616C54 
+ 2714      696D6500 
+ 2715              	.LASF6:
+ 2716 01bb 6C6F6E67 		.ascii	"long int\000"
+ 2716      20696E74 
+ 2716      00
+ 2717              	.LASF80:
+ 2718 01c4 6F757444 		.ascii	"outData\000"
+ 2718      61746100 
+ 2719              	.LASF57:
+ 2720 01cc 53657452 		.ascii	"SetRebootFlag\000"
+ 2720      65626F6F 
+ 2720      74466C61 
+ 2720      6700
+ 2721              	.LASF61:
+ 2722 01da 6C617374 		.ascii	"lastIDpacket\000"
+ 2722      49447061 
+ 2722      636B6574 
+ 2722      00
+ 2723              	.LASF40:
+ 2724 01e7 77726974 		.ascii	"writeStatus\000"
+ 2724      65537461 
+ 2724      74757300 
+ 2725              	.LASF3:
+ 2726 01f3 5F5F7569 		.ascii	"__uint8_t\000"
+ 2726      6E74385F 
+ 2726      7400
+ 2727              	.LASF79:
+ 2728 01fd 696E4461 		.ascii	"inData\000"
+ 2728      746100
+ 2729              	.LASF34:
+ 2730 0204 746D704D 		.ascii	"tmpMsTime\000"
+ 2730      7354696D 
+ 2730      6500
+ 2731              	.LASF25:
+ 2732 020e 43686563 		.ascii	"CheckSum\000"
+ 2732      6B53756D 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 61
+
+
+ 2732      00
+ 2733              	.LASF1:
+ 2734 0217 756E7369 		.ascii	"unsigned char\000"
+ 2734      676E6564 
+ 2734      20636861 
+ 2734      7200
+ 2735              	.LASF67:
+ 2736 0225 756E6978 		.ascii	"unixTime2\000"
+ 2736      54696D65 
+ 2736      3200
+ 2737              	.LASF81:
+ 2738 022f 70726576 		.ascii	"previousData\000"
+ 2738      696F7573 
+ 2738      44617461 
+ 2738      00
+ 2739              	.LASF0:
+ 2740 023c 7369676E 		.ascii	"signed char\000"
+ 2740      65642063 
+ 2740      68617200 
+ 2741              	.LASF11:
+ 2742 0248 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2742      206C6F6E 
+ 2742      6720756E 
+ 2742      7369676E 
+ 2742      65642069 
+ 2743              	.LASF63:
+ 2744 025f 756E6978 		.ascii	"unixTimeReal\000"
+ 2744      54696D65 
+ 2744      5265616C 
+ 2744      00
+ 2745              	.LASF15:
+ 2746 026c 75696E74 		.ascii	"uint32_t\000"
+ 2746      33325F74 
+ 2746      00
+ 2747              	.LASF74:
+ 2748 0275 6D696C6C 		.ascii	"millis2\000"
+ 2748      69733200 
+ 2749              	.LASF48:
+ 2750 027d 756E6978 		.ascii	"unixTimeStart\000"
+ 2750      54696D65 
+ 2750      53746172 
+ 2750      7400
+ 2751              	.LASF12:
+ 2752 028b 756E7369 		.ascii	"unsigned int\000"
+ 2752      676E6564 
+ 2752      20696E74 
+ 2752      00
+ 2753              	.LASF14:
+ 2754 0298 75696E74 		.ascii	"uint16_t\000"
+ 2754      31365F74 
+ 2754      00
+ 2755              	.LASF8:
+ 2756 02a1 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2756      20756E73 
+ 2756      69676E65 
+ 2756      6420696E 
+ 2756      7400
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 62
+
+
+ 2757              	.LASF56:
+ 2758 02b3 496E6974 		.ascii	"InitNetwork\000"
+ 2758      4E657477 
+ 2758      6F726B00 
+ 2759              	.LASF33:
+ 2760 02bf 746D7054 		.ascii	"tmpTime\000"
+ 2760      696D6500 
+ 2761              	.LASF29:
+ 2762 02c7 49447061 		.ascii	"IDpacket\000"
+ 2762      636B6574 
+ 2762      00
+ 2763              	.LASF21:
+ 2764 02d0 436F6D6D 		.ascii	"Command\000"
+ 2764      616E6400 
+ 2765              	.LASF35:
+ 2766 02d8 72656164 		.ascii	"readStatus\000"
+ 2766      53746174 
+ 2766      757300
+ 2767              	.LASF19:
+ 2768 02e3 63686172 		.ascii	"char\000"
+ 2768      00
+ 2769              	.LASF85:
+ 2770 02e8 6C69625F 		.ascii	"lib_Network\\network.c\000"
+ 2770      4E657477 
+ 2770      6F726B5C 
+ 2770      6E657477 
+ 2770      6F726B2E 
+ 2771              	.LASF51:
+ 2772 02fe 46696E52 		.ascii	"FinReady\000"
+ 2772      65616479 
+ 2772      00
+ 2773              	.LASF30:
+ 2774 0307 72656164 		.ascii	"ready\000"
+ 2774      7900
+ 2775              	.LASF84:
+ 2776 030d 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 2776      4320342E 
+ 2776      392E3320 
+ 2776      32303135 
+ 2776      30333033 
+ 2777 0340 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 2777      20726576 
+ 2777      6973696F 
+ 2777      6E203232 
+ 2777      31323230 
+ 2778 0373 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 2778      66756E63 
+ 2778      74696F6E 
+ 2778      2D736563 
+ 2778      74696F6E 
+ 2779              	.LASF37:
+ 2780 039b 756E6978 		.ascii	"unixStartTime\000"
+ 2780      53746172 
+ 2780      7454696D 
+ 2780      6500
+ 2781              	.LASF5:
+ 2782 03a9 73686F72 		.ascii	"short unsigned int\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 63
+
+
+ 2782      7420756E 
+ 2782      7369676E 
+ 2782      65642069 
+ 2782      6E7400
+ 2783              	.LASF49:
+ 2784 03bc 72656365 		.ascii	"recentMs\000"
+ 2784      6E744D73 
+ 2784      00
+ 2785              	.LASF68:
+ 2786 03c5 6D696C6C 		.ascii	"millisTime2\000"
+ 2786      69735469 
+ 2786      6D653200 
+ 2787              	.LASF22:
+ 2788 03d1 44617461 		.ascii	"Data1\000"
+ 2788      3100
+ 2789              	.LASF23:
+ 2790 03d7 44617461 		.ascii	"Data2\000"
+ 2790      3200
+ 2791              	.LASF10:
+ 2792 03dd 5F5F7569 		.ascii	"__uint64_t\000"
+ 2792      6E743634 
+ 2792      5F7400
+ 2793              	.LASF83:
+ 2794 03e8 6D696C6C 		.ascii	"millisTime\000"
+ 2794      69735469 
+ 2794      6D6500
+ 2795              	.LASF58:
+ 2796 03f3 436C6561 		.ascii	"ClearRebootFlag\000"
+ 2796      72526562 
+ 2796      6F6F7446 
+ 2796      6C616700 
+ 2797              	.LASF53:
+ 2798 0403 46696E57 		.ascii	"FinWriteInDB\000"
+ 2798      72697465 
+ 2798      496E4442 
+ 2798      00
+ 2799              	.LASF18:
+ 2800 0410 646F7562 		.ascii	"double\000"
+ 2800      6C6500
+ 2801              	.LASF76:
+ 2802 0417 6E657477 		.ascii	"networkStatus\000"
+ 2802      6F726B53 
+ 2802      74617475 
+ 2802      7300
+ 2803              	.LASF62:
+ 2804 0425 72657375 		.ascii	"resultReceive\000"
+ 2804      6C745265 
+ 2804      63656976 
+ 2804      6500
+ 2805              	.LASF44:
+ 2806 0433 62797465 		.ascii	"byte\000"
+ 2806      00
+ 2807              	.LASF87:
+ 2808 0438 52657370 		.ascii	"Resp\000"
+ 2808      00
+ 2809              	.LASF59:
+ 2810 043d 4E545073 		.ascii	"NTPsync\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccNOgfdU.s 			page 64
+
+
+ 2810      796E6300 
+ 2811              	.LASF24:
+ 2812 0445 44617461 		.ascii	"Data3\000"
+ 2812      3300
+ 2813              	.LASF52:
+ 2814 044b 52656365 		.ascii	"ReceiveData\000"
+ 2814      69766544 
+ 2814      61746100 
+ 2815              	.LASF69:
+ 2816 0457 49447265 		.ascii	"IDreceive\000"
+ 2816      63656976 
+ 2816      6500
+ 2817              	.LASF66:
+ 2818 0461 4E545072 		.ascii	"NTPreceiveTime\000"
+ 2818      65636569 
+ 2818      76655469 
+ 2818      6D6500
+ 2819              	.LASF47:
+ 2820 0470 53656E64 		.ascii	"SendSkierStart\000"
+ 2820      536B6965 
+ 2820      72537461 
+ 2820      727400
+ 2821              	.LASF32:
+ 2822 047f 636F756E 		.ascii	"countSkiers\000"
+ 2822      74536B69 
+ 2822      65727300 
+ 2823              	.LASF72:
+ 2824 048b 4E545073 		.ascii	"NTPsendTime\000"
+ 2824      656E6454 
+ 2824      696D6500 
+ 2825              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

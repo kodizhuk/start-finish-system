@@ -139,7 +139,6 @@ uint32_t ReadSkierResultAndSendBLE(void)
     createFlag = 0;    
     resultF = f_open(&fileO, nameFile, FA_READ , &createFlag);
     
-    SW_UART_DEBUG_PutString("read file\n\r");
     while (f_gets(line, sizeof line, &fileO))
     {    
         uint32_t pointer = 0;
@@ -213,9 +212,7 @@ uint32_t ReadSkierResultAndSendBLE(void)
                 }
                 pointer++;
             }
-                        
-            SW_UART_DEBUG_PutString(line);
-            SW_UART_DEBUG_PutString("\n\r");
+                       
             
             BLE_sendOneSkierTimeAll(sendIdSkier, sendStartTime, sendFinishTime, sendResultTime);
             BLE_processEvents();

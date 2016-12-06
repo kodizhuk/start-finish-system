@@ -1,4 +1,5 @@
 #include <lib_BLE/bluetooth.h>
+#include "lib_Network\network.h"
 #include "stdio.h"
 #include "project.h"
 
@@ -59,11 +60,13 @@ void BleCallBack(uint32 event, void* eventParam)
                         bleUnixTime = (bleUnixTime << 8) | tmpData;
                     }
                     
+                    /*+2 hour - ukraine*/
+                    bleUnixTime += 7200;
                     #ifdef DEBUG_BLE
                         sprintf(uartBuffer,"unix: %d",bleUnixTime);
                         SW_UART_DEBUG_PutString(uartBuffer);
                     #endif
-                    
+                  
                     CyBle_GattsWriteRsp(cyBle_connHandle);
                 }
             }

@@ -19,8 +19,6 @@
 #include "cyfitter.h"
 #include "cydisabledsheets.h"
 #include "RTC.h"
-#include "SW_UART_DEBUG.h"
-#include "SW_UART_DEBUG_PVT.h"
 #include "I2C.h"
 #include "I2C_I2C.h"
 #include "I2C_PINS.h"

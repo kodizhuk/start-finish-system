@@ -298,7 +298,8 @@ void ClearRebootFlag(void)
 *******************************************************************************/
 void SetRebootFlag(void)
 {
-    outData.reboot = 1;
+    outData.reboot = 0;
+    inData.reboot = 1;
 }
 
 

@@ -30,6 +30,7 @@
     /*send time skier for User profile*/
     void BLE_sendOneSkierTimeResult(skierDB_El *data, uint8_t idSkier,
                             uint8_t numSkierOnWay, uint8_t maxSkierOnWay);
+    
     void BLE_sendOneSkierTimeStart(uint64_t unixTime, uint16_t mills, uint8_t idSkier,
                                     uint8_t numSkierOnWay, uint8_t maxSkierOnWay);
     

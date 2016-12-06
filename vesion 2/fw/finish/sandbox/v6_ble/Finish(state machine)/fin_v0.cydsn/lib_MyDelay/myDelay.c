@@ -180,6 +180,8 @@ static void UserFunc_5(void)
         DS1307_SetUnixTime(unixTime);
         RTC_SetUnixTime(unixTime);
         oldUnixTime = unixTime;
+        
         SetRebootFlag();
+        SendFinStatus(FIN_NO_READY);
     }
 }
