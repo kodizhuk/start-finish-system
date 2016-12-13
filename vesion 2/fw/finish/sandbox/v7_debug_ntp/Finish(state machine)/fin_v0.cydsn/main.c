@@ -5,9 +5,8 @@
 int main()
 {      
     while(SystemInit() == ERROR);
-    SystemInit();
-    currentState = TIME_SYNC;
     BLE_start();
+    currentState = TIME_SYNC;
     
     for(;;)
     {

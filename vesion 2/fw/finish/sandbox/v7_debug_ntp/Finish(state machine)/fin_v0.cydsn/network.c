@@ -1,5 +1,5 @@
 
-#include "lib_Network\network.h"
+#include "lib_Network/network.h"
 #include <lib_BLE/bluetooth.h>
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
@@ -13,12 +13,15 @@
 #ifdef DEBUG_NTP
     #include <debugntp.h>
 #endif
+#ifdef DEBUGNTP
+    #include <pinDebugNtp.h>
+#endif
 
-#include "lib_Network\svt.h"
-#include "lib_DB\database.h"
-#include "lib_RTC\RTC_WDT.h"
-#include "lib_Network\ntp.h"
-#include "lib_Display\display.h"
+#include "lib_Network/svt.h"
+#include "lib_DB/database.h"
+#include "lib_RTC/RTC_WDT.h"
+#include "lib_Network/ntp.h"
+#include "lib_Display/display.h"
 
 
 /*size buffer*/
@@ -68,6 +71,7 @@ typedef struct
 
 FinishData outData ;
 StartData inData;
+uint8_t rebootFlag ;
 
 uint32_t numAttemps,noConnect, networkStatus;
 uint32_t unixTime[4];
@@ -102,6 +106,7 @@ void InitNetwork(void)
     outData.writeStatus = NO_WRITE;
     UART_XB_SpiUartClearRxBuffer();
     
+    rebootFlag = REBOOT;
 }
 
 /*******************************************************************************
@@ -235,9 +240,9 @@ uint32_t  ReceiveData(void)
 *   FIN_READY or FIN_NO_READY
 *
 *******************************************************************************/
-void SendFinStatus(uint32_t ready)
+void SendFinStatus(uint32_t status)
 {
-    outData.ready = ready;
+    outData.ready = status;
 }
 
 /*******************************************************************************
@@ -269,7 +274,7 @@ uint32_t IsRebootStartFlag(void)
 {
     uint32_t result;
     
-    if(inData.reboot == 1 && outData.reboot == 0)
+    if((inData.reboot == 1 && outData.reboot == 0) || (rebootFlag == REBOOT))
     {
         result = REBOOT;
         inData.reboot = 0;
@@ -287,7 +292,9 @@ void ClearRebootFlag(void)
 {
     outData.reboot = 0;
     inData.reboot = 0;
+    rebootFlag = NO_REBOOT;
 }
+
 /*******************************************************************************
 * Function Name: WriteRebootFlag
 ********************************************************************************
@@ -298,8 +305,9 @@ void ClearRebootFlag(void)
 *******************************************************************************/
 void SetRebootFlag(void)
 {
-    outData.reboot = 0;
-    inData.reboot = 1;
+    outData.reboot = 1;
+    inData.reboot = 0;
+    rebootFlag = REBOOT;
 }
 
 
@@ -346,9 +354,9 @@ uint32_t NTPsync(void)
         unixTime[T1] = RTCGetUnixTime();
         millisTime[T1] = RTCgetRecentMs();
         
-        #ifdef DEBUG_NTP
-            debugntp_Write(1);
-            debugntp_Write(0);
+        #ifdef DEBUGNTP
+            pinDebugNtp_Write(1);
+            pinDebugNtp_Write(0);
         #endif
         
         NTPsendTime(unixTime[T1], millisTime[T1], IDpacket);
@@ -367,19 +375,22 @@ uint32_t NTPsync(void)
                 unixTime[T4] = RTCGetUnixTime();
                 millisTime[T4] = RTCgetRecentMs();
                 
-                #ifdef DEBUG_NTP
-//                    millisTime[T4] = millisTime[T1]+193;
-//                    unixTime[T4] = unixTime[T1];
-//                    if(millisTime[T4] >= 1000)
-//                    {
-//                        millisTime[T4] -= 1000;
-//                        unixTime[T4]++;
-//                    }
-                    debugntp_Write(1);
-                    debugntp_Write(0);
-                    debugntp_Write(1);
-                    debugntp_Write(0);                    
+                #ifdef DEBUGNTP
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
                 #endif
+                
+                /*Packaging data lasts 2 ms, so add it to the read time
+                send data lasts 43ms*/
+                millisTime[T4] -= 45;
+                if(millisTime[T4] < 0)
+                {
+                    unixTime[T4]--;
+                    millisTime[T4] += 1000;
+                }
+                
                 NTPcalculateTime(unixTime, millisTime,&sumTime, &sumMillis);
                 CyDelay(1000); 
                 #ifdef DEBUG_INFO 
@@ -443,10 +454,23 @@ void NTPsendTime(uint32_t unixTime,uint16_t millis, uint16_t ID)
     char sendBuffer[DATA_BUFFER];
     char sendData[DATA_BUFFER];
     
+    /*Packaging data lasts 1 ms, so add it to the read time
+    send data lasts 32ms*/
+    millis += (1+31);
+    if(millis >= 1000)
+    {
+        millis -= 1000;
+        unixTime++;
+    }
+    
     /*pack data*/
     sprintf(sendData,"%08X%03X", unixTime,millis); 
     PackData(sendBuffer, (uint8_t *)sendData, ID);
     UART_XB_UartPutString(sendBuffer);
+    #ifdef DEBUGNTP
+        pinDebugNtp_Write(1);
+        pinDebugNtp_Write(0);
+    #endif
     
     #ifdef DEBUG_INFO 
         SW_UART_DEBUG_PutString(sendBuffer);

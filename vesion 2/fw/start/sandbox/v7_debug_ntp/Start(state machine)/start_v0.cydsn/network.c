@@ -1,5 +1,5 @@
 
-#include "lib_Network\network.h"
+#include "lib_Network/network.h"
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 #include <RTC.h>
@@ -13,12 +13,18 @@
 #ifdef DEBUG_NTP
     #include <debugntp.h>
 #endif
+#ifdef DEBUGNTP
+    #include <pinDebugNtp.h>
+#endif
+#ifdef DEBUGUART
+    #include <project.h>
+#endif
 
 #include <stdio.h>
-#include "lib_Network\svt.h"
-#include "lib_RTC\RTC_WDT.h"
-#include "lib_Network\ntp.h"
-#include "lib_Display\display.h"
+#include "lib_Network/svt.h"
+#include "lib_RTC/RTC_WDT.h"
+#include "lib_Network/ntp.h"
+#include "lib_Display/display.h"
 
 #define MIN_DELAYMS 150
 
@@ -89,6 +95,10 @@ uint16_t millisTime[4];
     char uartBuff[50];
 #endif
 
+#ifdef DEBUGUART
+    char buffer[100];
+#endif
+
 uint32_t ReceiveRealTime(void);
 void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t millis3, uint16_t ID);
 uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millis2, uint16_t *IDreceive, uint32_t saveTime);
@@ -108,6 +118,11 @@ void InitNetwork(void)
     #ifdef DEBUG_INFO
         SW_UART_DEBUG_Start();
         SW_UART_DEBUG_PutString("HElLO, IM READY(start)\n\r");
+    #endif
+    
+    #ifdef DEBUGUART
+        uartDebug_Start();
+        uartDebug_UartPutString("uart started\n\r");
     #endif
     
     inData.readStatus = NO_READ;
@@ -180,8 +195,8 @@ void SendData(void)
 *   NETWORK_CONNECT or NETWORK_DISCONNECT
 *
 *******************************************************************************/
-uint32_t ReceiveData(void)
-{
+    uint32_t ReceiveData(void)
+    {
     if(outData.writeStatus == WRITE_OK && inData.readStatus == NO_READ)
     {
         uint32_t byte;
@@ -322,14 +337,15 @@ uint32_t NTPsync(void)
     
     /*calculaiton delivery time*/
     lastIDpacket = 1;
-    result = TIME_SYNC_ERR;
+    result = TIME_SYNC_ERR; 
     
-    #ifdef DEBUG_INFO
-        SW_UART_DEBUG_PutString("start ntp sync start\n\r");
-    #endif  
+    #ifdef DEBUGUART
+        uartDebug_UartPutString("Start ntp sync\n\r");
+    #endif
     
     for(i=1; (i < 2000) && (result == TIME_SYNC_ERR); )
-    {      
+    {  
+        
         /*receive time */
         resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, !SAVE_TIME);
         CyDelay(9);
@@ -345,6 +361,7 @@ uint32_t NTPsync(void)
                 unixTimeReal = RTC_GetUnixTime();
                 millisTimeReal = RTCgetRecentMs();
                 
+                
                 unixTimeReal += unixTime[T2];
                 if((millisTimeReal += millisTime[T2]) >= 1000)
                 {
@@ -355,14 +372,7 @@ uint32_t NTPsync(void)
                 RTCSync(unixTimeReal, millisTimeReal);
                 
                 NTPsendTime(0,0,0,0,IDreceivePacket);
-                
-                #ifdef DEBUG_NTP
-//                    debugntp_Write(1);
-//                    debugntp_Write(0);
-//                    debugntp_Write(1);
-//                    debugntp_Write(0);                        
-                #endif
-                
+                                
                 result = TIME_SYNC_OK;
                 i = NUM_TRY_SYNC;
                 
@@ -371,12 +381,7 @@ uint32_t NTPsync(void)
                 {
                     DisplayLoading(i);
                     CyDelay(100);
-                }
-                
-                #ifdef DEBUG_INFO
-                    sprintf(uartBuff,"receive delivery time %u:%u\n\r", unixTime[T2], millisTime[T2]); 
-                    SW_UART_DEBUG_PutString(uartBuff);
-                #endif                    
+                }                
             }
             else //if(IDreceivePacket != 0)
             {
@@ -385,12 +390,22 @@ uint32_t NTPsync(void)
                 millisTime[T3] = RTCgetRecentMs();
                 unixTime[T3] = RTCGetUnixTime();
                 
-                #ifdef DEBUG_NTP
-                    debugntp_Write(1);
-                    debugntp_Write(0);
-                    debugntp_Write(1);
-                    debugntp_Write(0);                        
+               /*Packaging data lasts 1 ms, so add it to the read time
+                send data lasts 32ms*/
+                millisTime[T3] += 44;
+                if(millisTime[T3] >= 1000)
+                {
+                    unixTime[T3]++;
+                    millisTime[T3] -= 1000;
+                }
+                
+                #ifdef DEBUGNTP
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
                 #endif
+
                 
                 if((unixTime[T2] == unixTime[T3]) || ((unixTime[T2] == (unixTime[T3])-1)))
                 {
@@ -494,17 +509,13 @@ uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDr
     while((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
     {                    
         result = NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
-        
+
         CyDelay(1);
                     
         if(recvDataNTP.EndPacket == 1)
         {
             /*save unix time*/            
             *IDreceive = recvDataNTP.Id;
-            #ifdef DEBUG_INFO
-                sprintf(uartBuff,"receive ID=%u",recvDataNTP.Id);
-                SW_UART_DEBUG_PutString(uartBuff);
-            #endif
             
             if((saveTime == SAVE_TIME) || (recvDataNTP.Id == 0))
             {
@@ -514,6 +525,15 @@ uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDr
             }
             else
             {
+                /*Packaging data lasts 2 ms, so add it to the read time
+                send data lasts 32ms*/
+                recvDataNTP.DataMs1 -= 34;
+                if(recvDataNTP.DataMs1 < 0)
+                {
+                   recvDataNTP.Data1--;;
+                   recvDataNTP.DataMs1 += 1000; 
+                }
+                
                 /*set real time*/
                 RTCSync(recvDataNTP.Data1, recvDataNTP.DataMs1);
                 
@@ -521,10 +541,11 @@ uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDr
                 *millisTime2 = RTCgetRecentMs();
                 *unixTime2 = RTC_GetUnixTime();
                 
-                #ifdef DEBUG_NTP
-                    debugntp_Write(1);
-                    debugntp_Write(0);
+                #ifdef DEBUGNTP
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
                 #endif
+
                 #ifdef DEBUG_INFO
                     sprintf(uartBuff,"\n\rT2 %u:%u\n\r",*unixTime2,*millisTime2); 
                     SW_UART_DEBUG_PutString(uartBuff);
@@ -562,6 +583,7 @@ void NTPsendTime(uint32_t unixTime2,uint32_t unixTime3,uint16_t millis2,uint16_t
     sprintf(sendData,"%08X%03X%08X%03X", unixTime2, millis2, unixTime3, millis3); 
     PackData(sendBuffer, (uint8_t *)sendData, ID);
     UART_XB_UartPutString(sendBuffer);
+    
     
     #ifdef DEBUG_INFO
        //SW_UART_DEBUG_PutString(sendBuffer);

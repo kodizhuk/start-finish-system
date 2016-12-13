@@ -1,6 +1,6 @@
 -- ======================================================================
 -- debug_ntp.ctl generated from debug_ntp
--- 12/09/2016 at 15:41
+-- 12/12/2016 at 12:06
 -- This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 -- ======================================================================
 

@@ -182,6 +182,6 @@ static void UserFunc_5(void)
         oldUnixTime = unixTime;
         
         SetRebootFlag();
-        SendFinStatus(FIN_NO_READY);
+        
     }
 }
