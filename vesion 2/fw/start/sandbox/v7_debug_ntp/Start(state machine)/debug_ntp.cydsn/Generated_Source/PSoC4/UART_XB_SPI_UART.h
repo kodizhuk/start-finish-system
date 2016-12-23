@@ -83,7 +83,7 @@
 
 #define UART_XB_UART_INTERRUPT_MODE        (1u)
 
-#define UART_XB_UART_INTR_RX_MASK          (68u)
+#define UART_XB_UART_INTR_RX_MASK          (4u)
 #define UART_XB_UART_INTR_TX_MASK          (0u)
 
 #define UART_XB_UART_RX_TRIGGER_LEVEL      (7u)

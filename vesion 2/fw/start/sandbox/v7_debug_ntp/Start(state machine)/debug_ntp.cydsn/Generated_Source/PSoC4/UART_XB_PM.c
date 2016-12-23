@@ -54,7 +54,7 @@
 ****************************************************************************//**
 *
 *  Prepares the UART_XB component to enter Deep Sleep.
-*  The ìEnable wakeup from Deep Sleep Modeî selection has an influence on this 
+*  The ‚ÄúEnable wakeup from Deep Sleep Mode‚Äù selection has an influence on this 
 *  function implementation:
 *  - Checked: configures the component to be wakeup source from Deep Sleep.
 *  - Unchecked: stores the current component state (enabled or disabled) and 
@@ -144,7 +144,7 @@ void UART_XB_Sleep(void)
 *
 *  Prepares the UART_XB component for Active mode operation after 
 *  Deep Sleep.
-*  The ìEnable wakeup from Deep Sleep Modeî selection has influence on this 
+*  The ‚ÄúEnable wakeup from Deep Sleep Mode‚Äù selection has influence on this 
 *  function implementation:
 *  - Checked: restores the component Active mode configuration.
 *  - Unchecked: enables the component if it was enabled before enter Deep Sleep.

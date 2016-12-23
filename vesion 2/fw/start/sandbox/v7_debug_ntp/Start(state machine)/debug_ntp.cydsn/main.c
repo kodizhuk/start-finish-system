@@ -8,6 +8,18 @@
 
 uint32_t result;
 
+
+CY_ISR(TX_ISR)
+{
+    
+}
+
+CY_ISR(RX_ISR)
+{
+    UART_XB2_GetChar();
+}
+
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -18,6 +30,11 @@ int main(void)
     RTC_WDT_Init(); 
     InitNetwork();
     
+    
+    //UART_XB2_Start();
+    
+    isr_tx_StartEx(TX_ISR);
+    isr_rx_StartEx(RX_ISR);
     
     Display("Sync time...");
 
@@ -34,6 +51,7 @@ int main(void)
     {
         DisplayRealTime();
         CyDelay(100);
+        
     }
 }
 

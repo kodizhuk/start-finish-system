@@ -30,6 +30,8 @@
 #include "debug_aliases.h"
 #include "pinDebugNtp.h"
 #include "pinDebugNtp_aliases.h"
+#include "SW_uartDebug.h"
+#include "SW_uartDebug_PVT.h"
 #include "UART_XB_SCBCLK.h"
 #include "UART_XB_tx.h"
 #include "UART_XB_tx_aliases.h"
