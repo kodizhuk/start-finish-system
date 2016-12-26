@@ -16,7 +16,8 @@ int main(void)
     RTC_WDT_Init();
 
     Display("Sync time...");
-    CyDelay(500);
+    CyDelay(2000);
+    
     
     if(NTPsync() == TIME_SYNC_OK)
     {

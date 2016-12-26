@@ -9,21 +9,12 @@
 uint32_t result;
 
 
-CY_ISR(TX_ISR)
-{
-    
-}
-
-CY_ISR(RX_ISR)
-{
-    UART_XB2_GetChar();
-}
 
 
 int main(void)
-{
+{    
     CyGlobalIntEnable; /* Enable global interrupts. */
-
+    
     DisplayStart();
     Display("System init...");
     
@@ -31,27 +22,22 @@ int main(void)
     InitNetwork();
     
     
-    //UART_XB2_Start();
-    
-    isr_tx_StartEx(TX_ISR);
-    isr_rx_StartEx(RX_ISR);
     
     Display("Sync time...");
 
     while((result = NTPsync()) != TIME_SYNC_OK)
     {
-        //Display("Sync time error");
+        Display("Sync time error");
         //CyDelay(4*TIMEOUT_USER_READ_INFO);
     }
     
-    Display("Sync ok");
+    Display("Sync ok        ");
     CyDelay(4*TIMEOUT_USER_READ_INFO);
     
     for(;;)
     {
         DisplayRealTime();
-        CyDelay(100);
-        
+        CyDelay(500);
     }
 }
 

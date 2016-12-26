@@ -49,6 +49,7 @@
 #define SAVE_TIME           1
 #define NETWORK_TIMEOUT     50
 #define NEW_SKIER_IN_TARCK   1
+#define NTP_DELAY_RECEIVED_PACKET 500
 
 
 /*segment time*/
@@ -392,7 +393,11 @@ uint32_t NTPsync(void)
     result = TIME_SYNC_ERR; 
     ntpFlagEndReceivePacket = 0;
     ntpFlagReadyForReceive = 1;
-    while(1)
+    uint16_t delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
+    uint32_t oldUnixTime = unixTime[T1];
+    delayReceivePacket += millisTime[T1];
+    
+    while((RTCgetRecentMs() < delayReceivePacket) && (result != TIME_SYNC_OK))
     {
         if(ntpFlagEndReceivePacket)
         {
@@ -409,7 +414,6 @@ uint32_t NTPsync(void)
                 
                 /*send response*/
                 NTPsendTime(0,0,0,0,recvDataNTP.Id);
-                
                 
                 #ifdef DEBUG_INFO
 //                sprintf(uartBuff, "set unix=%d,ms=%d   ",unixTime[T1], millisTime[T1]);
@@ -441,7 +445,7 @@ uint32_t NTPsync(void)
                 
                 /*send response*/
                 NTPsendTime(0,0,0,0,recvDataNTP.Id);
-                
+                result = TIME_SYNC_OK;
                                 
                 #ifdef DEBUG_INFO    
 //                SW_uartDebug_PutString("receive id=0\n\r");
@@ -480,81 +484,11 @@ uint32_t NTPsync(void)
                 ntpFlagReadyForReceive = 1;
             }
         }
-    }
-    
-    
-    for(i=1; (i < 20000) && (result == TIME_SYNC_ERR); )
-    {  
         
-        /*receive time */
-        resultReceive = NTPreceiveTime(&unixTime[T2],&millisTime[T2], &IDreceivePacket, !SAVE_TIME);
-        CyDelay(9);
-
-
-        if(resultReceive == READ_OK)
-        {             
-            if(IDreceivePacket == 0)
-            {
-                /*receive delivery time*/
-                uint32_t unixTimeReal;
-                uint16_t millisTimeReal;
-                
-                unixTimeReal = RTC_GetUnixTime();
-                millisTimeReal = RTCgetRecentMs();
-                
-                
-                unixTimeReal += unixTime[T2];
-                if((millisTimeReal += millisTime[T2]) >= 1000)
-                {
-                    unixTimeReal++;
-                    millisTimeReal -= 1000;
-                }
-                
-                RTCSync(unixTimeReal, millisTimeReal);
-                
-                NTPsendTime(0,0,0,0,IDreceivePacket);
-                                
-                result = TIME_SYNC_OK;
-                i = NUM_TRY_SYNC;
-                
-                /*display loading sync time*/
-                for(i=0;i<13;i++)
-                {
-                    DisplayLoading(i);
-                    CyDelay(100);
-                }                
-            }
-            else
-            {
-                /*no error, send time*/
-                CyDelay(100);
-                millisTime[T3] = RTCgetRecentMs();
-                unixTime[T3] = RTCGetUnixTime();
-                
-               /*Packaging data lasts 1 ms, so add it to the read time
-                send data lasts 32ms*/
-                millisTime[T3] += 45;
-                if(millisTime[T3] >= 1000)
-                {
-                    unixTime[T3]++;
-                    millisTime[T3] -= 1000;
-                }
-                
-                #ifdef DEBUG_INFO
-//                    sprintf(uartBuff,"T2=%d, T3=%d, id=%d\n\r",unixTime[T2],unixTime[T3],IDreceivePacket);
-//                    SW_uartDebug_PutString(uartBuff);
-                #endif
-                if((unixTime[T2] == unixTime[T3]) || ((unixTime[T2] == (unixTime[T3])-1)))
-                {
-                    NTPsendTime(unixTime[T2], unixTime[T3], millisTime[T2], millisTime[T3], IDreceivePacket);
-                }
-                i=0;
-                resultReceive = NO_READ;
-            }           
-        }
-        else 
+        if((oldUnixTime < RTCGetUnixTime()) && (delayReceivePacket >= 1000))
         {
-            i++;
+            delayReceivePacket -= 1000;
+            oldUnixTime++;
         }
     }
 
