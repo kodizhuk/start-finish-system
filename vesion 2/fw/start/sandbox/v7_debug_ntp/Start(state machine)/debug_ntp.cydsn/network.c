@@ -99,11 +99,8 @@ uint8_t flagFinSendPacket = 0;      //
 
 uint32_t resultReceive;
 uint16_t IDreceivePacket;
+typedef enum {ROUGH_SET_TIME, SYNC_TIME, SET_DIFF_TIME}stageSync;
 
-/*----Test2---------*/
-char mas[27];
-uint8_t pointerMas = 0;
-/*----TEST----------*/
 
 /*global variable for new ntp protocol*/
 uint8_t ntpFlagEndReceivePacket;        //indicator end receive packet
@@ -158,28 +155,31 @@ void InitNetwork(void)
 
 void CustomInterruptHandler(void)
 {
-    uint8_t byte = 0;
-    
-    if(UART_XB_SpiUartGetRxBufferSize() > 0)
-        byte=UART_XB_UartGetChar();
-        
-    if(ntpFlagReadyForReceive && byte != 0)
+    if(onNtpSync)
     {
-        NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
+        uint8_t byte = 0;
         
-        if(recvDataNTP.EndPacket)
-        {
-            unixTime[T2] = RTC_GetUnixTime();
-            millisTime[T2] = RTCgetRecentMs();
-            unixTime[T1] = recvDataNTP.Data1;
-            millisTime[T1] = recvDataNTP.DataMs1;
-            #ifdef DEBUGNTP
-                pinDebugNtp_Write(1);
-                pinDebugNtp_Write(0);
-            #endif
+        if(UART_XB_SpiUartGetRxBufferSize() > 0)
+            byte=UART_XB_UartGetChar();
             
-            ntpFlagEndReceivePacket = 1;
-            ntpFlagReadyForReceive = 0;
+        if(ntpFlagReadyForReceive && byte != 0)
+        {
+            NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
+            
+            if(recvDataNTP.EndPacket)
+            {
+                unixTime[T2] = RTC_GetUnixTime();
+                millisTime[T2] = RTCgetRecentMs();
+                unixTime[T1] = recvDataNTP.Data1;
+                millisTime[T1] = recvDataNTP.DataMs1;
+                #ifdef DEBUGNTP
+                    pinDebugNtp_Write(1);
+                    pinDebugNtp_Write(0);
+                #endif
+                
+                ntpFlagEndReceivePacket = 1;
+                ntpFlagReadyForReceive = 0;
+            }
         }
     }
 }
@@ -396,6 +396,8 @@ uint32_t NTPsync(void)
     uint16_t delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
     uint32_t oldUnixTime = unixTime[T1];
     delayReceivePacket += millisTime[T1];
+    stageSync currentStage = ROUGH_SET_TIME;
+    onNtpSync = 1;
     
     while((RTCgetRecentMs() < delayReceivePacket) && (result != TIME_SYNC_OK))
     {
@@ -406,7 +408,7 @@ uint32_t NTPsync(void)
                 pinDebugNtp_Write(0);
             #endif
             //CyDelay(100);
-            if(recvDataNTP.Id == 1) /*set real unix time*/
+            if((recvDataNTP.Id == 1) && (currentStage == ROUGH_SET_TIME)) /*set real unix time*/
             {
                 ntpFlagEndReceivePacket = 0;
                 
@@ -420,7 +422,7 @@ uint32_t NTPsync(void)
 //                SW_uartDebug_PutString(uartBuff);
 //                SW_uartDebug_PutString("receive id=1\n\r");
                 #endif
-                
+                currentStage = SYNC_TIME;
                 ntpFlagReadyForReceive = 1;
             }
             else if(recvDataNTP.Id == 0) /*set difference time*/
@@ -453,7 +455,7 @@ uint32_t NTPsync(void)
                 
                 ntpFlagReadyForReceive = 1;
             }
-            else    /*packet for determite the difference time */
+            else //if(currentStage == SYNC_TIME)   /*packet for determite the difference time */
             {
                 ntpFlagEndReceivePacket = 0;
                 
@@ -492,126 +494,11 @@ uint32_t NTPsync(void)
         }
     }
 
+    onNtpSync = 0;
     return result;
 }
 
-/*******************************************************************************
-* Function Name: ReceiveRealTime
-********************************************************************************
-*
-* Summary:
-*   receive and set real time
-* Return:
-*   READ_OK or NO_READ
-*
-*******************************************************************************/
-uint32_t ReceiveRealTime(void)
-{
-    uint32_t result;
-    uint16_t IDpacket;
-    
-    result = NO_READ;
-    noConnect = 0;
-    
-    while(result == NO_READ && noConnect < NUM_CONNECT_ATTEMPS)
-    {
-        result = NTPreceiveTime(&unixTime[T1], &millisTime[T1], &IDpacket,SAVE_TIME);
 
-        if((result == READ_OK) && (IDpacket == 1))
-        {
-            if((millisTime[T1]) > 1000)
-            {
-                unixTime[T1]++;
-                millisTime[T1] -= 1000;
-            }
-            
-            RTCSync(unixTime[T1], millisTime[T1]);
-
-            NTPsendTime(0,0,0,0,IDpacket);
-        }
-        else
-        {
-            result = NO_READ;
-            noConnect++;
-            CyDelay(100);
-        }
-    }
-    
-    return result;
-}
-/*******************************************************************************
-* Function Name: NTPreceiveTime
-********************************************************************************
-*
-* Summary:
-*   receive time to NTP protocol
-* Parametrs:
-*   *unixTime2 - time in unix format
-*   *millisTime2 - millis time
-*   *IDreceive - ID packet
-*   saveTime - command save time from finish
-* Return:
-*   READ_OK or NO_READ
-*
-*******************************************************************************/
-uint32_t NTPreceiveTime(uint32_t *unixTime2,uint16_t *millisTime2, uint16_t *IDreceive,uint32_t saveTime)
-{
-    uint8_t byte;
-    uint32_t result;
-    
-    result = READ_OK;
-    flagStartSendPacket = 1;
-    
-    NTPResp recvDataNTP;
-    if((UART_XB_SpiUartGetRxBufferSize() > 0) && ((byte=UART_XB_UartGetChar()) != 0))
-    {                    
-        result = NtpUnpackData(&recvDataNTP, (uint8_t)(byte & 0xFF));
-
-        //CyDelay(1);
-        if(recvDataNTP.EndPacket == 1)
-        {
-            /*save unix time*/            
-            *IDreceive = recvDataNTP.Id;
-            
-            #ifdef DEBUGNTP
-                pinDebugNtp_Write(1);
-                pinDebugNtp_Write(0);
-            #endif 
-                    
-            
-            if((saveTime == SAVE_TIME) || (recvDataNTP.Id == 0))
-            {
-                /*save receive data*/
-                *unixTime2 = recvDataNTP.Data1;
-                *millisTime2 = recvDataNTP.DataMs1;
-            }
-            else
-            {
-                /*Packaging data lasts 2 ms, so add it to the read time
-                send data lasts 32ms*/
-                recvDataNTP.DataMs1 -= 33;
-                if(recvDataNTP.DataMs1 < 0)
-                {
-                   recvDataNTP.Data1--;
-                   recvDataNTP.DataMs1 += 1000; 
-                }
-                
-                /*set real time*/
-                RTCSync(recvDataNTP.Data1, recvDataNTP.DataMs1);
-                
-                /*save time T2*/
-                *millisTime2 = RTCgetRecentMs();
-                *unixTime2 = RTC_GetUnixTime();               
-            }
-
-            return READ_OK;
-        }
-        result = NO_READ;
-    }
-    result = NO_READ;
-    
-    return result;
-}
 
 /*******************************************************************************
 * Function Name: NTPsendTime
