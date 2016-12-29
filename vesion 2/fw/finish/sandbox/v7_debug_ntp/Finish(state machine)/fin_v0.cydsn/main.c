@@ -115,7 +115,7 @@ uint32_t TimeSynchronize(void)
     if(NetworkStatus() == NETWORK_DISCONNECT)
     {
         Display("Network conn...");
-        MyDelay(TIMEOUT_DELAY);
+        //MyDelay(TIMEOUT_DELAY);
     }
     else
     {  

@@ -392,7 +392,7 @@ uint32_t NTPsync(void)
     uint16_t delayReceivePacket;
     uint32_t oldUnixTime;
     
-    delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
+    delayReceivePacket = 4*NTP_DELAY_RECEIVED_PACKET;
     oldUnixTime = RTCGetUnixTime();
     delayReceivePacket += RTCgetRecentMs();
     onNtpSync = 1;

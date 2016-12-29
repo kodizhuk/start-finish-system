@@ -461,7 +461,7 @@ uint32_t NTPsync(void)
             {
                 ntpFlagEndReceivePacket = 0;
                 
-                CyDelay(100);
+                CyDelay(10);
                 
                 /*read real time*/
                 millisTime[T3] = RTCgetRecentMs();
@@ -488,9 +488,9 @@ uint32_t NTPsync(void)
                 
                 ntpFlagReadyForReceive = 1;
             }
-//            delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
-//            oldUnixTime = RTCGetUnixTime();
-//            delayReceivePacket += RTCgetRecentMs();
+            delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
+            oldUnixTime = RTCGetUnixTime();
+            delayReceivePacket += RTCgetRecentMs();
         }
         
         if((oldUnixTime < RTCGetUnixTime()) && (delayReceivePacket >= 1000))

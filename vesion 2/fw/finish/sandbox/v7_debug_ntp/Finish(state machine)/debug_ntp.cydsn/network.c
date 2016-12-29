@@ -42,6 +42,12 @@
 /*define for result ntp sync*/
 #define OK      1
 #define ERROR   0
+
+/*
+    TIME_DIFFERENCE_STATIC = 13 for speed uart 9600
+    TIME_DIFFERENCE_STATIC = 49 for speed uart 2400
+*/
+#define TIME_DIFFERENCE_STATIC 36+13   //13
     
 /*segment time for NTP*/
 #define T1                  0
@@ -541,7 +547,7 @@ uint32_t NTPsync(void)
     {
         unixTimeDifference /= NTP_SUCCESSFUL_PACKET;
         msTimeDifference /= NTP_SUCCESSFUL_PACKET;
-        msTimeDifference += 13; //add static diff time to send packet 
+        msTimeDifference += TIME_DIFFERENCE_STATIC; //add static diff time to send packet 
     }
     
     #ifdef DEBUG_INFO
