@@ -91,6 +91,7 @@ uint32_t TimeSynchronize(void)
     {
         /*time sync*/
         Display("Sync time...");
+        
         if(NTPsync() == TIME_SYNC_OK)
         {
             Display("Sync ok");

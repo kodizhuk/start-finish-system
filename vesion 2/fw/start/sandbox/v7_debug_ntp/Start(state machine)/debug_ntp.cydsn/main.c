@@ -2,6 +2,7 @@
 #include <display.h>
 #include <network.h>
 #include <RTC_WDT.h>
+#include <stdio.h>
 
 #define TIMEOUT_USER_READ_INFO 500
 
@@ -25,10 +26,14 @@ int main(void)
     
     Display("Sync time...");
 
+    uint8_t number = 0;
     while((result = NTPsync()) != TIME_SYNC_OK)
     {
-        Display("Sync time error");
-        //CyDelay(4*TIMEOUT_USER_READ_INFO);
+        char buf[10];
+        sprintf(buf, "Sync time -%d", number++);
+        LCD_Position(0,0);
+        LCD_PrintString(buf);
+        //CyDelay(TIMEOUT_USER_READ_INFO);
     }
     
     Display("Sync ok        ");

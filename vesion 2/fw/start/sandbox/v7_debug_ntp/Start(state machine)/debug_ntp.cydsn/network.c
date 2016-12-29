@@ -40,16 +40,10 @@
 #define MASK_LOW    0x00000000FFFFFFFF
 #define DATA_SHIFT  32
 
-#define TIMEOUT_FIN_READY   3
-
 /*for NTP protocol*/
-#define NUM_TRY_SYNC        14
-#define NUM_CONNECT_ATTEMPS 1000
-
-#define SAVE_TIME           1
 #define NETWORK_TIMEOUT     50
 #define NEW_SKIER_IN_TARCK   1
-#define NTP_DELAY_RECEIVED_PACKET 500
+#define NTP_DELAY_RECEIVED_PACKET 1000
 
 
 /*segment time*/
@@ -384,22 +378,21 @@ void SendData(void)
 *******************************************************************************/
 uint32_t NTPsync(void)
 {
-    int i;
-    uint16_t result;
-    //uint16_t IDreceivePacket;
-    //uint32_t resultReceive;
-    
+    uint16_t result;    
     
     result = TIME_SYNC_ERR; 
     ntpFlagEndReceivePacket = 0;
     ntpFlagReadyForReceive = 1;
-    uint16_t delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
-    uint32_t oldUnixTime = unixTime[T1];
-    delayReceivePacket += millisTime[T1];
-    stageSync currentStage = ROUGH_SET_TIME;
+    uint16_t delayReceivePacket;
+    uint32_t oldUnixTime;
+    
+    delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
+    oldUnixTime = RTCGetUnixTime();
+    delayReceivePacket += RTCgetRecentMs();
+    //stageSync currentStage = ROUGH_SET_TIME;
     onNtpSync = 1;
     
-    while((RTCgetRecentMs() < delayReceivePacket) && (result != TIME_SYNC_OK))
+    while((RTCgetRecentMs() < delayReceivePacket) )//&& (result != TIME_SYNC_OK))
     {
         if(ntpFlagEndReceivePacket)
         {
@@ -408,21 +401,24 @@ uint32_t NTPsync(void)
                 pinDebugNtp_Write(0);
             #endif
             //CyDelay(100);
-            if((recvDataNTP.Id == 1) && (currentStage == ROUGH_SET_TIME)) /*set real unix time*/
+            if(recvDataNTP.Id == 1 )//&& (currentStage == ROUGH_SET_TIME)) /*set real unix time*/
             {
                 ntpFlagEndReceivePacket = 0;
                 
                 RTCSync(unixTime[T1], millisTime[T1]);
+                oldUnixTime = unixTime[T1];
+                delayReceivePacket = NTP_DELAY_RECEIVED_PACKET+millisTime[T1];
                 
                 /*send response*/
                 NTPsendTime(0,0,0,0,recvDataNTP.Id);
+                
                 
                 #ifdef DEBUG_INFO
 //                sprintf(uartBuff, "set unix=%d,ms=%d   ",unixTime[T1], millisTime[T1]);
 //                SW_uartDebug_PutString(uartBuff);
 //                SW_uartDebug_PutString("receive id=1\n\r");
                 #endif
-                currentStage = SYNC_TIME;
+                //currentStage = SYNC_TIME;
                 ntpFlagReadyForReceive = 1;
             }
             else if(recvDataNTP.Id == 0) /*set difference time*/
@@ -432,19 +428,23 @@ uint32_t NTPsync(void)
                 uint32_t unixTimeReal;
                 uint16_t millisTimeReal;
                 
-                unixTimeReal = RTC_GetUnixTime();
-                millisTimeReal = RTCgetRecentMs();
-                
-                /*add difference time*/
-                unixTimeReal += unixTime[T1];
-                millisTimeReal += millisTime[T1];
-                if(millisTimeReal  >= 1000)
+                if(result == TIME_SYNC_ERR)
                 {
-                    unixTimeReal++;
-                    millisTimeReal -= 1000;
+                    unixTimeReal = RTC_GetUnixTime();
+                    millisTimeReal = RTCgetRecentMs();
+                    
+                    /*add difference time*/
+                    unixTimeReal += unixTime[T1];
+                    millisTimeReal += millisTime[T1];
+                    if(millisTimeReal  >= 1000)
+                    {
+                        unixTimeReal++;
+                        millisTimeReal -= 1000;
+                    }
+                    RTCSync(unixTimeReal, millisTimeReal);
                 }
-                RTCSync(unixTimeReal, millisTimeReal);
-                
+                oldUnixTime = RTCGetUnixTime();;
+                delayReceivePacket = NTP_DELAY_RECEIVED_PACKET+RTCgetRecentMs();;
                 /*send response*/
                 NTPsendTime(0,0,0,0,recvDataNTP.Id);
                 result = TIME_SYNC_OK;
@@ -485,6 +485,9 @@ uint32_t NTPsync(void)
                 
                 ntpFlagReadyForReceive = 1;
             }
+//            delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
+//            oldUnixTime = RTCGetUnixTime();
+//            delayReceivePacket += RTCgetRecentMs();
         }
         
         if((oldUnixTime < RTCGetUnixTime()) && (delayReceivePacket >= 1000))
@@ -497,6 +500,7 @@ uint32_t NTPsync(void)
     onNtpSync = 0;
     return result;
 }
+
 
 
 

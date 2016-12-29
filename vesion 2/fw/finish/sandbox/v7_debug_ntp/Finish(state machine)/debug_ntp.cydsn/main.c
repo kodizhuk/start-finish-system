@@ -29,6 +29,7 @@ int main(void)
     else
     {
         Display("Sync time error");
+
         CyDelay(4 * TIMEOUT_USER_READ_INFO);
         
         result = TIME_SYNC_ERR;
