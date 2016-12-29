@@ -104,7 +104,7 @@ uint32_t TimeSynchronize(void)
         {
             Display("Sync time error");
             SetRebootFlag();
-            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            //MyDelay(TIMEOUT_USER_READ_INFO);
       
             result = TIME_SYNC_ERR;
         }

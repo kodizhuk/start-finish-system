@@ -374,6 +374,7 @@ uint32_t NTPsync(void)
 {
     uint16_t result;
     uint16_t IDpacket;
+    UART_XB_SpiUartClearRxBuffer();
     
     /*----------------------------------------------------------
     send real unix time

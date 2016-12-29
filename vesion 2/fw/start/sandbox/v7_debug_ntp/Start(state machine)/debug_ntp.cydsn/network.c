@@ -457,11 +457,12 @@ uint32_t NTPsync(void)
                 
                 ntpFlagReadyForReceive = 1;
             }
-            else //if(currentStage == SYNC_TIME)   /*packet for determite the difference time */
+            else    /*packet for determite the difference time */
             {
                 ntpFlagEndReceivePacket = 0;
                 
                 CyDelay(100);
+                
                 /*read real time*/
                 millisTime[T3] = RTCgetRecentMs();
                 unixTime[T3] = RTC_GetUnixTime();

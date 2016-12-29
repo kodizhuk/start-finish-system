@@ -5,7 +5,7 @@
 #include <UART_XB_SPI_UART.h>
 
 #ifdef DEBUG_INFO
-    #include <SW_UART_DEBUG.h>
+    #include <DEBUG_UART.h>
 #endif
 #ifdef DEBUG_TIME
     #include <debug.h>
@@ -113,8 +113,8 @@ void InitNetwork(void)
     UART_XB_SetCustomInterruptHandler(&CustomInterruptHandler);
     
     #ifdef DEBUG_INFO
-    SW_UART_DEBUG_Start();     
-    SW_UART_DEBUG_PutString("HElLO, IM READY(fin)\n\r");
+    DEBUG_UART_Start();     
+    DEBUG_UART_UartPutString("HElLO, IM READY(fin)\n\r");
     #endif
     
     inData.readStatus = READ_OK;
@@ -377,6 +377,7 @@ uint32_t NTPsync(void)
 {
     uint16_t result;
     uint16_t IDpacket;
+    UART_XB_SpiUartClearRxBuffer();
     
     /*----------------------------------------------------------
     send real unix time
@@ -398,11 +399,13 @@ uint32_t NTPsync(void)
             pinDebugNtp_Write(1);
             pinDebugNtp_Write(0);
         #endif 
+        
         NTPsendTime(unixTime[T1], millisTime[T1], IDpacket);
         
         delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
-        uint32_t oldUnixTime = unixTime[T1];
-        delayReceivePacket += millisTime[T1];
+        uint32_t oldUnixTime = RTCGetUnixTime();
+        delayReceivePacket += RTCgetRecentMs();
+        
         #ifdef DEBUG_INFO
 //                DEBUG_UART_UartPutString("send new packet\n\r");
         #endif
@@ -447,15 +450,21 @@ uint32_t NTPsync(void)
     /*----------------------------------------------------------
     calculate difference time
     ----------------------------------------------------------*/
-    uint8_t numSuccessuflPacket = NTP_SUCCESSFUL_PACKET;
+    uint8_t numSuccessuflPacket = 0;
     int32_t unixTimeDifference = 0;
     int32_t msTimeDifference = 0;
-    result = ERROR;
-    numAttemptSendPacket = NTP_CONNECT_ATTEMPS;
+    numAttemptSendPacket = 0;
     IDpacket = 2;
-    
-    while(numAttemptSendPacket && numSuccessuflPacket)
+
+    if(result == OK)
     {
+        numSuccessuflPacket = NTP_SUCCESSFUL_PACKET;
+        numAttemptSendPacket = NTP_CONNECT_ATTEMPS;
+    }
+    
+    while(numAttemptSendPacket && numSuccessuflPacket )
+    {
+        result = ERROR;
         unixTime[T1] = RTCGetUnixTime();
         millisTime[T1] = RTCgetRecentMs();
         #ifdef DEBUGNTP
@@ -467,13 +476,14 @@ uint32_t NTPsync(void)
         NTPsendTime(unixTime[T1], millisTime[T1], IDpacket);
         
         delayReceivePacket =  2*NTP_DELAY_RECEIVED_PACKET ;
-        delayReceivePacket += millisTime[T1];
-        uint32_t oldUnixTime = unixTime[T1];
+        delayReceivePacket += RTCgetRecentMs();
+        uint32_t oldUnixTime = RTCGetUnixTime();
         #ifdef DEBUG_INFO
 //                DEBUG_UART_UartPutString("send new packet\n\r");
 //                sprintf(uartBuff,"numSuccesful=%d\n\n\r",numSuccessuflPacket);
 //                DEBUG_UART_UartPutString(uartBuff);
         #endif
+        
         while((RTCgetRecentMs() < delayReceivePacket) && (result != OK) )
         {
             if(ntpFlagEndReceivePacket)
@@ -525,11 +535,10 @@ uint32_t NTPsync(void)
                 oldUnixTime++;
             }
         }
-        result = ERROR;
         numAttemptSendPacket--;
         IDpacket++;
     }
-    if(numSuccessuflPacket == 0)result = OK;
+    
     
     if(result == OK)
     {
@@ -548,15 +557,18 @@ uint32_t NTPsync(void)
     /*----------------------------------------------------------
     send to start difference time
     ----------------------------------------------------------*/
-    numAttemptSendPacket = NTP_CONNECT_ATTEMPS;
-    result = ERROR;
+    numAttemptSendPacket = 0;
+    if(result == OK)
+    {
+        numAttemptSendPacket = NTP_CONNECT_ATTEMPS;
+    }
     ntpFlagReadyForReceive = 1;
     IDpacket = 0;
     
-    while(numAttemptSendPacket && result != OK)
+    while(numAttemptSendPacket)
     {
-        unixTime[T1] = RTCGetUnixTime();
-        millisTime[T1] = RTCgetRecentMs();
+        result = ERROR;
+        
         #ifdef DEBUGNTP
             pinDebugNtp_Write(1);
             pinDebugNtp_Write(0);
@@ -567,10 +579,13 @@ uint32_t NTPsync(void)
         NTPsendTime(0, (uint16)-msTimeDifference, IDpacket);
         
         delayReceivePacket = NTP_DELAY_RECEIVED_PACKET;
-        uint32_t oldUnixTime = unixTime[T1];
-        delayReceivePacket += millisTime[T1];
+        uint32_t oldUnixTime = RTCGetUnixTime();       
+        delayReceivePacket += RTCgetRecentMs();
+        
         #ifdef DEBUG_INFO
-            DEBUG_UART_UartPutString("send new packet\n\r");
+//            DEBUG_UART_UartPutString("send new packet\n\r");
+//            sprintf(uartBuff, "numAttemptSendPacket=%d\n\r",numAttemptSendPacket);
+//            DEBUG_UART_UartPutString(uartBuff);
         #endif
         
         while((RTCgetRecentMs() < delayReceivePacket) && (result != OK))
@@ -606,6 +621,8 @@ uint32_t NTPsync(void)
             }
         }
         numAttemptSendPacket--;
+        if(result == OK)
+            numAttemptSendPacket = 0;
     }
     
     #ifdef DEBUG_INFO

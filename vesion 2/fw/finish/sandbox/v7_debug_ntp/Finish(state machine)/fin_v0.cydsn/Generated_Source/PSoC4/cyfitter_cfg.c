@@ -209,9 +209,6 @@ static void ClockSetup(void)
 
 	/* Setup and trim IMO based on desired frequency. */
 	CySysClkWriteImoFreq(48u);
-	/* CYDEV_CLK_ILO_CONFIG Starting address: CYDEV_CLK_ILO_CONFIG */
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_CLK_ILO_CONFIG), 0x80000006u);
-
 	/* CYDEV_WDT_CONFIG Starting address: CYDEV_WDT_CONFIG */
 	CY_SET_XTND_REG32((void CYFAR *)(CYREG_WDT_CONFIG), 0x40000000u);
 
@@ -641,11 +638,11 @@ void cyfitter_cfg(void)
 
 	/* IOPINS0_2 Starting address: CYDEV_GPIO_PRT2_BASE */
 	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_GPIO_PRT2_BASE), 0x00000010u);
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT2_PC), 0x00C1A3B6u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT2_PC), 0x00C023B6u);
 
 	/* IOPINS0_3 Starting address: CYDEV_GPIO_PRT3_BASE */
 	CY_SET_XTND_REG32((void CYFAR *)(CYDEV_GPIO_PRT3_BASE), 0x00000083u);
-	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT3_PC), 0x00C00024u);
+	CY_SET_XTND_REG32((void CYFAR *)(CYREG_GPIO_PRT3_PC), 0x00C18024u);
 
 
 	/* Setup clocks based on selections from Clock DWR */
