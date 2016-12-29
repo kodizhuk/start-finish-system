@@ -6,7 +6,7 @@
 #define DEBUG_INFO
 //#define DEBUG_TIME
 //#define DEBUG_NTP
-#define DEBUGNTP
+//#define DEBUGNTP
     
     
 #define READ_OK         1

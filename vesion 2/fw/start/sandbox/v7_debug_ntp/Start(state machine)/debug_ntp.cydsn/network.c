@@ -392,6 +392,8 @@ uint32_t NTPsync(void)
     //stageSync currentStage = ROUGH_SET_TIME;
     onNtpSync = 1;
     
+    UART_XB_SpiUartClearRxBuffer();
+    
     while((RTCgetRecentMs() < delayReceivePacket) )//&& (result != TIME_SYNC_OK))
     {
         if(ntpFlagEndReceivePacket)
@@ -498,6 +500,7 @@ uint32_t NTPsync(void)
     }
 
     onNtpSync = 0;
+    
     return result;
 }
 

@@ -33,7 +33,7 @@ int main(void)
         sprintf(buf, "Sync time -%d", number++);
         LCD_Position(0,0);
         LCD_PrintString(buf);
-        //CyDelay(TIMEOUT_USER_READ_INFO);
+        CyDelay(500);
     }
     
     Display("Sync ok        ");
