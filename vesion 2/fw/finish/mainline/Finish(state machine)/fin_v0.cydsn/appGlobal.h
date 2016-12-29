@@ -12,6 +12,7 @@
 #include "lib_Fat\ff.h"
 #include "lib_DB\database.h"
 #include "lib_MyDelay\myDelay.h"
+#include "lib_BLE\bluetooth.h"
     
 #define NO_ERROR    1
 #define ERROR       0

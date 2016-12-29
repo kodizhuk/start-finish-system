@@ -19,8 +19,6 @@
 #include "cyfitter.h"
 #include "cydisabledsheets.h"
 #include "RTC.h"
-#include "SW_UART_DEBUG.h"
-#include "SW_UART_DEBUG_PVT.h"
 #include "Timer_LED.h"
 #include "UART_XB.h"
 #include "UART_XB_SPI_UART.h"

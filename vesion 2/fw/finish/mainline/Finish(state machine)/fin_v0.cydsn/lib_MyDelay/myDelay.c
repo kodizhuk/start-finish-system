@@ -4,7 +4,8 @@
 #include "lib_DB\logResult.h"
 #include "lib_Network\network.h"
 #include "lib_Display\display.h"
-
+#include "lib_BLE\bluetooth.h"
+#include "lib_DS1307\DS1307.h"
 /*Minimum time to execution user function  */
 #define MIN_DELAY_MS    150
 
@@ -18,6 +19,7 @@ static void UserFunc_1(void);
 static void UserFunc_2(void);
 static void UserFunc_3(void);
 static void UserFunc_4(void);
+static void UserFunc_5(void);
 
 
 /*******************************************************************************
@@ -41,7 +43,7 @@ void MyDelay(uint32_t delayMs)
     else
     {
         uint32_t runTime;
-        uint32_t counter ;
+        uint32_t counter;
         uint32_t period;
         
         runTime = 0;
@@ -56,6 +58,7 @@ void MyDelay(uint32_t delayMs)
             UserFunc_2();
             UserFunc_3();
             UserFunc_4();
+            UserFunc_5();
             
             CyDelay(MIN_DELAY_MS);
                             
@@ -103,6 +106,7 @@ static void UserFunc_2(void)
     {
         uint32_t result;
         skierDB_El tmpStruct;
+        
         if (writeFlag == WRITE_NO_ERROR)
         {
             FifoGet(&tmpStruct);
@@ -122,6 +126,8 @@ static void UserFunc_2(void)
         {
             writeFlag = WRITE_NO_ERROR;
         }
+        
+        BLE_sendOneSkierTimeResult(&tmpStruct,GetIDskierFinished(),SkierOnWay(),MAX_SKIERS_ON_WAY);
     }
 }
 
@@ -131,20 +137,24 @@ static void UserFunc_3(void)
     if(SDinsert_Read() == 0)
     {
         DisplayIndicatorSD(SD_INSERT);
+        BLE_sendSDcardStatus(STATUS_OK);
     }
     else
     {
         DisplayIndicatorSD(SD_NO_INSERT);
+        BLE_sendSDcardStatus(STATUS_ERROR);
     }
     
     /*printindicator network*/
     if(NetworkStatus() == NETWORK_CONNECT)
     {
         DisplayIndicatorNetwork(CONNECT);
+        BLE_sendNetworkStatus(STATUS_OK);
     }
     else
     {
         DisplayIndicatorNetwork(DISCONNECT);
+        BLE_sendNetworkStatus(STATUS_ERROR);
     }  
 }
 
@@ -154,4 +164,24 @@ static void UserFunc_4(void)
     
     DisplayRealTime();
     DisplayNumSkierOnWay(SkierOnWay());
+}
+
+static void UserFunc_5(void)
+{
+    static uint32_t oldUnixTime = 0;
+    uint32_t unixTime;
+    
+    BLE_processEvents();
+    
+    unixTime = BLE_getUnixTime();
+    if(oldUnixTime != unixTime)
+    {
+        /*set unix time in RTC DS1307*/
+        DS1307_SetUnixTime(unixTime);
+        RTC_SetUnixTime(unixTime);
+        oldUnixTime = unixTime;
+        
+        SetRebootFlag();
+        
+    }
 }

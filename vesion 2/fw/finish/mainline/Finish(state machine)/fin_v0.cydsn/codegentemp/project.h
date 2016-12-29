@@ -1,7 +1,7 @@
 /*******************************************************************************
 * File Name: project.h
 * 
-* PSoC Creator  3.3 SP2
+* PSoC Creator  4.0
 *
 * Description:
 * It contains references to all generated header files and should not be modified.
@@ -19,8 +19,6 @@
 #include "cyfitter.h"
 #include "cydisabledsheets.h"
 #include "RTC.h"
-#include "SW_UART_DEBUG.h"
-#include "SW_UART_DEBUG_PVT.h"
 #include "I2C.h"
 #include "I2C_I2C.h"
 #include "I2C_PINS.h"
@@ -51,6 +49,24 @@
 #include "debug_aliases.h"
 #include "debugntp.h"
 #include "debugntp_aliases.h"
+#include "ble_gatt.h"
+#include "ble.h"
+#include "ble_HAL_PVT.h"
+#include "ble_STACK_PVT.h"
+#include "ble_StackGap.h"
+#include "ble_StackGatt.h"
+#include "ble_StackGattDb.h"
+#include "ble_StackHostMain.h"
+#include "ble_StackL2cap.h"
+#include "ble_StackGattServer.h"
+#include "ble_StackGattClient.h"
+#include "ble_Stack.h"
+#include "ble_eventHandler.h"
+#include "ble_custom.h"
+#include "pwm.h"
+#include "blue.h"
+#include "blue_aliases.h"
+#include "Clock_1.h"
 #include "I2C_SCBCLK.h"
 #include "I2C_sda.h"
 #include "I2C_sda_aliases.h"
@@ -69,6 +85,7 @@
 #include "UART_XB_SCB_IRQ.h"
 #include "UART_XB_rx.h"
 #include "UART_XB_rx_aliases.h"
+#include "ble_bless_isr.h"
 #include "core_cm0_psoc4.h"
 #include "CyFlash.h"
 #include "CyLib.h"

@@ -2,7 +2,7 @@
 #include "lib_DB\database.h"
 
 #define BUFFER_SIZE         MAX_SKIERS_ON_WAY + 4u
-#define MAX_SKIERS_ON_DB    150u
+#define MAX_SKIERS_ON_DB    40u
 
 struct elementBuff
 {

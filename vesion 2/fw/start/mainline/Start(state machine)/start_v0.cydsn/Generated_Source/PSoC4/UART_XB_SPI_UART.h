@@ -64,7 +64,7 @@
 #define UART_XB_UART_SUB_MODE              (0u)
 #define UART_XB_UART_DIRECTION             (3u)
 #define UART_XB_UART_DATA_BITS_NUM         (8u)
-#define UART_XB_UART_PARITY_TYPE           (2u)
+#define UART_XB_UART_PARITY_TYPE           (1u)
 #define UART_XB_UART_STOP_BITS_NUM         (2u)
 #define UART_XB_UART_OVS_FACTOR            (12u)
 #define UART_XB_UART_IRDA_LOW_POWER        (0u)

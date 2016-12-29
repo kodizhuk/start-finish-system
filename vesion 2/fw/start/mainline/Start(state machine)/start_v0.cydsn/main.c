@@ -72,6 +72,7 @@ void  SystemInit(void)
     
     /* Enable global interrupts. */ 
     CyGlobalIntEnable; 
+    
 }
 
 uint32_t TimeSynchronize(void)
@@ -90,6 +91,7 @@ uint32_t TimeSynchronize(void)
     {
         /*time sync*/
         Display("Sync time...");
+        
         if(NTPsync() == TIME_SYNC_OK)
         {
             Display("Sync ok");
@@ -102,7 +104,7 @@ uint32_t TimeSynchronize(void)
         {
             Display("Sync time error");
             SetRebootFlag();
-            MyDelay(4*TIMEOUT_USER_READ_INFO);
+            //MyDelay(TIMEOUT_USER_READ_INFO);
       
             result = TIME_SYNC_ERR;
         }
