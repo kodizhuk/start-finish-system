@@ -26,6 +26,10 @@
 #define TIME_SYNC_ERR       1
 #define TIME_SYNC_OK        0
 
+/*timer for time synchronization after a specified period of time*/
+#define TIME_BY_SYNC        1800     //30min
+#define SYNC_REQUIRES       1
+#define SYNC_NO_REQUIRES    0
 
 void     InitNetwork(void);
 uint32_t NetworkStatus(void);
@@ -42,6 +46,10 @@ uint32_t ReceiveData(void);
 
 /*NTP protocol*/
 uint32_t NTPsync(void);
+
+/*sync time after specified period time*/
+uint8_t ChekTimerForTimeSync(void);
+void ResetTimerForTimeSync(void);
 
 #endif
 /* [] END OF FILE */

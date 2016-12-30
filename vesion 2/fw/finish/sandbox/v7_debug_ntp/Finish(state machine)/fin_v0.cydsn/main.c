@@ -126,6 +126,8 @@ uint32_t TimeSynchronize(void)
             Display("Sync ok");
             ClearRebootFlag();
             BLE_sendSystemStatus(STATUS_OK);
+            ResetTimerForTimeSync();
+            
             MyDelay(4 * TIMEOUT_USER_READ_INFO);
             
             result = TIME_SYNC_OK;
@@ -212,6 +214,11 @@ uint32_t CheckReady(void)
     if(BLE_getFlagAdminOnly() != 0)
     {
         ReadSkierResultAndSendBLE();
+    }
+    
+    if(ChekTimerForTimeSync() == SYNC_REQUIRES)
+    {
+        SetRebootFlag();
     }
            
     return result;

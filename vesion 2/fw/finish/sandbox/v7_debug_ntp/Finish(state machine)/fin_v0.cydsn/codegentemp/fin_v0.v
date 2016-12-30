@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v0.v generated from TopDesign.cysch
-// 12/29/2016 at 15:47
+// 12/30/2016 at 13:41
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -1356,6 +1356,13 @@ endmodule
 // top
 module top ;
 
+    electrical  Net_378;
+    electrical  Net_373;
+          wire  Net_371;
+          wire  Net_362;
+          wire  Net_361;
+          wire  Net_360;
+    electrical  Net_359;
     electrical  Net_314;
     electrical  Net_313;
           wire  Net_312;
@@ -1432,6 +1439,9 @@ module top ;
           wire  Net_142;
           wire  Net_141;
           wire  Net_140;
+    electrical  Net_374;
+    electrical  Net_376;
+    electrical  Net_370;
           wire  Net_203;
           wire  Net_299;
           wire  Net_309;
@@ -1847,7 +1857,7 @@ module top ;
 
 	cy_psoc3_pins_v1_10
 		#(.id("72dcdf17-6eeb-44cc-842f-62c37f280db1"),
-		  .drive_mode(3'b011),
+		  .drive_mode(3'b110),
 		  .ibuf_enabled(1'b1),
 		  .init_dr_st(1'b0),
 		  .input_clk_en(0),
@@ -2128,6 +2138,54 @@ module top ;
     defparam PWR_2.comp_name = "Power_v1_0";
     defparam PWR_2.port_names = "T1";
     defparam PWR_2.width = 1;
+
+    cy_annotation_universal_v1_0 R_1 (
+        .connect({
+            Net_373,
+            Net_374
+        })
+    );
+    defparam R_1.comp_name = "Resistor_v1_0";
+    defparam R_1.port_names = "T1, T2";
+    defparam R_1.width = 2;
+
+    cy_annotation_universal_v1_0 R_3 (
+        .connect({
+            Net_374,
+            Net_376
+        })
+    );
+    defparam R_3.comp_name = "Resistor_v1_0";
+    defparam R_3.port_names = "T1, T2";
+    defparam R_3.width = 2;
+
+    cy_annotation_universal_v1_0 GND_3 (
+        .connect({
+            Net_373
+        })
+    );
+    defparam GND_3.comp_name = "Gnd_v1_0";
+    defparam GND_3.port_names = "T1";
+    defparam GND_3.width = 1;
+
+    cy_annotation_universal_v1_0 Bat_1 (
+        .connect({
+            Net_378,
+            Net_376
+        })
+    );
+    defparam Bat_1.comp_name = "Battery_v1_0";
+    defparam Bat_1.port_names = "Neg, Pos";
+    defparam Bat_1.width = 2;
+
+    cy_annotation_universal_v1_0 GND_4 (
+        .connect({
+            Net_378
+        })
+    );
+    defparam GND_4.comp_name = "Gnd_v1_0";
+    defparam GND_4.port_names = "T1";
+    defparam GND_4.width = 1;
 
 
 

@@ -86,7 +86,9 @@ uint8_t ntpFlagEndReceivePacket;        //indicator end receive packet
 uint8_t ntpFlagReadyForReceive;         //indicator ready for receive next packet
 NtpResp recvDataNTP;
 uint8_t onNtpSync = 0;
-/*end*/
+
+/*timer time sync*/
+uint32_t oldUnixTime;
 
 
 uint32_t SendRealTimeToStart(void);
@@ -729,5 +731,24 @@ void FuncTake(uint32_t sec1, uint16_t ms1, uint32_t sec2, uint16_t ms2, int32_t 
 			*resultSec -= 1;
 		}
 	}
+}
+
+uint8_t ChekTimerForTimeSync(void)
+{
+    uint8_t result;
+    
+    result = SYNC_NO_REQUIRES;
+    
+    if((oldUnixTime + TIME_BY_SYNC) < RTC_GetUnixTime())
+    {
+        result = SYNC_REQUIRES;
+    }   
+    
+    return result;
+}
+
+void ResetTimerForTimeSync(void)
+{
+    oldUnixTime = RTC_GetUnixTime();
 }
 /* [] END OF FILE */
