@@ -3,6 +3,7 @@
 
 #include "lib_Network\network.h"
 #include "lib_Display\display.h"
+#include "lib_Batt\batt.h"
 
 #define MIN_DELAY_MS    150
 #define WRITE_ERROR     1
@@ -91,6 +92,7 @@ static void UserFunc_1(void)
 static void UserFunc_2(void)
 {
     DisplayRealTime();
+    DisplayBattVoltage(ReadBattVoltage());
 }
 
 static void UserFunc_3(void)

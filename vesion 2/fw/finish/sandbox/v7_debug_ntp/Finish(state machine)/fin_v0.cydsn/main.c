@@ -62,7 +62,7 @@ int main()
 uint32_t SystemInit(void)
 {
     uint32_t result;
-    uint64_t unixTime;
+    uint32_t unixTime;
         
     SetRebootFlag();
     LedInit();   
@@ -71,6 +71,7 @@ uint32_t SystemInit(void)
     InitNetwork();
     GateInit();
     InitBuff();
+    BattADC_Init(); //0.5% flash
 
     /* Enable global interrupts */
     CyGlobalIntEnable;

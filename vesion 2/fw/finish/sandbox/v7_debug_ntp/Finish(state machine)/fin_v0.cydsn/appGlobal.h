@@ -13,6 +13,7 @@
 #include "lib_DB\database.h"
 #include "lib_MyDelay\myDelay.h"
 #include "lib_BLE\bluetooth.h"
+#include "lib_Batt\batt.h"
     
 #define NO_ERROR    1
 #define ERROR       0

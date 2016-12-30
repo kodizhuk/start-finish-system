@@ -78,7 +78,7 @@ FinishData outData ;
 StartData inData;
 uint8_t rebootFlag ;
 
-uint32_t numAttemps,noConnect, networkStatus;
+uint16_t numAttemps,noConnect, networkStatus;
 uint32_t unixTime[4];
 uint16_t millisTime[4];
 /*new ntp*/

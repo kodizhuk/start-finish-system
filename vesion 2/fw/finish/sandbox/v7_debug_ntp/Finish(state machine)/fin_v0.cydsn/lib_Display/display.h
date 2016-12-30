@@ -17,6 +17,7 @@ void DisplayRealTime(void);
 void DisplayNumSkierOnWay(uint32_t num);
 void DisplayLastSkierTime(uint32_t sec, uint16_t milisec);
 void DisplayLoading(uint32_t numLoad);
+void DisplayBattVoltage(float voltage);
 
 
 #endif

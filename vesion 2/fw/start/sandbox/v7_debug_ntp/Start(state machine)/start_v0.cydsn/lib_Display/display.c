@@ -79,7 +79,7 @@ void DisplayIndicatorSD(SDindicator indicator)
 *******************************************************************************/
 void DisplayIndicatorNetwork(NetworkIndicator indicator)
 {
-    LCD_Position(1,14);
+    LCD_Position(1,15);
     if(indicator == CONNECT)
     {
         LCD_PutChar(LCD_CUSTOM_2);
@@ -103,7 +103,7 @@ void DisplayRealTime(void)
     uint32_t time;
     
     time = RTC_GetTime();
-    sprintf(buff, "%02lu:%02lu:%02lu      ", RTC_GetHours(time),RTC_GetMinutes(time), RTC_GetSecond(time));
+    sprintf(buff, "%02lu:%02lu:%02lu", RTC_GetHours(time),RTC_GetMinutes(time), RTC_GetSecond(time));
     LCD_Position(1,0);
     LCD_PrintString(buff);
 }
@@ -129,5 +129,19 @@ void DisplayLoading(uint32_t numLoad)
         LCD_Position(1,numLoad-1);
         LCD_PutChar(LCD_CUSTOM_4);
     }
+}
+
+/*******************************************************************************
+* Function name: DisplayBattVoltage
+********************************************************************************
+*
+* print voltage battery
+*
+*******************************************************************************/
+void DisplayBattVoltage(float voltage)
+{
+    sprintf(buff, "%.1fV",voltage);
+    LCD_Position(1,9);
+    LCD_PrintString(buff);
 }
 /* [] END OF FILE */

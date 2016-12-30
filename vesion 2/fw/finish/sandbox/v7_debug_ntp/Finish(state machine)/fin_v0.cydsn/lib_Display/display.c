@@ -9,7 +9,7 @@
 
 
 /*buffer for print string on LCD*/
-static  char buff[100];
+char buff[20];
 
 
 /*******************************************************************************
@@ -169,5 +169,21 @@ void DisplayLoading(uint32_t numLoad)
         LCD_Position(1,numLoad-1);
         LCD_PutChar(LCD_CUSTOM_4);
     }
+}
+
+/*******************************************************************************
+* Function name: DisplayBattVoltage
+********************************************************************************
+*
+* print voltage battery
+*
+*******************************************************************************/
+void DisplayBattVoltage(float voltage)
+{
+    sprintf(buff, "%.1fV",voltage);
+    LCD_Position(0,12);
+    LCD_PrintString(buff);
+//    LCD_PrintNumber(voltage);
+//    LCD_PutChar('V');
 }
 /* [] END OF FILE */

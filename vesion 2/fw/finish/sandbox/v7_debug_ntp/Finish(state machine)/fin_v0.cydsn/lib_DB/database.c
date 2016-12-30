@@ -2,7 +2,7 @@
 #include "lib_DB\database.h"
 
 #define BUFFER_SIZE         MAX_SKIERS_ON_WAY + 4u
-#define MAX_SKIERS_ON_DB    40u
+#define MAX_SKIERS_ON_DB    20u
 
 struct elementBuff
 {
@@ -39,7 +39,7 @@ fifoTimeSkier fifo;
 
 uint32_t DataBaseStart(void)
 {
-    uint32_t result; 
+    uint8_t result; 
     
     result = LogStart();
     if(result == FR_OK)
@@ -54,7 +54,7 @@ uint32_t DataBaseStart(void)
 
 void InitBuff()
 {
-    uint32_t i;
+    uint8_t i;
     
     /*init fifo*/
     fifo.totalSize = MAX_FIFO_SIZE;

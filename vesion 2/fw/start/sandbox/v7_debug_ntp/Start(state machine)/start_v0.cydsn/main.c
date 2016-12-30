@@ -69,6 +69,7 @@ void  SystemInit(void)
     RTC_WDT_Init(); 
     InitNetwork();
     GateInit();
+    BattADC_Init();
     
     /* Enable global interrupts. */ 
     CyGlobalIntEnable; 
@@ -160,6 +161,7 @@ uint32_t CheckGate(void)
         AllowNextSkier();
 
     }
+
     return result;
     
 }

@@ -6,6 +6,8 @@
 #include "lib_Display\display.h"
 #include "lib_BLE\bluetooth.h"
 #include "lib_DS1307\DS1307.h"
+#include "lib_Batt\batt.h"
+
 /*Minimum time to execution user function  */
 #define MIN_DELAY_MS    150
 
@@ -163,7 +165,8 @@ static void UserFunc_4(void)
     /*printf real time and num skier on way*/
     
     DisplayRealTime();
-    DisplayNumSkierOnWay(SkierOnWay());
+    DisplayNumSkierOnWay(SkierOnWay());   
+    DisplayBattVoltage(ReadBattVoltage());
 }
 
 static void UserFunc_5(void)

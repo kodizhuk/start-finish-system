@@ -7,6 +7,7 @@
 #include "lib_Network\network.h"
 #include "lib_Gate\gate.h"
 #include "lib_MyDelay\myDelay.h"
+#include "lib_Batt\batt.h"
 
 #define NO_ERROR    1
 #define ERROR       0
