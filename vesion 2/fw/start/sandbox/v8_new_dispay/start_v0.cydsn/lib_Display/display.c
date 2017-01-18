@@ -64,7 +64,15 @@ void DisplayStart(void)
 void Display(char *message)
 {    
     //if(strlen(message) > 11)return;
+    uint8_t len;
+    char strNull[11] = {"           "};
     strncpy(buff,message,11);
+    len = strlen(message);
+    if(len<11)
+    {
+        strncat(buff,strNull,11-len);
+    }
+    
     setFont(SmallFont);
     print(buff,8,40);
     update();

@@ -98,7 +98,6 @@ uint32_t TimeSynchronize(void)
             Display("Sync ok");
             ClearRebootFlag();
             MyDelay(4*TIMEOUT_USER_READ_INFO);
-            //CyDelay(2000);
             
             result = TIME_SYNC_OK;
         }
