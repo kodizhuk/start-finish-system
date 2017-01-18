@@ -1,0 +1,1070 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"crc32.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.bss
+  18              		.align	2
+  19              	crc32_tab_init:
+  20 0000 00000000 		.space	4
+  21              		.align	2
+  22              	crc32_tab:
+  23 0004 00000000 		.space	1024
+  23      00000000 
+  23      00000000 
+  23      00000000 
+  23      00000000 
+  24              		.section	.text.crc32_update,"ax",%progbits
+  25              		.align	2
+  26              		.global	crc32_update
+  27              		.code	16
+  28              		.thumb_func
+  29              		.type	crc32_update, %function
+  30              	crc32_update:
+  31              	.LFB0:
+  32              		.file 1 "lib_Network\\crc32.c"
+   1:lib_Network/crc32.c **** /* ========================================
+   2:lib_Network/crc32.c ****  *
+   3:lib_Network/crc32.c ****  * Copyright YOUR COMPANY, THE YEAR
+   4:lib_Network/crc32.c ****  * All Rights Reserved
+   5:lib_Network/crc32.c ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:lib_Network/crc32.c ****  *
+   7:lib_Network/crc32.c ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:lib_Network/crc32.c ****  * WHICH IS THE PROPERTY OF your company.
+   9:lib_Network/crc32.c ****  *
+  10:lib_Network/crc32.c ****  * ========================================
+  11:lib_Network/crc32.c **** */
+  12:lib_Network/crc32.c **** 
+  13:lib_Network/crc32.c **** //#include "CommonPrototypes.h"
+  14:lib_Network/crc32.c **** #include "lib_Network\crc32.h"
+  15:lib_Network/crc32.c **** 
+  16:lib_Network/crc32.c **** #define         CRC32_POLYNOM        0xEDB88320L
+  17:lib_Network/crc32.c **** 
+  18:lib_Network/crc32.c **** static int      crc32_tab_init       = 0;//= FALSE;
+  19:lib_Network/crc32.c **** static uint32_t    crc32_tab[256];
+  20:lib_Network/crc32.c **** 
+  21:lib_Network/crc32.c **** static void     crc32_init_tab( void );
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 2
+
+
+  22:lib_Network/crc32.c **** 
+  23:lib_Network/crc32.c **** uint32_t crc32_update( uint32_t crc, uint8_t c ) {
+  33              		.loc 1 23 0
+  34              		.cfi_startproc
+  35 0000 80B5     		push	{r7, lr}
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+  39 0002 84B0     		sub	sp, sp, #16
+  40              		.cfi_def_cfa_offset 24
+  41 0004 00AF     		add	r7, sp, #0
+  42              		.cfi_def_cfa_register 7
+  43 0006 7860     		str	r0, [r7, #4]
+  44 0008 0A1C     		mov	r2, r1
+  45 000a FB1C     		add	r3, r7, #3
+  46 000c 1A70     		strb	r2, [r3]
+  24:lib_Network/crc32.c **** 
+  25:lib_Network/crc32.c ****     uint32_t tmp, long_c;
+  26:lib_Network/crc32.c **** 
+  27:lib_Network/crc32.c ****     long_c = 0x000000ffL & (unsigned long) c;
+  47              		.loc 1 27 0
+  48 000e FB1C     		add	r3, r7, #3
+  49 0010 1B78     		ldrb	r3, [r3]
+  50 0012 FB60     		str	r3, [r7, #12]
+  28:lib_Network/crc32.c **** 
+  29:lib_Network/crc32.c ****     if ( ! crc32_tab_init ) crc32_init_tab();
+  51              		.loc 1 29 0
+  52 0014 0C4B     		ldr	r3, .L4
+  53 0016 1B68     		ldr	r3, [r3]
+  54 0018 002B     		cmp	r3, #0
+  55 001a 01D1     		bne	.L2
+  56              		.loc 1 29 0 is_stmt 0 discriminator 1
+  57 001c FFF7FEFF 		bl	crc32_init_tab
+  58              	.L2:
+  30:lib_Network/crc32.c **** 
+  31:lib_Network/crc32.c ****     tmp = crc ^ long_c;
+  59              		.loc 1 31 0 is_stmt 1
+  60 0020 7A68     		ldr	r2, [r7, #4]
+  61 0022 FB68     		ldr	r3, [r7, #12]
+  62 0024 5340     		eor	r3, r2
+  63 0026 BB60     		str	r3, [r7, #8]
+  32:lib_Network/crc32.c ****     crc = (crc >> 8) ^ crc32_tab[ tmp & 0xff ];
+  64              		.loc 1 32 0
+  65 0028 7B68     		ldr	r3, [r7, #4]
+  66 002a 1A0A     		lsr	r2, r3, #8
+  67 002c BB68     		ldr	r3, [r7, #8]
+  68 002e FF21     		mov	r1, #255
+  69 0030 1940     		and	r1, r3
+  70 0032 064B     		ldr	r3, .L4+4
+  71 0034 8900     		lsl	r1, r1, #2
+  72 0036 CB58     		ldr	r3, [r1, r3]
+  73 0038 5340     		eor	r3, r2
+  74 003a 7B60     		str	r3, [r7, #4]
+  33:lib_Network/crc32.c **** 
+  34:lib_Network/crc32.c ****     return crc;
+  75              		.loc 1 34 0
+  76 003c 7B68     		ldr	r3, [r7, #4]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 3
+
+
+  35:lib_Network/crc32.c **** 
+  36:lib_Network/crc32.c **** }
+  77              		.loc 1 36 0
+  78 003e 181C     		mov	r0, r3
+  79 0040 BD46     		mov	sp, r7
+  80 0042 04B0     		add	sp, sp, #16
+  81              		@ sp needed
+  82 0044 80BD     		pop	{r7, pc}
+  83              	.L5:
+  84 0046 C046     		.align	2
+  85              	.L4:
+  86 0048 00000000 		.word	crc32_tab_init
+  87 004c 04000000 		.word	crc32_tab
+  88              		.cfi_endproc
+  89              	.LFE0:
+  90              		.size	crc32_update, .-crc32_update
+  91              		.section	.text.crc32_calc_block,"ax",%progbits
+  92              		.align	2
+  93              		.global	crc32_calc_block
+  94              		.code	16
+  95              		.thumb_func
+  96              		.type	crc32_calc_block, %function
+  97              	crc32_calc_block:
+  98              	.LFB1:
+  37:lib_Network/crc32.c **** 
+  38:lib_Network/crc32.c **** uint32_t crc32_calc_block(uint8_t *buf, uint32_t Size, uint32_t init)
+  39:lib_Network/crc32.c **** {
+  99              		.loc 1 39 0
+ 100              		.cfi_startproc
+ 101 0000 80B5     		push	{r7, lr}
+ 102              		.cfi_def_cfa_offset 8
+ 103              		.cfi_offset 7, -8
+ 104              		.cfi_offset 14, -4
+ 105 0002 86B0     		sub	sp, sp, #24
+ 106              		.cfi_def_cfa_offset 32
+ 107 0004 00AF     		add	r7, sp, #0
+ 108              		.cfi_def_cfa_register 7
+ 109 0006 F860     		str	r0, [r7, #12]
+ 110 0008 B960     		str	r1, [r7, #8]
+ 111 000a 7A60     		str	r2, [r7, #4]
+  40:lib_Network/crc32.c **** 	uint32_t i;
+  41:lib_Network/crc32.c **** 	uint32_t _crc = init;
+ 112              		.loc 1 41 0
+ 113 000c 7B68     		ldr	r3, [r7, #4]
+ 114 000e 3B61     		str	r3, [r7, #16]
+  42:lib_Network/crc32.c **** 	for (i = 0; i < Size; i++)
+ 115              		.loc 1 42 0
+ 116 0010 0023     		mov	r3, #0
+ 117 0012 7B61     		str	r3, [r7, #20]
+ 118 0014 0DE0     		b	.L7
+ 119              	.L8:
+  43:lib_Network/crc32.c **** 		_crc = crc32_update(_crc, buf[i]);
+ 120              		.loc 1 43 0 discriminator 3
+ 121 0016 FA68     		ldr	r2, [r7, #12]
+ 122 0018 7B69     		ldr	r3, [r7, #20]
+ 123 001a D318     		add	r3, r2, r3
+ 124 001c 1B78     		ldrb	r3, [r3]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 4
+
+
+ 125 001e 3A69     		ldr	r2, [r7, #16]
+ 126 0020 101C     		mov	r0, r2
+ 127 0022 191C     		mov	r1, r3
+ 128 0024 FFF7FEFF 		bl	crc32_update
+ 129 0028 031C     		mov	r3, r0
+ 130 002a 3B61     		str	r3, [r7, #16]
+  42:lib_Network/crc32.c **** 	for (i = 0; i < Size; i++)
+ 131              		.loc 1 42 0 discriminator 3
+ 132 002c 7B69     		ldr	r3, [r7, #20]
+ 133 002e 0133     		add	r3, r3, #1
+ 134 0030 7B61     		str	r3, [r7, #20]
+ 135              	.L7:
+  42:lib_Network/crc32.c **** 	for (i = 0; i < Size; i++)
+ 136              		.loc 1 42 0 is_stmt 0 discriminator 1
+ 137 0032 7A69     		ldr	r2, [r7, #20]
+ 138 0034 BB68     		ldr	r3, [r7, #8]
+ 139 0036 9A42     		cmp	r2, r3
+ 140 0038 EDD3     		bcc	.L8
+  44:lib_Network/crc32.c **** 
+  45:lib_Network/crc32.c **** 	return _crc;
+ 141              		.loc 1 45 0 is_stmt 1
+ 142 003a 3B69     		ldr	r3, [r7, #16]
+  46:lib_Network/crc32.c **** }
+ 143              		.loc 1 46 0
+ 144 003c 181C     		mov	r0, r3
+ 145 003e BD46     		mov	sp, r7
+ 146 0040 06B0     		add	sp, sp, #24
+ 147              		@ sp needed
+ 148 0042 80BD     		pop	{r7, pc}
+ 149              		.cfi_endproc
+ 150              	.LFE1:
+ 151              		.size	crc32_calc_block, .-crc32_calc_block
+ 152              		.section	.text.crc32_calc,"ax",%progbits
+ 153              		.align	2
+ 154              		.global	crc32_calc
+ 155              		.code	16
+ 156              		.thumb_func
+ 157              		.type	crc32_calc, %function
+ 158              	crc32_calc:
+ 159              	.LFB2:
+  47:lib_Network/crc32.c **** 
+  48:lib_Network/crc32.c **** uint32_t crc32_calc(uint8_t *buf, uint32_t Size)
+  49:lib_Network/crc32.c **** {
+ 160              		.loc 1 49 0
+ 161              		.cfi_startproc
+ 162 0000 80B5     		push	{r7, lr}
+ 163              		.cfi_def_cfa_offset 8
+ 164              		.cfi_offset 7, -8
+ 165              		.cfi_offset 14, -4
+ 166 0002 84B0     		sub	sp, sp, #16
+ 167              		.cfi_def_cfa_offset 24
+ 168 0004 00AF     		add	r7, sp, #0
+ 169              		.cfi_def_cfa_register 7
+ 170 0006 7860     		str	r0, [r7, #4]
+ 171 0008 3960     		str	r1, [r7]
+  50:lib_Network/crc32.c **** 	uint32_t _crc;
+  51:lib_Network/crc32.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 5
+
+
+  52:lib_Network/crc32.c **** 	_crc = crc32_reset();
+ 172              		.loc 1 52 0
+ 173 000a 0123     		mov	r3, #1
+ 174 000c 5B42     		neg	r3, r3
+ 175 000e FB60     		str	r3, [r7, #12]
+  53:lib_Network/crc32.c **** 	_crc = crc32_calc_block(buf, Size, _crc);
+ 176              		.loc 1 53 0
+ 177 0010 7968     		ldr	r1, [r7, #4]
+ 178 0012 3A68     		ldr	r2, [r7]
+ 179 0014 FB68     		ldr	r3, [r7, #12]
+ 180 0016 081C     		mov	r0, r1
+ 181 0018 111C     		mov	r1, r2
+ 182 001a 1A1C     		mov	r2, r3
+ 183 001c FFF7FEFF 		bl	crc32_calc_block
+ 184 0020 031C     		mov	r3, r0
+ 185 0022 FB60     		str	r3, [r7, #12]
+  54:lib_Network/crc32.c **** 	return crc32_final(_crc);
+ 186              		.loc 1 54 0
+ 187 0024 FB68     		ldr	r3, [r7, #12]
+ 188 0026 DB43     		mvn	r3, r3
+  55:lib_Network/crc32.c **** }
+ 189              		.loc 1 55 0
+ 190 0028 181C     		mov	r0, r3
+ 191 002a BD46     		mov	sp, r7
+ 192 002c 04B0     		add	sp, sp, #16
+ 193              		@ sp needed
+ 194 002e 80BD     		pop	{r7, pc}
+ 195              		.cfi_endproc
+ 196              	.LFE2:
+ 197              		.size	crc32_calc, .-crc32_calc
+ 198              		.section	.text.crc32_init_tab,"ax",%progbits
+ 199              		.align	2
+ 200              		.code	16
+ 201              		.thumb_func
+ 202              		.type	crc32_init_tab, %function
+ 203              	crc32_init_tab:
+ 204              	.LFB3:
+  56:lib_Network/crc32.c **** 
+  57:lib_Network/crc32.c **** static void crc32_init_tab( void ) {
+ 205              		.loc 1 57 0
+ 206              		.cfi_startproc
+ 207 0000 80B5     		push	{r7, lr}
+ 208              		.cfi_def_cfa_offset 8
+ 209              		.cfi_offset 7, -8
+ 210              		.cfi_offset 14, -4
+ 211 0002 84B0     		sub	sp, sp, #16
+ 212              		.cfi_def_cfa_offset 24
+ 213 0004 00AF     		add	r7, sp, #0
+ 214              		.cfi_def_cfa_register 7
+  58:lib_Network/crc32.c **** 
+  59:lib_Network/crc32.c ****     int i, j;
+  60:lib_Network/crc32.c ****     uint32_t crc;
+  61:lib_Network/crc32.c **** 
+  62:lib_Network/crc32.c ****     for (i=0; i<256; i++) {
+ 215              		.loc 1 62 0
+ 216 0006 0023     		mov	r3, #0
+ 217 0008 FB60     		str	r3, [r7, #12]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 6
+
+
+ 218 000a 1FE0     		b	.L13
+ 219              	.L18:
+  63:lib_Network/crc32.c **** 
+  64:lib_Network/crc32.c ****         crc = (uint32_t) i;
+ 220              		.loc 1 64 0
+ 221 000c FB68     		ldr	r3, [r7, #12]
+ 222 000e 7B60     		str	r3, [r7, #4]
+  65:lib_Network/crc32.c **** 
+  66:lib_Network/crc32.c ****         for (j=0; j<8; j++) {
+ 223              		.loc 1 66 0
+ 224 0010 0023     		mov	r3, #0
+ 225 0012 BB60     		str	r3, [r7, #8]
+ 226 0014 0FE0     		b	.L14
+ 227              	.L17:
+  67:lib_Network/crc32.c **** 
+  68:lib_Network/crc32.c ****             if ( crc & 0x00000001L ) crc = ( crc >> 1 ) ^ CRC32_POLYNOM;
+ 228              		.loc 1 68 0
+ 229 0016 7B68     		ldr	r3, [r7, #4]
+ 230 0018 0122     		mov	r2, #1
+ 231 001a 1340     		and	r3, r2
+ 232 001c 05D0     		beq	.L15
+ 233              		.loc 1 68 0 is_stmt 0 discriminator 1
+ 234 001e 7B68     		ldr	r3, [r7, #4]
+ 235 0020 5B08     		lsr	r3, r3, #1
+ 236 0022 0F4A     		ldr	r2, .L19
+ 237 0024 5340     		eor	r3, r2
+ 238 0026 7B60     		str	r3, [r7, #4]
+ 239 0028 02E0     		b	.L16
+ 240              	.L15:
+  69:lib_Network/crc32.c ****             else                     crc =   crc >> 1;
+ 241              		.loc 1 69 0 is_stmt 1
+ 242 002a 7B68     		ldr	r3, [r7, #4]
+ 243 002c 5B08     		lsr	r3, r3, #1
+ 244 002e 7B60     		str	r3, [r7, #4]
+ 245              	.L16:
+  66:lib_Network/crc32.c **** 
+ 246              		.loc 1 66 0 discriminator 2
+ 247 0030 BB68     		ldr	r3, [r7, #8]
+ 248 0032 0133     		add	r3, r3, #1
+ 249 0034 BB60     		str	r3, [r7, #8]
+ 250              	.L14:
+  66:lib_Network/crc32.c **** 
+ 251              		.loc 1 66 0 is_stmt 0 discriminator 1
+ 252 0036 BB68     		ldr	r3, [r7, #8]
+ 253 0038 072B     		cmp	r3, #7
+ 254 003a ECDD     		ble	.L17
+  70:lib_Network/crc32.c ****         }
+  71:lib_Network/crc32.c **** 
+  72:lib_Network/crc32.c ****         crc32_tab[i] = crc;
+ 255              		.loc 1 72 0 is_stmt 1 discriminator 2
+ 256 003c 094B     		ldr	r3, .L19+4
+ 257 003e FA68     		ldr	r2, [r7, #12]
+ 258 0040 9200     		lsl	r2, r2, #2
+ 259 0042 7968     		ldr	r1, [r7, #4]
+ 260 0044 D150     		str	r1, [r2, r3]
+  62:lib_Network/crc32.c **** 
+ 261              		.loc 1 62 0 discriminator 2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 7
+
+
+ 262 0046 FB68     		ldr	r3, [r7, #12]
+ 263 0048 0133     		add	r3, r3, #1
+ 264 004a FB60     		str	r3, [r7, #12]
+ 265              	.L13:
+  62:lib_Network/crc32.c **** 
+ 266              		.loc 1 62 0 is_stmt 0 discriminator 1
+ 267 004c FB68     		ldr	r3, [r7, #12]
+ 268 004e FF2B     		cmp	r3, #255
+ 269 0050 DCDD     		ble	.L18
+  73:lib_Network/crc32.c ****     }
+  74:lib_Network/crc32.c **** 
+  75:lib_Network/crc32.c ****     crc32_tab_init = 1;
+ 270              		.loc 1 75 0 is_stmt 1
+ 271 0052 054B     		ldr	r3, .L19+8
+ 272 0054 0122     		mov	r2, #1
+ 273 0056 1A60     		str	r2, [r3]
+  76:lib_Network/crc32.c **** 
+  77:lib_Network/crc32.c **** }
+ 274              		.loc 1 77 0
+ 275 0058 BD46     		mov	sp, r7
+ 276 005a 04B0     		add	sp, sp, #16
+ 277              		@ sp needed
+ 278 005c 80BD     		pop	{r7, pc}
+ 279              	.L20:
+ 280 005e C046     		.align	2
+ 281              	.L19:
+ 282 0060 2083B8ED 		.word	-306674912
+ 283 0064 04000000 		.word	crc32_tab
+ 284 0068 00000000 		.word	crc32_tab_init
+ 285              		.cfi_endproc
+ 286              	.LFE3:
+ 287              		.size	crc32_init_tab, .-crc32_init_tab
+ 288              		.text
+ 289              	.Letext0:
+ 290              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 291              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 292              		.section	.debug_info,"",%progbits
+ 293              	.Ldebug_info0:
+ 294 0000 01020000 		.4byte	0x201
+ 295 0004 0400     		.2byte	0x4
+ 296 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 297 000a 04       		.byte	0x4
+ 298 000b 01       		.uleb128 0x1
+ 299 000c E5000000 		.4byte	.LASF23
+ 300 0010 01       		.byte	0x1
+ 301 0011 26000000 		.4byte	.LASF24
+ 302 0015 84000000 		.4byte	.LASF25
+ 303 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 304 001d 00000000 		.4byte	0
+ 305 0021 00000000 		.4byte	.Ldebug_line0
+ 306 0025 02       		.uleb128 0x2
+ 307 0026 01       		.byte	0x1
+ 308 0027 06       		.byte	0x6
+ 309 0028 F7010000 		.4byte	.LASF0
+ 310 002c 03       		.uleb128 0x3
+ 311 002d 12000000 		.4byte	.LASF5
+ 312 0031 02       		.byte	0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 8
+
+
+ 313 0032 1D       		.byte	0x1d
+ 314 0033 37000000 		.4byte	0x37
+ 315 0037 02       		.uleb128 0x2
+ 316 0038 01       		.byte	0x1
+ 317 0039 08       		.byte	0x8
+ 318 003a 51000000 		.4byte	.LASF1
+ 319 003e 02       		.uleb128 0x2
+ 320 003f 02       		.byte	0x2
+ 321 0040 05       		.byte	0x5
+ 322 0041 CC010000 		.4byte	.LASF2
+ 323 0045 02       		.uleb128 0x2
+ 324 0046 02       		.byte	0x2
+ 325 0047 07       		.byte	0x7
+ 326 0048 71000000 		.4byte	.LASF3
+ 327 004c 02       		.uleb128 0x2
+ 328 004d 04       		.byte	0x4
+ 329 004e 05       		.byte	0x5
+ 330 004f DF010000 		.4byte	.LASF4
+ 331 0053 03       		.uleb128 0x3
+ 332 0054 DA000000 		.4byte	.LASF6
+ 333 0058 02       		.byte	0x2
+ 334 0059 41       		.byte	0x41
+ 335 005a 5E000000 		.4byte	0x5e
+ 336 005e 02       		.uleb128 0x2
+ 337 005f 04       		.byte	0x4
+ 338 0060 07       		.byte	0x7
+ 339 0061 5F000000 		.4byte	.LASF7
+ 340 0065 02       		.uleb128 0x2
+ 341 0066 08       		.byte	0x8
+ 342 0067 05       		.byte	0x5
+ 343 0068 BE010000 		.4byte	.LASF8
+ 344 006c 02       		.uleb128 0x2
+ 345 006d 08       		.byte	0x8
+ 346 006e 07       		.byte	0x7
+ 347 006f 80010000 		.4byte	.LASF9
+ 348 0073 04       		.uleb128 0x4
+ 349 0074 04       		.byte	0x4
+ 350 0075 05       		.byte	0x5
+ 351 0076 696E7400 		.ascii	"int\000"
+ 352 007a 02       		.uleb128 0x2
+ 353 007b 04       		.byte	0x4
+ 354 007c 07       		.byte	0x7
+ 355 007d 73010000 		.4byte	.LASF10
+ 356 0081 03       		.uleb128 0x3
+ 357 0082 97010000 		.4byte	.LASF11
+ 358 0086 03       		.byte	0x3
+ 359 0087 15       		.byte	0x15
+ 360 0088 2C000000 		.4byte	0x2c
+ 361 008c 03       		.uleb128 0x3
+ 362 008d D6010000 		.4byte	.LASF12
+ 363 0091 03       		.byte	0x3
+ 364 0092 2D       		.byte	0x2d
+ 365 0093 53000000 		.4byte	0x53
+ 366 0097 05       		.uleb128 0x5
+ 367 0098 00000000 		.4byte	.LASF14
+ 368 009c 01       		.byte	0x1
+ 369 009d 17       		.byte	0x17
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 9
+
+
+ 370 009e 8C000000 		.4byte	0x8c
+ 371 00a2 00000000 		.4byte	.LFB0
+ 372 00a6 50000000 		.4byte	.LFE0-.LFB0
+ 373 00aa 01       		.uleb128 0x1
+ 374 00ab 9C       		.byte	0x9c
+ 375 00ac E7000000 		.4byte	0xe7
+ 376 00b0 06       		.uleb128 0x6
+ 377 00b1 63726300 		.ascii	"crc\000"
+ 378 00b5 01       		.byte	0x1
+ 379 00b6 17       		.byte	0x17
+ 380 00b7 8C000000 		.4byte	0x8c
+ 381 00bb 02       		.uleb128 0x2
+ 382 00bc 91       		.byte	0x91
+ 383 00bd 6C       		.sleb128 -20
+ 384 00be 06       		.uleb128 0x6
+ 385 00bf 6300     		.ascii	"c\000"
+ 386 00c1 01       		.byte	0x1
+ 387 00c2 17       		.byte	0x17
+ 388 00c3 81000000 		.4byte	0x81
+ 389 00c7 02       		.uleb128 0x2
+ 390 00c8 91       		.byte	0x91
+ 391 00c9 6B       		.sleb128 -21
+ 392 00ca 07       		.uleb128 0x7
+ 393 00cb 746D7000 		.ascii	"tmp\000"
+ 394 00cf 01       		.byte	0x1
+ 395 00d0 19       		.byte	0x19
+ 396 00d1 8C000000 		.4byte	0x8c
+ 397 00d5 02       		.uleb128 0x2
+ 398 00d6 91       		.byte	0x91
+ 399 00d7 70       		.sleb128 -16
+ 400 00d8 08       		.uleb128 0x8
+ 401 00d9 4A000000 		.4byte	.LASF13
+ 402 00dd 01       		.byte	0x1
+ 403 00de 19       		.byte	0x19
+ 404 00df 8C000000 		.4byte	0x8c
+ 405 00e3 02       		.uleb128 0x2
+ 406 00e4 91       		.byte	0x91
+ 407 00e5 74       		.sleb128 -12
+ 408 00e6 00       		.byte	0
+ 409 00e7 05       		.uleb128 0x5
+ 410 00e8 A4010000 		.4byte	.LASF15
+ 411 00ec 01       		.byte	0x1
+ 412 00ed 26       		.byte	0x26
+ 413 00ee 8C000000 		.4byte	0x8c
+ 414 00f2 00000000 		.4byte	.LFB1
+ 415 00f6 44000000 		.4byte	.LFE1-.LFB1
+ 416 00fa 01       		.uleb128 0x1
+ 417 00fb 9C       		.byte	0x9c
+ 418 00fc 45010000 		.4byte	0x145
+ 419 0100 06       		.uleb128 0x6
+ 420 0101 62756600 		.ascii	"buf\000"
+ 421 0105 01       		.byte	0x1
+ 422 0106 26       		.byte	0x26
+ 423 0107 45010000 		.4byte	0x145
+ 424 010b 02       		.uleb128 0x2
+ 425 010c 91       		.byte	0x91
+ 426 010d 6C       		.sleb128 -20
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 10
+
+
+ 427 010e 09       		.uleb128 0x9
+ 428 010f 9F010000 		.4byte	.LASF16
+ 429 0113 01       		.byte	0x1
+ 430 0114 26       		.byte	0x26
+ 431 0115 8C000000 		.4byte	0x8c
+ 432 0119 02       		.uleb128 0x2
+ 433 011a 91       		.byte	0x91
+ 434 011b 68       		.sleb128 -24
+ 435 011c 09       		.uleb128 0x9
+ 436 011d 3A000000 		.4byte	.LASF17
+ 437 0121 01       		.byte	0x1
+ 438 0122 26       		.byte	0x26
+ 439 0123 8C000000 		.4byte	0x8c
+ 440 0127 02       		.uleb128 0x2
+ 441 0128 91       		.byte	0x91
+ 442 0129 64       		.sleb128 -28
+ 443 012a 07       		.uleb128 0x7
+ 444 012b 6900     		.ascii	"i\000"
+ 445 012d 01       		.byte	0x1
+ 446 012e 28       		.byte	0x28
+ 447 012f 8C000000 		.4byte	0x8c
+ 448 0133 02       		.uleb128 0x2
+ 449 0134 91       		.byte	0x91
+ 450 0135 74       		.sleb128 -12
+ 451 0136 08       		.uleb128 0x8
+ 452 0137 0D000000 		.4byte	.LASF18
+ 453 013b 01       		.byte	0x1
+ 454 013c 29       		.byte	0x29
+ 455 013d 8C000000 		.4byte	0x8c
+ 456 0141 02       		.uleb128 0x2
+ 457 0142 91       		.byte	0x91
+ 458 0143 70       		.sleb128 -16
+ 459 0144 00       		.byte	0
+ 460 0145 0A       		.uleb128 0xa
+ 461 0146 04       		.byte	0x4
+ 462 0147 81000000 		.4byte	0x81
+ 463 014b 05       		.uleb128 0x5
+ 464 014c 3F000000 		.4byte	.LASF19
+ 465 0150 01       		.byte	0x1
+ 466 0151 30       		.byte	0x30
+ 467 0152 8C000000 		.4byte	0x8c
+ 468 0156 00000000 		.4byte	.LFB2
+ 469 015a 30000000 		.4byte	.LFE2-.LFB2
+ 470 015e 01       		.uleb128 0x1
+ 471 015f 9C       		.byte	0x9c
+ 472 0160 8F010000 		.4byte	0x18f
+ 473 0164 06       		.uleb128 0x6
+ 474 0165 62756600 		.ascii	"buf\000"
+ 475 0169 01       		.byte	0x1
+ 476 016a 30       		.byte	0x30
+ 477 016b 45010000 		.4byte	0x145
+ 478 016f 02       		.uleb128 0x2
+ 479 0170 91       		.byte	0x91
+ 480 0171 6C       		.sleb128 -20
+ 481 0172 09       		.uleb128 0x9
+ 482 0173 9F010000 		.4byte	.LASF16
+ 483 0177 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 11
+
+
+ 484 0178 30       		.byte	0x30
+ 485 0179 8C000000 		.4byte	0x8c
+ 486 017d 02       		.uleb128 0x2
+ 487 017e 91       		.byte	0x91
+ 488 017f 68       		.sleb128 -24
+ 489 0180 08       		.uleb128 0x8
+ 490 0181 0D000000 		.4byte	.LASF18
+ 491 0185 01       		.byte	0x1
+ 492 0186 32       		.byte	0x32
+ 493 0187 8C000000 		.4byte	0x8c
+ 494 018b 02       		.uleb128 0x2
+ 495 018c 91       		.byte	0x91
+ 496 018d 74       		.sleb128 -12
+ 497 018e 00       		.byte	0
+ 498 018f 0B       		.uleb128 0xb
+ 499 0190 03020000 		.4byte	.LASF26
+ 500 0194 01       		.byte	0x1
+ 501 0195 39       		.byte	0x39
+ 502 0196 00000000 		.4byte	.LFB3
+ 503 019a 6C000000 		.4byte	.LFE3-.LFB3
+ 504 019e 01       		.uleb128 0x1
+ 505 019f 9C       		.byte	0x9c
+ 506 01a0 CB010000 		.4byte	0x1cb
+ 507 01a4 07       		.uleb128 0x7
+ 508 01a5 6900     		.ascii	"i\000"
+ 509 01a7 01       		.byte	0x1
+ 510 01a8 3B       		.byte	0x3b
+ 511 01a9 73000000 		.4byte	0x73
+ 512 01ad 02       		.uleb128 0x2
+ 513 01ae 91       		.byte	0x91
+ 514 01af 74       		.sleb128 -12
+ 515 01b0 07       		.uleb128 0x7
+ 516 01b1 6A00     		.ascii	"j\000"
+ 517 01b3 01       		.byte	0x1
+ 518 01b4 3B       		.byte	0x3b
+ 519 01b5 73000000 		.4byte	0x73
+ 520 01b9 02       		.uleb128 0x2
+ 521 01ba 91       		.byte	0x91
+ 522 01bb 70       		.sleb128 -16
+ 523 01bc 07       		.uleb128 0x7
+ 524 01bd 63726300 		.ascii	"crc\000"
+ 525 01c1 01       		.byte	0x1
+ 526 01c2 3C       		.byte	0x3c
+ 527 01c3 8C000000 		.4byte	0x8c
+ 528 01c7 02       		.uleb128 0x2
+ 529 01c8 91       		.byte	0x91
+ 530 01c9 6C       		.sleb128 -20
+ 531 01ca 00       		.byte	0
+ 532 01cb 08       		.uleb128 0x8
+ 533 01cc E8010000 		.4byte	.LASF20
+ 534 01d0 01       		.byte	0x1
+ 535 01d1 12       		.byte	0x12
+ 536 01d2 73000000 		.4byte	0x73
+ 537 01d6 05       		.uleb128 0x5
+ 538 01d7 03       		.byte	0x3
+ 539 01d8 00000000 		.4byte	crc32_tab_init
+ 540 01dc 0C       		.uleb128 0xc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 12
+
+
+ 541 01dd 8C000000 		.4byte	0x8c
+ 542 01e1 EC010000 		.4byte	0x1ec
+ 543 01e5 0D       		.uleb128 0xd
+ 544 01e6 EC010000 		.4byte	0x1ec
+ 545 01ea FF       		.byte	0xff
+ 546 01eb 00       		.byte	0
+ 547 01ec 02       		.uleb128 0x2
+ 548 01ed 04       		.byte	0x4
+ 549 01ee 07       		.byte	0x7
+ 550 01ef B5010000 		.4byte	.LASF21
+ 551 01f3 08       		.uleb128 0x8
+ 552 01f4 1C000000 		.4byte	.LASF22
+ 553 01f8 01       		.byte	0x1
+ 554 01f9 13       		.byte	0x13
+ 555 01fa DC010000 		.4byte	0x1dc
+ 556 01fe 05       		.uleb128 0x5
+ 557 01ff 03       		.byte	0x3
+ 558 0200 04000000 		.4byte	crc32_tab
+ 559 0204 00       		.byte	0
+ 560              		.section	.debug_abbrev,"",%progbits
+ 561              	.Ldebug_abbrev0:
+ 562 0000 01       		.uleb128 0x1
+ 563 0001 11       		.uleb128 0x11
+ 564 0002 01       		.byte	0x1
+ 565 0003 25       		.uleb128 0x25
+ 566 0004 0E       		.uleb128 0xe
+ 567 0005 13       		.uleb128 0x13
+ 568 0006 0B       		.uleb128 0xb
+ 569 0007 03       		.uleb128 0x3
+ 570 0008 0E       		.uleb128 0xe
+ 571 0009 1B       		.uleb128 0x1b
+ 572 000a 0E       		.uleb128 0xe
+ 573 000b 55       		.uleb128 0x55
+ 574 000c 17       		.uleb128 0x17
+ 575 000d 11       		.uleb128 0x11
+ 576 000e 01       		.uleb128 0x1
+ 577 000f 10       		.uleb128 0x10
+ 578 0010 17       		.uleb128 0x17
+ 579 0011 00       		.byte	0
+ 580 0012 00       		.byte	0
+ 581 0013 02       		.uleb128 0x2
+ 582 0014 24       		.uleb128 0x24
+ 583 0015 00       		.byte	0
+ 584 0016 0B       		.uleb128 0xb
+ 585 0017 0B       		.uleb128 0xb
+ 586 0018 3E       		.uleb128 0x3e
+ 587 0019 0B       		.uleb128 0xb
+ 588 001a 03       		.uleb128 0x3
+ 589 001b 0E       		.uleb128 0xe
+ 590 001c 00       		.byte	0
+ 591 001d 00       		.byte	0
+ 592 001e 03       		.uleb128 0x3
+ 593 001f 16       		.uleb128 0x16
+ 594 0020 00       		.byte	0
+ 595 0021 03       		.uleb128 0x3
+ 596 0022 0E       		.uleb128 0xe
+ 597 0023 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 13
+
+
+ 598 0024 0B       		.uleb128 0xb
+ 599 0025 3B       		.uleb128 0x3b
+ 600 0026 0B       		.uleb128 0xb
+ 601 0027 49       		.uleb128 0x49
+ 602 0028 13       		.uleb128 0x13
+ 603 0029 00       		.byte	0
+ 604 002a 00       		.byte	0
+ 605 002b 04       		.uleb128 0x4
+ 606 002c 24       		.uleb128 0x24
+ 607 002d 00       		.byte	0
+ 608 002e 0B       		.uleb128 0xb
+ 609 002f 0B       		.uleb128 0xb
+ 610 0030 3E       		.uleb128 0x3e
+ 611 0031 0B       		.uleb128 0xb
+ 612 0032 03       		.uleb128 0x3
+ 613 0033 08       		.uleb128 0x8
+ 614 0034 00       		.byte	0
+ 615 0035 00       		.byte	0
+ 616 0036 05       		.uleb128 0x5
+ 617 0037 2E       		.uleb128 0x2e
+ 618 0038 01       		.byte	0x1
+ 619 0039 3F       		.uleb128 0x3f
+ 620 003a 19       		.uleb128 0x19
+ 621 003b 03       		.uleb128 0x3
+ 622 003c 0E       		.uleb128 0xe
+ 623 003d 3A       		.uleb128 0x3a
+ 624 003e 0B       		.uleb128 0xb
+ 625 003f 3B       		.uleb128 0x3b
+ 626 0040 0B       		.uleb128 0xb
+ 627 0041 27       		.uleb128 0x27
+ 628 0042 19       		.uleb128 0x19
+ 629 0043 49       		.uleb128 0x49
+ 630 0044 13       		.uleb128 0x13
+ 631 0045 11       		.uleb128 0x11
+ 632 0046 01       		.uleb128 0x1
+ 633 0047 12       		.uleb128 0x12
+ 634 0048 06       		.uleb128 0x6
+ 635 0049 40       		.uleb128 0x40
+ 636 004a 18       		.uleb128 0x18
+ 637 004b 9642     		.uleb128 0x2116
+ 638 004d 19       		.uleb128 0x19
+ 639 004e 01       		.uleb128 0x1
+ 640 004f 13       		.uleb128 0x13
+ 641 0050 00       		.byte	0
+ 642 0051 00       		.byte	0
+ 643 0052 06       		.uleb128 0x6
+ 644 0053 05       		.uleb128 0x5
+ 645 0054 00       		.byte	0
+ 646 0055 03       		.uleb128 0x3
+ 647 0056 08       		.uleb128 0x8
+ 648 0057 3A       		.uleb128 0x3a
+ 649 0058 0B       		.uleb128 0xb
+ 650 0059 3B       		.uleb128 0x3b
+ 651 005a 0B       		.uleb128 0xb
+ 652 005b 49       		.uleb128 0x49
+ 653 005c 13       		.uleb128 0x13
+ 654 005d 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 14
+
+
+ 655 005e 18       		.uleb128 0x18
+ 656 005f 00       		.byte	0
+ 657 0060 00       		.byte	0
+ 658 0061 07       		.uleb128 0x7
+ 659 0062 34       		.uleb128 0x34
+ 660 0063 00       		.byte	0
+ 661 0064 03       		.uleb128 0x3
+ 662 0065 08       		.uleb128 0x8
+ 663 0066 3A       		.uleb128 0x3a
+ 664 0067 0B       		.uleb128 0xb
+ 665 0068 3B       		.uleb128 0x3b
+ 666 0069 0B       		.uleb128 0xb
+ 667 006a 49       		.uleb128 0x49
+ 668 006b 13       		.uleb128 0x13
+ 669 006c 02       		.uleb128 0x2
+ 670 006d 18       		.uleb128 0x18
+ 671 006e 00       		.byte	0
+ 672 006f 00       		.byte	0
+ 673 0070 08       		.uleb128 0x8
+ 674 0071 34       		.uleb128 0x34
+ 675 0072 00       		.byte	0
+ 676 0073 03       		.uleb128 0x3
+ 677 0074 0E       		.uleb128 0xe
+ 678 0075 3A       		.uleb128 0x3a
+ 679 0076 0B       		.uleb128 0xb
+ 680 0077 3B       		.uleb128 0x3b
+ 681 0078 0B       		.uleb128 0xb
+ 682 0079 49       		.uleb128 0x49
+ 683 007a 13       		.uleb128 0x13
+ 684 007b 02       		.uleb128 0x2
+ 685 007c 18       		.uleb128 0x18
+ 686 007d 00       		.byte	0
+ 687 007e 00       		.byte	0
+ 688 007f 09       		.uleb128 0x9
+ 689 0080 05       		.uleb128 0x5
+ 690 0081 00       		.byte	0
+ 691 0082 03       		.uleb128 0x3
+ 692 0083 0E       		.uleb128 0xe
+ 693 0084 3A       		.uleb128 0x3a
+ 694 0085 0B       		.uleb128 0xb
+ 695 0086 3B       		.uleb128 0x3b
+ 696 0087 0B       		.uleb128 0xb
+ 697 0088 49       		.uleb128 0x49
+ 698 0089 13       		.uleb128 0x13
+ 699 008a 02       		.uleb128 0x2
+ 700 008b 18       		.uleb128 0x18
+ 701 008c 00       		.byte	0
+ 702 008d 00       		.byte	0
+ 703 008e 0A       		.uleb128 0xa
+ 704 008f 0F       		.uleb128 0xf
+ 705 0090 00       		.byte	0
+ 706 0091 0B       		.uleb128 0xb
+ 707 0092 0B       		.uleb128 0xb
+ 708 0093 49       		.uleb128 0x49
+ 709 0094 13       		.uleb128 0x13
+ 710 0095 00       		.byte	0
+ 711 0096 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 15
+
+
+ 712 0097 0B       		.uleb128 0xb
+ 713 0098 2E       		.uleb128 0x2e
+ 714 0099 01       		.byte	0x1
+ 715 009a 03       		.uleb128 0x3
+ 716 009b 0E       		.uleb128 0xe
+ 717 009c 3A       		.uleb128 0x3a
+ 718 009d 0B       		.uleb128 0xb
+ 719 009e 3B       		.uleb128 0x3b
+ 720 009f 0B       		.uleb128 0xb
+ 721 00a0 27       		.uleb128 0x27
+ 722 00a1 19       		.uleb128 0x19
+ 723 00a2 11       		.uleb128 0x11
+ 724 00a3 01       		.uleb128 0x1
+ 725 00a4 12       		.uleb128 0x12
+ 726 00a5 06       		.uleb128 0x6
+ 727 00a6 40       		.uleb128 0x40
+ 728 00a7 18       		.uleb128 0x18
+ 729 00a8 9742     		.uleb128 0x2117
+ 730 00aa 19       		.uleb128 0x19
+ 731 00ab 01       		.uleb128 0x1
+ 732 00ac 13       		.uleb128 0x13
+ 733 00ad 00       		.byte	0
+ 734 00ae 00       		.byte	0
+ 735 00af 0C       		.uleb128 0xc
+ 736 00b0 01       		.uleb128 0x1
+ 737 00b1 01       		.byte	0x1
+ 738 00b2 49       		.uleb128 0x49
+ 739 00b3 13       		.uleb128 0x13
+ 740 00b4 01       		.uleb128 0x1
+ 741 00b5 13       		.uleb128 0x13
+ 742 00b6 00       		.byte	0
+ 743 00b7 00       		.byte	0
+ 744 00b8 0D       		.uleb128 0xd
+ 745 00b9 21       		.uleb128 0x21
+ 746 00ba 00       		.byte	0
+ 747 00bb 49       		.uleb128 0x49
+ 748 00bc 13       		.uleb128 0x13
+ 749 00bd 2F       		.uleb128 0x2f
+ 750 00be 0B       		.uleb128 0xb
+ 751 00bf 00       		.byte	0
+ 752 00c0 00       		.byte	0
+ 753 00c1 00       		.byte	0
+ 754              		.section	.debug_aranges,"",%progbits
+ 755 0000 34000000 		.4byte	0x34
+ 756 0004 0200     		.2byte	0x2
+ 757 0006 00000000 		.4byte	.Ldebug_info0
+ 758 000a 04       		.byte	0x4
+ 759 000b 00       		.byte	0
+ 760 000c 0000     		.2byte	0
+ 761 000e 0000     		.2byte	0
+ 762 0010 00000000 		.4byte	.LFB0
+ 763 0014 50000000 		.4byte	.LFE0-.LFB0
+ 764 0018 00000000 		.4byte	.LFB1
+ 765 001c 44000000 		.4byte	.LFE1-.LFB1
+ 766 0020 00000000 		.4byte	.LFB2
+ 767 0024 30000000 		.4byte	.LFE2-.LFB2
+ 768 0028 00000000 		.4byte	.LFB3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 16
+
+
+ 769 002c 6C000000 		.4byte	.LFE3-.LFB3
+ 770 0030 00000000 		.4byte	0
+ 771 0034 00000000 		.4byte	0
+ 772              		.section	.debug_ranges,"",%progbits
+ 773              	.Ldebug_ranges0:
+ 774 0000 00000000 		.4byte	.LFB0
+ 775 0004 50000000 		.4byte	.LFE0
+ 776 0008 00000000 		.4byte	.LFB1
+ 777 000c 44000000 		.4byte	.LFE1
+ 778 0010 00000000 		.4byte	.LFB2
+ 779 0014 30000000 		.4byte	.LFE2
+ 780 0018 00000000 		.4byte	.LFB3
+ 781 001c 6C000000 		.4byte	.LFE3
+ 782 0020 00000000 		.4byte	0
+ 783 0024 00000000 		.4byte	0
+ 784              		.section	.debug_line,"",%progbits
+ 785              	.Ldebug_line0:
+ 786 0000 B9010000 		.section	.debug_str,"MS",%progbits,1
+ 786      02002201 
+ 786      00000201 
+ 786      FB0E0D00 
+ 786      01010101 
+ 787              	.LASF14:
+ 788 0000 63726333 		.ascii	"crc32_update\000"
+ 788      325F7570 
+ 788      64617465 
+ 788      00
+ 789              	.LASF18:
+ 790 000d 5F637263 		.ascii	"_crc\000"
+ 790      00
+ 791              	.LASF5:
+ 792 0012 5F5F7569 		.ascii	"__uint8_t\000"
+ 792      6E74385F 
+ 792      7400
+ 793              	.LASF22:
+ 794 001c 63726333 		.ascii	"crc32_tab\000"
+ 794      325F7461 
+ 794      6200
+ 795              	.LASF24:
+ 796 0026 6C69625F 		.ascii	"lib_Network\\crc32.c\000"
+ 796      4E657477 
+ 796      6F726B5C 
+ 796      63726333 
+ 796      322E6300 
+ 797              	.LASF17:
+ 798 003a 696E6974 		.ascii	"init\000"
+ 798      00
+ 799              	.LASF19:
+ 800 003f 63726333 		.ascii	"crc32_calc\000"
+ 800      325F6361 
+ 800      6C6300
+ 801              	.LASF13:
+ 802 004a 6C6F6E67 		.ascii	"long_c\000"
+ 802      5F6300
+ 803              	.LASF1:
+ 804 0051 756E7369 		.ascii	"unsigned char\000"
+ 804      676E6564 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 17
+
+
+ 804      20636861 
+ 804      7200
+ 805              	.LASF7:
+ 806 005f 6C6F6E67 		.ascii	"long unsigned int\000"
+ 806      20756E73 
+ 806      69676E65 
+ 806      6420696E 
+ 806      7400
+ 807              	.LASF3:
+ 808 0071 73686F72 		.ascii	"short unsigned int\000"
+ 808      7420756E 
+ 808      7369676E 
+ 808      65642069 
+ 808      6E7400
+ 809              	.LASF25:
+ 810 0084 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\sta"
+ 810      79707265 
+ 810      73735C73 
+ 810      79737465 
+ 810      6D2D7374 
+ 811 00b2 72745C73 		.ascii	"rt\\sandbox\\v8_new_dispay\\start_v0.cydsn\000"
+ 811      616E6462 
+ 811      6F785C76 
+ 811      385F6E65 
+ 811      775F6469 
+ 812              	.LASF6:
+ 813 00da 5F5F7569 		.ascii	"__uint32_t\000"
+ 813      6E743332 
+ 813      5F7400
+ 814              	.LASF23:
+ 815 00e5 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 815      4320342E 
+ 815      392E3320 
+ 815      32303135 
+ 815      30333033 
+ 816 0118 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 816      20726576 
+ 816      6973696F 
+ 816      6E203232 
+ 816      31323230 
+ 817 014b 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 817      66756E63 
+ 817      74696F6E 
+ 817      2D736563 
+ 817      74696F6E 
+ 818              	.LASF10:
+ 819 0173 756E7369 		.ascii	"unsigned int\000"
+ 819      676E6564 
+ 819      20696E74 
+ 819      00
+ 820              	.LASF9:
+ 821 0180 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 821      206C6F6E 
+ 821      6720756E 
+ 821      7369676E 
+ 821      65642069 
+ 822              	.LASF11:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccLaMUR1.s 			page 18
+
+
+ 823 0197 75696E74 		.ascii	"uint8_t\000"
+ 823      385F7400 
+ 824              	.LASF16:
+ 825 019f 53697A65 		.ascii	"Size\000"
+ 825      00
+ 826              	.LASF15:
+ 827 01a4 63726333 		.ascii	"crc32_calc_block\000"
+ 827      325F6361 
+ 827      6C635F62 
+ 827      6C6F636B 
+ 827      00
+ 828              	.LASF21:
+ 829 01b5 73697A65 		.ascii	"sizetype\000"
+ 829      74797065 
+ 829      00
+ 830              	.LASF8:
+ 831 01be 6C6F6E67 		.ascii	"long long int\000"
+ 831      206C6F6E 
+ 831      6720696E 
+ 831      7400
+ 832              	.LASF2:
+ 833 01cc 73686F72 		.ascii	"short int\000"
+ 833      7420696E 
+ 833      7400
+ 834              	.LASF12:
+ 835 01d6 75696E74 		.ascii	"uint32_t\000"
+ 835      33325F74 
+ 835      00
+ 836              	.LASF4:
+ 837 01df 6C6F6E67 		.ascii	"long int\000"
+ 837      20696E74 
+ 837      00
+ 838              	.LASF20:
+ 839 01e8 63726333 		.ascii	"crc32_tab_init\000"
+ 839      325F7461 
+ 839      625F696E 
+ 839      697400
+ 840              	.LASF0:
+ 841 01f7 7369676E 		.ascii	"signed char\000"
+ 841      65642063 
+ 841      68617200 
+ 842              	.LASF26:
+ 843 0203 63726333 		.ascii	"crc32_init_tab\000"
+ 843      325F696E 
+ 843      69745F74 
+ 843      616200
+ 844              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

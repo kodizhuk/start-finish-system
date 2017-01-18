@@ -15,7 +15,6 @@ void DisplayIndicatorSD(SDindicator indicator);
 void DisplayIndicatorNetwork(NetworkIndicator indicator);
 void DisplayRealTime(void);
 void DisplayLoading(uint32_t numLoad);
-void DisplayBattVoltage(float voltage);
 
 
 #endif

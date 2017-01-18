@@ -92,7 +92,7 @@ static void UserFunc_1(void)
 static void UserFunc_2(void)
 {
     DisplayRealTime();
-    DisplayBattVoltage(ReadBattVoltage());
+    //DisplayBattVoltage(ReadBattVoltage());
 }
 
 static void UserFunc_3(void)
