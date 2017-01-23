@@ -1,7 +1,7 @@
 /* ========================================
  *
  * File Name: SwSPI_Master.h
- * Version 1.10 
+ * Version 1.20 
  * Copyright ANDREY TKACHOV, 2016
   
  * Descriprion: 

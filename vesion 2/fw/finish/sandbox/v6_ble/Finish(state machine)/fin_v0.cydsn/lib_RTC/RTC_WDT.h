@@ -3,7 +3,7 @@
 
 #include <CyLib.h>
 
-#define DEBUG_RTC
+//#define DEBUG_RTC
 #ifdef DEBUG_RTC
     #include <debug.h>
 #endif

@@ -1,7 +1,7 @@
 /* ========================================
  *
  * File Name: SwSPI_Master.c
- * Version 1.10 
+ * Version 1.20 
  * Copyright ANDREY TKACHOV, 2016
  
  * Description:
@@ -40,9 +40,9 @@
 
 void SwSPI_Master_Init(void) 
 {
-   SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CS;
-   SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
-   SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
+   SwSPI_Master_CS_DR_REG |= SwSPI_Master_CS;
+   SwSPI_Master_SCK_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
+   SwSPI_Master_MOSI_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
 }
 
 /*******************************************************************************
@@ -63,7 +63,7 @@ void SwSPI_Master_Init(void)
 
 void SwSPI_Master_ChipSelect(void) 
 {
-    SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CS));
+/*    SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CS));*/
 }
 
 /*******************************************************************************
@@ -84,7 +84,7 @@ void SwSPI_Master_ChipSelect(void)
 
 void SwSPI_Master_ChipDeselect(void) 
 {
-    SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CS;
+/*    SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CS;*/
 }
 
 /*******************************************************************************
@@ -114,22 +114,22 @@ void SwSPI_Master_SendByte(uint8 byte)
     
         if (byte & MASK_HIGH_BIT)
         {
-            SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_MOSI;
+            SwSPI_Master_MOSI_DR_REG |= SwSPI_Master_MOSI;
         }
         else
         {
-            SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
+            SwSPI_Master_MOSI_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
         }  
-        SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CLK;
+        SwSPI_Master_SCK_DR_REG |= SwSPI_Master_CLK;
         
         CyDelayCycles(DELAY_HIGH_STATE);
         
-        SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
+        SwSPI_Master_SCK_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
         CyDelayCycles(DELAY_LOW_STATE);      
         byte <<=  SHIFT_ONE_BIT;
     }
     
-    SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));    
+    SwSPI_Master_MOSI_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));    
 }
 
 /*******************************************************************************
@@ -188,16 +188,16 @@ uint8 SwSPI_Master_RecvByte(void)
     uint8 tmpPin;
     for (countBites = BITES_ON_ONE_BYTE; countBites > 0; countBites--)
     {
-        SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_MOSI;
-        SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CLK;
-        tmpPin = (uint8)((SwSPI_Master_INPORT_PS_REG & SwSPI_Master_MISO_MASK) >> SwSPI_Master_MISO_SHIFT);
+        SwSPI_Master_MOSI_DR_REG |= SwSPI_Master_MOSI;
+        SwSPI_Master_SCK_DR_REG |= SwSPI_Master_CLK;
+        tmpPin = (uint8)((SwSPI_Master_MISO_PS_REG & SwSPI_Master_MISO_MASK) >> SwSPI_Master_MISO_SHIFT);
         if (tmpPin == 1u)
         {
             tmpBuff |= MASK_LOW_BIT;
         }
         CyDelayCycles(DELAY_HIGH_STATE);
         
-        SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
+        SwSPI_Master_SCK_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
         
         CyDelayCycles(DELAY_LOW_STATE);
         
@@ -205,7 +205,7 @@ uint8 SwSPI_Master_RecvByte(void)
     }
     tmpBuff >>= SHIFT_ONE_BIT;
     
-    SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
+    SwSPI_Master_MOSI_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
     
     return (uint8_t)tmpBuff;
 }
@@ -270,16 +270,16 @@ uint8 SwSPI_Master_ReadAndWriteByte(uint8 byte)
     
         if (byte & MASK_HIGH_BIT)
         {
-            SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_MOSI;
+            SwSPI_Master_MOSI_DR_REG |= SwSPI_Master_MOSI;
         }
         else
         {
-            SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
+            SwSPI_Master_MOSI_DR_REG &= ((uint8)(~SwSPI_Master_MOSI));
         }
         
-        SwSPI_Master_OUTPORT_DR_REG |= SwSPI_Master_CLK;
+        SwSPI_Master_SCK_DR_REG |= SwSPI_Master_CLK;
         
-        tmpPin = (uint8)((SwSPI_Master_INPORT_PS_REG & SwSPI_Master_MISO_MASK) >> SwSPI_Master_MISO_SHIFT);
+        tmpPin = (uint8)((SwSPI_Master_MISO_PS_REG & SwSPI_Master_MISO_MASK) >> SwSPI_Master_MISO_SHIFT);
         if (tmpPin == 1u)
         {
             tmpBuff |= MASK_LOW_BIT;
@@ -287,7 +287,7 @@ uint8 SwSPI_Master_ReadAndWriteByte(uint8 byte)
         
         CyDelayCycles(DELAY_HIGH_STATE);
         
-         SwSPI_Master_OUTPORT_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
+         SwSPI_Master_SCK_DR_REG &= ((uint8)(~SwSPI_Master_CLK));
         byte <<=  SHIFT_ONE_BIT;
         tmpBuff <<= SHIFT_ONE_BIT;
         CyDelayCycles(DELAY_LOW_STATE);        

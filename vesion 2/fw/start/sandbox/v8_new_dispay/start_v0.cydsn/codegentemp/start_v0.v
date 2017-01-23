@@ -1,6 +1,6 @@
 // ======================================================================
 // start_v0.v generated from TopDesign.cysch
-// 01/18/2017 at 23:53
+// 01/21/2017 at 20:52
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -1293,13 +1293,13 @@ module top ;
           wire  Net_254;
           wire  Net_253;
           wire  Net_212;
-          wire  Net_173;
-          wire  Net_172;
-          wire  Net_171;
-          wire  Net_170;
-          wire  Net_169;
-          wire  Net_168;
-          wire  Net_174;
+          wire  Net_328;
+          wire  Net_319;
+          wire  Net_318;
+          wire  Net_317;
+          wire  Net_316;
+          wire  Net_315;
+          wire  Net_314;
     electrical  Net_208;
     electrical  Net_209;
           wire  Net_139;
@@ -1331,7 +1331,7 @@ module top ;
           wire  Net_266;
           wire  Net_265;
           wire  Net_264;
-          wire  Net_291;
+          wire  Net_325;
           wire  Net_288;
           wire  Net_289;
     electrical  Net_252;
@@ -2404,7 +2404,7 @@ module top ;
         .cc(Net_284),
         .line(Net_285),
         .line_n(Net_286),
-        .clock(Net_291));
+        .clock(Net_325));
 
 
 	cy_clock_v1_0
@@ -2415,7 +2415,7 @@ module top ;
 		  .is_direct(0),
 		  .is_digital(0))
 		timer_clock_2
-		 (.clock_out(Net_291));
+		 (.clock_out(Net_325));
 
 
 

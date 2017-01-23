@@ -12,6 +12,8 @@
 #define BATT_75_PERCENT     0.51
 #define BATT_100_PERCENT    0.56
 
+#define MAX_LEN_DISPLAY     11
+
 extern unsigned char SmallFont[];
 extern unsigned char TinyFont[];
 extern unsigned char BigNumbers[];
@@ -63,14 +65,13 @@ void DisplayStart(void)
 *******************************************************************************/
 void Display(char *message)
 {    
-    //if(strlen(message) > 11)return;
     uint8_t len;
     char strNull[11] = {"           "};
-    strncpy(buff,message,11);
+    strncpy(buff,message,MAX_LEN_DISPLAY);
     len = strlen(message);
-    if(len<11)
+    if(len < MAX_LEN_DISPLAY)
     {
-        strncat(buff,strNull,11-len);
+        strncat(buff,strNull,MAX_LEN_DISPLAY-len);
     }
     
     setFont(SmallFont);

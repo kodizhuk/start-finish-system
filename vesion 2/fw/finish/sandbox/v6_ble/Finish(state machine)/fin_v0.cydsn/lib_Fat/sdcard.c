@@ -136,7 +136,9 @@ static void xmit_mmc(const BYTE* buff, UINT bc)
 
 //    mmSPI_SpiUartClearTxBuffer();
 //    mmSPI_SpiUartClearRxBuffer();
+    SD_CS_Write(0);
       mmSPI_SpiUartPutArray(buff, bc);
+    
       CyDelay(5);
     //while(0u == (mmSPI_GetMasterInterruptSource() & mmSPI_INTR_MASTER_SPI_DONE));
     
@@ -170,7 +172,7 @@ static void rcvr_mmc(BYTE *buff, UINT bc)
     
     //mmSPI_SpiUartClearTxBuffer();
     //mmSPI_SpiUartClearRxBuffer();
-    
+    SD_CS_Write(0);
     do
     {
 

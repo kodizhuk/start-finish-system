@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v0.v generated from TopDesign.cysch
-// 01/18/2017 at 22:08
+// 01/22/2017 at 19:21
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -2650,7 +2650,7 @@ module top ;
 		  .divisor(0),
 		  .period("1000000000000"),
 		  .is_direct(0),
-		  .is_digital(0))
+		  .is_digital(1))
 		Clock_1
 		 (.clock_out(Net_203));
 

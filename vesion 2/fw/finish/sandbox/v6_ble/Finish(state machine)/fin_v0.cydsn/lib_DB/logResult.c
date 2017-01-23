@@ -41,11 +41,11 @@ static uint32_t position = 1;
 uint32_t LogStart(void)
 {
     uint8 resultF;
-    
+   
     /* Register work area to the default drive */
     resultF = f_mount(&fatFs, "", 1);
     
-    return resultF;   
+    return resultF;
 }
 
 
