@@ -83,17 +83,17 @@ uint32_t TimeSynchronize(void)
     LedBlink(FREQ_INIT_BLINK);
     
     /*network connect*/
-    //if(NetworkStatus() == NETWORK_DISCONN)
+    if(NetworkStatus() == NETWORK_DISCONN)
     {
         Display("Network conn...");
         MyDelay(TIMEOUT_STATE);
     }
-    //else
+    else
     {
         /*time sync*/
         Display("Sync time...");
         
-        //if(NTPsync() == TIME_SYNC_OK)
+        if(NTPsync() == TIME_SYNC_OK)
         {
             Display("Sync ok");
             ClearRebootFlag();
@@ -101,13 +101,13 @@ uint32_t TimeSynchronize(void)
             
             result = TIME_SYNC_OK;
         }
-        //else
+        else
         {
-            //Display("Sync time error");
-            //SetRebootFlag();
-            //MyDelay(TIMEOUT_USER_READ_INFO);
+            Display("Sync time error");
+            SetRebootFlag();
+            MyDelay(TIMEOUT_USER_READ_INFO);
       
-            //result = TIME_SYNC_ERR;
+            result = TIME_SYNC_ERR;
         }
     }
     

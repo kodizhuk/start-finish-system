@@ -1,0 +1,3318 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"RTC_WDT.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.CallBackCounter,"ax",%progbits
+  18              		.align	1
+  19              		.global	CallBackCounter
+  20              		.code	16
+  21              		.thumb_func
+  22              		.type	CallBackCounter, %function
+  23              	CallBackCounter:
+  24              	.LFB28:
+  25              		.file 1 "lib_RTC\\RTC_WDT.c"
+   1:lib_RTC/RTC_WDT.c **** #include <RTC.h>
+   2:lib_RTC/RTC_WDT.c **** #include "lib_RTC\RTC_WDT.h"
+   3:lib_RTC/RTC_WDT.c **** #include "lib_network\network.h"
+   4:lib_RTC/RTC_WDT.c **** #include <CyLFClk.h>
+   5:lib_RTC/RTC_WDT.c **** 
+   6:lib_RTC/RTC_WDT.c **** #define RTC_TIME_FORMAT_SHIFT       (39u)
+   7:lib_RTC/RTC_WDT.c **** #define RTC_PERIOD_OF_DAY_SHIFT     (38u)
+   8:lib_RTC/RTC_WDT.c **** #define RTC_10_HOURS_SHIFT          (36u)
+   9:lib_RTC/RTC_WDT.c **** #define RTC_HOURS_SHIFT             (32u)
+  10:lib_RTC/RTC_WDT.c **** #define RTC_10_MINUTES_SHIFT        (28u)
+  11:lib_RTC/RTC_WDT.c **** #define RTC_MINUTES_SHIFT           (24u)
+  12:lib_RTC/RTC_WDT.c **** #define RTC_10_SECONDS_SHIFT        (20u)
+  13:lib_RTC/RTC_WDT.c **** #define RTC_SECONDS_SHIFT           (16u)
+  14:lib_RTC/RTC_WDT.c **** #define RTC_100_MILISECONDS_SHIFT   (12u)
+  15:lib_RTC/RTC_WDT.c **** #define RTC_10_MILISECONDS_SHIFT    (8u)
+  16:lib_RTC/RTC_WDT.c **** #define RTC_MILISECONDS_SHIFT       (0u)
+  17:lib_RTC/RTC_WDT.c **** 
+  18:lib_RTC/RTC_WDT.c **** #define RTC_MASK_TIME_FORMAT       (0x00000001ull << RTC_TIME_FORMAT_SHIFT )
+  19:lib_RTC/RTC_WDT.c **** #define RTC_MASK_PERIOD_OF_DAY     (0x00000001ull << RTC_PERIOD_OF_DAY_SHIFT)
+  20:lib_RTC/RTC_WDT.c **** #define RTC_MASK_10_HOURS          (0x00000003ull << RTC_10_HOURS_SHIFT )
+  21:lib_RTC/RTC_WDT.c **** #define RTC_MASK_HOURS             (0x0000000Full << RTC_HOURS_SHIFT )
+  22:lib_RTC/RTC_WDT.c **** #define RTC_MASK_10_MINUTES        (0x00000007uL << RTC_10_MINUTES_SHIFT )
+  23:lib_RTC/RTC_WDT.c **** #define RTC_MASK_MINUTES           (0x0000000FuL << RTC_MINUTES_SHIFT )
+  24:lib_RTC/RTC_WDT.c **** #define RTC_MASK_10_SECONDS        (0x00000007uL << RTC_10_SECONDS_SHIFT )
+  25:lib_RTC/RTC_WDT.c **** #define RTC_MASK_SECONDS           (0x0000000FuL << RTC_SECONDS_SHIFT )
+  26:lib_RTC/RTC_WDT.c **** #define RTC_MASK_100_MILISECONDS    (0x0000000FuL << RTC_100_MILISECONDS_SHIFT )
+  27:lib_RTC/RTC_WDT.c **** #define RTC_MASK_10_MILISECONDS     (0x0000000FuL << RTC_10_MILISECONDS_SHIFT )
+  28:lib_RTC/RTC_WDT.c **** #define RTC_MASK_MILISECONDS        (0x0000000FuL << RTC_MILISECONDS_SHIFT )
+  29:lib_RTC/RTC_WDT.c **** 
+  30:lib_RTC/RTC_WDT.c **** 
+  31:lib_RTC/RTC_WDT.c **** static uint64_t time;
+  32:lib_RTC/RTC_WDT.c **** static uint16_t msRTC = 0;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 2
+
+
+  33:lib_RTC/RTC_WDT.c **** 
+  34:lib_RTC/RTC_WDT.c **** 
+  35:lib_RTC/RTC_WDT.c **** void CallBackCounter();
+  36:lib_RTC/RTC_WDT.c **** 
+  37:lib_RTC/RTC_WDT.c **** 
+  38:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+  39:lib_RTC/RTC_WDT.c **** * Function Name: CallBackCounter
+  40:lib_RTC/RTC_WDT.c **** ********************************************************************************
+  41:lib_RTC/RTC_WDT.c **** *
+  42:lib_RTC/RTC_WDT.c **** * Summary
+  43:lib_RTC/RTC_WDT.c **** *  miliseconds counter
+  44:lib_RTC/RTC_WDT.c **** *  RTC update each seconds
+  45:lib_RTC/RTC_WDT.c **** *
+  46:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+  47:lib_RTC/RTC_WDT.c **** void CallBackCounter(void)
+  48:lib_RTC/RTC_WDT.c **** {
+  26              		.loc 1 48 0
+  27              		.cfi_startproc
+  49:lib_RTC/RTC_WDT.c ****     msRTC++;
+  50:lib_RTC/RTC_WDT.c ****     if (msRTC == 1000u) 
+  28              		.loc 1 50 0
+  29 0000 FA21     		mov	r1, #250
+  49:lib_RTC/RTC_WDT.c ****     msRTC++;
+  30              		.loc 1 49 0
+  31 0002 0A4A     		ldr	r2, .L5
+  48:lib_RTC/RTC_WDT.c ****     msRTC++;
+  32              		.loc 1 48 0
+  33 0004 10B5     		push	{r4, lr}
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+  49:lib_RTC/RTC_WDT.c ****     msRTC++;
+  37              		.loc 1 49 0
+  38 0006 1388     		ldrh	r3, [r2]
+  39              		.loc 1 50 0
+  40 0008 8900     		lsl	r1, r1, #2
+  49:lib_RTC/RTC_WDT.c ****     msRTC++;
+  41              		.loc 1 49 0
+  42 000a 0133     		add	r3, r3, #1
+  43 000c 9BB2     		uxth	r3, r3
+  44              		.loc 1 50 0
+  45 000e 8B42     		cmp	r3, r1
+  46 0010 01D0     		beq	.L2
+  49:lib_RTC/RTC_WDT.c ****     msRTC++;
+  47              		.loc 1 49 0
+  48 0012 1380     		strh	r3, [r2]
+  49 0014 09E0     		b	.L1
+  50              	.L2:
+  51              	.LBB15:
+  52              	.LBB16:
+  51:lib_RTC/RTC_WDT.c ****     {
+  52:lib_RTC/RTC_WDT.c ****         msRTC = 0u; 
+  53              		.loc 1 52 0
+  54 0016 0024     		mov	r4, #0
+  55 0018 1480     		strh	r4, [r2]
+  53:lib_RTC/RTC_WDT.c ****         RTC_Update();
+  56              		.loc 1 53 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 3
+
+
+  57 001a FFF7FEFF 		bl	RTC_Update
+  58              	.LVL0:
+  54:lib_RTC/RTC_WDT.c ****         
+  55:lib_RTC/RTC_WDT.c ****         #ifdef DEBUG_RTC
+  56:lib_RTC/RTC_WDT.c ****             debug_Write(1);
+  59              		.loc 1 56 0
+  60 001e 0120     		mov	r0, #1
+  61 0020 FFF7FEFF 		bl	debug_Write
+  62              	.LVL1:
+  57:lib_RTC/RTC_WDT.c ****             debug_Write(0);
+  63              		.loc 1 57 0
+  64 0024 201C     		mov	r0, r4
+  65 0026 FFF7FEFF 		bl	debug_Write
+  66              	.LVL2:
+  67              	.L1:
+  68              	.LBE16:
+  69              	.LBE15:
+  58:lib_RTC/RTC_WDT.c ****         #endif
+  59:lib_RTC/RTC_WDT.c ****     }
+  60:lib_RTC/RTC_WDT.c **** }
+  70              		.loc 1 60 0
+  71              		@ sp needed
+  72 002a 10BD     		pop	{r4, pc}
+  73              	.L6:
+  74              		.align	2
+  75              	.L5:
+  76 002c 00000000 		.word	.LANCHOR0
+  77              		.cfi_endproc
+  78              	.LFE28:
+  79              		.size	CallBackCounter, .-CallBackCounter
+  80              		.section	.text.RTC_WDT_Init,"ax",%progbits
+  81              		.align	1
+  82              		.global	RTC_WDT_Init
+  83              		.code	16
+  84              		.thumb_func
+  85              		.type	RTC_WDT_Init, %function
+  86              	RTC_WDT_Init:
+  87              	.LFB29:
+  61:lib_RTC/RTC_WDT.c **** 
+  62:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+  63:lib_RTC/RTC_WDT.c **** * Function Name: RTC_WDT_Init
+  64:lib_RTC/RTC_WDT.c **** ********************************************************************************
+  65:lib_RTC/RTC_WDT.c **** *
+  66:lib_RTC/RTC_WDT.c **** * Summary
+  67:lib_RTC/RTC_WDT.c **** *  Init watchdog counter
+  68:lib_RTC/RTC_WDT.c **** *
+  69:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+  70:lib_RTC/RTC_WDT.c **** void RTC_WDT_Init(void)
+  71:lib_RTC/RTC_WDT.c **** {
+  88              		.loc 1 71 0
+  89              		.cfi_startproc
+  90              	.LVL3:
+  91 0000 08B5     		push	{r3, lr}
+  92              		.cfi_def_cfa_offset 8
+  93              		.cfi_offset 3, -8
+  94              		.cfi_offset 14, -4
+  72:lib_RTC/RTC_WDT.c ****     void (*CallBackWDT0)(void);   
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 4
+
+
+  73:lib_RTC/RTC_WDT.c ****     CallBackWDT0 = CallBackCounter;  
+  74:lib_RTC/RTC_WDT.c ****     RTC_Start();
+  95              		.loc 1 74 0
+  96 0002 FFF7FEFF 		bl	RTC_Start
+  97              	.LVL4:
+  75:lib_RTC/RTC_WDT.c ****     CySysWdtSetInterruptCallback(0, CallBackWDT0);
+  98              		.loc 1 75 0
+  99 0006 0020     		mov	r0, #0
+ 100 0008 0149     		ldr	r1, .L8
+ 101 000a FFF7FEFF 		bl	CySysWdtSetInterruptCallback
+ 102              	.LVL5:
+  76:lib_RTC/RTC_WDT.c ****     //WDT0_ISR_StartEx(Wdt0_Handler);
+  77:lib_RTC/RTC_WDT.c **** }
+ 103              		.loc 1 77 0
+ 104              		@ sp needed
+ 105 000e 08BD     		pop	{r3, pc}
+ 106              	.L9:
+ 107              		.align	2
+ 108              	.L8:
+ 109 0010 00000000 		.word	CallBackCounter
+ 110              		.cfi_endproc
+ 111              	.LFE29:
+ 112              		.size	RTC_WDT_Init, .-RTC_WDT_Init
+ 113              		.global	__aeabi_uldivmod
+ 114              		.global	__aeabi_lmul
+ 115              		.section	.text.RTCgetTime,"ax",%progbits
+ 116              		.align	1
+ 117              		.global	RTCgetTime
+ 118              		.code	16
+ 119              		.thumb_func
+ 120              		.type	RTCgetTime, %function
+ 121              	RTCgetTime:
+ 122              	.LFB30:
+  78:lib_RTC/RTC_WDT.c **** 
+  79:lib_RTC/RTC_WDT.c **** 
+  80:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+  81:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetTime
+  82:lib_RTC/RTC_WDT.c **** ********************************************************************************
+  83:lib_RTC/RTC_WDT.c **** *
+  84:lib_RTC/RTC_WDT.c **** * Summary
+  85:lib_RTC/RTC_WDT.c **** *  Reads the current time.
+  86:lib_RTC/RTC_WDT.c **** *
+  87:lib_RTC/RTC_WDT.c **** * Return:
+  88:lib_RTC/RTC_WDT.c **** *  date: The value of date in the user selected format. The date value is available
+  89:lib_RTC/RTC_WDT.c **** *        in the BCD format.
+  90:lib_RTC/RTC_WDT.c **** *
+  91:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+  92:lib_RTC/RTC_WDT.c **** uint64_t RTCgetTime(uint64_t timeFormat)
+  93:lib_RTC/RTC_WDT.c **** {
+ 123              		.loc 1 93 0
+ 124              		.cfi_startproc
+ 125              	.LVL6:
+ 126 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 127              		.cfi_def_cfa_offset 20
+ 128              		.cfi_offset 4, -20
+ 129              		.cfi_offset 5, -16
+ 130              		.cfi_offset 6, -12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 5
+
+
+ 131              		.cfi_offset 7, -8
+ 132              		.cfi_offset 14, -4
+ 133 0002 89B0     		sub	sp, sp, #36
+ 134              		.cfi_def_cfa_offset 56
+ 135              		.loc 1 93 0
+ 136 0004 071C     		mov	r7, r0
+  94:lib_RTC/RTC_WDT.c ****     uint32_t readTime;
+  95:lib_RTC/RTC_WDT.c ****     uint64_t hour, min, sec, ms, stateAmPm;
+  96:lib_RTC/RTC_WDT.c **** 
+  97:lib_RTC/RTC_WDT.c ****     
+  98:lib_RTC/RTC_WDT.c ****     readTime = RTC_GetTime();
+ 137              		.loc 1 98 0
+ 138 0006 FFF7FEFF 		bl	RTC_GetTime
+ 139              	.LVL7:
+ 140              	.LBB28:
+ 141              	.LBB29:
+ 142              		.file 2 "Generated_Source\\PSoC4/RTC.h"
+   1:Generated_Source\PSoC4/RTC.h **** /***************************************************************************//**
+   2:Generated_Source\PSoC4/RTC.h **** * \file Name: RTC.h
+   3:Generated_Source\PSoC4/RTC.h **** * \version 1.10
+   4:Generated_Source\PSoC4/RTC.h **** *
+   5:Generated_Source\PSoC4/RTC.h **** * \brief
+   6:Generated_Source\PSoC4/RTC.h **** *  This file provides constants and parameter values for the RTC_P4 Component.
+   7:Generated_Source\PSoC4/RTC.h **** *
+   8:Generated_Source\PSoC4/RTC.h **** ********************************************************************************
+   9:Generated_Source\PSoC4/RTC.h **** * Copyright 2015-2016, Cypress Semiconductor Corporation.  All rights reserved.
+  10:Generated_Source\PSoC4/RTC.h **** * You may use this file only in accordance with the license, terms, conditions,
+  11:Generated_Source\PSoC4/RTC.h **** * disclaimers, and limitations in the end user license agreement accompanying
+  12:Generated_Source\PSoC4/RTC.h **** * the software package with which this file was provided.
+  13:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+  14:Generated_Source\PSoC4/RTC.h **** 
+  15:Generated_Source\PSoC4/RTC.h **** #if !defined(CY_RTC_P4_RTC_H)
+  16:Generated_Source\PSoC4/RTC.h **** #define CY_RTC_P4_RTC_H
+  17:Generated_Source\PSoC4/RTC.h **** 
+  18:Generated_Source\PSoC4/RTC.h **** #include <cytypes.h>
+  19:Generated_Source\PSoC4/RTC.h **** #include <CyLib.h>
+  20:Generated_Source\PSoC4/RTC.h **** 
+  21:Generated_Source\PSoC4/RTC.h **** 
+  22:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+  23:Generated_Source\PSoC4/RTC.h **** *    Data types definition
+  24:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+  25:Generated_Source\PSoC4/RTC.h **** 
+  26:Generated_Source\PSoC4/RTC.h **** typedef enum
+  27:Generated_Source\PSoC4/RTC.h **** {
+  28:Generated_Source\PSoC4/RTC.h ****     RTC_DST_DATE_RELATIVE = 0u,
+  29:Generated_Source\PSoC4/RTC.h ****     RTC_DST_DATE_FIXED = 1u
+  30:Generated_Source\PSoC4/RTC.h **** }RTC_DST_DATETYPE_ENUM;
+  31:Generated_Source\PSoC4/RTC.h **** 
+  32:Generated_Source\PSoC4/RTC.h **** /**
+  33:Generated_Source\PSoC4/RTC.h **** * \addtogroup group_structures
+  34:Generated_Source\PSoC4/RTC.h **** * @{
+  35:Generated_Source\PSoC4/RTC.h **** */
+  36:Generated_Source\PSoC4/RTC.h **** 
+  37:Generated_Source\PSoC4/RTC.h **** /**
+  38:Generated_Source\PSoC4/RTC.h **** * This is the data structure that is used to save the current time and date 
+  39:Generated_Source\PSoC4/RTC.h **** * (RTC_currentTimeDate), and Alarm time and date (RTC_alarmCfgTimeDate).
+  40:Generated_Source\PSoC4/RTC.h **** */
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 6
+
+
+  41:Generated_Source\PSoC4/RTC.h **** typedef struct
+  42:Generated_Source\PSoC4/RTC.h **** {
+  43:Generated_Source\PSoC4/RTC.h ****     uint32 time;
+  44:Generated_Source\PSoC4/RTC.h ****     uint32 date;
+  45:Generated_Source\PSoC4/RTC.h ****     uint32 dayOfWeek;
+  46:Generated_Source\PSoC4/RTC.h ****     uint32 status;
+  47:Generated_Source\PSoC4/RTC.h **** }RTC_DATE_TIME;
+  48:Generated_Source\PSoC4/RTC.h **** 
+  49:Generated_Source\PSoC4/RTC.h **** /**
+  50:Generated_Source\PSoC4/RTC.h **** * This is the data structure that is used to save time and date values for 
+  51:Generated_Source\PSoC4/RTC.h **** * Daylight Savings Time Start and Stop (RTC_dstTimeDateStart and 
+  52:Generated_Source\PSoC4/RTC.h **** * RTC_dstTimeDateStop).
+  53:Generated_Source\PSoC4/RTC.h **** */
+  54:Generated_Source\PSoC4/RTC.h **** typedef struct
+  55:Generated_Source\PSoC4/RTC.h **** {
+  56:Generated_Source\PSoC4/RTC.h ****     uint32 hour;
+  57:Generated_Source\PSoC4/RTC.h ****     uint32 dayOfWeek;
+  58:Generated_Source\PSoC4/RTC.h ****     uint32 dayOfMonth;
+  59:Generated_Source\PSoC4/RTC.h ****     uint32 weekOfMonth;
+  60:Generated_Source\PSoC4/RTC.h ****     uint32 month;
+  61:Generated_Source\PSoC4/RTC.h ****     uint8  timeFormat;
+  62:Generated_Source\PSoC4/RTC.h **** }RTC_DST_TIME;
+  63:Generated_Source\PSoC4/RTC.h **** 
+  64:Generated_Source\PSoC4/RTC.h **** /** @} structures */
+  65:Generated_Source\PSoC4/RTC.h **** 
+  66:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+  67:Generated_Source\PSoC4/RTC.h **** *    Enumerated Types and Parameters
+  68:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+  69:Generated_Source\PSoC4/RTC.h **** /* Time Format setting constants */
+  70:Generated_Source\PSoC4/RTC.h **** #define RTC__HOUR_12 1
+  71:Generated_Source\PSoC4/RTC.h **** #define RTC__HOUR_24 0
+  72:Generated_Source\PSoC4/RTC.h **** 
+  73:Generated_Source\PSoC4/RTC.h **** /*  Date Format setting constants */
+  74:Generated_Source\PSoC4/RTC.h **** #define RTC__MM_DD_YYYY 0
+  75:Generated_Source\PSoC4/RTC.h **** #define RTC__DD_MM_YYYY 1
+  76:Generated_Source\PSoC4/RTC.h **** #define RTC__YYYY_MM_DD 2
+  77:Generated_Source\PSoC4/RTC.h **** 
+  78:Generated_Source\PSoC4/RTC.h **** /* Date Type setting constants */
+  79:Generated_Source\PSoC4/RTC.h **** #define RTC__RELATIVE 0
+  80:Generated_Source\PSoC4/RTC.h **** #define RTC__FIXED 1
+  81:Generated_Source\PSoC4/RTC.h **** 
+  82:Generated_Source\PSoC4/RTC.h **** /* DST Hour setting constants */
+  83:Generated_Source\PSoC4/RTC.h **** #define RTC__H0000 0
+  84:Generated_Source\PSoC4/RTC.h **** #define RTC__H0100 1
+  85:Generated_Source\PSoC4/RTC.h **** #define RTC__H0200 2
+  86:Generated_Source\PSoC4/RTC.h **** #define RTC__H0300 3
+  87:Generated_Source\PSoC4/RTC.h **** #define RTC__H0400 4
+  88:Generated_Source\PSoC4/RTC.h **** #define RTC__H0500 5
+  89:Generated_Source\PSoC4/RTC.h **** #define RTC__H0600 6
+  90:Generated_Source\PSoC4/RTC.h **** #define RTC__H0700 7
+  91:Generated_Source\PSoC4/RTC.h **** #define RTC__H0800 8
+  92:Generated_Source\PSoC4/RTC.h **** #define RTC__H0900 9
+  93:Generated_Source\PSoC4/RTC.h **** #define RTC__H1000 10
+  94:Generated_Source\PSoC4/RTC.h **** #define RTC__H1100 11
+  95:Generated_Source\PSoC4/RTC.h **** #define RTC__H1200 12
+  96:Generated_Source\PSoC4/RTC.h **** #define RTC__H1300 13
+  97:Generated_Source\PSoC4/RTC.h **** #define RTC__H1400 14
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 7
+
+
+  98:Generated_Source\PSoC4/RTC.h **** #define RTC__H1500 15
+  99:Generated_Source\PSoC4/RTC.h **** #define RTC__H1600 16
+ 100:Generated_Source\PSoC4/RTC.h **** #define RTC__H1700 17
+ 101:Generated_Source\PSoC4/RTC.h **** #define RTC__H1800 18
+ 102:Generated_Source\PSoC4/RTC.h **** #define RTC__H1900 19
+ 103:Generated_Source\PSoC4/RTC.h **** #define RTC__H2000 20
+ 104:Generated_Source\PSoC4/RTC.h **** #define RTC__H2100 21
+ 105:Generated_Source\PSoC4/RTC.h **** #define RTC__H2200 22
+ 106:Generated_Source\PSoC4/RTC.h **** #define RTC__H2300 23
+ 107:Generated_Source\PSoC4/RTC.h **** 
+ 108:Generated_Source\PSoC4/RTC.h **** /* DST DayOfWeek setting constants */
+ 109:Generated_Source\PSoC4/RTC.h **** #define RTC__SUNDAY 1
+ 110:Generated_Source\PSoC4/RTC.h **** #define RTC__MONDAY 2
+ 111:Generated_Source\PSoC4/RTC.h **** #define RTC__TUESDAY 3
+ 112:Generated_Source\PSoC4/RTC.h **** #define RTC__WEDNESDAY 4
+ 113:Generated_Source\PSoC4/RTC.h **** #define RTC__THURSDAY 5
+ 114:Generated_Source\PSoC4/RTC.h **** #define RTC__FRIDAY 6
+ 115:Generated_Source\PSoC4/RTC.h **** #define RTC__SATURDAY 7
+ 116:Generated_Source\PSoC4/RTC.h **** 
+ 117:Generated_Source\PSoC4/RTC.h **** /* DST Month setting constants */
+ 118:Generated_Source\PSoC4/RTC.h **** #define RTC__JAN 1
+ 119:Generated_Source\PSoC4/RTC.h **** #define RTC__FEB 2
+ 120:Generated_Source\PSoC4/RTC.h **** #define RTC__MAR 3
+ 121:Generated_Source\PSoC4/RTC.h **** #define RTC__APR 4
+ 122:Generated_Source\PSoC4/RTC.h **** #define RTC__MAY 5
+ 123:Generated_Source\PSoC4/RTC.h **** #define RTC__JUN 6
+ 124:Generated_Source\PSoC4/RTC.h **** #define RTC__JUL 7
+ 125:Generated_Source\PSoC4/RTC.h **** #define RTC__AUG 8
+ 126:Generated_Source\PSoC4/RTC.h **** #define RTC__SEP 9
+ 127:Generated_Source\PSoC4/RTC.h **** #define RTC__OCT 10
+ 128:Generated_Source\PSoC4/RTC.h **** #define RTC__NOV 11
+ 129:Generated_Source\PSoC4/RTC.h **** #define RTC__DEC 12
+ 130:Generated_Source\PSoC4/RTC.h **** 
+ 131:Generated_Source\PSoC4/RTC.h **** /* DST WeekOfMonth setting constants */
+ 132:Generated_Source\PSoC4/RTC.h **** #define RTC__FIRST 1
+ 133:Generated_Source\PSoC4/RTC.h **** #define RTC__SECOND 2
+ 134:Generated_Source\PSoC4/RTC.h **** #define RTC__THIRD 3
+ 135:Generated_Source\PSoC4/RTC.h **** #define RTC__FOURTH 4
+ 136:Generated_Source\PSoC4/RTC.h **** #define RTC__FIFTH 5
+ 137:Generated_Source\PSoC4/RTC.h **** #define RTC__LAST 6
+ 138:Generated_Source\PSoC4/RTC.h **** 
+ 139:Generated_Source\PSoC4/RTC.h **** 
+ 140:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DATA_FORMAT     (0u)
+ 141:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_TIME_FORMAT     (0u)
+ 142:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_UPDATE_MODE     (0u)
+ 143:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_SECOND          (0u)
+ 144:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_MINUTE          (16u)
+ 145:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_HOUR            (10u)
+ 146:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DAY             (9u)
+ 147:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_MONTH           (8u)
+ 148:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_YEAR            (2016u)
+ 149:Generated_Source\PSoC4/RTC.h **** 
+ 150:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_ALARM_STATUS    (0u)
+ 151:Generated_Source\PSoC4/RTC.h **** 
+ 152:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STATUS      (0u)
+ 153:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_DATE_TYPE   (0u)
+ 154:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_START_MONTH (3uL)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 8
+
+
+ 155:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_START_WOM   (6uL)
+ 156:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_START_DOM   (22uL)
+ 157:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_START_DOW   (1uL)
+ 158:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_START_HRS   (0uL)
+ 159:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STOP_MONTH  (10uL)
+ 160:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STOP_DOM    (22uL)
+ 161:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STOP_DOW    (1uL)
+ 162:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STOP_WOM    (6uL)
+ 163:Generated_Source\PSoC4/RTC.h **** #define RTC_INITIAL_DST_STOP_HRS    (0uL)
+ 164:Generated_Source\PSoC4/RTC.h **** 
+ 165:Generated_Source\PSoC4/RTC.h **** /* Day of week definitions */
+ 166:Generated_Source\PSoC4/RTC.h **** #define RTC_SUNDAY     (RTC__SUNDAY)
+ 167:Generated_Source\PSoC4/RTC.h **** #define RTC_MONDAY     (RTC__MONDAY)
+ 168:Generated_Source\PSoC4/RTC.h **** #define RTC_TUESDAY    (RTC__TUESDAY)
+ 169:Generated_Source\PSoC4/RTC.h **** #define RTC_WEDNESDAY  (RTC__WEDNESDAY)
+ 170:Generated_Source\PSoC4/RTC.h **** #define RTC_THURSDAY   (RTC__THURSDAY)
+ 171:Generated_Source\PSoC4/RTC.h **** #define RTC_FRIDAY     (RTC__FRIDAY)
+ 172:Generated_Source\PSoC4/RTC.h **** #define RTC_SATURDAY   (RTC__SATURDAY)
+ 173:Generated_Source\PSoC4/RTC.h **** 
+ 174:Generated_Source\PSoC4/RTC.h **** /* DST WeekOfMonth setting constants definitions */
+ 175:Generated_Source\PSoC4/RTC.h **** #define RTC_FIRST      (RTC__FIRST)
+ 176:Generated_Source\PSoC4/RTC.h **** #define RTC_SECOND     (RTC__SECOND)
+ 177:Generated_Source\PSoC4/RTC.h **** #define RTC_THIRD      (RTC__THIRD)
+ 178:Generated_Source\PSoC4/RTC.h **** #define RTC_FOURTH     (RTC__FOURTH)
+ 179:Generated_Source\PSoC4/RTC.h **** #define RTC_FIFTH      (RTC__FIFTH)
+ 180:Generated_Source\PSoC4/RTC.h **** #define RTC_LAST       (RTC__LAST)
+ 181:Generated_Source\PSoC4/RTC.h **** 
+ 182:Generated_Source\PSoC4/RTC.h **** /* Month definitions */
+ 183:Generated_Source\PSoC4/RTC.h **** #define RTC_JANUARY    (RTC__JAN)
+ 184:Generated_Source\PSoC4/RTC.h **** #define RTC_FEBRUARY   (RTC__FEB)
+ 185:Generated_Source\PSoC4/RTC.h **** #define RTC_MARCH      (RTC__MAR)
+ 186:Generated_Source\PSoC4/RTC.h **** #define RTC_APRIL      (RTC__APR)
+ 187:Generated_Source\PSoC4/RTC.h **** #define RTC_MAY        (RTC__MAY)
+ 188:Generated_Source\PSoC4/RTC.h **** #define RTC_JUNE       (RTC__JUN)
+ 189:Generated_Source\PSoC4/RTC.h **** #define RTC_JULY       (RTC__JUL)
+ 190:Generated_Source\PSoC4/RTC.h **** #define RTC_AUGUST     (RTC__AUG)
+ 191:Generated_Source\PSoC4/RTC.h **** #define RTC_SEPTEMBER  (RTC__SEP)
+ 192:Generated_Source\PSoC4/RTC.h **** #define RTC_OCTOBER    (RTC__OCT)
+ 193:Generated_Source\PSoC4/RTC.h **** #define RTC_NOVEMBER   (RTC__NOV)
+ 194:Generated_Source\PSoC4/RTC.h **** #define RTC_DECEMBER   (RTC__DEC)
+ 195:Generated_Source\PSoC4/RTC.h **** 
+ 196:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_PER_WEEK       (7u)
+ 197:Generated_Source\PSoC4/RTC.h **** 
+ 198:Generated_Source\PSoC4/RTC.h **** /* Number of days in month definitions */
+ 199:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_JANUARY     (31u)
+ 200:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_FEBRUARY    (28u)
+ 201:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_MARCH       (31u)
+ 202:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_APRIL       (30u)
+ 203:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_MAY         (31u)
+ 204:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_JUNE        (30u)
+ 205:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_JULY        (31u)
+ 206:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_AUGUST      (31u)
+ 207:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_SEPTEMBER   (30u)
+ 208:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_OCTOBER     (31u)
+ 209:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_NOVEMBER    (30u)
+ 210:Generated_Source\PSoC4/RTC.h **** #define RTC_DAYS_IN_DECEMBER    (31u)
+ 211:Generated_Source\PSoC4/RTC.h **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 9
+
+
+ 212:Generated_Source\PSoC4/RTC.h **** #define RTC_MONTHS_PER_YEAR     (12uL)
+ 213:Generated_Source\PSoC4/RTC.h **** 
+ 214:Generated_Source\PSoC4/RTC.h **** #define RTC_HOURS_PER_DAY       (24uL)
+ 215:Generated_Source\PSoC4/RTC.h **** #define RTC_HOURS_PER_HALF_DAY  (12uL)
+ 216:Generated_Source\PSoC4/RTC.h **** 
+ 217:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_PER_MINUTE  (60uL)
+ 218:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_PER_HOUR    (3600uL)
+ 219:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_PER_DAY     (24uL * 3600uL)
+ 220:Generated_Source\PSoC4/RTC.h **** 
+ 221:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_PER_LEAP_YEAR    (366uL * 24uL * 3600uL)
+ 222:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_PER_NONLEAP_YEAR (365uL * 24uL * 3600uL)
+ 223:Generated_Source\PSoC4/RTC.h **** 
+ 224:Generated_Source\PSoC4/RTC.h **** #define RTC_UNIX_TIME_PM   ((12uL * 3600uL) + 1uL)
+ 225:Generated_Source\PSoC4/RTC.h **** 
+ 226:Generated_Source\PSoC4/RTC.h **** /* AM/PM status definitions */
+ 227:Generated_Source\PSoC4/RTC.h **** #define RTC_AM                 (0u)
+ 228:Generated_Source\PSoC4/RTC.h **** #define RTC_PM                 (1u)
+ 229:Generated_Source\PSoC4/RTC.h **** 
+ 230:Generated_Source\PSoC4/RTC.h **** /* Time format definitions */
+ 231:Generated_Source\PSoC4/RTC.h **** #define RTC_12_HOURS_FORMAT    (RTC__HOUR_12)
+ 232:Generated_Source\PSoC4/RTC.h **** #define RTC_24_HOURS_FORMAT    (RTC__HOUR_24)
+ 233:Generated_Source\PSoC4/RTC.h **** 
+ 234:Generated_Source\PSoC4/RTC.h **** /* UNIX time begins in 1970 year.  */
+ 235:Generated_Source\PSoC4/RTC.h **** #define RTC_YEAR_0             (1970u)
+ 236:Generated_Source\PSoC4/RTC.h **** 
+ 237:Generated_Source\PSoC4/RTC.h **** /* Definition of date register fields */
+ 238:Generated_Source\PSoC4/RTC.h **** #if(RTC_INITIAL_DATA_FORMAT == RTC__MM_DD_YYYY)
+ 239:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_MONTH_OFFSET   (28u)
+ 240:Generated_Source\PSoC4/RTC.h ****     #define RTC_MONTH_OFFSET      (24u)
+ 241:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_DAY_OFFSET     (20u)
+ 242:Generated_Source\PSoC4/RTC.h ****     #define RTC_DAY_OFFSET        (16u)
+ 243:Generated_Source\PSoC4/RTC.h ****     #define RTC_1000_YEAR_OFFSET  (12u)
+ 244:Generated_Source\PSoC4/RTC.h ****     #define RTC_100_YEAR_OFFSET   (8u)
+ 245:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_YEAR_OFFSET    (4u)
+ 246:Generated_Source\PSoC4/RTC.h ****     #define RTC_YEAR_OFFSET       (0u)
+ 247:Generated_Source\PSoC4/RTC.h **** #elif(RTC_INITIAL_DATA_FORMAT == RTC__DD_MM_YYYY)
+ 248:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_MONTH_OFFSET   (20u)
+ 249:Generated_Source\PSoC4/RTC.h ****     #define RTC_MONTH_OFFSET      (16u)
+ 250:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_DAY_OFFSET     (28u)
+ 251:Generated_Source\PSoC4/RTC.h ****     #define RTC_DAY_OFFSET        (24u)
+ 252:Generated_Source\PSoC4/RTC.h ****     #define RTC_1000_YEAR_OFFSET  (12u)
+ 253:Generated_Source\PSoC4/RTC.h ****     #define RTC_100_YEAR_OFFSET   (8u)
+ 254:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_YEAR_OFFSET    (4u)
+ 255:Generated_Source\PSoC4/RTC.h ****     #define RTC_YEAR_OFFSET       (0u)
+ 256:Generated_Source\PSoC4/RTC.h **** #else
+ 257:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_MONTH_OFFSET   (12u)
+ 258:Generated_Source\PSoC4/RTC.h ****     #define RTC_MONTH_OFFSET      (8u)
+ 259:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_DAY_OFFSET     (4u)
+ 260:Generated_Source\PSoC4/RTC.h ****     #define RTC_DAY_OFFSET        (0u)
+ 261:Generated_Source\PSoC4/RTC.h ****     #define RTC_1000_YEAR_OFFSET  (28u)
+ 262:Generated_Source\PSoC4/RTC.h ****     #define RTC_100_YEAR_OFFSET   (24u)
+ 263:Generated_Source\PSoC4/RTC.h ****     #define RTC_10_YEAR_OFFSET    (20u)
+ 264:Generated_Source\PSoC4/RTC.h ****     #define RTC_YEAR_OFFSET       (16u)
+ 265:Generated_Source\PSoC4/RTC.h **** #endif /* (RTC_INITIAL_DATA_FORMAT == RTC__MM_DD_YYYY) */
+ 266:Generated_Source\PSoC4/RTC.h **** 
+ 267:Generated_Source\PSoC4/RTC.h **** #define RTC_10_MONTH_MASK          (0x00000001uL << RTC_10_MONTH_OFFSET)
+ 268:Generated_Source\PSoC4/RTC.h **** #define RTC_MONTH_MASK             (0x0000000FuL << RTC_MONTH_OFFSET)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 10
+
+
+ 269:Generated_Source\PSoC4/RTC.h **** #define RTC_10_DAY_MASK            (0x00000003uL << RTC_10_DAY_OFFSET)
+ 270:Generated_Source\PSoC4/RTC.h **** #define RTC_DAY_MASK               (0x0000000FuL << RTC_DAY_OFFSET)
+ 271:Generated_Source\PSoC4/RTC.h **** #define RTC_1000_YEAR_MASK         (0x00000003uL << RTC_1000_YEAR_OFFSET)
+ 272:Generated_Source\PSoC4/RTC.h **** #define RTC_100_YEAR_MASK          (0x0000000FuL << RTC_100_YEAR_OFFSET)
+ 273:Generated_Source\PSoC4/RTC.h **** #define RTC_10_YEAR_MASK           (0x0000000FuL << RTC_10_YEAR_OFFSET)
+ 274:Generated_Source\PSoC4/RTC.h **** #define RTC_YEAR_MASK              (0x0000000FuL << RTC_YEAR_OFFSET)
+ 275:Generated_Source\PSoC4/RTC.h **** 
+ 276:Generated_Source\PSoC4/RTC.h **** #define  RTC_MONTH_FULL_MASK       (RTC_10_MONTH_MASK  | RTC_MONTH_MASK)
+ 277:Generated_Source\PSoC4/RTC.h **** #define  RTC_DAY_FULL_MASK         (RTC_10_DAY_MASK    | RTC_DAY_MASK)
+ 278:Generated_Source\PSoC4/RTC.h **** #define  RTC_YEAR_FULL_MASK        (RTC_1000_YEAR_MASK | RTC_100_YEAR_MASK |\
+ 279:Generated_Source\PSoC4/RTC.h ****                                                  RTC_10_YEAR_MASK   | RTC_YEAR_MASK)
+ 280:Generated_Source\PSoC4/RTC.h **** 
+ 281:Generated_Source\PSoC4/RTC.h **** 
+ 282:Generated_Source\PSoC4/RTC.h **** /* Definition of time register fields */
+ 283:Generated_Source\PSoC4/RTC.h **** #define RTC_TIME_FORMAT_OFFSET     (23u)
+ 284:Generated_Source\PSoC4/RTC.h **** #define RTC_PERIOD_OF_DAY_OFFSET   (22u)
+ 285:Generated_Source\PSoC4/RTC.h **** #define RTC_10_HOURS_OFFSET        (20u)
+ 286:Generated_Source\PSoC4/RTC.h **** #define RTC_HOURS_OFFSET           (16u)
+ 287:Generated_Source\PSoC4/RTC.h **** #define RTC_10_MINUTES_OFFSET      (12u)
+ 288:Generated_Source\PSoC4/RTC.h **** #define RTC_MINUTES_OFFSET         (8u)
+ 289:Generated_Source\PSoC4/RTC.h **** #define RTC_10_SECONDS_OFFSET      (4u)
+ 290:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_OFFSET         (0u)
+ 291:Generated_Source\PSoC4/RTC.h **** 
+ 292:Generated_Source\PSoC4/RTC.h **** #define RTC_TIME_FORMAT_MASK       (0x00000001uL << RTC_TIME_FORMAT_OFFSET)
+ 293:Generated_Source\PSoC4/RTC.h **** #define RTC_PERIOD_OF_DAY_MASK     (0x00000001uL << RTC_PERIOD_OF_DAY_OFFSET)
+ 294:Generated_Source\PSoC4/RTC.h **** #define RTC_10_HOURS_MASK          (0x00000003uL << RTC_10_HOURS_OFFSET)
+ 295:Generated_Source\PSoC4/RTC.h **** #define RTC_HOURS_MASK             (0x0000000FuL << RTC_HOURS_OFFSET)
+ 296:Generated_Source\PSoC4/RTC.h **** #define RTC_10_MINUTES_MASK        (0x00000007uL << RTC_10_MINUTES_OFFSET)
+ 297:Generated_Source\PSoC4/RTC.h **** #define RTC_MINUTES_MASK           (0x0000000FuL << RTC_MINUTES_OFFSET)
+ 298:Generated_Source\PSoC4/RTC.h **** #define RTC_10_SECONDS_MASK        (0x00000007uL << RTC_10_SECONDS_OFFSET)
+ 299:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_MASK           (0x0000000FuL << RTC_SECONDS_OFFSET)
+ 300:Generated_Source\PSoC4/RTC.h **** 
+ 301:Generated_Source\PSoC4/RTC.h **** #define RTC_HOURS_FULL_MASK        (RTC_10_HOURS_MASK   | RTC_HOURS_MASK)
+ 302:Generated_Source\PSoC4/RTC.h **** #define RTC_MINUTES_FULL_MASK      (RTC_10_MINUTES_MASK | RTC_MINUTES_MASK)
+ 303:Generated_Source\PSoC4/RTC.h **** #define RTC_SECONDS_FULL_MASK      (RTC_10_SECONDS_MASK | RTC_SECONDS_MASK)
+ 304:Generated_Source\PSoC4/RTC.h **** 
+ 305:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_SEC_MASK         (0x00000001uL)
+ 306:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_MIN_MASK         (0x00000002uL)
+ 307:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_HOUR_MASK        (0x00000004uL)
+ 308:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_DAYOFWEEK_MASK   (0x00000008uL)
+ 309:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_DAYOFMONTH_MASK  (0x00000010uL)
+ 310:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_MONTH_MASK       (0x00000020uL)
+ 311:Generated_Source\PSoC4/RTC.h **** #define RTC_ALARM_YEAR_MASK        (0x00000040uL)
+ 312:Generated_Source\PSoC4/RTC.h **** 
+ 313:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_DST_OFFSET      (1u)
+ 314:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_ALARM_OFFSET    (2u)
+ 315:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_LY_OFFSET       (3u)
+ 316:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_AM_PM_OFFSET    (4u)
+ 317:Generated_Source\PSoC4/RTC.h **** 
+ 318:Generated_Source\PSoC4/RTC.h **** /* Definition of the RTC status values. */
+ 319:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_DST             (1uL << RTC_STATUS_DST_OFFSET)
+ 320:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_LY              (1uL << RTC_STATUS_LY_OFFSET)
+ 321:Generated_Source\PSoC4/RTC.h **** #define RTC_STATUS_AM_PM           (1uL << RTC_STATUS_AM_PM_OFFSET)
+ 322:Generated_Source\PSoC4/RTC.h **** 
+ 323:Generated_Source\PSoC4/RTC.h **** /* Number of bits per one BCD digit. */
+ 324:Generated_Source\PSoC4/RTC.h **** #define RTC_BCD_NUMBER_SIZE        (4u)
+ 325:Generated_Source\PSoC4/RTC.h **** #define RTC_BCD_ONE_DIGIT_MASK     (0x0000000FuL)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 11
+
+
+ 326:Generated_Source\PSoC4/RTC.h **** 
+ 327:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 328:Generated_Source\PSoC4/RTC.h **** *    Function Prototypes
+ 329:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ 330:Generated_Source\PSoC4/RTC.h **** /**
+ 331:Generated_Source\PSoC4/RTC.h **** * \addtogroup group_api
+ 332:Generated_Source\PSoC4/RTC.h **** * @{
+ 333:Generated_Source\PSoC4/RTC.h **** */
+ 334:Generated_Source\PSoC4/RTC.h **** void   RTC_Start(void);
+ 335:Generated_Source\PSoC4/RTC.h **** void   RTC_Stop(void);
+ 336:Generated_Source\PSoC4/RTC.h **** void   RTC_Init(void);
+ 337:Generated_Source\PSoC4/RTC.h **** void   RTC_SetUnixTime(uint64 unixTime);
+ 338:Generated_Source\PSoC4/RTC.h **** uint64 RTC_GetUnixTime(void);
+ 339:Generated_Source\PSoC4/RTC.h **** void   RTC_SetPeriod(uint32 ticks, uint32 refOneSecTicks);
+ 340:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetPeriod(void);
+ 341:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetRefOneSec(void);
+ 342:Generated_Source\PSoC4/RTC.h **** void   RTC_SetDateAndTime(uint32 inputTime, uint32 inputDate);
+ 343:Generated_Source\PSoC4/RTC.h **** void   RTC_GetDateAndTime(RTC_DATE_TIME* dateTime);
+ 344:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetTime(void);
+ 345:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetDate(void);
+ 346:Generated_Source\PSoC4/RTC.h **** void   RTC_SetAlarmDateAndTime(const RTC_DATE_TIME* alarmTime);
+ 347:Generated_Source\PSoC4/RTC.h **** void   RTC_GetAlarmDateAndTime(RTC_DATE_TIME* alarmTimeDate);
+ 348:Generated_Source\PSoC4/RTC.h **** void   RTC_SetAlarmMask(uint32 mask);
+ 349:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetAlarmMask(void);
+ 350:Generated_Source\PSoC4/RTC.h **** uint32 RTC_ReadStatus(void);
+ 351:Generated_Source\PSoC4/RTC.h **** uint32 RTC_GetAlarmStatus(void);
+ 352:Generated_Source\PSoC4/RTC.h **** void   RTC_ClearAlarmStatus(void);
+ 353:Generated_Source\PSoC4/RTC.h **** void   RTC_SetDSTStartTime(const RTC_DST_TIME* dstStartTime,
+ 354:Generated_Source\PSoC4/RTC.h ****                                               RTC_DST_DATETYPE_ENUM type);
+ 355:Generated_Source\PSoC4/RTC.h **** void   RTC_SetDSTStopTime(const RTC_DST_TIME* dstStopTime,
+ 356:Generated_Source\PSoC4/RTC.h ****                                              RTC_DST_DATETYPE_ENUM type);
+ 357:Generated_Source\PSoC4/RTC.h **** uint32 RTC_ConvertBCDToDec(uint32 bcdNum);
+ 358:Generated_Source\PSoC4/RTC.h **** uint32 RTC_ConvertDecToBCD(uint32 decNum);
+ 359:Generated_Source\PSoC4/RTC.h **** void   RTC_Update(void);
+ 360:Generated_Source\PSoC4/RTC.h **** void*  RTC_SetAlarmHandler(void (*CallbackFunction)(void));
+ 361:Generated_Source\PSoC4/RTC.h **** 
+ 362:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_ConstructDate(uint32 month, uint32 day, uint32 year);
+ 363:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_ConstructTime(uint32 timeFormat, uint32 stateAmPm, uint32 hour, uint32 min, uint3
+ 364:Generated_Source\PSoC4/RTC.h **** /** @} api */
+ 365:Generated_Source\PSoC4/RTC.h **** 
+ 366:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetTimeFormat(uint32 inputTime);
+ 367:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetTimeFormat(uint32 inputTime, uint32 timeFormat);
+ 368:Generated_Source\PSoC4/RTC.h **** 
+ 369:Generated_Source\PSoC4/RTC.h **** /**
+ 370:Generated_Source\PSoC4/RTC.h **** * \addtogroup group_api
+ 371:Generated_Source\PSoC4/RTC.h **** * @{
+ 372:Generated_Source\PSoC4/RTC.h **** */
+ 373:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_LeapYear(uint32 year);
+ 374:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_IsBitSet(uint32 var, uint32 mask);
+ 375:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetSecond(uint32 inputTime);
+ 376:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetMinutes(uint32 inputTime);
+ 377:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetHours(uint32 inputTime);
+ 378:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetAmPm(uint32 inputTime);
+ 379:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetDay(uint32 date);
+ 380:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetMonth(uint32 date);
+ 381:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetYear(uint32 date);
+ 382:Generated_Source\PSoC4/RTC.h **** /** @} api */
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 12
+
+
+ 383:Generated_Source\PSoC4/RTC.h **** 
+ 384:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetSecond(uint32 inputTime, uint32 inputSecond);
+ 385:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetMinutes(uint32 inputTime, uint32 inputMinute);
+ 386:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetHours(uint32 inputTime, uint32 inputHours);
+ 387:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetAmPm(uint32 inputTime, uint32 periodOfDay);
+ 388:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetDay(uint32 inputDate, uint32 inputDay);
+ 389:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetMonth(uint32 inputDate, uint32 inputMonth);
+ 390:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_SetYear(uint32 inputDate, uint32 inputYear);
+ 391:Generated_Source\PSoC4/RTC.h **** 
+ 392:Generated_Source\PSoC4/RTC.h **** uint64 RTC_ConstructUnixAlarmTime(const RTC_DATE_TIME* alarmTime, uint8 alarmCfgMask);
+ 393:Generated_Source\PSoC4/RTC.h **** uint64 RTC_GetDstUnixTime(const RTC_DST_TIME* dstTime);
+ 394:Generated_Source\PSoC4/RTC.h **** uint64 RTC_GetNexAlarmTime(uint64 curUnixTime, uint8 alarmCfgMask);
+ 395:Generated_Source\PSoC4/RTC.h **** 
+ 396:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetNextMinSec(uint32 curVal);
+ 397:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetNextHour(uint32 curVal);
+ 398:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetNextDay(uint32 curYear, uint32 curMonth, uint32 curDay, uint32 alarmCfgMask);
+ 399:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetNextMonth(uint32 curMonth);
+ 400:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetNextYear(uint32 curYear);
+ 401:Generated_Source\PSoC4/RTC.h **** static uint32 RTC_GetDayOfWeek(uint32 day, uint32 month, uint32 year);
+ 402:Generated_Source\PSoC4/RTC.h **** 
+ 403:Generated_Source\PSoC4/RTC.h **** uint32 RTC_DaysInMonth(uint32 month, uint32 year);
+ 404:Generated_Source\PSoC4/RTC.h **** uint32 RTC_DaysBeforeMonth(uint32 month, uint32 year);
+ 405:Generated_Source\PSoC4/RTC.h **** 
+ 406:Generated_Source\PSoC4/RTC.h **** /**
+ 407:Generated_Source\PSoC4/RTC.h **** * \addtogroup group_api
+ 408:Generated_Source\PSoC4/RTC.h **** * @{
+ 409:Generated_Source\PSoC4/RTC.h **** */
+ 410:Generated_Source\PSoC4/RTC.h **** void   RTC_UnixToDateTime(RTC_DATE_TIME* dateTime, uint64 unixTime, uint32 timeFormat);
+ 411:Generated_Source\PSoC4/RTC.h **** uint64 RTC_DateTimeToUnix(uint32 inputDate, uint32 inputTime);
+ 412:Generated_Source\PSoC4/RTC.h **** /** @} api */
+ 413:Generated_Source\PSoC4/RTC.h **** 
+ 414:Generated_Source\PSoC4/RTC.h **** uint32 RTC_RelativeToFixed(uint32 dayOfWeek, uint32 weekOfMonth, uint32 month, uint32 year);
+ 415:Generated_Source\PSoC4/RTC.h **** 
+ 416:Generated_Source\PSoC4/RTC.h **** 
+ 417:Generated_Source\PSoC4/RTC.h **** #if defined(CYDEV_RTC_SOURCE_WDT)
+ 418:Generated_Source\PSoC4/RTC.h ****     #if((0u != CYDEV_WDT_GENERATE_ISR) && (0u == RTC_INITIAL_UPDATE_MODE))
+ 419:Generated_Source\PSoC4/RTC.h ****         static void RTC_CySysRtcSetCallback(uint32 wdtNumber);
+ 420:Generated_Source\PSoC4/RTC.h ****         static void RTC_CySysRtcResetCallback(uint32 wdtNumber);
+ 421:Generated_Source\PSoC4/RTC.h ****     #endif /* ((0u != CYDEV_WDT_GENERATE_ISR) && (0u == RTC_INITIAL_UPDATE_MODE)) */
+ 422:Generated_Source\PSoC4/RTC.h **** #endif /* (CYDEV_RTC_SOURCE_WDT) */
+ 423:Generated_Source\PSoC4/RTC.h **** 
+ 424:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 425:Generated_Source\PSoC4/RTC.h **** * Function Name: RTC_IsBitSet
+ 426:Generated_Source\PSoC4/RTC.h **** ****************************************************************************//**
+ 427:Generated_Source\PSoC4/RTC.h **** *
+ 428:Generated_Source\PSoC4/RTC.h **** * \brief
+ 429:Generated_Source\PSoC4/RTC.h **** *  Checks the state of a bit passed through parameter.
+ 430:Generated_Source\PSoC4/RTC.h **** *
+ 431:Generated_Source\PSoC4/RTC.h **** * \param
+ 432:Generated_Source\PSoC4/RTC.h **** *  var The variable to be checked.
+ 433:Generated_Source\PSoC4/RTC.h **** * \param
+ 434:Generated_Source\PSoC4/RTC.h **** *  mask The mask for a bit to be checked.
+ 435:Generated_Source\PSoC4/RTC.h **** *
+ 436:Generated_Source\PSoC4/RTC.h **** * \return
+ 437:Generated_Source\PSoC4/RTC.h **** *  0u - Bit is not set.
+ 438:Generated_Source\PSoC4/RTC.h **** * \return
+ 439:Generated_Source\PSoC4/RTC.h **** *  1u - Bit is set.
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 13
+
+
+ 440:Generated_Source\PSoC4/RTC.h **** *
+ 441:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ 442:Generated_Source\PSoC4/RTC.h **** static CY_INLINE uint32 RTC_IsBitSet(uint32 var, uint32 mask)
+ 443:Generated_Source\PSoC4/RTC.h **** {
+ 444:Generated_Source\PSoC4/RTC.h ****     return ((mask == (var & mask)) ? 1Lu : 0Lu);
+ 445:Generated_Source\PSoC4/RTC.h **** }
+ 446:Generated_Source\PSoC4/RTC.h **** 
+ 447:Generated_Source\PSoC4/RTC.h **** 
+ 448:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 449:Generated_Source\PSoC4/RTC.h **** * Function Name: RTC_LeapYear
+ 450:Generated_Source\PSoC4/RTC.h **** ****************************************************************************//**
+ 451:Generated_Source\PSoC4/RTC.h **** *
+ 452:Generated_Source\PSoC4/RTC.h **** * \brief
+ 453:Generated_Source\PSoC4/RTC.h **** * Checks whether the year passed through the parameter is
+ 454:Generated_Source\PSoC4/RTC.h **** * leap or no.
+ 455:Generated_Source\PSoC4/RTC.h **** *
+ 456:Generated_Source\PSoC4/RTC.h **** * \param
+ 457:Generated_Source\PSoC4/RTC.h **** *  year The year to be checked.
+ 458:Generated_Source\PSoC4/RTC.h **** *
+ 459:Generated_Source\PSoC4/RTC.h **** *
+ 460:Generated_Source\PSoC4/RTC.h **** * \return
+ 461:Generated_Source\PSoC4/RTC.h **** *  0u - The year is not leap.
+ 462:Generated_Source\PSoC4/RTC.h **** * \return
+ 463:Generated_Source\PSoC4/RTC.h **** *  1u - The year is leap.
+ 464:Generated_Source\PSoC4/RTC.h **** *
+ 465:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ 466:Generated_Source\PSoC4/RTC.h **** static CY_INLINE uint32 RTC_LeapYear(uint32 year)
+ 467:Generated_Source\PSoC4/RTC.h **** {
+ 468:Generated_Source\PSoC4/RTC.h ****     uint32 retVal;
+ 469:Generated_Source\PSoC4/RTC.h **** 
+ 470:Generated_Source\PSoC4/RTC.h ****     if(((0u == (year % 4Lu)) && (0u != (year % 100Lu))) || (0u == (year % 400Lu)))
+ 471:Generated_Source\PSoC4/RTC.h ****     {
+ 472:Generated_Source\PSoC4/RTC.h ****         retVal = 1uL;
+ 473:Generated_Source\PSoC4/RTC.h ****     }
+ 474:Generated_Source\PSoC4/RTC.h ****     else
+ 475:Generated_Source\PSoC4/RTC.h ****     {
+ 476:Generated_Source\PSoC4/RTC.h ****         retVal = 0uL;
+ 477:Generated_Source\PSoC4/RTC.h ****     }
+ 478:Generated_Source\PSoC4/RTC.h **** 
+ 479:Generated_Source\PSoC4/RTC.h ****     return(retVal);
+ 480:Generated_Source\PSoC4/RTC.h **** }
+ 481:Generated_Source\PSoC4/RTC.h **** 
+ 482:Generated_Source\PSoC4/RTC.h **** 
+ 483:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 484:Generated_Source\PSoC4/RTC.h **** * Function Name: RTC_GetSecond
+ 485:Generated_Source\PSoC4/RTC.h **** ****************************************************************************//**
+ 486:Generated_Source\PSoC4/RTC.h **** *
+ 487:Generated_Source\PSoC4/RTC.h **** * \brief
+ 488:Generated_Source\PSoC4/RTC.h **** *  Returns the seconds value from the time value that is passed as a/the parameter.
+ 489:Generated_Source\PSoC4/RTC.h **** *
+ 490:Generated_Source\PSoC4/RTC.h **** * \param
+ 491:Generated_Source\PSoC4/RTC.h **** *  time The time value.
+ 492:Generated_Source\PSoC4/RTC.h **** *
+ 493:Generated_Source\PSoC4/RTC.h **** * \return
+ 494:Generated_Source\PSoC4/RTC.h **** *  The seconds value.
+ 495:Generated_Source\PSoC4/RTC.h **** *
+ 496:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 14
+
+
+ 497:Generated_Source\PSoC4/RTC.h **** static CY_INLINE uint32 RTC_GetSecond(uint32 inputTime)
+ 498:Generated_Source\PSoC4/RTC.h **** {
+ 499:Generated_Source\PSoC4/RTC.h ****     uint32 retVal;
+ 500:Generated_Source\PSoC4/RTC.h **** 
+ 501:Generated_Source\PSoC4/RTC.h ****     retVal  = ((inputTime & RTC_10_SECONDS_MASK) >> RTC_10_SECONDS_OFFSET) * 10u;
+ 502:Generated_Source\PSoC4/RTC.h ****     retVal += (inputTime & RTC_SECONDS_MASK) >> RTC_SECONDS_OFFSET;
+ 503:Generated_Source\PSoC4/RTC.h **** 
+ 504:Generated_Source\PSoC4/RTC.h ****     return (retVal);
+ 505:Generated_Source\PSoC4/RTC.h **** }
+ 506:Generated_Source\PSoC4/RTC.h **** 
+ 507:Generated_Source\PSoC4/RTC.h **** 
+ 508:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 509:Generated_Source\PSoC4/RTC.h **** * Function Name: RTC_GetMinutes
+ 510:Generated_Source\PSoC4/RTC.h **** ****************************************************************************//**
+ 511:Generated_Source\PSoC4/RTC.h **** *
+ 512:Generated_Source\PSoC4/RTC.h **** * \brief
+ 513:Generated_Source\PSoC4/RTC.h **** *  Returns the minutes value from the time value that is passed as a/the 
+ 514:Generated_Source\PSoC4/RTC.h **** * parameter.
+ 515:Generated_Source\PSoC4/RTC.h **** *
+ 516:Generated_Source\PSoC4/RTC.h **** * \param
+ 517:Generated_Source\PSoC4/RTC.h **** *  time The time value.
+ 518:Generated_Source\PSoC4/RTC.h **** *
+ 519:Generated_Source\PSoC4/RTC.h **** * \return
+ 520:Generated_Source\PSoC4/RTC.h **** *  The minutes value.
+ 521:Generated_Source\PSoC4/RTC.h **** *
+ 522:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ 523:Generated_Source\PSoC4/RTC.h **** static CY_INLINE uint32 RTC_GetMinutes(uint32 inputTime)
+ 524:Generated_Source\PSoC4/RTC.h **** {
+ 525:Generated_Source\PSoC4/RTC.h ****     uint32 retVal;
+ 526:Generated_Source\PSoC4/RTC.h **** 
+ 527:Generated_Source\PSoC4/RTC.h ****     retVal  = ((inputTime & RTC_10_MINUTES_MASK) >> RTC_10_MINUTES_OFFSET) * 10u;
+ 528:Generated_Source\PSoC4/RTC.h ****     retVal += (inputTime & RTC_MINUTES_MASK) >> RTC_MINUTES_OFFSET;
+ 529:Generated_Source\PSoC4/RTC.h **** 
+ 530:Generated_Source\PSoC4/RTC.h ****     return (retVal);
+ 531:Generated_Source\PSoC4/RTC.h **** }
+ 532:Generated_Source\PSoC4/RTC.h **** 
+ 533:Generated_Source\PSoC4/RTC.h **** 
+ 534:Generated_Source\PSoC4/RTC.h **** /*******************************************************************************
+ 535:Generated_Source\PSoC4/RTC.h **** * Function Name: RTC_GetHours
+ 536:Generated_Source\PSoC4/RTC.h **** ****************************************************************************//**
+ 537:Generated_Source\PSoC4/RTC.h **** *
+ 538:Generated_Source\PSoC4/RTC.h **** * \brief
+ 539:Generated_Source\PSoC4/RTC.h **** *  Returns the hours value from the time value that is passed as a/the parameter.
+ 540:Generated_Source\PSoC4/RTC.h **** *
+ 541:Generated_Source\PSoC4/RTC.h **** * \param
+ 542:Generated_Source\PSoC4/RTC.h **** *  time The time value.
+ 543:Generated_Source\PSoC4/RTC.h **** *
+ 544:Generated_Source\PSoC4/RTC.h **** * \return
+ 545:Generated_Source\PSoC4/RTC.h **** *  The hours value.
+ 546:Generated_Source\PSoC4/RTC.h **** *
+ 547:Generated_Source\PSoC4/RTC.h **** *******************************************************************************/
+ 548:Generated_Source\PSoC4/RTC.h **** static CY_INLINE uint32 RTC_GetHours(uint32 inputTime)
+ 549:Generated_Source\PSoC4/RTC.h **** {
+ 550:Generated_Source\PSoC4/RTC.h ****     uint32 retVal;
+ 551:Generated_Source\PSoC4/RTC.h **** 
+ 552:Generated_Source\PSoC4/RTC.h ****     retVal  = ((inputTime & RTC_10_HOURS_MASK) >> RTC_10_HOURS_OFFSET) * 10u;
+ 143              		.loc 2 552 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 15
+
+
+ 144 000a 0A23     		mov	r3, #10
+ 145 000c 8202     		lsl	r2, r0, #10
+ 146 000e 920F     		lsr	r2, r2, #30
+ 147 0010 5A43     		mul	r2, r3
+ 553:Generated_Source\PSoC4/RTC.h ****     retVal += (inputTime & RTC_HOURS_MASK) >> RTC_HOURS_OFFSET;
+ 148              		.loc 2 553 0
+ 149 0012 0103     		lsl	r1, r0, #12
+ 150 0014 090F     		lsr	r1, r1, #28
+ 151 0016 5218     		add	r2, r2, r1
+ 152 0018 0292     		str	r2, [sp, #8]
+ 153              	.LBE29:
+ 154              	.LBE28:
+ 155              	.LBB30:
+ 156              	.LBB31:
+ 527:Generated_Source\PSoC4/RTC.h ****     retVal += (inputTime & RTC_MINUTES_MASK) >> RTC_MINUTES_OFFSET;
+ 157              		.loc 2 527 0
+ 158 001a 4204     		lsl	r2, r0, #17
+ 159 001c 520F     		lsr	r2, r2, #29
+ 160 001e 5A43     		mul	r2, r3
+ 528:Generated_Source\PSoC4/RTC.h **** 
+ 161              		.loc 2 528 0
+ 162 0020 0105     		lsl	r1, r0, #20
+ 163 0022 090F     		lsr	r1, r1, #28
+ 164 0024 5218     		add	r2, r2, r1
+ 165 0026 0392     		str	r2, [sp, #12]
+ 166              	.LBE31:
+ 167              	.LBE30:
+ 168              	.LBB32:
+ 169              	.LBB33:
+ 501:Generated_Source\PSoC4/RTC.h ****     retVal += (inputTime & RTC_SECONDS_MASK) >> RTC_SECONDS_OFFSET;
+ 170              		.loc 2 501 0
+ 171 0028 4206     		lsl	r2, r0, #25
+ 172 002a 520F     		lsr	r2, r2, #29
+ 173 002c 5343     		mul	r3, r2
+ 502:Generated_Source\PSoC4/RTC.h **** 
+ 174              		.loc 2 502 0
+ 175 002e 0F22     		mov	r2, #15
+ 176              	.LBE33:
+ 177              	.LBE32:
+  99:lib_RTC/RTC_WDT.c ****     hour = RTC_GetHours(readTime);
+ 178              		.loc 1 99 0
+ 179 0030 0024     		mov	r4, #0
+ 180              	.LBB35:
+ 181              	.LBB34:
+ 502:Generated_Source\PSoC4/RTC.h **** 
+ 182              		.loc 2 502 0
+ 183 0032 0240     		and	r2, r0
+ 184 0034 9B18     		add	r3, r3, r2
+ 185 0036 0493     		str	r3, [sp, #16]
+ 186              	.LBE34:
+ 187              	.LBE35:
+ 100:lib_RTC/RTC_WDT.c ****     min = RTC_GetMinutes(readTime);
+ 101:lib_RTC/RTC_WDT.c ****     sec = RTC_GetSecond(readTime);
+ 102:lib_RTC/RTC_WDT.c ****     ms = RTCgetRecentMs();
+ 188              		.loc 1 102 0
+ 189 0038 3F4B     		ldr	r3, .L11
+  98:lib_RTC/RTC_WDT.c ****     hour = RTC_GetHours(readTime);
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 16
+
+
+ 190              		.loc 1 98 0
+ 191 003a 051C     		mov	r5, r0
+ 192              	.LVL8:
+ 193              		.loc 1 102 0
+ 194 003c 1E88     		ldrh	r6, [r3]
+ 195              	.LVL9:
+ 103:lib_RTC/RTC_WDT.c ****     stateAmPm = RTC_GetAmPm(readTime);
+ 104:lib_RTC/RTC_WDT.c ****     
+ 105:lib_RTC/RTC_WDT.c ****     time  = timeFormat << RTC_TIME_FORMAT_SHIFT;
+ 106:lib_RTC/RTC_WDT.c ****     time |= stateAmPm << RTC_PERIOD_OF_DAY_SHIFT;
+ 107:lib_RTC/RTC_WDT.c **** 
+ 108:lib_RTC/RTC_WDT.c ****     time |= (hour / 10u) << RTC_10_HOURS_SHIFT;
+ 109:lib_RTC/RTC_WDT.c ****     time |= (hour % 10u) << RTC_HOURS_SHIFT;
+ 110:lib_RTC/RTC_WDT.c **** 
+ 111:lib_RTC/RTC_WDT.c ****     time |= (min / 10u) << RTC_10_MINUTES_SHIFT;
+ 112:lib_RTC/RTC_WDT.c ****     time |= (min % 10u) << RTC_MINUTES_SHIFT;
+ 113:lib_RTC/RTC_WDT.c **** 
+ 114:lib_RTC/RTC_WDT.c ****     time |= (sec / 10u) << RTC_10_SECONDS_SHIFT;
+ 115:lib_RTC/RTC_WDT.c ****     time |= (sec % 10u) << RTC_SECONDS_SHIFT;
+ 116:lib_RTC/RTC_WDT.c ****     
+ 117:lib_RTC/RTC_WDT.c ****     
+ 118:lib_RTC/RTC_WDT.c ****     time |= (ms / 100u) << RTC_100_MILISECONDS_SHIFT;
+ 196              		.loc 1 118 0
+ 197 003e 211C     		mov	r1, r4
+ 198 0040 301C     		mov	r0, r6
+ 199              	.LVL10:
+ 200 0042 6422     		mov	r2, #100
+ 201 0044 0023     		mov	r3, #0
+ 202 0046 FFF7FEFF 		bl	__aeabi_uldivmod
+ 203              	.LVL11:
+ 204 004a 0591     		str	r1, [sp, #20]
+ 205 004c 059A     		ldr	r2, [sp, #20]
+ 206 004e 010D     		lsr	r1, r0, #20
+ 207 0050 1203     		lsl	r2, r2, #12
+ 208 0052 0A43     		orr	r2, r1
+ 105:lib_RTC/RTC_WDT.c ****     time |= stateAmPm << RTC_PERIOD_OF_DAY_SHIFT;
+ 209              		.loc 1 105 0
+ 210 0054 FB01     		lsl	r3, r7, #7
+ 211 0056 1343     		orr	r3, r2
+ 212              		.loc 1 118 0
+ 213 0058 0190     		str	r0, [sp, #4]
+ 214 005a 0693     		str	r3, [sp, #24]
+ 215 005c 0703     		lsl	r7, r0, #12
+ 119:lib_RTC/RTC_WDT.c ****     time |= ((ms / 10u)-(ms/100u)*10u) << RTC_10_MILISECONDS_SHIFT;
+ 120:lib_RTC/RTC_WDT.c ****     time |= (ms % 10u) << RTC_MILISECONDS_SHIFT;
+ 216              		.loc 1 120 0
+ 217 005e 211C     		mov	r1, r4
+ 218 0060 301C     		mov	r0, r6
+ 219 0062 0A22     		mov	r2, #10
+ 220 0064 0023     		mov	r3, #0
+ 221 0066 FFF7FEFF 		bl	__aeabi_uldivmod
+ 222              	.LVL12:
+ 223 006a 1743     		orr	r7, r2
+ 224 006c 069A     		ldr	r2, [sp, #24]
+ 119:lib_RTC/RTC_WDT.c ****     time |= ((ms / 10u)-(ms/100u)*10u) << RTC_10_MILISECONDS_SHIFT;
+ 225              		.loc 1 119 0
+ 226 006e 301C     		mov	r0, r6
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 17
+
+
+ 227 0070 1A43     		orr	r2, r3
+ 228 0072 0692     		str	r2, [sp, #24]
+ 229 0074 211C     		mov	r1, r4
+ 230 0076 0A22     		mov	r2, #10
+ 231 0078 0023     		mov	r3, #0
+ 232 007a 0797     		str	r7, [sp, #28]
+ 233 007c FFF7FEFF 		bl	__aeabi_uldivmod
+ 234              	.LVL13:
+ 235 0080 0A22     		mov	r2, #10
+ 236 0082 061C     		mov	r6, r0
+ 237              	.LVL14:
+ 238 0084 0F1C     		mov	r7, r1
+ 239 0086 0198     		ldr	r0, [sp, #4]
+ 240 0088 0599     		ldr	r1, [sp, #20]
+ 241 008a 0023     		mov	r3, #0
+ 242 008c FFF7FEFF 		bl	__aeabi_lmul
+ 243              	.LVL15:
+ 244 0090 361A     		sub	r6, r6, r0
+ 245 0092 8F41     		sbc	r7, r7, r1
+ 246 0094 330E     		lsr	r3, r6, #24
+ 247 0096 3F02     		lsl	r7, r7, #8
+ 248 0098 1F43     		orr	r7, r3
+ 249 009a 079B     		ldr	r3, [sp, #28]
+ 250 009c 3602     		lsl	r6, r6, #8
+ 251 009e 1E43     		orr	r6, r3
+ 252              	.LBB36:
+ 253              	.LBB37:
+ 254              	.LBB38:
+ 444:Generated_Source\PSoC4/RTC.h **** }
+ 255              		.loc 2 444 0
+ 256 00a0 6902     		lsl	r1, r5, #9
+ 257 00a2 069B     		ldr	r3, [sp, #24]
+ 258 00a4 C90F     		lsr	r1, r1, #31
+ 259 00a6 1F43     		orr	r7, r3
+ 260              	.LBE38:
+ 261              	.LBE37:
+ 262              	.LBE36:
+ 106:lib_RTC/RTC_WDT.c **** 
+ 263              		.loc 1 106 0
+ 264 00a8 8901     		lsl	r1, r1, #6
+ 265 00aa 0F43     		orr	r7, r1
+ 108:lib_RTC/RTC_WDT.c ****     time |= (hour % 10u) << RTC_HOURS_SHIFT;
+ 266              		.loc 1 108 0
+ 267 00ac 0298     		ldr	r0, [sp, #8]
+ 268 00ae 211C     		mov	r1, r4
+ 269 00b0 0A22     		mov	r2, #10
+ 270 00b2 0023     		mov	r3, #0
+ 271 00b4 FFF7FEFF 		bl	__aeabi_uldivmod
+ 272              	.LVL16:
+ 273 00b8 0001     		lsl	r0, r0, #4
+ 274 00ba 0743     		orr	r7, r0
+ 109:lib_RTC/RTC_WDT.c **** 
+ 275              		.loc 1 109 0
+ 276 00bc 211C     		mov	r1, r4
+ 277 00be 0298     		ldr	r0, [sp, #8]
+ 278 00c0 0A22     		mov	r2, #10
+ 279 00c2 0023     		mov	r3, #0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 18
+
+
+ 280 00c4 FFF7FEFF 		bl	__aeabi_uldivmod
+ 281              	.LVL17:
+ 111:lib_RTC/RTC_WDT.c ****     time |= (min % 10u) << RTC_MINUTES_SHIFT;
+ 282              		.loc 1 111 0
+ 283 00c8 0398     		ldr	r0, [sp, #12]
+ 284 00ca 1743     		orr	r7, r2
+ 285 00cc 211C     		mov	r1, r4
+ 286 00ce 0A22     		mov	r2, #10
+ 287 00d0 0023     		mov	r3, #0
+ 288 00d2 FFF7FEFF 		bl	__aeabi_uldivmod
+ 289              	.LVL18:
+ 290 00d6 0309     		lsr	r3, r0, #4
+ 291 00d8 0907     		lsl	r1, r1, #28
+ 292 00da 1943     		orr	r1, r3
+ 293 00dc 0007     		lsl	r0, r0, #28
+ 294 00de 0643     		orr	r6, r0
+ 295 00e0 0F43     		orr	r7, r1
+ 112:lib_RTC/RTC_WDT.c **** 
+ 296              		.loc 1 112 0
+ 297 00e2 0398     		ldr	r0, [sp, #12]
+ 298 00e4 211C     		mov	r1, r4
+ 299 00e6 0A22     		mov	r2, #10
+ 300 00e8 0023     		mov	r3, #0
+ 301 00ea FFF7FEFF 		bl	__aeabi_uldivmod
+ 302              	.LVL19:
+ 303 00ee 110A     		lsr	r1, r2, #8
+ 304 00f0 1B06     		lsl	r3, r3, #24
+ 305 00f2 0B43     		orr	r3, r1
+ 306 00f4 1206     		lsl	r2, r2, #24
+ 307 00f6 1643     		orr	r6, r2
+ 308 00f8 1F43     		orr	r7, r3
+ 114:lib_RTC/RTC_WDT.c ****     time |= (sec % 10u) << RTC_SECONDS_SHIFT;
+ 309              		.loc 1 114 0
+ 310 00fa 0498     		ldr	r0, [sp, #16]
+ 311 00fc 211C     		mov	r1, r4
+ 312 00fe 0A22     		mov	r2, #10
+ 313 0100 0023     		mov	r3, #0
+ 314 0102 FFF7FEFF 		bl	__aeabi_uldivmod
+ 315              	.LVL20:
+ 316 0106 030B     		lsr	r3, r0, #12
+ 317 0108 0905     		lsl	r1, r1, #20
+ 318 010a 1943     		orr	r1, r3
+ 319 010c 0005     		lsl	r0, r0, #20
+ 320 010e 0643     		orr	r6, r0
+ 321 0110 0F43     		orr	r7, r1
+ 115:lib_RTC/RTC_WDT.c ****     
+ 322              		.loc 1 115 0
+ 323 0112 0498     		ldr	r0, [sp, #16]
+ 324 0114 211C     		mov	r1, r4
+ 325 0116 0A22     		mov	r2, #10
+ 326 0118 0023     		mov	r3, #0
+ 327 011a FFF7FEFF 		bl	__aeabi_uldivmod
+ 328              	.LVL21:
+ 329 011e 110C     		lsr	r1, r2, #16
+ 330 0120 1B04     		lsl	r3, r3, #16
+ 331 0122 0B43     		orr	r3, r1
+ 332              		.loc 1 120 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 19
+
+
+ 333 0124 391C     		mov	r1, r7
+ 334 0126 301C     		mov	r0, r6
+ 335 0128 1943     		orr	r1, r3
+ 115:lib_RTC/RTC_WDT.c ****     
+ 336              		.loc 1 115 0
+ 337 012a 1204     		lsl	r2, r2, #16
+ 338              		.loc 1 120 0
+ 339 012c 024B     		ldr	r3, .L11
+ 340 012e 1043     		orr	r0, r2
+ 341 0130 9860     		str	r0, [r3, #8]
+ 342 0132 D960     		str	r1, [r3, #12]
+ 121:lib_RTC/RTC_WDT.c ****        
+ 122:lib_RTC/RTC_WDT.c ****     return time;
+ 123:lib_RTC/RTC_WDT.c **** }
+ 343              		.loc 1 123 0
+ 344 0134 09B0     		add	sp, sp, #36
+ 345              		@ sp needed
+ 346              	.LVL22:
+ 347              	.LVL23:
+ 348 0136 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 349              	.L12:
+ 350              		.align	2
+ 351              	.L11:
+ 352 0138 00000000 		.word	.LANCHOR0
+ 353              		.cfi_endproc
+ 354              	.LFE30:
+ 355              		.size	RTCgetTime, .-RTCgetTime
+ 356              		.section	.text.RTCGetUnixTime,"ax",%progbits
+ 357              		.align	1
+ 358              		.global	RTCGetUnixTime
+ 359              		.code	16
+ 360              		.thumb_func
+ 361              		.type	RTCGetUnixTime, %function
+ 362              	RTCGetUnixTime:
+ 363              	.LFB31:
+ 124:lib_RTC/RTC_WDT.c **** 
+ 125:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+ 126:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetHours
+ 127:lib_RTC/RTC_WDT.c **** ****************************************************************************//**
+ 128:lib_RTC/RTC_WDT.c **** *
+ 129:lib_RTC/RTC_WDT.c **** * \brief
+ 130:lib_RTC/RTC_WDT.c **** *  Returns the hours value 
+ 131:lib_RTC/RTC_WDT.c **** *
+ 132:lib_RTC/RTC_WDT.c **** * \return
+ 133:lib_RTC/RTC_WDT.c **** *  The hours value.
+ 134:lib_RTC/RTC_WDT.c **** *
+ 135:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+ 136:lib_RTC/RTC_WDT.c **** 
+ 137:lib_RTC/RTC_WDT.c **** uint64_t RTCGetUnixTime(void)
+ 138:lib_RTC/RTC_WDT.c **** {
+ 364              		.loc 1 138 0
+ 365              		.cfi_startproc
+ 366 0000 08B5     		push	{r3, lr}
+ 367              		.cfi_def_cfa_offset 8
+ 368              		.cfi_offset 3, -8
+ 369              		.cfi_offset 14, -4
+ 139:lib_RTC/RTC_WDT.c ****     return RTC_GetUnixTime();
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 20
+
+
+ 370              		.loc 1 139 0
+ 371 0002 FFF7FEFF 		bl	RTC_GetUnixTime
+ 372              	.LVL24:
+ 140:lib_RTC/RTC_WDT.c **** }
+ 373              		.loc 1 140 0
+ 374              		@ sp needed
+ 375 0006 08BD     		pop	{r3, pc}
+ 376              		.cfi_endproc
+ 377              	.LFE31:
+ 378              		.size	RTCGetUnixTime, .-RTCGetUnixTime
+ 379              		.section	.text.RTCgetHours,"ax",%progbits
+ 380              		.align	1
+ 381              		.global	RTCgetHours
+ 382              		.code	16
+ 383              		.thumb_func
+ 384              		.type	RTCgetHours, %function
+ 385              	RTCgetHours:
+ 386              	.LFB32:
+ 141:lib_RTC/RTC_WDT.c **** 
+ 142:lib_RTC/RTC_WDT.c **** 
+ 143:lib_RTC/RTC_WDT.c **** uint32_t RTCgetHours(uint64_t readTime)
+ 144:lib_RTC/RTC_WDT.c **** {
+ 387              		.loc 1 144 0
+ 388              		.cfi_startproc
+ 389              	.LVL25:
+ 390 0000 70B5     		push	{r4, r5, r6, lr}
+ 391              		.cfi_def_cfa_offset 16
+ 392              		.cfi_offset 4, -16
+ 393              		.cfi_offset 5, -12
+ 394              		.cfi_offset 6, -8
+ 395              		.cfi_offset 14, -4
+ 145:lib_RTC/RTC_WDT.c ****     uint64_t retVal;
+ 146:lib_RTC/RTC_WDT.c ****     
+ 147:lib_RTC/RTC_WDT.c ****     retVal  = ((readTime & RTC_MASK_10_HOURS) >> RTC_10_HOURS_SHIFT) * 10u;
+ 396              		.loc 1 147 0
+ 397 0002 0025     		mov	r5, #0
+ 148:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_HOURS) >> RTC_HOURS_SHIFT;
+ 398              		.loc 1 148 0
+ 399 0004 0F26     		mov	r6, #15
+ 144:lib_RTC/RTC_WDT.c ****     uint64_t retVal;
+ 400              		.loc 1 144 0
+ 401 0006 0C1C     		mov	r4, r1
+ 147:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_HOURS) >> RTC_HOURS_SHIFT;
+ 402              		.loc 1 147 0
+ 403 0008 8806     		lsl	r0, r1, #26
+ 404              	.LVL26:
+ 405              		.loc 1 148 0
+ 406 000a 3440     		and	r4, r6
+ 147:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_HOURS) >> RTC_HOURS_SHIFT;
+ 407              		.loc 1 147 0
+ 408 000c 291C     		mov	r1, r5
+ 409 000e 0A22     		mov	r2, #10
+ 410 0010 0023     		mov	r3, #0
+ 411 0012 800F     		lsr	r0, r0, #30
+ 412 0014 FFF7FEFF 		bl	__aeabi_lmul
+ 413              	.LVL27:
+ 414              		.loc 1 148 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 21
+
+
+ 415 0018 2B1C     		mov	r3, r5
+ 416 001a 221C     		mov	r2, r4
+ 149:lib_RTC/RTC_WDT.c ****     
+ 150:lib_RTC/RTC_WDT.c ****     return (int)(retVal);
+ 151:lib_RTC/RTC_WDT.c **** }
+ 417              		.loc 1 151 0
+ 418              		@ sp needed
+ 148:lib_RTC/RTC_WDT.c ****     
+ 419              		.loc 1 148 0
+ 420 001c 8018     		add	r0, r0, r2
+ 421 001e 5941     		adc	r1, r1, r3
+ 422              		.loc 1 151 0
+ 423 0020 70BD     		pop	{r4, r5, r6, pc}
+ 424              		.cfi_endproc
+ 425              	.LFE32:
+ 426              		.size	RTCgetHours, .-RTCgetHours
+ 427              		.section	.text.RTCgetMinutes,"ax",%progbits
+ 428              		.align	1
+ 429              		.global	RTCgetMinutes
+ 430              		.code	16
+ 431              		.thumb_func
+ 432              		.type	RTCgetMinutes, %function
+ 433              	RTCgetMinutes:
+ 434              	.LFB33:
+ 152:lib_RTC/RTC_WDT.c **** 
+ 153:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+ 154:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetMinutes
+ 155:lib_RTC/RTC_WDT.c **** ****************************************************************************//**
+ 156:lib_RTC/RTC_WDT.c **** *
+ 157:lib_RTC/RTC_WDT.c **** * \brief
+ 158:lib_RTC/RTC_WDT.c **** *  Returns the minutes value 
+ 159:lib_RTC/RTC_WDT.c **** *
+ 160:lib_RTC/RTC_WDT.c **** * \return
+ 161:lib_RTC/RTC_WDT.c **** *  The minutes value.
+ 162:lib_RTC/RTC_WDT.c **** *
+ 163:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+ 164:lib_RTC/RTC_WDT.c **** uint32_t RTCgetMinutes(uint64_t readTime)
+ 165:lib_RTC/RTC_WDT.c **** {
+ 435              		.loc 1 165 0
+ 436              		.cfi_startproc
+ 437              	.LVL28:
+ 438 0000 38B5     		push	{r3, r4, r5, lr}
+ 439              		.cfi_def_cfa_offset 16
+ 440              		.cfi_offset 3, -16
+ 441              		.cfi_offset 4, -12
+ 442              		.cfi_offset 5, -8
+ 443              		.cfi_offset 14, -4
+ 166:lib_RTC/RTC_WDT.c ****     uint64 retVal;
+ 167:lib_RTC/RTC_WDT.c **** 
+ 168:lib_RTC/RTC_WDT.c ****     retVal  = ((readTime & RTC_MASK_10_MINUTES) >> RTC_10_MINUTES_SHIFT) * 10u;
+ 444              		.loc 1 168 0
+ 445 0002 0024     		mov	r4, #0
+ 165:lib_RTC/RTC_WDT.c ****     uint64 retVal;
+ 446              		.loc 1 165 0
+ 447 0004 051C     		mov	r5, r0
+ 448              		.loc 1 168 0
+ 449 0006 4000     		lsl	r0, r0, #1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 22
+
+
+ 450              	.LVL29:
+ 451 0008 211C     		mov	r1, r4
+ 452 000a 0A22     		mov	r2, #10
+ 453 000c 0023     		mov	r3, #0
+ 454 000e 400F     		lsr	r0, r0, #29
+ 455 0010 FFF7FEFF 		bl	__aeabi_lmul
+ 456              	.LVL30:
+ 169:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_MINUTES) >> RTC_MINUTES_SHIFT;
+ 457              		.loc 1 169 0
+ 458 0014 231C     		mov	r3, r4
+ 459 0016 2D01     		lsl	r5, r5, #4
+ 460 0018 2A0F     		lsr	r2, r5, #28
+ 461 001a 8018     		add	r0, r0, r2
+ 462 001c 5941     		adc	r1, r1, r3
+ 170:lib_RTC/RTC_WDT.c **** 
+ 171:lib_RTC/RTC_WDT.c ****     return (int)(retVal);
+ 172:lib_RTC/RTC_WDT.c **** }
+ 463              		.loc 1 172 0
+ 464              		@ sp needed
+ 465 001e 38BD     		pop	{r3, r4, r5, pc}
+ 466              		.cfi_endproc
+ 467              	.LFE33:
+ 468              		.size	RTCgetMinutes, .-RTCgetMinutes
+ 469              		.section	.text.RTCgetSecond,"ax",%progbits
+ 470              		.align	1
+ 471              		.global	RTCgetSecond
+ 472              		.code	16
+ 473              		.thumb_func
+ 474              		.type	RTCgetSecond, %function
+ 475              	RTCgetSecond:
+ 476              	.LFB34:
+ 173:lib_RTC/RTC_WDT.c **** 
+ 174:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+ 175:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetSecond
+ 176:lib_RTC/RTC_WDT.c **** ****************************************************************************//**
+ 177:lib_RTC/RTC_WDT.c **** *
+ 178:lib_RTC/RTC_WDT.c **** * \brief
+ 179:lib_RTC/RTC_WDT.c **** *  Returns the seconds value 
+ 180:lib_RTC/RTC_WDT.c **** *
+ 181:lib_RTC/RTC_WDT.c **** * \return
+ 182:lib_RTC/RTC_WDT.c **** *  The seconds value.
+ 183:lib_RTC/RTC_WDT.c **** *
+ 184:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+ 185:lib_RTC/RTC_WDT.c **** uint32_t RTCgetSecond(uint64_t readTime)
+ 186:lib_RTC/RTC_WDT.c **** {
+ 477              		.loc 1 186 0
+ 478              		.cfi_startproc
+ 479              	.LVL31:
+ 187:lib_RTC/RTC_WDT.c ****     uint32 retVal;
+ 188:lib_RTC/RTC_WDT.c **** 
+ 189:lib_RTC/RTC_WDT.c ****     retVal  = ((readTime & RTC_MASK_10_SECONDS) >> RTC_10_SECONDS_SHIFT) * 10u;
+ 480              		.loc 1 189 0
+ 481 0000 0A22     		mov	r2, #10
+ 482 0002 4302     		lsl	r3, r0, #9
+ 483 0004 5B0F     		lsr	r3, r3, #29
+ 484 0006 5343     		mul	r3, r2
+ 485              	.LVL32:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 23
+
+
+ 190:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_SECONDS) >> RTC_SECONDS_SHIFT;
+ 486              		.loc 1 190 0
+ 487 0008 0003     		lsl	r0, r0, #12
+ 488              	.LVL33:
+ 489 000a 000F     		lsr	r0, r0, #28
+ 490 000c 1818     		add	r0, r3, r0
+ 191:lib_RTC/RTC_WDT.c **** 
+ 192:lib_RTC/RTC_WDT.c ****     return (int)(retVal);
+ 193:lib_RTC/RTC_WDT.c **** }
+ 491              		.loc 1 193 0
+ 492              		@ sp needed
+ 493 000e 7047     		bx	lr
+ 494              		.cfi_endproc
+ 495              	.LFE34:
+ 496              		.size	RTCgetSecond, .-RTCgetSecond
+ 497              		.section	.text.RTCgetMiliecond,"ax",%progbits
+ 498              		.align	1
+ 499              		.global	RTCgetMiliecond
+ 500              		.code	16
+ 501              		.thumb_func
+ 502              		.type	RTCgetMiliecond, %function
+ 503              	RTCgetMiliecond:
+ 504              	.LFB35:
+ 194:lib_RTC/RTC_WDT.c **** 
+ 195:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+ 196:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetMilisecond
+ 197:lib_RTC/RTC_WDT.c **** ****************************************************************************//**
+ 198:lib_RTC/RTC_WDT.c **** *
+ 199:lib_RTC/RTC_WDT.c **** * \brief
+ 200:lib_RTC/RTC_WDT.c **** *  Returns the miliseconds value 
+ 201:lib_RTC/RTC_WDT.c **** *
+ 202:lib_RTC/RTC_WDT.c **** * \return
+ 203:lib_RTC/RTC_WDT.c **** *  The miliseconds value.
+ 204:lib_RTC/RTC_WDT.c **** *
+ 205:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+ 206:lib_RTC/RTC_WDT.c **** uint32_t RTCgetMiliecond(uint64_t readTime)
+ 207:lib_RTC/RTC_WDT.c **** {
+ 505              		.loc 1 207 0
+ 506              		.cfi_startproc
+ 507              	.LVL34:
+ 208:lib_RTC/RTC_WDT.c ****     uint32 retVal;
+ 209:lib_RTC/RTC_WDT.c **** 
+ 210:lib_RTC/RTC_WDT.c ****     retVal  = ((readTime & RTC_MASK_100_MILISECONDS) >> RTC_100_MILISECONDS_SHIFT) * 100u;
+ 508              		.loc 1 210 0
+ 509 0000 6423     		mov	r3, #100
+ 510 0002 0104     		lsl	r1, r0, #16
+ 211:lib_RTC/RTC_WDT.c ****     retVal  += ((readTime & RTC_MASK_10_MILISECONDS) >> RTC_10_MILISECONDS_SHIFT) * 10u;
+ 511              		.loc 1 211 0
+ 512 0004 0205     		lsl	r2, r0, #20
+ 210:lib_RTC/RTC_WDT.c ****     retVal  += ((readTime & RTC_MASK_10_MILISECONDS) >> RTC_10_MILISECONDS_SHIFT) * 10u;
+ 513              		.loc 1 210 0
+ 514 0006 090F     		lsr	r1, r1, #28
+ 515 0008 5943     		mul	r1, r3
+ 516              	.LVL35:
+ 517              		.loc 1 211 0
+ 518 000a 120F     		lsr	r2, r2, #28
+ 519 000c 5A3B     		sub	r3, r3, #90
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 24
+
+
+ 520 000e 5A43     		mul	r2, r3
+ 521 0010 8B18     		add	r3, r1, r2
+ 522              	.LVL36:
+ 212:lib_RTC/RTC_WDT.c ****     retVal += (readTime & RTC_MASK_MILISECONDS) >> RTC_MILISECONDS_SHIFT;
+ 523              		.loc 1 212 0
+ 524 0012 0F22     		mov	r2, #15
+ 525 0014 1040     		and	r0, r2
+ 526              	.LVL37:
+ 527 0016 1818     		add	r0, r3, r0
+ 528              	.LVL38:
+ 213:lib_RTC/RTC_WDT.c **** 
+ 214:lib_RTC/RTC_WDT.c ****     return (int)(retVal);
+ 215:lib_RTC/RTC_WDT.c **** }
+ 529              		.loc 1 215 0
+ 530              		@ sp needed
+ 531 0018 7047     		bx	lr
+ 532              		.cfi_endproc
+ 533              	.LFE35:
+ 534              		.size	RTCgetMiliecond, .-RTCgetMiliecond
+ 535              		.section	.text.RTCgetRecentMs,"ax",%progbits
+ 536              		.align	1
+ 537              		.global	RTCgetRecentMs
+ 538              		.code	16
+ 539              		.thumb_func
+ 540              		.type	RTCgetRecentMs, %function
+ 541              	RTCgetRecentMs:
+ 542              	.LFB36:
+ 216:lib_RTC/RTC_WDT.c **** 
+ 217:lib_RTC/RTC_WDT.c **** /*******************************************************************************
+ 218:lib_RTC/RTC_WDT.c **** * Function Name: RTCgetRecentMs
+ 219:lib_RTC/RTC_WDT.c **** ****************************************************************************//**
+ 220:lib_RTC/RTC_WDT.c **** *
+ 221:lib_RTC/RTC_WDT.c **** * \brief
+ 222:lib_RTC/RTC_WDT.c **** *  reads the actual value of the millisecond timer
+ 223:lib_RTC/RTC_WDT.c **** *
+ 224:lib_RTC/RTC_WDT.c **** * \return
+ 225:lib_RTC/RTC_WDT.c **** *  The miliseconds value.
+ 226:lib_RTC/RTC_WDT.c **** *
+ 227:lib_RTC/RTC_WDT.c **** *******************************************************************************/
+ 228:lib_RTC/RTC_WDT.c **** uint32_t RTCgetRecentMs()
+ 229:lib_RTC/RTC_WDT.c **** {    
+ 543              		.loc 1 229 0
+ 544              		.cfi_startproc
+ 230:lib_RTC/RTC_WDT.c ****     return msRTC;
+ 545              		.loc 1 230 0
+ 546 0000 014B     		ldr	r3, .L19
+ 231:lib_RTC/RTC_WDT.c **** }
+ 547              		.loc 1 231 0
+ 548              		@ sp needed
+ 230:lib_RTC/RTC_WDT.c ****     return msRTC;
+ 549              		.loc 1 230 0
+ 550 0002 1888     		ldrh	r0, [r3]
+ 551              		.loc 1 231 0
+ 552 0004 7047     		bx	lr
+ 553              	.L20:
+ 554 0006 C046     		.align	2
+ 555              	.L19:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 25
+
+
+ 556 0008 00000000 		.word	.LANCHOR0
+ 557              		.cfi_endproc
+ 558              	.LFE36:
+ 559              		.size	RTCgetRecentMs, .-RTCgetRecentMs
+ 560              		.bss
+ 561              		.align	3
+ 562              		.set	.LANCHOR0,. + 0
+ 563              		.type	msRTC, %object
+ 564              		.size	msRTC, 2
+ 565              	msRTC:
+ 566 0000 0000     		.space	2
+ 567 0002 00000000 		.space	6
+ 567      0000
+ 568              		.type	time, %object
+ 569              		.size	time, 8
+ 570              	time:
+ 571 0008 00000000 		.space	8
+ 571      00000000 
+ 572              		.text
+ 573              	.Letext0:
+ 574              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 575              		.file 4 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 576              		.file 5 "Generated_Source\\PSoC4/cytypes.h"
+ 577              		.file 6 "Generated_Source\\PSoC4/CyLFClk.h"
+ 578              		.section	.debug_info,"",%progbits
+ 579              	.Ldebug_info0:
+ 580 0000 39050000 		.4byte	0x539
+ 581 0004 0400     		.2byte	0x4
+ 582 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 583 000a 04       		.byte	0x4
+ 584 000b 01       		.uleb128 0x1
+ 585 000c 0F000000 		.4byte	.LASF50
+ 586 0010 01       		.byte	0x1
+ 587 0011 2E010000 		.4byte	.LASF51
+ 588 0015 B5010000 		.4byte	.LASF52
+ 589 0019 18000000 		.4byte	.Ldebug_ranges0+0x18
+ 590 001d 00000000 		.4byte	0
+ 591 0021 00000000 		.4byte	.Ldebug_line0
+ 592 0025 02       		.uleb128 0x2
+ 593 0026 08       		.byte	0x8
+ 594 0027 07       		.byte	0x7
+ 595 0028 50020000 		.4byte	.LASF0
+ 596 002c 02       		.uleb128 0x2
+ 597 002d 01       		.byte	0x1
+ 598 002e 08       		.byte	0x8
+ 599 002f 4A010000 		.4byte	.LASF1
+ 600 0033 02       		.uleb128 0x2
+ 601 0034 01       		.byte	0x1
+ 602 0035 06       		.byte	0x6
+ 603 0036 1C030000 		.4byte	.LASF2
+ 604 003a 02       		.uleb128 0x2
+ 605 003b 02       		.byte	0x2
+ 606 003c 05       		.byte	0x5
+ 607 003d C2020000 		.4byte	.LASF3
+ 608 0041 03       		.uleb128 0x3
+ 609 0042 AA010000 		.4byte	.LASF6
+ 610 0046 03       		.byte	0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 26
+
+
+ 611 0047 2B       		.byte	0x2b
+ 612 0048 4C000000 		.4byte	0x4c
+ 613 004c 02       		.uleb128 0x2
+ 614 004d 02       		.byte	0x2
+ 615 004e 07       		.byte	0x7
+ 616 004f D0000000 		.4byte	.LASF4
+ 617 0053 02       		.uleb128 0x2
+ 618 0054 04       		.byte	0x4
+ 619 0055 05       		.byte	0x5
+ 620 0056 F3020000 		.4byte	.LASF5
+ 621 005a 03       		.uleb128 0x3
+ 622 005b 18020000 		.4byte	.LASF7
+ 623 005f 03       		.byte	0x3
+ 624 0060 41       		.byte	0x41
+ 625 0061 65000000 		.4byte	0x65
+ 626 0065 02       		.uleb128 0x2
+ 627 0066 04       		.byte	0x4
+ 628 0067 07       		.byte	0x7
+ 629 0068 74010000 		.4byte	.LASF8
+ 630 006c 02       		.uleb128 0x2
+ 631 006d 08       		.byte	0x8
+ 632 006e 05       		.byte	0x5
+ 633 006f A5020000 		.4byte	.LASF9
+ 634 0073 03       		.uleb128 0x3
+ 635 0074 01030000 		.4byte	.LASF10
+ 636 0078 03       		.byte	0x3
+ 637 0079 5B       		.byte	0x5b
+ 638 007a 25000000 		.4byte	0x25
+ 639 007e 04       		.uleb128 0x4
+ 640 007f 04       		.byte	0x4
+ 641 0080 05       		.byte	0x5
+ 642 0081 696E7400 		.ascii	"int\000"
+ 643 0085 02       		.uleb128 0x2
+ 644 0086 04       		.byte	0x4
+ 645 0087 07       		.byte	0x7
+ 646 0088 43020000 		.4byte	.LASF11
+ 647 008c 03       		.uleb128 0x3
+ 648 008d D7020000 		.4byte	.LASF12
+ 649 0091 04       		.byte	0x4
+ 650 0092 21       		.byte	0x21
+ 651 0093 41000000 		.4byte	0x41
+ 652 0097 03       		.uleb128 0x3
+ 653 0098 EA020000 		.4byte	.LASF13
+ 654 009c 04       		.byte	0x4
+ 655 009d 2D       		.byte	0x2d
+ 656 009e 5A000000 		.4byte	0x5a
+ 657 00a2 03       		.uleb128 0x3
+ 658 00a3 08010000 		.4byte	.LASF14
+ 659 00a7 04       		.byte	0x4
+ 660 00a8 39       		.byte	0x39
+ 661 00a9 73000000 		.4byte	0x73
+ 662 00ad 05       		.uleb128 0x5
+ 663 00ae 2F020000 		.4byte	.LASF15
+ 664 00b2 05       		.byte	0x5
+ 665 00b3 9A01     		.2byte	0x19a
+ 666 00b5 65000000 		.4byte	0x65
+ 667 00b9 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 27
+
+
+ 668 00ba 04       		.byte	0x4
+ 669 00bb 04       		.byte	0x4
+ 670 00bc 18010000 		.4byte	.LASF16
+ 671 00c0 02       		.uleb128 0x2
+ 672 00c1 08       		.byte	0x8
+ 673 00c2 04       		.byte	0x4
+ 674 00c3 01010000 		.4byte	.LASF17
+ 675 00c7 05       		.uleb128 0x5
+ 676 00c8 C9000000 		.4byte	.LASF18
+ 677 00cc 05       		.byte	0x5
+ 678 00cd A401     		.2byte	0x1a4
+ 679 00cf 25000000 		.4byte	0x25
+ 680 00d3 02       		.uleb128 0x2
+ 681 00d4 01       		.byte	0x1
+ 682 00d5 08       		.byte	0x8
+ 683 00d6 FC020000 		.4byte	.LASF19
+ 684 00da 06       		.uleb128 0x6
+ 685 00db 04       		.byte	0x4
+ 686 00dc E0000000 		.4byte	0xe0
+ 687 00e0 07       		.uleb128 0x7
+ 688 00e1 03       		.uleb128 0x3
+ 689 00e2 58010000 		.4byte	.LASF20
+ 690 00e6 06       		.byte	0x6
+ 691 00e7 58       		.byte	0x58
+ 692 00e8 DA000000 		.4byte	0xda
+ 693 00ec 02       		.uleb128 0x2
+ 694 00ed 04       		.byte	0x4
+ 695 00ee 07       		.byte	0x7
+ 696 00ef 9C020000 		.4byte	.LASF21
+ 697 00f3 08       		.uleb128 0x8
+ 698 00f4 48030000 		.4byte	.LASF23
+ 699 00f8 02       		.byte	0x2
+ 700 00f9 BA01     		.2byte	0x1ba
+ 701 00fb AD000000 		.4byte	0xad
+ 702 00ff 03       		.byte	0x3
+ 703 0100 1D010000 		.4byte	0x11d
+ 704 0104 09       		.uleb128 0x9
+ 705 0105 76617200 		.ascii	"var\000"
+ 706 0109 02       		.byte	0x2
+ 707 010a BA01     		.2byte	0x1ba
+ 708 010c AD000000 		.4byte	0xad
+ 709 0110 0A       		.uleb128 0xa
+ 710 0111 C4000000 		.4byte	.LASF22
+ 711 0115 02       		.byte	0x2
+ 712 0116 BA01     		.2byte	0x1ba
+ 713 0118 AD000000 		.4byte	0xad
+ 714 011c 00       		.byte	0
+ 715 011d 0B       		.uleb128 0xb
+ 716 011e 08020000 		.4byte	.LASF43
+ 717 0122 01       		.byte	0x1
+ 718 0123 2F       		.byte	0x2f
+ 719 0124 01       		.byte	0x1
+ 720 0125 3B010000 		.4byte	0x13b
+ 721 0129 0C       		.uleb128 0xc
+ 722 012a 0D       		.uleb128 0xd
+ 723 012b E3000000 		.4byte	.LASF44
+ 724 012f 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 28
+
+
+ 725 0130 38       		.byte	0x38
+ 726 0131 7E000000 		.4byte	0x7e
+ 727 0135 00       		.byte	0
+ 728 0136 0E       		.uleb128 0xe
+ 729 0137 0E       		.uleb128 0xe
+ 730 0138 00       		.byte	0
+ 731 0139 00       		.byte	0
+ 732 013a 00       		.byte	0
+ 733 013b 0F       		.uleb128 0xf
+ 734 013c B5000000 		.4byte	.LASF47
+ 735 0140 01       		.byte	0x1
+ 736 0141 E4       		.byte	0xe4
+ 737 0142 97000000 		.4byte	0x97
+ 738 0146 01       		.byte	0x1
+ 739 0147 08       		.uleb128 0x8
+ 740 0148 23020000 		.4byte	.LASF24
+ 741 014c 02       		.byte	0x2
+ 742 014d 3F02     		.2byte	0x23f
+ 743 014f AD000000 		.4byte	0xad
+ 744 0153 03       		.byte	0x3
+ 745 0154 65010000 		.4byte	0x165
+ 746 0158 0A       		.uleb128 0xa
+ 747 0159 31030000 		.4byte	.LASF25
+ 748 015d 02       		.byte	0x2
+ 749 015e 3F02     		.2byte	0x23f
+ 750 0160 AD000000 		.4byte	0xad
+ 751 0164 00       		.byte	0
+ 752 0165 10       		.uleb128 0x10
+ 753 0166 1D010000 		.4byte	0x11d
+ 754 016a 00000000 		.4byte	.LFB28
+ 755 016e 30000000 		.4byte	.LFE28-.LFB28
+ 756 0172 01       		.uleb128 0x1
+ 757 0173 9C       		.byte	0x9c
+ 758 0174 AF010000 		.4byte	0x1af
+ 759 0178 11       		.uleb128 0x11
+ 760 0179 16000000 		.4byte	.LBB16
+ 761 017d 14000000 		.4byte	.LBE16-.LBB16
+ 762 0181 12       		.uleb128 0x12
+ 763 0182 1E000000 		.4byte	.LVL0
+ 764 0186 E9040000 		.4byte	0x4e9
+ 765 018a 13       		.uleb128 0x13
+ 766 018b 24000000 		.4byte	.LVL1
+ 767 018f F1040000 		.4byte	0x4f1
+ 768 0193 9D010000 		.4byte	0x19d
+ 769 0197 14       		.uleb128 0x14
+ 770 0198 01       		.uleb128 0x1
+ 771 0199 50       		.byte	0x50
+ 772 019a 01       		.uleb128 0x1
+ 773 019b 31       		.byte	0x31
+ 774 019c 00       		.byte	0
+ 775 019d 15       		.uleb128 0x15
+ 776 019e 2A000000 		.4byte	.LVL2
+ 777 01a2 F1040000 		.4byte	0x4f1
+ 778 01a6 14       		.uleb128 0x14
+ 779 01a7 01       		.uleb128 0x1
+ 780 01a8 50       		.byte	0x50
+ 781 01a9 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 29
+
+
+ 782 01aa 74       		.byte	0x74
+ 783 01ab 00       		.sleb128 0
+ 784 01ac 00       		.byte	0
+ 785 01ad 00       		.byte	0
+ 786 01ae 00       		.byte	0
+ 787 01af 16       		.uleb128 0x16
+ 788 01b0 86010000 		.4byte	.LASF53
+ 789 01b4 01       		.byte	0x1
+ 790 01b5 46       		.byte	0x46
+ 791 01b6 00000000 		.4byte	.LFB29
+ 792 01ba 14000000 		.4byte	.LFE29-.LFB29
+ 793 01be 01       		.uleb128 0x1
+ 794 01bf 9C       		.byte	0x9c
+ 795 01c0 F8010000 		.4byte	0x1f8
+ 796 01c4 17       		.uleb128 0x17
+ 797 01c5 9D000000 		.4byte	.LASF30
+ 798 01c9 01       		.byte	0x1
+ 799 01ca 48       		.byte	0x48
+ 800 01cb DA000000 		.4byte	0xda
+ 801 01cf 06       		.uleb128 0x6
+ 802 01d0 03       		.byte	0x3
+ 803 01d1 00000000 		.4byte	CallBackCounter
+ 804 01d5 9F       		.byte	0x9f
+ 805 01d6 12       		.uleb128 0x12
+ 806 01d7 06000000 		.4byte	.LVL4
+ 807 01db 02050000 		.4byte	0x502
+ 808 01df 15       		.uleb128 0x15
+ 809 01e0 0E000000 		.4byte	.LVL5
+ 810 01e4 0A050000 		.4byte	0x50a
+ 811 01e8 14       		.uleb128 0x14
+ 812 01e9 01       		.uleb128 0x1
+ 813 01ea 51       		.byte	0x51
+ 814 01eb 05       		.uleb128 0x5
+ 815 01ec 03       		.byte	0x3
+ 816 01ed 00000000 		.4byte	CallBackCounter
+ 817 01f1 14       		.uleb128 0x14
+ 818 01f2 01       		.uleb128 0x1
+ 819 01f3 50       		.byte	0x50
+ 820 01f4 01       		.uleb128 0x1
+ 821 01f5 30       		.byte	0x30
+ 822 01f6 00       		.byte	0
+ 823 01f7 00       		.byte	0
+ 824 01f8 08       		.uleb128 0x8
+ 825 01f9 3B030000 		.4byte	.LASF26
+ 826 01fd 02       		.byte	0x2
+ 827 01fe 2402     		.2byte	0x224
+ 828 0200 AD000000 		.4byte	0xad
+ 829 0204 03       		.byte	0x3
+ 830 0205 22020000 		.4byte	0x222
+ 831 0209 0A       		.uleb128 0xa
+ 832 020a 31030000 		.4byte	.LASF25
+ 833 020e 02       		.byte	0x2
+ 834 020f 2402     		.2byte	0x224
+ 835 0211 AD000000 		.4byte	0xad
+ 836 0215 18       		.uleb128 0x18
+ 837 0216 11010000 		.4byte	.LASF28
+ 838 021a 02       		.byte	0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 30
+
+
+ 839 021b 2602     		.2byte	0x226
+ 840 021d AD000000 		.4byte	0xad
+ 841 0221 00       		.byte	0
+ 842 0222 08       		.uleb128 0x8
+ 843 0223 B3020000 		.4byte	.LASF27
+ 844 0227 02       		.byte	0x2
+ 845 0228 0B02     		.2byte	0x20b
+ 846 022a AD000000 		.4byte	0xad
+ 847 022e 03       		.byte	0x3
+ 848 022f 4C020000 		.4byte	0x24c
+ 849 0233 0A       		.uleb128 0xa
+ 850 0234 31030000 		.4byte	.LASF25
+ 851 0238 02       		.byte	0x2
+ 852 0239 0B02     		.2byte	0x20b
+ 853 023b AD000000 		.4byte	0xad
+ 854 023f 18       		.uleb128 0x18
+ 855 0240 11010000 		.4byte	.LASF28
+ 856 0244 02       		.byte	0x2
+ 857 0245 0D02     		.2byte	0x20d
+ 858 0247 AD000000 		.4byte	0xad
+ 859 024b 00       		.byte	0
+ 860 024c 08       		.uleb128 0x8
+ 861 024d 66010000 		.4byte	.LASF29
+ 862 0251 02       		.byte	0x2
+ 863 0252 F101     		.2byte	0x1f1
+ 864 0254 AD000000 		.4byte	0xad
+ 865 0258 03       		.byte	0x3
+ 866 0259 76020000 		.4byte	0x276
+ 867 025d 0A       		.uleb128 0xa
+ 868 025e 31030000 		.4byte	.LASF25
+ 869 0262 02       		.byte	0x2
+ 870 0263 F101     		.2byte	0x1f1
+ 871 0265 AD000000 		.4byte	0xad
+ 872 0269 18       		.uleb128 0x18
+ 873 026a 11010000 		.4byte	.LASF28
+ 874 026e 02       		.byte	0x2
+ 875 026f F301     		.2byte	0x1f3
+ 876 0271 AD000000 		.4byte	0xad
+ 877 0275 00       		.byte	0
+ 878 0276 19       		.uleb128 0x19
+ 879 0277 CC020000 		.4byte	.LASF34
+ 880 027b 01       		.byte	0x1
+ 881 027c 5C       		.byte	0x5c
+ 882 027d A2000000 		.4byte	0xa2
+ 883 0281 00000000 		.4byte	.LFB30
+ 884 0285 3C010000 		.4byte	.LFE30-.LFB30
+ 885 0289 01       		.uleb128 0x1
+ 886 028a 9C       		.byte	0x9c
+ 887 028b C1030000 		.4byte	0x3c1
+ 888 028f 1A       		.uleb128 0x1a
+ 889 0290 AA000000 		.4byte	.LASF37
+ 890 0294 01       		.byte	0x1
+ 891 0295 5C       		.byte	0x5c
+ 892 0296 A2000000 		.4byte	0xa2
+ 893 029a 00000000 		.4byte	.LLST0
+ 894 029e 1B       		.uleb128 0x1b
+ 895 029f 28030000 		.4byte	.LASF31
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 31
+
+
+ 896 02a3 01       		.byte	0x1
+ 897 02a4 5E       		.byte	0x5e
+ 898 02a5 97000000 		.4byte	0x97
+ 899 02a9 28000000 		.4byte	.LLST1
+ 900 02ad 1B       		.uleb128 0x1b
+ 901 02ae 75020000 		.4byte	.LASF32
+ 902 02b2 01       		.byte	0x1
+ 903 02b3 5F       		.byte	0x5f
+ 904 02b4 A2000000 		.4byte	0xa2
+ 905 02b8 46000000 		.4byte	.LLST2
+ 906 02bc 1C       		.uleb128 0x1c
+ 907 02bd 6D696E00 		.ascii	"min\000"
+ 908 02c1 01       		.byte	0x1
+ 909 02c2 5F       		.byte	0x5f
+ 910 02c3 A2000000 		.4byte	0xa2
+ 911 02c7 5F000000 		.4byte	.LLST3
+ 912 02cb 1C       		.uleb128 0x1c
+ 913 02cc 73656300 		.ascii	"sec\000"
+ 914 02d0 01       		.byte	0x1
+ 915 02d1 5F       		.byte	0x5f
+ 916 02d2 A2000000 		.4byte	0xa2
+ 917 02d6 78000000 		.4byte	.LLST4
+ 918 02da 1C       		.uleb128 0x1c
+ 919 02db 6D7300   		.ascii	"ms\000"
+ 920 02de 01       		.byte	0x1
+ 921 02df 5F       		.byte	0x5f
+ 922 02e0 A2000000 		.4byte	0xa2
+ 923 02e4 91000000 		.4byte	.LLST5
+ 924 02e8 1B       		.uleb128 0x1b
+ 925 02e9 E0020000 		.4byte	.LASF33
+ 926 02ed 01       		.byte	0x1
+ 927 02ee 5F       		.byte	0x5f
+ 928 02ef A2000000 		.4byte	0xa2
+ 929 02f3 A9000000 		.4byte	.LLST6
+ 930 02f7 1D       		.uleb128 0x1d
+ 931 02f8 F8010000 		.4byte	0x1f8
+ 932 02fc 0A000000 		.4byte	.LBB28
+ 933 0300 10000000 		.4byte	.LBE28-.LBB28
+ 934 0304 01       		.byte	0x1
+ 935 0305 63       		.byte	0x63
+ 936 0306 23030000 		.4byte	0x323
+ 937 030a 1E       		.uleb128 0x1e
+ 938 030b 09020000 		.4byte	0x209
+ 939 030f 28000000 		.4byte	.LLST1
+ 940 0313 11       		.uleb128 0x11
+ 941 0314 0A000000 		.4byte	.LBB29
+ 942 0318 10000000 		.4byte	.LBE29-.LBB29
+ 943 031c 1F       		.uleb128 0x1f
+ 944 031d 15020000 		.4byte	0x215
+ 945 0321 00       		.byte	0
+ 946 0322 00       		.byte	0
+ 947 0323 1D       		.uleb128 0x1d
+ 948 0324 22020000 		.4byte	0x222
+ 949 0328 1A000000 		.4byte	.LBB30
+ 950 032c 0E000000 		.4byte	.LBE30-.LBB30
+ 951 0330 01       		.byte	0x1
+ 952 0331 64       		.byte	0x64
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 32
+
+
+ 953 0332 4F030000 		.4byte	0x34f
+ 954 0336 1E       		.uleb128 0x1e
+ 955 0337 33020000 		.4byte	0x233
+ 956 033b 28000000 		.4byte	.LLST1
+ 957 033f 11       		.uleb128 0x11
+ 958 0340 1A000000 		.4byte	.LBB31
+ 959 0344 0E000000 		.4byte	.LBE31-.LBB31
+ 960 0348 1F       		.uleb128 0x1f
+ 961 0349 3F020000 		.4byte	0x23f
+ 962 034d 00       		.byte	0
+ 963 034e 00       		.byte	0
+ 964 034f 20       		.uleb128 0x20
+ 965 0350 4C020000 		.4byte	0x24c
+ 966 0354 28000000 		.4byte	.LBB32
+ 967 0358 00000000 		.4byte	.Ldebug_ranges0+0
+ 968 035c 01       		.byte	0x1
+ 969 035d 65       		.byte	0x65
+ 970 035e 77030000 		.4byte	0x377
+ 971 0362 1E       		.uleb128 0x1e
+ 972 0363 5D020000 		.4byte	0x25d
+ 973 0367 28000000 		.4byte	.LLST1
+ 974 036b 21       		.uleb128 0x21
+ 975 036c 00000000 		.4byte	.Ldebug_ranges0+0
+ 976 0370 1F       		.uleb128 0x1f
+ 977 0371 69020000 		.4byte	0x269
+ 978 0375 00       		.byte	0
+ 979 0376 00       		.byte	0
+ 980 0377 1D       		.uleb128 0x1d
+ 981 0378 47010000 		.4byte	0x147
+ 982 037c A0000000 		.4byte	.LBB36
+ 983 0380 08000000 		.4byte	.LBE36-.LBB36
+ 984 0384 01       		.byte	0x1
+ 985 0385 67       		.byte	0x67
+ 986 0386 B7030000 		.4byte	0x3b7
+ 987 038a 1E       		.uleb128 0x1e
+ 988 038b 58010000 		.4byte	0x158
+ 989 038f E3000000 		.4byte	.LLST10
+ 990 0393 22       		.uleb128 0x22
+ 991 0394 F3000000 		.4byte	0xf3
+ 992 0398 A0000000 		.4byte	.LBB37
+ 993 039c 08000000 		.4byte	.LBE37-.LBB37
+ 994 03a0 02       		.byte	0x2
+ 995 03a1 4102     		.2byte	0x241
+ 996 03a3 23       		.uleb128 0x23
+ 997 03a4 10010000 		.4byte	0x110
+ 998 03a8 00004000 		.4byte	0x400000
+ 999 03ac 1E       		.uleb128 0x1e
+ 1000 03ad 04010000 		.4byte	0x104
+ 1001 03b1 E3000000 		.4byte	.LLST10
+ 1002 03b5 00       		.byte	0
+ 1003 03b6 00       		.byte	0
+ 1004 03b7 12       		.uleb128 0x12
+ 1005 03b8 0A000000 		.4byte	.LVL7
+ 1006 03bc 24050000 		.4byte	0x524
+ 1007 03c0 00       		.byte	0
+ 1008 03c1 24       		.uleb128 0x24
+ 1009 03c2 00000000 		.4byte	.LASF35
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 33
+
+
+ 1010 03c6 01       		.byte	0x1
+ 1011 03c7 89       		.byte	0x89
+ 1012 03c8 A2000000 		.4byte	0xa2
+ 1013 03cc 00000000 		.4byte	.LFB31
+ 1014 03d0 08000000 		.4byte	.LFE31-.LFB31
+ 1015 03d4 01       		.uleb128 0x1
+ 1016 03d5 9C       		.byte	0x9c
+ 1017 03d6 E4030000 		.4byte	0x3e4
+ 1018 03da 12       		.uleb128 0x12
+ 1019 03db 06000000 		.4byte	.LVL24
+ 1020 03df 30050000 		.4byte	0x530
+ 1021 03e3 00       		.byte	0
+ 1022 03e4 19       		.uleb128 0x19
+ 1023 03e5 F5000000 		.4byte	.LASF36
+ 1024 03e9 01       		.byte	0x1
+ 1025 03ea 8F       		.byte	0x8f
+ 1026 03eb 97000000 		.4byte	0x97
+ 1027 03ef 00000000 		.4byte	.LFB32
+ 1028 03f3 22000000 		.4byte	.LFE32-.LFB32
+ 1029 03f7 01       		.uleb128 0x1
+ 1030 03f8 9C       		.byte	0x9c
+ 1031 03f9 18040000 		.4byte	0x418
+ 1032 03fd 1A       		.uleb128 0x1a
+ 1033 03fe 28030000 		.4byte	.LASF31
+ 1034 0402 01       		.byte	0x1
+ 1035 0403 8F       		.byte	0x8f
+ 1036 0404 A2000000 		.4byte	0xa2
+ 1037 0408 01010000 		.4byte	.LLST12
+ 1038 040c 25       		.uleb128 0x25
+ 1039 040d 11010000 		.4byte	.LASF28
+ 1040 0411 01       		.byte	0x1
+ 1041 0412 91       		.byte	0x91
+ 1042 0413 A2000000 		.4byte	0xa2
+ 1043 0417 00       		.byte	0
+ 1044 0418 19       		.uleb128 0x19
+ 1045 0419 67020000 		.4byte	.LASF38
+ 1046 041d 01       		.byte	0x1
+ 1047 041e A4       		.byte	0xa4
+ 1048 041f 97000000 		.4byte	0x97
+ 1049 0423 00000000 		.4byte	.LFB33
+ 1050 0427 20000000 		.4byte	.LFE33-.LFB33
+ 1051 042b 01       		.uleb128 0x1
+ 1052 042c 9C       		.byte	0x9c
+ 1053 042d 4C040000 		.4byte	0x44c
+ 1054 0431 1A       		.uleb128 0x1a
+ 1055 0432 28030000 		.4byte	.LASF31
+ 1056 0436 01       		.byte	0x1
+ 1057 0437 A4       		.byte	0xa4
+ 1058 0438 A2000000 		.4byte	0xa2
+ 1059 043c 29010000 		.4byte	.LLST13
+ 1060 0440 25       		.uleb128 0x25
+ 1061 0441 11010000 		.4byte	.LASF28
+ 1062 0445 01       		.byte	0x1
+ 1063 0446 A6       		.byte	0xa6
+ 1064 0447 C7000000 		.4byte	0xc7
+ 1065 044b 00       		.byte	0
+ 1066 044c 24       		.uleb128 0x24
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 34
+
+
+ 1067 044d 36020000 		.4byte	.LASF39
+ 1068 0451 01       		.byte	0x1
+ 1069 0452 B9       		.byte	0xb9
+ 1070 0453 97000000 		.4byte	0x97
+ 1071 0457 00000000 		.4byte	.LFB34
+ 1072 045b 10000000 		.4byte	.LFE34-.LFB34
+ 1073 045f 01       		.uleb128 0x1
+ 1074 0460 9C       		.byte	0x9c
+ 1075 0461 80040000 		.4byte	0x480
+ 1076 0465 1A       		.uleb128 0x1a
+ 1077 0466 28030000 		.4byte	.LASF31
+ 1078 046a 01       		.byte	0x1
+ 1079 046b B9       		.byte	0xb9
+ 1080 046c A2000000 		.4byte	0xa2
+ 1081 0470 51010000 		.4byte	.LLST14
+ 1082 0474 25       		.uleb128 0x25
+ 1083 0475 11010000 		.4byte	.LASF28
+ 1084 0479 01       		.byte	0x1
+ 1085 047a BB       		.byte	0xbb
+ 1086 047b AD000000 		.4byte	0xad
+ 1087 047f 00       		.byte	0
+ 1088 0480 24       		.uleb128 0x24
+ 1089 0481 1E010000 		.4byte	.LASF40
+ 1090 0485 01       		.byte	0x1
+ 1091 0486 CE       		.byte	0xce
+ 1092 0487 97000000 		.4byte	0x97
+ 1093 048b 00000000 		.4byte	.LFB35
+ 1094 048f 1A000000 		.4byte	.LFE35-.LFB35
+ 1095 0493 01       		.uleb128 0x1
+ 1096 0494 9C       		.byte	0x9c
+ 1097 0495 B8040000 		.4byte	0x4b8
+ 1098 0499 1A       		.uleb128 0x1a
+ 1099 049a 28030000 		.4byte	.LASF31
+ 1100 049e 01       		.byte	0x1
+ 1101 049f CE       		.byte	0xce
+ 1102 04a0 A2000000 		.4byte	0xa2
+ 1103 04a4 79010000 		.4byte	.LLST15
+ 1104 04a8 1B       		.uleb128 0x1b
+ 1105 04a9 11010000 		.4byte	.LASF28
+ 1106 04ad 01       		.byte	0x1
+ 1107 04ae D0       		.byte	0xd0
+ 1108 04af AD000000 		.4byte	0xad
+ 1109 04b3 A1010000 		.4byte	.LLST16
+ 1110 04b7 00       		.byte	0
+ 1111 04b8 26       		.uleb128 0x26
+ 1112 04b9 3B010000 		.4byte	0x13b
+ 1113 04bd 00000000 		.4byte	.LFB36
+ 1114 04c1 0C000000 		.4byte	.LFE36-.LFB36
+ 1115 04c5 01       		.uleb128 0x1
+ 1116 04c6 9C       		.byte	0x9c
+ 1117 04c7 17       		.uleb128 0x17
+ 1118 04c8 7A020000 		.4byte	.LASF41
+ 1119 04cc 01       		.byte	0x1
+ 1120 04cd 1F       		.byte	0x1f
+ 1121 04ce A2000000 		.4byte	0xa2
+ 1122 04d2 05       		.uleb128 0x5
+ 1123 04d3 03       		.byte	0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 35
+
+
+ 1124 04d4 08000000 		.4byte	time
+ 1125 04d8 17       		.uleb128 0x17
+ 1126 04d9 EF000000 		.4byte	.LASF42
+ 1127 04dd 01       		.byte	0x1
+ 1128 04de 20       		.byte	0x20
+ 1129 04df 8C000000 		.4byte	0x8c
+ 1130 04e3 05       		.uleb128 0x5
+ 1131 04e4 03       		.byte	0x3
+ 1132 04e5 00000000 		.4byte	msRTC
+ 1133 04e9 27       		.uleb128 0x27
+ 1134 04ea 9F010000 		.4byte	.LASF45
+ 1135 04ee 02       		.byte	0x2
+ 1136 04ef 6701     		.2byte	0x167
+ 1137 04f1 28       		.uleb128 0x28
+ 1138 04f2 E3000000 		.4byte	.LASF44
+ 1139 04f6 01       		.byte	0x1
+ 1140 04f7 38       		.byte	0x38
+ 1141 04f8 7E000000 		.4byte	0x7e
+ 1142 04fc 02050000 		.4byte	0x502
+ 1143 0500 0E       		.uleb128 0xe
+ 1144 0501 00       		.byte	0
+ 1145 0502 27       		.uleb128 0x27
+ 1146 0503 40010000 		.4byte	.LASF46
+ 1147 0507 02       		.byte	0x2
+ 1148 0508 4E01     		.2byte	0x14e
+ 1149 050a 29       		.uleb128 0x29
+ 1150 050b 7F020000 		.4byte	.LASF54
+ 1151 050f 06       		.byte	0x6
+ 1152 0510 78       		.byte	0x78
+ 1153 0511 E1000000 		.4byte	0xe1
+ 1154 0515 24050000 		.4byte	0x524
+ 1155 0519 2A       		.uleb128 0x2a
+ 1156 051a AD000000 		.4byte	0xad
+ 1157 051e 2A       		.uleb128 0x2a
+ 1158 051f E1000000 		.4byte	0xe1
+ 1159 0523 00       		.byte	0
+ 1160 0524 2B       		.uleb128 0x2b
+ 1161 0525 93010000 		.4byte	.LASF48
+ 1162 0529 02       		.byte	0x2
+ 1163 052a 5801     		.2byte	0x158
+ 1164 052c AD000000 		.4byte	0xad
+ 1165 0530 2B       		.uleb128 0x2b
+ 1166 0531 0C030000 		.4byte	.LASF49
+ 1167 0535 02       		.byte	0x2
+ 1168 0536 5201     		.2byte	0x152
+ 1169 0538 C7000000 		.4byte	0xc7
+ 1170 053c 00       		.byte	0
+ 1171              		.section	.debug_abbrev,"",%progbits
+ 1172              	.Ldebug_abbrev0:
+ 1173 0000 01       		.uleb128 0x1
+ 1174 0001 11       		.uleb128 0x11
+ 1175 0002 01       		.byte	0x1
+ 1176 0003 25       		.uleb128 0x25
+ 1177 0004 0E       		.uleb128 0xe
+ 1178 0005 13       		.uleb128 0x13
+ 1179 0006 0B       		.uleb128 0xb
+ 1180 0007 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 36
+
+
+ 1181 0008 0E       		.uleb128 0xe
+ 1182 0009 1B       		.uleb128 0x1b
+ 1183 000a 0E       		.uleb128 0xe
+ 1184 000b 55       		.uleb128 0x55
+ 1185 000c 17       		.uleb128 0x17
+ 1186 000d 11       		.uleb128 0x11
+ 1187 000e 01       		.uleb128 0x1
+ 1188 000f 10       		.uleb128 0x10
+ 1189 0010 17       		.uleb128 0x17
+ 1190 0011 00       		.byte	0
+ 1191 0012 00       		.byte	0
+ 1192 0013 02       		.uleb128 0x2
+ 1193 0014 24       		.uleb128 0x24
+ 1194 0015 00       		.byte	0
+ 1195 0016 0B       		.uleb128 0xb
+ 1196 0017 0B       		.uleb128 0xb
+ 1197 0018 3E       		.uleb128 0x3e
+ 1198 0019 0B       		.uleb128 0xb
+ 1199 001a 03       		.uleb128 0x3
+ 1200 001b 0E       		.uleb128 0xe
+ 1201 001c 00       		.byte	0
+ 1202 001d 00       		.byte	0
+ 1203 001e 03       		.uleb128 0x3
+ 1204 001f 16       		.uleb128 0x16
+ 1205 0020 00       		.byte	0
+ 1206 0021 03       		.uleb128 0x3
+ 1207 0022 0E       		.uleb128 0xe
+ 1208 0023 3A       		.uleb128 0x3a
+ 1209 0024 0B       		.uleb128 0xb
+ 1210 0025 3B       		.uleb128 0x3b
+ 1211 0026 0B       		.uleb128 0xb
+ 1212 0027 49       		.uleb128 0x49
+ 1213 0028 13       		.uleb128 0x13
+ 1214 0029 00       		.byte	0
+ 1215 002a 00       		.byte	0
+ 1216 002b 04       		.uleb128 0x4
+ 1217 002c 24       		.uleb128 0x24
+ 1218 002d 00       		.byte	0
+ 1219 002e 0B       		.uleb128 0xb
+ 1220 002f 0B       		.uleb128 0xb
+ 1221 0030 3E       		.uleb128 0x3e
+ 1222 0031 0B       		.uleb128 0xb
+ 1223 0032 03       		.uleb128 0x3
+ 1224 0033 08       		.uleb128 0x8
+ 1225 0034 00       		.byte	0
+ 1226 0035 00       		.byte	0
+ 1227 0036 05       		.uleb128 0x5
+ 1228 0037 16       		.uleb128 0x16
+ 1229 0038 00       		.byte	0
+ 1230 0039 03       		.uleb128 0x3
+ 1231 003a 0E       		.uleb128 0xe
+ 1232 003b 3A       		.uleb128 0x3a
+ 1233 003c 0B       		.uleb128 0xb
+ 1234 003d 3B       		.uleb128 0x3b
+ 1235 003e 05       		.uleb128 0x5
+ 1236 003f 49       		.uleb128 0x49
+ 1237 0040 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 37
+
+
+ 1238 0041 00       		.byte	0
+ 1239 0042 00       		.byte	0
+ 1240 0043 06       		.uleb128 0x6
+ 1241 0044 0F       		.uleb128 0xf
+ 1242 0045 00       		.byte	0
+ 1243 0046 0B       		.uleb128 0xb
+ 1244 0047 0B       		.uleb128 0xb
+ 1245 0048 49       		.uleb128 0x49
+ 1246 0049 13       		.uleb128 0x13
+ 1247 004a 00       		.byte	0
+ 1248 004b 00       		.byte	0
+ 1249 004c 07       		.uleb128 0x7
+ 1250 004d 15       		.uleb128 0x15
+ 1251 004e 00       		.byte	0
+ 1252 004f 27       		.uleb128 0x27
+ 1253 0050 19       		.uleb128 0x19
+ 1254 0051 00       		.byte	0
+ 1255 0052 00       		.byte	0
+ 1256 0053 08       		.uleb128 0x8
+ 1257 0054 2E       		.uleb128 0x2e
+ 1258 0055 01       		.byte	0x1
+ 1259 0056 03       		.uleb128 0x3
+ 1260 0057 0E       		.uleb128 0xe
+ 1261 0058 3A       		.uleb128 0x3a
+ 1262 0059 0B       		.uleb128 0xb
+ 1263 005a 3B       		.uleb128 0x3b
+ 1264 005b 05       		.uleb128 0x5
+ 1265 005c 27       		.uleb128 0x27
+ 1266 005d 19       		.uleb128 0x19
+ 1267 005e 49       		.uleb128 0x49
+ 1268 005f 13       		.uleb128 0x13
+ 1269 0060 20       		.uleb128 0x20
+ 1270 0061 0B       		.uleb128 0xb
+ 1271 0062 01       		.uleb128 0x1
+ 1272 0063 13       		.uleb128 0x13
+ 1273 0064 00       		.byte	0
+ 1274 0065 00       		.byte	0
+ 1275 0066 09       		.uleb128 0x9
+ 1276 0067 05       		.uleb128 0x5
+ 1277 0068 00       		.byte	0
+ 1278 0069 03       		.uleb128 0x3
+ 1279 006a 08       		.uleb128 0x8
+ 1280 006b 3A       		.uleb128 0x3a
+ 1281 006c 0B       		.uleb128 0xb
+ 1282 006d 3B       		.uleb128 0x3b
+ 1283 006e 05       		.uleb128 0x5
+ 1284 006f 49       		.uleb128 0x49
+ 1285 0070 13       		.uleb128 0x13
+ 1286 0071 00       		.byte	0
+ 1287 0072 00       		.byte	0
+ 1288 0073 0A       		.uleb128 0xa
+ 1289 0074 05       		.uleb128 0x5
+ 1290 0075 00       		.byte	0
+ 1291 0076 03       		.uleb128 0x3
+ 1292 0077 0E       		.uleb128 0xe
+ 1293 0078 3A       		.uleb128 0x3a
+ 1294 0079 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 38
+
+
+ 1295 007a 3B       		.uleb128 0x3b
+ 1296 007b 05       		.uleb128 0x5
+ 1297 007c 49       		.uleb128 0x49
+ 1298 007d 13       		.uleb128 0x13
+ 1299 007e 00       		.byte	0
+ 1300 007f 00       		.byte	0
+ 1301 0080 0B       		.uleb128 0xb
+ 1302 0081 2E       		.uleb128 0x2e
+ 1303 0082 01       		.byte	0x1
+ 1304 0083 3F       		.uleb128 0x3f
+ 1305 0084 19       		.uleb128 0x19
+ 1306 0085 03       		.uleb128 0x3
+ 1307 0086 0E       		.uleb128 0xe
+ 1308 0087 3A       		.uleb128 0x3a
+ 1309 0088 0B       		.uleb128 0xb
+ 1310 0089 3B       		.uleb128 0x3b
+ 1311 008a 0B       		.uleb128 0xb
+ 1312 008b 27       		.uleb128 0x27
+ 1313 008c 19       		.uleb128 0x19
+ 1314 008d 20       		.uleb128 0x20
+ 1315 008e 0B       		.uleb128 0xb
+ 1316 008f 01       		.uleb128 0x1
+ 1317 0090 13       		.uleb128 0x13
+ 1318 0091 00       		.byte	0
+ 1319 0092 00       		.byte	0
+ 1320 0093 0C       		.uleb128 0xc
+ 1321 0094 0B       		.uleb128 0xb
+ 1322 0095 01       		.byte	0x1
+ 1323 0096 00       		.byte	0
+ 1324 0097 00       		.byte	0
+ 1325 0098 0D       		.uleb128 0xd
+ 1326 0099 2E       		.uleb128 0x2e
+ 1327 009a 01       		.byte	0x1
+ 1328 009b 3F       		.uleb128 0x3f
+ 1329 009c 19       		.uleb128 0x19
+ 1330 009d 03       		.uleb128 0x3
+ 1331 009e 0E       		.uleb128 0xe
+ 1332 009f 3A       		.uleb128 0x3a
+ 1333 00a0 0B       		.uleb128 0xb
+ 1334 00a1 3B       		.uleb128 0x3b
+ 1335 00a2 0B       		.uleb128 0xb
+ 1336 00a3 49       		.uleb128 0x49
+ 1337 00a4 13       		.uleb128 0x13
+ 1338 00a5 20       		.uleb128 0x20
+ 1339 00a6 0B       		.uleb128 0xb
+ 1340 00a7 00       		.byte	0
+ 1341 00a8 00       		.byte	0
+ 1342 00a9 0E       		.uleb128 0xe
+ 1343 00aa 18       		.uleb128 0x18
+ 1344 00ab 00       		.byte	0
+ 1345 00ac 00       		.byte	0
+ 1346 00ad 00       		.byte	0
+ 1347 00ae 0F       		.uleb128 0xf
+ 1348 00af 2E       		.uleb128 0x2e
+ 1349 00b0 00       		.byte	0
+ 1350 00b1 3F       		.uleb128 0x3f
+ 1351 00b2 19       		.uleb128 0x19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 39
+
+
+ 1352 00b3 03       		.uleb128 0x3
+ 1353 00b4 0E       		.uleb128 0xe
+ 1354 00b5 3A       		.uleb128 0x3a
+ 1355 00b6 0B       		.uleb128 0xb
+ 1356 00b7 3B       		.uleb128 0x3b
+ 1357 00b8 0B       		.uleb128 0xb
+ 1358 00b9 27       		.uleb128 0x27
+ 1359 00ba 19       		.uleb128 0x19
+ 1360 00bb 49       		.uleb128 0x49
+ 1361 00bc 13       		.uleb128 0x13
+ 1362 00bd 20       		.uleb128 0x20
+ 1363 00be 0B       		.uleb128 0xb
+ 1364 00bf 00       		.byte	0
+ 1365 00c0 00       		.byte	0
+ 1366 00c1 10       		.uleb128 0x10
+ 1367 00c2 2E       		.uleb128 0x2e
+ 1368 00c3 01       		.byte	0x1
+ 1369 00c4 31       		.uleb128 0x31
+ 1370 00c5 13       		.uleb128 0x13
+ 1371 00c6 11       		.uleb128 0x11
+ 1372 00c7 01       		.uleb128 0x1
+ 1373 00c8 12       		.uleb128 0x12
+ 1374 00c9 06       		.uleb128 0x6
+ 1375 00ca 40       		.uleb128 0x40
+ 1376 00cb 18       		.uleb128 0x18
+ 1377 00cc 9742     		.uleb128 0x2117
+ 1378 00ce 19       		.uleb128 0x19
+ 1379 00cf 01       		.uleb128 0x1
+ 1380 00d0 13       		.uleb128 0x13
+ 1381 00d1 00       		.byte	0
+ 1382 00d2 00       		.byte	0
+ 1383 00d3 11       		.uleb128 0x11
+ 1384 00d4 0B       		.uleb128 0xb
+ 1385 00d5 01       		.byte	0x1
+ 1386 00d6 11       		.uleb128 0x11
+ 1387 00d7 01       		.uleb128 0x1
+ 1388 00d8 12       		.uleb128 0x12
+ 1389 00d9 06       		.uleb128 0x6
+ 1390 00da 00       		.byte	0
+ 1391 00db 00       		.byte	0
+ 1392 00dc 12       		.uleb128 0x12
+ 1393 00dd 898201   		.uleb128 0x4109
+ 1394 00e0 00       		.byte	0
+ 1395 00e1 11       		.uleb128 0x11
+ 1396 00e2 01       		.uleb128 0x1
+ 1397 00e3 31       		.uleb128 0x31
+ 1398 00e4 13       		.uleb128 0x13
+ 1399 00e5 00       		.byte	0
+ 1400 00e6 00       		.byte	0
+ 1401 00e7 13       		.uleb128 0x13
+ 1402 00e8 898201   		.uleb128 0x4109
+ 1403 00eb 01       		.byte	0x1
+ 1404 00ec 11       		.uleb128 0x11
+ 1405 00ed 01       		.uleb128 0x1
+ 1406 00ee 31       		.uleb128 0x31
+ 1407 00ef 13       		.uleb128 0x13
+ 1408 00f0 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 40
+
+
+ 1409 00f1 13       		.uleb128 0x13
+ 1410 00f2 00       		.byte	0
+ 1411 00f3 00       		.byte	0
+ 1412 00f4 14       		.uleb128 0x14
+ 1413 00f5 8A8201   		.uleb128 0x410a
+ 1414 00f8 00       		.byte	0
+ 1415 00f9 02       		.uleb128 0x2
+ 1416 00fa 18       		.uleb128 0x18
+ 1417 00fb 9142     		.uleb128 0x2111
+ 1418 00fd 18       		.uleb128 0x18
+ 1419 00fe 00       		.byte	0
+ 1420 00ff 00       		.byte	0
+ 1421 0100 15       		.uleb128 0x15
+ 1422 0101 898201   		.uleb128 0x4109
+ 1423 0104 01       		.byte	0x1
+ 1424 0105 11       		.uleb128 0x11
+ 1425 0106 01       		.uleb128 0x1
+ 1426 0107 31       		.uleb128 0x31
+ 1427 0108 13       		.uleb128 0x13
+ 1428 0109 00       		.byte	0
+ 1429 010a 00       		.byte	0
+ 1430 010b 16       		.uleb128 0x16
+ 1431 010c 2E       		.uleb128 0x2e
+ 1432 010d 01       		.byte	0x1
+ 1433 010e 3F       		.uleb128 0x3f
+ 1434 010f 19       		.uleb128 0x19
+ 1435 0110 03       		.uleb128 0x3
+ 1436 0111 0E       		.uleb128 0xe
+ 1437 0112 3A       		.uleb128 0x3a
+ 1438 0113 0B       		.uleb128 0xb
+ 1439 0114 3B       		.uleb128 0x3b
+ 1440 0115 0B       		.uleb128 0xb
+ 1441 0116 27       		.uleb128 0x27
+ 1442 0117 19       		.uleb128 0x19
+ 1443 0118 11       		.uleb128 0x11
+ 1444 0119 01       		.uleb128 0x1
+ 1445 011a 12       		.uleb128 0x12
+ 1446 011b 06       		.uleb128 0x6
+ 1447 011c 40       		.uleb128 0x40
+ 1448 011d 18       		.uleb128 0x18
+ 1449 011e 9742     		.uleb128 0x2117
+ 1450 0120 19       		.uleb128 0x19
+ 1451 0121 01       		.uleb128 0x1
+ 1452 0122 13       		.uleb128 0x13
+ 1453 0123 00       		.byte	0
+ 1454 0124 00       		.byte	0
+ 1455 0125 17       		.uleb128 0x17
+ 1456 0126 34       		.uleb128 0x34
+ 1457 0127 00       		.byte	0
+ 1458 0128 03       		.uleb128 0x3
+ 1459 0129 0E       		.uleb128 0xe
+ 1460 012a 3A       		.uleb128 0x3a
+ 1461 012b 0B       		.uleb128 0xb
+ 1462 012c 3B       		.uleb128 0x3b
+ 1463 012d 0B       		.uleb128 0xb
+ 1464 012e 49       		.uleb128 0x49
+ 1465 012f 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 41
+
+
+ 1466 0130 02       		.uleb128 0x2
+ 1467 0131 18       		.uleb128 0x18
+ 1468 0132 00       		.byte	0
+ 1469 0133 00       		.byte	0
+ 1470 0134 18       		.uleb128 0x18
+ 1471 0135 34       		.uleb128 0x34
+ 1472 0136 00       		.byte	0
+ 1473 0137 03       		.uleb128 0x3
+ 1474 0138 0E       		.uleb128 0xe
+ 1475 0139 3A       		.uleb128 0x3a
+ 1476 013a 0B       		.uleb128 0xb
+ 1477 013b 3B       		.uleb128 0x3b
+ 1478 013c 05       		.uleb128 0x5
+ 1479 013d 49       		.uleb128 0x49
+ 1480 013e 13       		.uleb128 0x13
+ 1481 013f 00       		.byte	0
+ 1482 0140 00       		.byte	0
+ 1483 0141 19       		.uleb128 0x19
+ 1484 0142 2E       		.uleb128 0x2e
+ 1485 0143 01       		.byte	0x1
+ 1486 0144 3F       		.uleb128 0x3f
+ 1487 0145 19       		.uleb128 0x19
+ 1488 0146 03       		.uleb128 0x3
+ 1489 0147 0E       		.uleb128 0xe
+ 1490 0148 3A       		.uleb128 0x3a
+ 1491 0149 0B       		.uleb128 0xb
+ 1492 014a 3B       		.uleb128 0x3b
+ 1493 014b 0B       		.uleb128 0xb
+ 1494 014c 27       		.uleb128 0x27
+ 1495 014d 19       		.uleb128 0x19
+ 1496 014e 49       		.uleb128 0x49
+ 1497 014f 13       		.uleb128 0x13
+ 1498 0150 11       		.uleb128 0x11
+ 1499 0151 01       		.uleb128 0x1
+ 1500 0152 12       		.uleb128 0x12
+ 1501 0153 06       		.uleb128 0x6
+ 1502 0154 40       		.uleb128 0x40
+ 1503 0155 18       		.uleb128 0x18
+ 1504 0156 9642     		.uleb128 0x2116
+ 1505 0158 19       		.uleb128 0x19
+ 1506 0159 01       		.uleb128 0x1
+ 1507 015a 13       		.uleb128 0x13
+ 1508 015b 00       		.byte	0
+ 1509 015c 00       		.byte	0
+ 1510 015d 1A       		.uleb128 0x1a
+ 1511 015e 05       		.uleb128 0x5
+ 1512 015f 00       		.byte	0
+ 1513 0160 03       		.uleb128 0x3
+ 1514 0161 0E       		.uleb128 0xe
+ 1515 0162 3A       		.uleb128 0x3a
+ 1516 0163 0B       		.uleb128 0xb
+ 1517 0164 3B       		.uleb128 0x3b
+ 1518 0165 0B       		.uleb128 0xb
+ 1519 0166 49       		.uleb128 0x49
+ 1520 0167 13       		.uleb128 0x13
+ 1521 0168 02       		.uleb128 0x2
+ 1522 0169 17       		.uleb128 0x17
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 42
+
+
+ 1523 016a 00       		.byte	0
+ 1524 016b 00       		.byte	0
+ 1525 016c 1B       		.uleb128 0x1b
+ 1526 016d 34       		.uleb128 0x34
+ 1527 016e 00       		.byte	0
+ 1528 016f 03       		.uleb128 0x3
+ 1529 0170 0E       		.uleb128 0xe
+ 1530 0171 3A       		.uleb128 0x3a
+ 1531 0172 0B       		.uleb128 0xb
+ 1532 0173 3B       		.uleb128 0x3b
+ 1533 0174 0B       		.uleb128 0xb
+ 1534 0175 49       		.uleb128 0x49
+ 1535 0176 13       		.uleb128 0x13
+ 1536 0177 02       		.uleb128 0x2
+ 1537 0178 17       		.uleb128 0x17
+ 1538 0179 00       		.byte	0
+ 1539 017a 00       		.byte	0
+ 1540 017b 1C       		.uleb128 0x1c
+ 1541 017c 34       		.uleb128 0x34
+ 1542 017d 00       		.byte	0
+ 1543 017e 03       		.uleb128 0x3
+ 1544 017f 08       		.uleb128 0x8
+ 1545 0180 3A       		.uleb128 0x3a
+ 1546 0181 0B       		.uleb128 0xb
+ 1547 0182 3B       		.uleb128 0x3b
+ 1548 0183 0B       		.uleb128 0xb
+ 1549 0184 49       		.uleb128 0x49
+ 1550 0185 13       		.uleb128 0x13
+ 1551 0186 02       		.uleb128 0x2
+ 1552 0187 17       		.uleb128 0x17
+ 1553 0188 00       		.byte	0
+ 1554 0189 00       		.byte	0
+ 1555 018a 1D       		.uleb128 0x1d
+ 1556 018b 1D       		.uleb128 0x1d
+ 1557 018c 01       		.byte	0x1
+ 1558 018d 31       		.uleb128 0x31
+ 1559 018e 13       		.uleb128 0x13
+ 1560 018f 11       		.uleb128 0x11
+ 1561 0190 01       		.uleb128 0x1
+ 1562 0191 12       		.uleb128 0x12
+ 1563 0192 06       		.uleb128 0x6
+ 1564 0193 58       		.uleb128 0x58
+ 1565 0194 0B       		.uleb128 0xb
+ 1566 0195 59       		.uleb128 0x59
+ 1567 0196 0B       		.uleb128 0xb
+ 1568 0197 01       		.uleb128 0x1
+ 1569 0198 13       		.uleb128 0x13
+ 1570 0199 00       		.byte	0
+ 1571 019a 00       		.byte	0
+ 1572 019b 1E       		.uleb128 0x1e
+ 1573 019c 05       		.uleb128 0x5
+ 1574 019d 00       		.byte	0
+ 1575 019e 31       		.uleb128 0x31
+ 1576 019f 13       		.uleb128 0x13
+ 1577 01a0 02       		.uleb128 0x2
+ 1578 01a1 17       		.uleb128 0x17
+ 1579 01a2 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 43
+
+
+ 1580 01a3 00       		.byte	0
+ 1581 01a4 1F       		.uleb128 0x1f
+ 1582 01a5 34       		.uleb128 0x34
+ 1583 01a6 00       		.byte	0
+ 1584 01a7 31       		.uleb128 0x31
+ 1585 01a8 13       		.uleb128 0x13
+ 1586 01a9 00       		.byte	0
+ 1587 01aa 00       		.byte	0
+ 1588 01ab 20       		.uleb128 0x20
+ 1589 01ac 1D       		.uleb128 0x1d
+ 1590 01ad 01       		.byte	0x1
+ 1591 01ae 31       		.uleb128 0x31
+ 1592 01af 13       		.uleb128 0x13
+ 1593 01b0 52       		.uleb128 0x52
+ 1594 01b1 01       		.uleb128 0x1
+ 1595 01b2 55       		.uleb128 0x55
+ 1596 01b3 17       		.uleb128 0x17
+ 1597 01b4 58       		.uleb128 0x58
+ 1598 01b5 0B       		.uleb128 0xb
+ 1599 01b6 59       		.uleb128 0x59
+ 1600 01b7 0B       		.uleb128 0xb
+ 1601 01b8 01       		.uleb128 0x1
+ 1602 01b9 13       		.uleb128 0x13
+ 1603 01ba 00       		.byte	0
+ 1604 01bb 00       		.byte	0
+ 1605 01bc 21       		.uleb128 0x21
+ 1606 01bd 0B       		.uleb128 0xb
+ 1607 01be 01       		.byte	0x1
+ 1608 01bf 55       		.uleb128 0x55
+ 1609 01c0 17       		.uleb128 0x17
+ 1610 01c1 00       		.byte	0
+ 1611 01c2 00       		.byte	0
+ 1612 01c3 22       		.uleb128 0x22
+ 1613 01c4 1D       		.uleb128 0x1d
+ 1614 01c5 01       		.byte	0x1
+ 1615 01c6 31       		.uleb128 0x31
+ 1616 01c7 13       		.uleb128 0x13
+ 1617 01c8 11       		.uleb128 0x11
+ 1618 01c9 01       		.uleb128 0x1
+ 1619 01ca 12       		.uleb128 0x12
+ 1620 01cb 06       		.uleb128 0x6
+ 1621 01cc 58       		.uleb128 0x58
+ 1622 01cd 0B       		.uleb128 0xb
+ 1623 01ce 59       		.uleb128 0x59
+ 1624 01cf 05       		.uleb128 0x5
+ 1625 01d0 00       		.byte	0
+ 1626 01d1 00       		.byte	0
+ 1627 01d2 23       		.uleb128 0x23
+ 1628 01d3 05       		.uleb128 0x5
+ 1629 01d4 00       		.byte	0
+ 1630 01d5 31       		.uleb128 0x31
+ 1631 01d6 13       		.uleb128 0x13
+ 1632 01d7 1C       		.uleb128 0x1c
+ 1633 01d8 06       		.uleb128 0x6
+ 1634 01d9 00       		.byte	0
+ 1635 01da 00       		.byte	0
+ 1636 01db 24       		.uleb128 0x24
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 44
+
+
+ 1637 01dc 2E       		.uleb128 0x2e
+ 1638 01dd 01       		.byte	0x1
+ 1639 01de 3F       		.uleb128 0x3f
+ 1640 01df 19       		.uleb128 0x19
+ 1641 01e0 03       		.uleb128 0x3
+ 1642 01e1 0E       		.uleb128 0xe
+ 1643 01e2 3A       		.uleb128 0x3a
+ 1644 01e3 0B       		.uleb128 0xb
+ 1645 01e4 3B       		.uleb128 0x3b
+ 1646 01e5 0B       		.uleb128 0xb
+ 1647 01e6 27       		.uleb128 0x27
+ 1648 01e7 19       		.uleb128 0x19
+ 1649 01e8 49       		.uleb128 0x49
+ 1650 01e9 13       		.uleb128 0x13
+ 1651 01ea 11       		.uleb128 0x11
+ 1652 01eb 01       		.uleb128 0x1
+ 1653 01ec 12       		.uleb128 0x12
+ 1654 01ed 06       		.uleb128 0x6
+ 1655 01ee 40       		.uleb128 0x40
+ 1656 01ef 18       		.uleb128 0x18
+ 1657 01f0 9742     		.uleb128 0x2117
+ 1658 01f2 19       		.uleb128 0x19
+ 1659 01f3 01       		.uleb128 0x1
+ 1660 01f4 13       		.uleb128 0x13
+ 1661 01f5 00       		.byte	0
+ 1662 01f6 00       		.byte	0
+ 1663 01f7 25       		.uleb128 0x25
+ 1664 01f8 34       		.uleb128 0x34
+ 1665 01f9 00       		.byte	0
+ 1666 01fa 03       		.uleb128 0x3
+ 1667 01fb 0E       		.uleb128 0xe
+ 1668 01fc 3A       		.uleb128 0x3a
+ 1669 01fd 0B       		.uleb128 0xb
+ 1670 01fe 3B       		.uleb128 0x3b
+ 1671 01ff 0B       		.uleb128 0xb
+ 1672 0200 49       		.uleb128 0x49
+ 1673 0201 13       		.uleb128 0x13
+ 1674 0202 00       		.byte	0
+ 1675 0203 00       		.byte	0
+ 1676 0204 26       		.uleb128 0x26
+ 1677 0205 2E       		.uleb128 0x2e
+ 1678 0206 00       		.byte	0
+ 1679 0207 31       		.uleb128 0x31
+ 1680 0208 13       		.uleb128 0x13
+ 1681 0209 11       		.uleb128 0x11
+ 1682 020a 01       		.uleb128 0x1
+ 1683 020b 12       		.uleb128 0x12
+ 1684 020c 06       		.uleb128 0x6
+ 1685 020d 40       		.uleb128 0x40
+ 1686 020e 18       		.uleb128 0x18
+ 1687 020f 9742     		.uleb128 0x2117
+ 1688 0211 19       		.uleb128 0x19
+ 1689 0212 00       		.byte	0
+ 1690 0213 00       		.byte	0
+ 1691 0214 27       		.uleb128 0x27
+ 1692 0215 2E       		.uleb128 0x2e
+ 1693 0216 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 45
+
+
+ 1694 0217 3F       		.uleb128 0x3f
+ 1695 0218 19       		.uleb128 0x19
+ 1696 0219 03       		.uleb128 0x3
+ 1697 021a 0E       		.uleb128 0xe
+ 1698 021b 3A       		.uleb128 0x3a
+ 1699 021c 0B       		.uleb128 0xb
+ 1700 021d 3B       		.uleb128 0x3b
+ 1701 021e 05       		.uleb128 0x5
+ 1702 021f 27       		.uleb128 0x27
+ 1703 0220 19       		.uleb128 0x19
+ 1704 0221 3C       		.uleb128 0x3c
+ 1705 0222 19       		.uleb128 0x19
+ 1706 0223 00       		.byte	0
+ 1707 0224 00       		.byte	0
+ 1708 0225 28       		.uleb128 0x28
+ 1709 0226 2E       		.uleb128 0x2e
+ 1710 0227 01       		.byte	0x1
+ 1711 0228 3F       		.uleb128 0x3f
+ 1712 0229 19       		.uleb128 0x19
+ 1713 022a 03       		.uleb128 0x3
+ 1714 022b 0E       		.uleb128 0xe
+ 1715 022c 3A       		.uleb128 0x3a
+ 1716 022d 0B       		.uleb128 0xb
+ 1717 022e 3B       		.uleb128 0x3b
+ 1718 022f 0B       		.uleb128 0xb
+ 1719 0230 49       		.uleb128 0x49
+ 1720 0231 13       		.uleb128 0x13
+ 1721 0232 3C       		.uleb128 0x3c
+ 1722 0233 19       		.uleb128 0x19
+ 1723 0234 01       		.uleb128 0x1
+ 1724 0235 13       		.uleb128 0x13
+ 1725 0236 00       		.byte	0
+ 1726 0237 00       		.byte	0
+ 1727 0238 29       		.uleb128 0x29
+ 1728 0239 2E       		.uleb128 0x2e
+ 1729 023a 01       		.byte	0x1
+ 1730 023b 3F       		.uleb128 0x3f
+ 1731 023c 19       		.uleb128 0x19
+ 1732 023d 03       		.uleb128 0x3
+ 1733 023e 0E       		.uleb128 0xe
+ 1734 023f 3A       		.uleb128 0x3a
+ 1735 0240 0B       		.uleb128 0xb
+ 1736 0241 3B       		.uleb128 0x3b
+ 1737 0242 0B       		.uleb128 0xb
+ 1738 0243 27       		.uleb128 0x27
+ 1739 0244 19       		.uleb128 0x19
+ 1740 0245 49       		.uleb128 0x49
+ 1741 0246 13       		.uleb128 0x13
+ 1742 0247 3C       		.uleb128 0x3c
+ 1743 0248 19       		.uleb128 0x19
+ 1744 0249 01       		.uleb128 0x1
+ 1745 024a 13       		.uleb128 0x13
+ 1746 024b 00       		.byte	0
+ 1747 024c 00       		.byte	0
+ 1748 024d 2A       		.uleb128 0x2a
+ 1749 024e 05       		.uleb128 0x5
+ 1750 024f 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 46
+
+
+ 1751 0250 49       		.uleb128 0x49
+ 1752 0251 13       		.uleb128 0x13
+ 1753 0252 00       		.byte	0
+ 1754 0253 00       		.byte	0
+ 1755 0254 2B       		.uleb128 0x2b
+ 1756 0255 2E       		.uleb128 0x2e
+ 1757 0256 00       		.byte	0
+ 1758 0257 3F       		.uleb128 0x3f
+ 1759 0258 19       		.uleb128 0x19
+ 1760 0259 03       		.uleb128 0x3
+ 1761 025a 0E       		.uleb128 0xe
+ 1762 025b 3A       		.uleb128 0x3a
+ 1763 025c 0B       		.uleb128 0xb
+ 1764 025d 3B       		.uleb128 0x3b
+ 1765 025e 05       		.uleb128 0x5
+ 1766 025f 27       		.uleb128 0x27
+ 1767 0260 19       		.uleb128 0x19
+ 1768 0261 49       		.uleb128 0x49
+ 1769 0262 13       		.uleb128 0x13
+ 1770 0263 3C       		.uleb128 0x3c
+ 1771 0264 19       		.uleb128 0x19
+ 1772 0265 00       		.byte	0
+ 1773 0266 00       		.byte	0
+ 1774 0267 00       		.byte	0
+ 1775              		.section	.debug_loc,"",%progbits
+ 1776              	.Ldebug_loc0:
+ 1777              	.LLST0:
+ 1778 0000 00000000 		.4byte	.LVL6
+ 1779 0004 09000000 		.4byte	.LVL7-1
+ 1780 0008 0600     		.2byte	0x6
+ 1781 000a 50       		.byte	0x50
+ 1782 000b 93       		.byte	0x93
+ 1783 000c 04       		.uleb128 0x4
+ 1784 000d 51       		.byte	0x51
+ 1785 000e 93       		.byte	0x93
+ 1786 000f 04       		.uleb128 0x4
+ 1787 0010 09000000 		.4byte	.LVL7-1
+ 1788 0014 3C010000 		.4byte	.LFE30
+ 1789 0018 0600     		.2byte	0x6
+ 1790 001a F3       		.byte	0xf3
+ 1791 001b 03       		.uleb128 0x3
+ 1792 001c F5       		.byte	0xf5
+ 1793 001d 00       		.uleb128 0
+ 1794 001e 25       		.uleb128 0x25
+ 1795 001f 9F       		.byte	0x9f
+ 1796 0020 00000000 		.4byte	0
+ 1797 0024 00000000 		.4byte	0
+ 1798              	.LLST1:
+ 1799 0028 3C000000 		.4byte	.LVL8
+ 1800 002c 42000000 		.4byte	.LVL10
+ 1801 0030 0100     		.2byte	0x1
+ 1802 0032 50       		.byte	0x50
+ 1803 0033 42000000 		.4byte	.LVL10
+ 1804 0037 36010000 		.4byte	.LVL23
+ 1805 003b 0100     		.2byte	0x1
+ 1806 003d 55       		.byte	0x55
+ 1807 003e 00000000 		.4byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 47
+
+
+ 1808 0042 00000000 		.4byte	0
+ 1809              	.LLST2:
+ 1810 0046 3C000000 		.4byte	.LVL8
+ 1811 004a 36010000 		.4byte	.LVL22
+ 1812 004e 0700     		.2byte	0x7
+ 1813 0050 91       		.byte	0x91
+ 1814 0051 50       		.sleb128 -48
+ 1815 0052 93       		.byte	0x93
+ 1816 0053 04       		.uleb128 0x4
+ 1817 0054 54       		.byte	0x54
+ 1818 0055 93       		.byte	0x93
+ 1819 0056 04       		.uleb128 0x4
+ 1820 0057 00000000 		.4byte	0
+ 1821 005b 00000000 		.4byte	0
+ 1822              	.LLST3:
+ 1823 005f 3C000000 		.4byte	.LVL8
+ 1824 0063 36010000 		.4byte	.LVL22
+ 1825 0067 0700     		.2byte	0x7
+ 1826 0069 91       		.byte	0x91
+ 1827 006a 54       		.sleb128 -44
+ 1828 006b 93       		.byte	0x93
+ 1829 006c 04       		.uleb128 0x4
+ 1830 006d 54       		.byte	0x54
+ 1831 006e 93       		.byte	0x93
+ 1832 006f 04       		.uleb128 0x4
+ 1833 0070 00000000 		.4byte	0
+ 1834 0074 00000000 		.4byte	0
+ 1835              	.LLST4:
+ 1836 0078 3C000000 		.4byte	.LVL8
+ 1837 007c 36010000 		.4byte	.LVL22
+ 1838 0080 0700     		.2byte	0x7
+ 1839 0082 91       		.byte	0x91
+ 1840 0083 58       		.sleb128 -40
+ 1841 0084 93       		.byte	0x93
+ 1842 0085 04       		.uleb128 0x4
+ 1843 0086 54       		.byte	0x54
+ 1844 0087 93       		.byte	0x93
+ 1845 0088 04       		.uleb128 0x4
+ 1846 0089 00000000 		.4byte	0
+ 1847 008d 00000000 		.4byte	0
+ 1848              	.LLST5:
+ 1849 0091 3E000000 		.4byte	.LVL9
+ 1850 0095 84000000 		.4byte	.LVL14
+ 1851 0099 0600     		.2byte	0x6
+ 1852 009b 56       		.byte	0x56
+ 1853 009c 93       		.byte	0x93
+ 1854 009d 04       		.uleb128 0x4
+ 1855 009e 54       		.byte	0x54
+ 1856 009f 93       		.byte	0x93
+ 1857 00a0 04       		.uleb128 0x4
+ 1858 00a1 00000000 		.4byte	0
+ 1859 00a5 00000000 		.4byte	0
+ 1860              	.LLST6:
+ 1861 00a9 3E000000 		.4byte	.LVL9
+ 1862 00ad 42000000 		.4byte	.LVL10
+ 1863 00b1 0F00     		.2byte	0xf
+ 1864 00b3 70       		.byte	0x70
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 48
+
+
+ 1865 00b4 00       		.sleb128 0
+ 1866 00b5 40       		.byte	0x40
+ 1867 00b6 42       		.byte	0x42
+ 1868 00b7 24       		.byte	0x24
+ 1869 00b8 1A       		.byte	0x1a
+ 1870 00b9 40       		.byte	0x40
+ 1871 00ba 42       		.byte	0x42
+ 1872 00bb 24       		.byte	0x24
+ 1873 00bc 29       		.byte	0x29
+ 1874 00bd F7       		.byte	0xf7
+ 1875 00be 2C       		.uleb128 0x2c
+ 1876 00bf F7       		.byte	0xf7
+ 1877 00c0 25       		.uleb128 0x25
+ 1878 00c1 9F       		.byte	0x9f
+ 1879 00c2 42000000 		.4byte	.LVL10
+ 1880 00c6 36010000 		.4byte	.LVL23
+ 1881 00ca 0F00     		.2byte	0xf
+ 1882 00cc 75       		.byte	0x75
+ 1883 00cd 00       		.sleb128 0
+ 1884 00ce 40       		.byte	0x40
+ 1885 00cf 42       		.byte	0x42
+ 1886 00d0 24       		.byte	0x24
+ 1887 00d1 1A       		.byte	0x1a
+ 1888 00d2 40       		.byte	0x40
+ 1889 00d3 42       		.byte	0x42
+ 1890 00d4 24       		.byte	0x24
+ 1891 00d5 29       		.byte	0x29
+ 1892 00d6 F7       		.byte	0xf7
+ 1893 00d7 2C       		.uleb128 0x2c
+ 1894 00d8 F7       		.byte	0xf7
+ 1895 00d9 25       		.uleb128 0x25
+ 1896 00da 9F       		.byte	0x9f
+ 1897 00db 00000000 		.4byte	0
+ 1898 00df 00000000 		.4byte	0
+ 1899              	.LLST10:
+ 1900 00e3 3E000000 		.4byte	.LVL9
+ 1901 00e7 42000000 		.4byte	.LVL10
+ 1902 00eb 0100     		.2byte	0x1
+ 1903 00ed 50       		.byte	0x50
+ 1904 00ee 42000000 		.4byte	.LVL10
+ 1905 00f2 36010000 		.4byte	.LVL23
+ 1906 00f6 0100     		.2byte	0x1
+ 1907 00f8 55       		.byte	0x55
+ 1908 00f9 00000000 		.4byte	0
+ 1909 00fd 00000000 		.4byte	0
+ 1910              	.LLST12:
+ 1911 0101 00000000 		.4byte	.LVL25
+ 1912 0105 0A000000 		.4byte	.LVL26
+ 1913 0109 0600     		.2byte	0x6
+ 1914 010b 50       		.byte	0x50
+ 1915 010c 93       		.byte	0x93
+ 1916 010d 04       		.uleb128 0x4
+ 1917 010e 51       		.byte	0x51
+ 1918 010f 93       		.byte	0x93
+ 1919 0110 04       		.uleb128 0x4
+ 1920 0111 0A000000 		.4byte	.LVL26
+ 1921 0115 22000000 		.4byte	.LFE32
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 49
+
+
+ 1922 0119 0600     		.2byte	0x6
+ 1923 011b F3       		.byte	0xf3
+ 1924 011c 03       		.uleb128 0x3
+ 1925 011d F5       		.byte	0xf5
+ 1926 011e 00       		.uleb128 0
+ 1927 011f 25       		.uleb128 0x25
+ 1928 0120 9F       		.byte	0x9f
+ 1929 0121 00000000 		.4byte	0
+ 1930 0125 00000000 		.4byte	0
+ 1931              	.LLST13:
+ 1932 0129 00000000 		.4byte	.LVL28
+ 1933 012d 08000000 		.4byte	.LVL29
+ 1934 0131 0600     		.2byte	0x6
+ 1935 0133 50       		.byte	0x50
+ 1936 0134 93       		.byte	0x93
+ 1937 0135 04       		.uleb128 0x4
+ 1938 0136 51       		.byte	0x51
+ 1939 0137 93       		.byte	0x93
+ 1940 0138 04       		.uleb128 0x4
+ 1941 0139 08000000 		.4byte	.LVL29
+ 1942 013d 20000000 		.4byte	.LFE33
+ 1943 0141 0600     		.2byte	0x6
+ 1944 0143 F3       		.byte	0xf3
+ 1945 0144 03       		.uleb128 0x3
+ 1946 0145 F5       		.byte	0xf5
+ 1947 0146 00       		.uleb128 0
+ 1948 0147 25       		.uleb128 0x25
+ 1949 0148 9F       		.byte	0x9f
+ 1950 0149 00000000 		.4byte	0
+ 1951 014d 00000000 		.4byte	0
+ 1952              	.LLST14:
+ 1953 0151 00000000 		.4byte	.LVL31
+ 1954 0155 0A000000 		.4byte	.LVL33
+ 1955 0159 0600     		.2byte	0x6
+ 1956 015b 50       		.byte	0x50
+ 1957 015c 93       		.byte	0x93
+ 1958 015d 04       		.uleb128 0x4
+ 1959 015e 51       		.byte	0x51
+ 1960 015f 93       		.byte	0x93
+ 1961 0160 04       		.uleb128 0x4
+ 1962 0161 0A000000 		.4byte	.LVL33
+ 1963 0165 10000000 		.4byte	.LFE34
+ 1964 0169 0600     		.2byte	0x6
+ 1965 016b F3       		.byte	0xf3
+ 1966 016c 03       		.uleb128 0x3
+ 1967 016d F5       		.byte	0xf5
+ 1968 016e 00       		.uleb128 0
+ 1969 016f 25       		.uleb128 0x25
+ 1970 0170 9F       		.byte	0x9f
+ 1971 0171 00000000 		.4byte	0
+ 1972 0175 00000000 		.4byte	0
+ 1973              	.LLST15:
+ 1974 0179 00000000 		.4byte	.LVL34
+ 1975 017d 16000000 		.4byte	.LVL37
+ 1976 0181 0600     		.2byte	0x6
+ 1977 0183 50       		.byte	0x50
+ 1978 0184 93       		.byte	0x93
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 50
+
+
+ 1979 0185 04       		.uleb128 0x4
+ 1980 0186 51       		.byte	0x51
+ 1981 0187 93       		.byte	0x93
+ 1982 0188 04       		.uleb128 0x4
+ 1983 0189 16000000 		.4byte	.LVL37
+ 1984 018d 1A000000 		.4byte	.LFE35
+ 1985 0191 0600     		.2byte	0x6
+ 1986 0193 F3       		.byte	0xf3
+ 1987 0194 03       		.uleb128 0x3
+ 1988 0195 F5       		.byte	0xf5
+ 1989 0196 00       		.uleb128 0
+ 1990 0197 25       		.uleb128 0x25
+ 1991 0198 9F       		.byte	0x9f
+ 1992 0199 00000000 		.4byte	0
+ 1993 019d 00000000 		.4byte	0
+ 1994              	.LLST16:
+ 1995 01a1 0A000000 		.4byte	.LVL35
+ 1996 01a5 12000000 		.4byte	.LVL36
+ 1997 01a9 0100     		.2byte	0x1
+ 1998 01ab 51       		.byte	0x51
+ 1999 01ac 12000000 		.4byte	.LVL36
+ 2000 01b0 16000000 		.4byte	.LVL37
+ 2001 01b4 0800     		.2byte	0x8
+ 2002 01b6 70       		.byte	0x70
+ 2003 01b7 00       		.sleb128 0
+ 2004 01b8 3F       		.byte	0x3f
+ 2005 01b9 1A       		.byte	0x1a
+ 2006 01ba 73       		.byte	0x73
+ 2007 01bb 00       		.sleb128 0
+ 2008 01bc 22       		.byte	0x22
+ 2009 01bd 9F       		.byte	0x9f
+ 2010 01be 18000000 		.4byte	.LVL38
+ 2011 01c2 1A000000 		.4byte	.LFE35
+ 2012 01c6 0100     		.2byte	0x1
+ 2013 01c8 50       		.byte	0x50
+ 2014 01c9 00000000 		.4byte	0
+ 2015 01cd 00000000 		.4byte	0
+ 2016              		.section	.debug_aranges,"",%progbits
+ 2017 0000 5C000000 		.4byte	0x5c
+ 2018 0004 0200     		.2byte	0x2
+ 2019 0006 00000000 		.4byte	.Ldebug_info0
+ 2020 000a 04       		.byte	0x4
+ 2021 000b 00       		.byte	0
+ 2022 000c 0000     		.2byte	0
+ 2023 000e 0000     		.2byte	0
+ 2024 0010 00000000 		.4byte	.LFB28
+ 2025 0014 30000000 		.4byte	.LFE28-.LFB28
+ 2026 0018 00000000 		.4byte	.LFB29
+ 2027 001c 14000000 		.4byte	.LFE29-.LFB29
+ 2028 0020 00000000 		.4byte	.LFB30
+ 2029 0024 3C010000 		.4byte	.LFE30-.LFB30
+ 2030 0028 00000000 		.4byte	.LFB31
+ 2031 002c 08000000 		.4byte	.LFE31-.LFB31
+ 2032 0030 00000000 		.4byte	.LFB32
+ 2033 0034 22000000 		.4byte	.LFE32-.LFB32
+ 2034 0038 00000000 		.4byte	.LFB33
+ 2035 003c 20000000 		.4byte	.LFE33-.LFB33
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 51
+
+
+ 2036 0040 00000000 		.4byte	.LFB34
+ 2037 0044 10000000 		.4byte	.LFE34-.LFB34
+ 2038 0048 00000000 		.4byte	.LFB35
+ 2039 004c 1A000000 		.4byte	.LFE35-.LFB35
+ 2040 0050 00000000 		.4byte	.LFB36
+ 2041 0054 0C000000 		.4byte	.LFE36-.LFB36
+ 2042 0058 00000000 		.4byte	0
+ 2043 005c 00000000 		.4byte	0
+ 2044              		.section	.debug_ranges,"",%progbits
+ 2045              	.Ldebug_ranges0:
+ 2046 0000 28000000 		.4byte	.LBB32
+ 2047 0004 30000000 		.4byte	.LBE32
+ 2048 0008 32000000 		.4byte	.LBB35
+ 2049 000c 38000000 		.4byte	.LBE35
+ 2050 0010 00000000 		.4byte	0
+ 2051 0014 00000000 		.4byte	0
+ 2052 0018 00000000 		.4byte	.LFB28
+ 2053 001c 30000000 		.4byte	.LFE28
+ 2054 0020 00000000 		.4byte	.LFB29
+ 2055 0024 14000000 		.4byte	.LFE29
+ 2056 0028 00000000 		.4byte	.LFB30
+ 2057 002c 3C010000 		.4byte	.LFE30
+ 2058 0030 00000000 		.4byte	.LFB31
+ 2059 0034 08000000 		.4byte	.LFE31
+ 2060 0038 00000000 		.4byte	.LFB32
+ 2061 003c 22000000 		.4byte	.LFE32
+ 2062 0040 00000000 		.4byte	.LFB33
+ 2063 0044 20000000 		.4byte	.LFE33
+ 2064 0048 00000000 		.4byte	.LFB34
+ 2065 004c 10000000 		.4byte	.LFE34
+ 2066 0050 00000000 		.4byte	.LFB35
+ 2067 0054 1A000000 		.4byte	.LFE35
+ 2068 0058 00000000 		.4byte	.LFB36
+ 2069 005c 0C000000 		.4byte	.LFE36
+ 2070 0060 00000000 		.4byte	0
+ 2071 0064 00000000 		.4byte	0
+ 2072              		.section	.debug_line,"",%progbits
+ 2073              	.Ldebug_line0:
+ 2074 0000 64020000 		.section	.debug_str,"MS",%progbits,1
+ 2074      02005A01 
+ 2074      00000201 
+ 2074      FB0E0D00 
+ 2074      01010101 
+ 2075              	.LASF35:
+ 2076 0000 52544347 		.ascii	"RTCGetUnixTime\000"
+ 2076      6574556E 
+ 2076      69785469 
+ 2076      6D6500
+ 2077              	.LASF50:
+ 2078 000f 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 2078      4320342E 
+ 2078      392E3320 
+ 2078      32303135 
+ 2078      30333033 
+ 2079 0042 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 2079      20726576 
+ 2079      6973696F 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 52
+
+
+ 2079      6E203232 
+ 2079      31323230 
+ 2080 0075 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 2080      66756E63 
+ 2080      74696F6E 
+ 2080      2D736563 
+ 2080      74696F6E 
+ 2081              	.LASF30:
+ 2082 009d 43616C6C 		.ascii	"CallBackWDT0\000"
+ 2082      4261636B 
+ 2082      57445430 
+ 2082      00
+ 2083              	.LASF37:
+ 2084 00aa 74696D65 		.ascii	"timeFormat\000"
+ 2084      466F726D 
+ 2084      617400
+ 2085              	.LASF47:
+ 2086 00b5 52544367 		.ascii	"RTCgetRecentMs\000"
+ 2086      65745265 
+ 2086      63656E74 
+ 2086      4D7300
+ 2087              	.LASF22:
+ 2088 00c4 6D61736B 		.ascii	"mask\000"
+ 2088      00
+ 2089              	.LASF18:
+ 2090 00c9 75696E74 		.ascii	"uint64\000"
+ 2090      363400
+ 2091              	.LASF4:
+ 2092 00d0 73686F72 		.ascii	"short unsigned int\000"
+ 2092      7420756E 
+ 2092      7369676E 
+ 2092      65642069 
+ 2092      6E7400
+ 2093              	.LASF44:
+ 2094 00e3 64656275 		.ascii	"debug_Write\000"
+ 2094      675F5772 
+ 2094      69746500 
+ 2095              	.LASF42:
+ 2096 00ef 6D735254 		.ascii	"msRTC\000"
+ 2096      4300
+ 2097              	.LASF36:
+ 2098 00f5 52544367 		.ascii	"RTCgetHours\000"
+ 2098      6574486F 
+ 2098      75727300 
+ 2099              	.LASF17:
+ 2100 0101 646F7562 		.ascii	"double\000"
+ 2100      6C6500
+ 2101              	.LASF14:
+ 2102 0108 75696E74 		.ascii	"uint64_t\000"
+ 2102      36345F74 
+ 2102      00
+ 2103              	.LASF28:
+ 2104 0111 72657456 		.ascii	"retVal\000"
+ 2104      616C00
+ 2105              	.LASF16:
+ 2106 0118 666C6F61 		.ascii	"float\000"
+ 2106      7400
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 53
+
+
+ 2107              	.LASF40:
+ 2108 011e 52544367 		.ascii	"RTCgetMiliecond\000"
+ 2108      65744D69 
+ 2108      6C696563 
+ 2108      6F6E6400 
+ 2109              	.LASF51:
+ 2110 012e 6C69625F 		.ascii	"lib_RTC\\RTC_WDT.c\000"
+ 2110      5254435C 
+ 2110      5254435F 
+ 2110      5744542E 
+ 2110      6300
+ 2111              	.LASF46:
+ 2112 0140 5254435F 		.ascii	"RTC_Start\000"
+ 2112      53746172 
+ 2112      7400
+ 2113              	.LASF1:
+ 2114 014a 756E7369 		.ascii	"unsigned char\000"
+ 2114      676E6564 
+ 2114      20636861 
+ 2114      7200
+ 2115              	.LASF20:
+ 2116 0158 63795764 		.ascii	"cyWdtCallback\000"
+ 2116      7443616C 
+ 2116      6C626163 
+ 2116      6B00
+ 2117              	.LASF29:
+ 2118 0166 5254435F 		.ascii	"RTC_GetSecond\000"
+ 2118      47657453 
+ 2118      65636F6E 
+ 2118      6400
+ 2119              	.LASF8:
+ 2120 0174 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2120      20756E73 
+ 2120      69676E65 
+ 2120      6420696E 
+ 2120      7400
+ 2121              	.LASF53:
+ 2122 0186 5254435F 		.ascii	"RTC_WDT_Init\000"
+ 2122      5744545F 
+ 2122      496E6974 
+ 2122      00
+ 2123              	.LASF48:
+ 2124 0193 5254435F 		.ascii	"RTC_GetTime\000"
+ 2124      47657454 
+ 2124      696D6500 
+ 2125              	.LASF45:
+ 2126 019f 5254435F 		.ascii	"RTC_Update\000"
+ 2126      55706461 
+ 2126      746500
+ 2127              	.LASF6:
+ 2128 01aa 5F5F7569 		.ascii	"__uint16_t\000"
+ 2128      6E743136 
+ 2128      5F7400
+ 2129              	.LASF52:
+ 2130 01b5 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 2130      79707265 
+ 2130      73735C73 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 54
+
+
+ 2130      79737465 
+ 2130      6D2D7374 
+ 2131 01e3 6973685C 		.ascii	"ish\\sandbox\\v9_testmode\\fin_v0.cydsn\000"
+ 2131      73616E64 
+ 2131      626F785C 
+ 2131      76395F74 
+ 2131      6573746D 
+ 2132              	.LASF43:
+ 2133 0208 43616C6C 		.ascii	"CallBackCounter\000"
+ 2133      4261636B 
+ 2133      436F756E 
+ 2133      74657200 
+ 2134              	.LASF7:
+ 2135 0218 5F5F7569 		.ascii	"__uint32_t\000"
+ 2135      6E743332 
+ 2135      5F7400
+ 2136              	.LASF24:
+ 2137 0223 5254435F 		.ascii	"RTC_GetAmPm\000"
+ 2137      47657441 
+ 2137      6D506D00 
+ 2138              	.LASF15:
+ 2139 022f 75696E74 		.ascii	"uint32\000"
+ 2139      333200
+ 2140              	.LASF39:
+ 2141 0236 52544367 		.ascii	"RTCgetSecond\000"
+ 2141      65745365 
+ 2141      636F6E64 
+ 2141      00
+ 2142              	.LASF11:
+ 2143 0243 756E7369 		.ascii	"unsigned int\000"
+ 2143      676E6564 
+ 2143      20696E74 
+ 2143      00
+ 2144              	.LASF0:
+ 2145 0250 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2145      206C6F6E 
+ 2145      6720756E 
+ 2145      7369676E 
+ 2145      65642069 
+ 2146              	.LASF38:
+ 2147 0267 52544367 		.ascii	"RTCgetMinutes\000"
+ 2147      65744D69 
+ 2147      6E757465 
+ 2147      7300
+ 2148              	.LASF32:
+ 2149 0275 686F7572 		.ascii	"hour\000"
+ 2149      00
+ 2150              	.LASF41:
+ 2151 027a 74696D65 		.ascii	"time\000"
+ 2151      00
+ 2152              	.LASF54:
+ 2153 027f 43795379 		.ascii	"CySysWdtSetInterruptCallback\000"
+ 2153      73576474 
+ 2153      53657449 
+ 2153      6E746572 
+ 2153      72757074 
+ 2154              	.LASF21:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 55
+
+
+ 2155 029c 73697A65 		.ascii	"sizetype\000"
+ 2155      74797065 
+ 2155      00
+ 2156              	.LASF9:
+ 2157 02a5 6C6F6E67 		.ascii	"long long int\000"
+ 2157      206C6F6E 
+ 2157      6720696E 
+ 2157      7400
+ 2158              	.LASF27:
+ 2159 02b3 5254435F 		.ascii	"RTC_GetMinutes\000"
+ 2159      4765744D 
+ 2159      696E7574 
+ 2159      657300
+ 2160              	.LASF3:
+ 2161 02c2 73686F72 		.ascii	"short int\000"
+ 2161      7420696E 
+ 2161      7400
+ 2162              	.LASF34:
+ 2163 02cc 52544367 		.ascii	"RTCgetTime\000"
+ 2163      65745469 
+ 2163      6D6500
+ 2164              	.LASF12:
+ 2165 02d7 75696E74 		.ascii	"uint16_t\000"
+ 2165      31365F74 
+ 2165      00
+ 2166              	.LASF33:
+ 2167 02e0 73746174 		.ascii	"stateAmPm\000"
+ 2167      65416D50 
+ 2167      6D00
+ 2168              	.LASF13:
+ 2169 02ea 75696E74 		.ascii	"uint32_t\000"
+ 2169      33325F74 
+ 2169      00
+ 2170              	.LASF5:
+ 2171 02f3 6C6F6E67 		.ascii	"long int\000"
+ 2171      20696E74 
+ 2171      00
+ 2172              	.LASF19:
+ 2173 02fc 63686172 		.ascii	"char\000"
+ 2173      00
+ 2174              	.LASF10:
+ 2175 0301 5F5F7569 		.ascii	"__uint64_t\000"
+ 2175      6E743634 
+ 2175      5F7400
+ 2176              	.LASF49:
+ 2177 030c 5254435F 		.ascii	"RTC_GetUnixTime\000"
+ 2177      47657455 
+ 2177      6E697854 
+ 2177      696D6500 
+ 2178              	.LASF2:
+ 2179 031c 7369676E 		.ascii	"signed char\000"
+ 2179      65642063 
+ 2179      68617200 
+ 2180              	.LASF31:
+ 2181 0328 72656164 		.ascii	"readTime\000"
+ 2181      54696D65 
+ 2181      00
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccPiywl8.s 			page 56
+
+
+ 2182              	.LASF25:
+ 2183 0331 696E7075 		.ascii	"inputTime\000"
+ 2183      7454696D 
+ 2183      6500
+ 2184              	.LASF26:
+ 2185 033b 5254435F 		.ascii	"RTC_GetHours\000"
+ 2185      47657448 
+ 2185      6F757273 
+ 2185      00
+ 2186              	.LASF23:
+ 2187 0348 5254435F 		.ascii	"RTC_IsBitSet\000"
+ 2187      49734269 
+ 2187      74536574 
+ 2187      00
+ 2188              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

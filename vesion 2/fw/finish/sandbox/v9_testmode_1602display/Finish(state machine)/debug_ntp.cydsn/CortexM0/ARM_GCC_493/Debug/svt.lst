@@ -1,0 +1,3952 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 1
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"svt.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.DecodeByte,"ax",%progbits
+  18              		.align	2
+  19              		.global	DecodeByte
+  20              		.code	16
+  21              		.thumb_func
+  22              		.type	DecodeByte, %function
+  23              	DecodeByte:
+  24              	.LFB3:
+  25              		.file 1 "svt.c"
+   1:svt.c         **** #include "svt.h"
+   2:svt.c         **** #include "crc32.h"
+   3:svt.c         **** 
+   4:svt.c         **** #define LEN_SEQ 4
+   5:svt.c         **** #define LEN_COM 2
+   6:svt.c         **** #define LEN_DA1 16
+   7:svt.c         **** #define LEN_DA2 4
+   8:svt.c         **** #define LEN_DA3 4
+   9:svt.c         **** #define LEN_CHS 8
+  10:svt.c         **** 
+  11:svt.c         **** #define HALF_BYTE 4
+  12:svt.c         **** 
+  13:svt.c         **** #define STX '<'
+  14:svt.c         **** #define ETX '>'
+  15:svt.c         **** #define FR1 '!'
+  16:svt.c         **** #define FR2 ':'
+  17:svt.c         **** #define FR3 '@'
+  18:svt.c         **** 
+  19:svt.c         **** #define STX_S                   ("<")
+  20:svt.c         **** #define FRM0                    ("!")
+  21:svt.c         **** #define FRM1                    ("@")
+  22:svt.c         **** #define FRM2                    ("#")
+  23:svt.c         **** #define ETX_S                   (">")
+  24:svt.c         **** 
+  25:svt.c         **** uint8_t PROTO_STATE, LenD1, LenD2, LenD3, LenSeq, LenChS, LenC;
+  26:svt.c         **** 
+  27:svt.c         **** enum PRO_STATES 
+  28:svt.c         **** {
+  29:svt.c         **** 	WAIT_STX,
+  30:svt.c         **** 	READ_SQ,
+  31:svt.c         **** 	READ_FR1,
+  32:svt.c         **** 	READ_COM,
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 2
+
+
+  33:svt.c         **** 	READ_FR2,
+  34:svt.c         **** 	READ_DA1,
+  35:svt.c         **** 	READ_DA2,
+  36:svt.c         **** 	READ_DA3,
+  37:svt.c         **** 	READ_FR3,
+  38:svt.c         **** 	READ_CHS,
+  39:svt.c         **** 	READ_ETX
+  40:svt.c         **** };
+  41:svt.c         **** 
+  42:svt.c         **** uint8_t DecodeByte(uint8_t Inp);
+  43:svt.c         **** uint8_t CheckSymb(uint8_t Inp);
+  44:svt.c         **** void 	ResetPacket(struct Resp *Data);
+  45:svt.c         **** 
+  46:svt.c         **** uint8_t UnpackData(struct Resp *Data, uint8_t InByte)
+  47:svt.c         **** {
+  48:svt.c         **** 	uint32_t ERR_CODE = 0;
+  49:svt.c         **** 	InByte = DecodeByte(InByte);
+  50:svt.c         ****     if (InByte == STX)
+  51:svt.c         **** 	{
+  52:svt.c         **** 	    PROTO_STATE = READ_SQ;
+  53:svt.c         **** 		ResetPacket(Data);
+  54:svt.c         **** 		LenSeq = 0;
+  55:svt.c         **** 		LenC = 0;
+  56:svt.c         **** 		LenChS = 0;
+  57:svt.c         **** 		LenD1 = 0;
+  58:svt.c         **** 		LenD2 = 0;
+  59:svt.c         ****         LenD3 = 0;
+  60:svt.c         ****     }
+  61:svt.c         ****     else
+  62:svt.c         ****     {
+  63:svt.c         ****     	switch(PROTO_STATE){
+  64:svt.c         ****     		case READ_SQ:
+  65:svt.c         ****     		{
+  66:svt.c         ****     			if(CheckSymb(InByte))
+  67:svt.c         ****     			{
+  68:svt.c         ****     				Data->Seq |= InByte;
+  69:svt.c         ****     				LenSeq++;
+  70:svt.c         ****     				if (LenSeq == LEN_SEQ)
+  71:svt.c         ****     				{
+  72:svt.c         ****     					PROTO_STATE = READ_FR1;
+  73:svt.c         ****     				}
+  74:svt.c         ****     				else
+  75:svt.c         ****     				{
+  76:svt.c         ****     					Data->Seq = Data->Seq << HALF_BYTE;
+  77:svt.c         ****     				}
+  78:svt.c         ****     			}
+  79:svt.c         ****     			else{
+  80:svt.c         ****     				PROTO_STATE = WAIT_STX;
+  81:svt.c         ****     				ERR_CODE = BAD_SEQ;
+  82:svt.c         ****     			}
+  83:svt.c         ****     			break;
+  84:svt.c         ****     		}  		
+  85:svt.c         ****     		case READ_FR1:
+  86:svt.c         ****     		{
+  87:svt.c         ****     			if (InByte == FR1)
+  88:svt.c         ****     			{
+  89:svt.c         ****     				PROTO_STATE = READ_COM;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 3
+
+
+  90:svt.c         ****     			}
+  91:svt.c         ****     			else
+  92:svt.c         ****     			{
+  93:svt.c         ****     				ResetPacket(Data);
+  94:svt.c         ****     				ERR_CODE = NO_FR1;
+  95:svt.c         ****     				PROTO_STATE = WAIT_STX;
+  96:svt.c         ****     			}
+  97:svt.c         ****     			break;
+  98:svt.c         ****     		}
+  99:svt.c         ****     		case READ_COM:
+ 100:svt.c         ****     		{
+ 101:svt.c         ****     			//printf("InByte Command: %02X\n", InByte);
+ 102:svt.c         ****     			if(CheckSymb(InByte))
+ 103:svt.c         ****     			{
+ 104:svt.c         ****     				Data->Command |= InByte;
+ 105:svt.c         ****     				LenC ++;
+ 106:svt.c         ****     				//printf("LenC Command: %d\n", LenC);
+ 107:svt.c         ****     				if (LenC == LEN_COM)
+ 108:svt.c         ****     				{
+ 109:svt.c         ****     					PROTO_STATE = READ_FR2;
+ 110:svt.c         ****     				}
+ 111:svt.c         ****     				else
+ 112:svt.c         ****     				{
+ 113:svt.c         ****     					Data->Command = Data->Command << HALF_BYTE;
+ 114:svt.c         ****     				}
+ 115:svt.c         ****     			}
+ 116:svt.c         ****     			else
+ 117:svt.c         ****     			{
+ 118:svt.c         ****     				ResetPacket(Data);
+ 119:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 120:svt.c         ****     				ERR_CODE = INV_COMM;
+ 121:svt.c         ****     			}
+ 122:svt.c         ****     			break;
+ 123:svt.c         ****     		}
+ 124:svt.c         ****     		case READ_FR2:
+ 125:svt.c         ****     		{
+ 126:svt.c         ****     			if (InByte == FR2)
+ 127:svt.c         ****     			{
+ 128:svt.c         ****     				PROTO_STATE = READ_DA1;
+ 129:svt.c         ****     			}
+ 130:svt.c         ****     			else
+ 131:svt.c         ****     			{
+ 132:svt.c         ****     				ResetPacket(Data);
+ 133:svt.c         ****     				ERR_CODE = NO_FR2;
+ 134:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 135:svt.c         ****     			}
+ 136:svt.c         ****     			break;
+ 137:svt.c         ****     		}
+ 138:svt.c         ****     		case READ_DA1:
+ 139:svt.c         ****     		{
+ 140:svt.c         **** 
+ 141:svt.c         ****     			if(CheckSymb(InByte))
+ 142:svt.c         ****     			{
+ 143:svt.c         ****     				Data->Data1 |= InByte;
+ 144:svt.c         ****     				LenD1++;
+ 145:svt.c         ****     				if (LenD1 == LEN_DA1)
+ 146:svt.c         ****     				{
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 4
+
+
+ 147:svt.c         ****     					PROTO_STATE = READ_DA2;
+ 148:svt.c         ****     				}
+ 149:svt.c         ****     				else
+ 150:svt.c         ****     				{
+ 151:svt.c         ****     					Data->Data1 = Data->Data1 << HALF_BYTE;
+ 152:svt.c         ****     				}
+ 153:svt.c         ****     			}
+ 154:svt.c         ****     			else{
+ 155:svt.c         ****     				ResetPacket(Data);
+ 156:svt.c         ****     				ERR_CODE = INV_DA1;
+ 157:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 158:svt.c         ****     			}
+ 159:svt.c         ****     			break;
+ 160:svt.c         ****     		}
+ 161:svt.c         ****     		case READ_DA2:
+ 162:svt.c         ****     		{
+ 163:svt.c         ****     			
+ 164:svt.c         **** 
+ 165:svt.c         ****     			if(CheckSymb(InByte))
+ 166:svt.c         ****     			{
+ 167:svt.c         ****     				Data->Data2 |= InByte;
+ 168:svt.c         ****     				LenD2++;
+ 169:svt.c         ****     				if (LenD2 == LEN_DA2)
+ 170:svt.c         ****     				{
+ 171:svt.c         ****     					PROTO_STATE = READ_DA3;
+ 172:svt.c         ****     				}
+ 173:svt.c         ****     				else
+ 174:svt.c         ****     				{
+ 175:svt.c         ****     					Data->Data2 = Data->Data2 << HALF_BYTE;
+ 176:svt.c         ****     				}
+ 177:svt.c         ****     			}
+ 178:svt.c         ****     			else{
+ 179:svt.c         ****     				ResetPacket(Data);
+ 180:svt.c         ****     				ERR_CODE = INV_DA2;
+ 181:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 182:svt.c         ****     			}
+ 183:svt.c         ****     			break;
+ 184:svt.c         ****     		}
+ 185:svt.c         **** 			case READ_DA3:
+ 186:svt.c         ****     		{
+ 187:svt.c         ****     			if(CheckSymb(InByte))
+ 188:svt.c         ****     			{
+ 189:svt.c         ****     				Data->Data3 |= InByte;
+ 190:svt.c         ****     				LenD3++;
+ 191:svt.c         ****     				if (LenD3 == LEN_DA3)
+ 192:svt.c         ****     				{
+ 193:svt.c         ****     					PROTO_STATE = READ_FR3;
+ 194:svt.c         ****     				}
+ 195:svt.c         ****     				else
+ 196:svt.c         ****     				{
+ 197:svt.c         ****     					Data->Data3 = Data->Data3 << HALF_BYTE;
+ 198:svt.c         ****     				}
+ 199:svt.c         ****     			}
+ 200:svt.c         ****     			else{
+ 201:svt.c         ****     				ResetPacket(Data);
+ 202:svt.c         ****     				ERR_CODE = INV_DA3;
+ 203:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 5
+
+
+ 204:svt.c         ****     			}
+ 205:svt.c         ****     			break;
+ 206:svt.c         ****     		}
+ 207:svt.c         ****     		case READ_FR3:
+ 208:svt.c         ****     		{
+ 209:svt.c         ****     			if (InByte == FR3)
+ 210:svt.c         ****     			{
+ 211:svt.c         ****     				PROTO_STATE = READ_CHS;
+ 212:svt.c         ****     			}
+ 213:svt.c         ****     			else
+ 214:svt.c         ****     			{
+ 215:svt.c         ****     				ResetPacket(Data);
+ 216:svt.c         ****     				ERR_CODE = NO_FR3;
+ 217:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 218:svt.c         ****     			}
+ 219:svt.c         ****     			break;
+ 220:svt.c         ****     		}
+ 221:svt.c         ****     		case READ_CHS:
+ 222:svt.c         ****     		{
+ 223:svt.c         ****     			if(CheckSymb(InByte))
+ 224:svt.c         ****     			{
+ 225:svt.c         ****     				Data->CheckSum |= InByte;
+ 226:svt.c         ****     				LenChS++;
+ 227:svt.c         ****     				if (LenChS == LEN_CHS)
+ 228:svt.c         ****     				{
+ 229:svt.c         ****     					PROTO_STATE = READ_ETX;
+ 230:svt.c         ****     				}
+ 231:svt.c         ****     				else
+ 232:svt.c         ****     				{
+ 233:svt.c         ****     					Data->CheckSum = Data->CheckSum << HALF_BYTE;
+ 234:svt.c         ****     				}
+ 235:svt.c         ****     			}
+ 236:svt.c         ****     			else
+ 237:svt.c         ****     			{
+ 238:svt.c         ****     				ResetPacket(Data);
+ 239:svt.c         ****     				ERR_CODE = INV_CKECKSUM;
+ 240:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 241:svt.c         ****     			}
+ 242:svt.c         ****     			break;
+ 243:svt.c         ****     		}
+ 244:svt.c         ****     		case READ_ETX:
+ 245:svt.c         ****     		{
+ 246:svt.c         ****     			if (InByte == ETX)
+ 247:svt.c         ****     			{
+ 248:svt.c         ****                     uint32_t _tmpcrc;
+ 249:svt.c         ****                     char _tmpdata[40];
+ 250:svt.c         ****                     sprintf(_tmpdata, "%02X:%08X%08X%04X%04X", Data->Command, 
+ 251:svt.c         ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 252:svt.c         ****                         (uint32_t)(Data->Data1 & 0x00000000FFFFFFFF), 
+ 253:svt.c         ****                         Data->Data2, Data->Data3);
+ 254:svt.c         ****                     _tmpcrc = crc32_reset();
+ 255:svt.c         ****                     _tmpcrc = crc32_calc_block((uint8_t *)"A", 1, _tmpcrc);
+ 256:svt.c         ****                     _tmpcrc = crc32_calc_block((uint8_t *)_tmpdata, strlen(_tmpdata), _tmpcrc);
+ 257:svt.c         ****     				_tmpcrc = crc32_calc_block((uint8_t *)"F", 1, _tmpcrc);
+ 258:svt.c         ****                     _tmpcrc = crc32_final(_tmpcrc);
+ 259:svt.c         ****                     if (_tmpcrc == Data->CheckSum)
+ 260:svt.c         ****                     {
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 6
+
+
+ 261:svt.c         ****                         Data->EndPacket = 1;
+ 262:svt.c         ****     				    ERR_CODE = PARSED_OK;
+ 263:svt.c         ****                     }
+ 264:svt.c         ****                     else
+ 265:svt.c         ****                     {
+ 266:svt.c         ****                         Data->EndPacket = 0;
+ 267:svt.c         ****                         ERR_CODE = 10;
+ 268:svt.c         ****                     }
+ 269:svt.c         ****     			}
+ 270:svt.c         ****     			else{
+ 271:svt.c         ****     				ERR_CODE = NO_ETX;
+ 272:svt.c         ****     				ResetPacket(Data);
+ 273:svt.c         ****     			}
+ 274:svt.c         ****     			PROTO_STATE = WAIT_STX;
+ 275:svt.c         ****     			break;
+ 276:svt.c         ****     		}
+ 277:svt.c         ****             default: 
+ 278:svt.c         ****             {
+ 279:svt.c         ****                 ResetPacket(Data);
+ 280:svt.c         ****             }
+ 281:svt.c         ****     	}
+ 282:svt.c         ****     } 
+ 283:svt.c         ****     return ERR_CODE;
+ 284:svt.c         **** }
+ 285:svt.c         **** 
+ 286:svt.c         **** uint8_t DecodeByte(uint8_t Inp)
+ 287:svt.c         **** {
+  26              		.loc 1 287 0
+  27              		.cfi_startproc
+  28              	.LVL0:
+ 288:svt.c         **** 	if ((Inp >= 'A') && (Inp <= 'F'))
+  29              		.loc 1 288 0
+  30 0000 031C     		mov	r3, r0
+  31 0002 413B     		sub	r3, r3, #65
+  32 0004 052B     		cmp	r3, #5
+  33 0006 02D8     		bhi	.L2
+ 289:svt.c         **** 	{
+ 290:svt.c         **** 		Inp -= 0x37;
+  34              		.loc 1 290 0
+  35 0008 3738     		sub	r0, r0, #55
+  36              	.LVL1:
+  37 000a C3B2     		uxtb	r3, r0
+  38              	.LVL2:
+  39 000c 05E0     		b	.L3
+  40              	.LVL3:
+  41              	.L2:
+ 291:svt.c         **** 	}
+ 292:svt.c         **** 	else if ((Inp >= '0') && (Inp <= '9')){
+  42              		.loc 1 292 0
+  43 000e 031C     		mov	r3, r0
+  44 0010 303B     		sub	r3, r3, #48
+  45 0012 DBB2     		uxtb	r3, r3
+  46 0014 092B     		cmp	r3, #9
+  47 0016 00D9     		bls	.L3
+  48 0018 031C     		mov	r3, r0
+  49              	.LVL4:
+  50              	.L3:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 7
+
+
+ 293:svt.c         **** 		Inp -= 0x30;
+ 294:svt.c         **** 	}
+ 295:svt.c         **** 	return Inp;
+ 296:svt.c         **** }
+  51              		.loc 1 296 0
+  52 001a 181C     		mov	r0, r3
+  53              		@ sp needed
+  54 001c 7047     		bx	lr
+  55              		.cfi_endproc
+  56              	.LFE3:
+  57              		.size	DecodeByte, .-DecodeByte
+  58 001e C046     		.section	.text.CheckSymb,"ax",%progbits
+  59              		.align	2
+  60              		.global	CheckSymb
+  61              		.code	16
+  62              		.thumb_func
+  63              		.type	CheckSymb, %function
+  64              	CheckSymb:
+  65              	.LFB4:
+ 297:svt.c         **** 
+ 298:svt.c         **** uint8_t CheckSymb(uint8_t Inp)
+ 299:svt.c         **** {
+  66              		.loc 1 299 0
+  67              		.cfi_startproc
+  68              	.LVL5:
+ 300:svt.c         **** 	uint8_t Val = 1;
+ 301:svt.c         **** 
+ 302:svt.c         **** 	if ((Inp > 0xF) || (Inp < 0x0))
+  69              		.loc 1 302 0
+  70 0000 0F28     		cmp	r0, #15
+  71 0002 01D8     		bhi	.L6
+ 300:svt.c         **** 	uint8_t Val = 1;
+  72              		.loc 1 300 0
+  73 0004 0120     		mov	r0, #1
+  74              	.LVL6:
+  75 0006 00E0     		b	.L5
+  76              	.LVL7:
+  77              	.L6:
+ 303:svt.c         **** 	{
+ 304:svt.c         **** 		Val = 0;
+  78              		.loc 1 304 0
+  79 0008 0020     		mov	r0, #0
+  80              	.LVL8:
+  81              	.L5:
+ 305:svt.c         **** 	}
+ 306:svt.c         **** 	return Val;
+ 307:svt.c         **** }
+  82              		.loc 1 307 0
+  83              		@ sp needed
+  84 000a 7047     		bx	lr
+  85              		.cfi_endproc
+  86              	.LFE4:
+  87              		.size	CheckSymb, .-CheckSymb
+  88              		.section	.text.ResetPacket,"ax",%progbits
+  89              		.align	2
+  90              		.global	ResetPacket
+  91              		.code	16
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 8
+
+
+  92              		.thumb_func
+  93              		.type	ResetPacket, %function
+  94              	ResetPacket:
+  95              	.LFB5:
+ 308:svt.c         **** 
+ 309:svt.c         **** void ResetPacket(struct Resp *Data)
+ 310:svt.c         **** {
+  96              		.loc 1 310 0
+  97              		.cfi_startproc
+  98              	.LVL9:
+  99 0000 30B5     		push	{r4, r5, lr}
+ 100              		.cfi_def_cfa_offset 12
+ 101              		.cfi_offset 4, -12
+ 102              		.cfi_offset 5, -8
+ 103              		.cfi_offset 14, -4
+ 311:svt.c         **** 	Data->Seq = 0;
+ 104              		.loc 1 311 0
+ 105 0002 0023     		mov	r3, #0
+ 106 0004 0380     		strh	r3, [r0]
+ 312:svt.c         **** 	Data->Command = 0;
+ 107              		.loc 1 312 0
+ 108 0006 4360     		str	r3, [r0, #4]
+ 313:svt.c         **** 	Data->Data1 = 0;
+ 109              		.loc 1 313 0
+ 110 0008 0024     		mov	r4, #0
+ 111 000a 0025     		mov	r5, #0
+ 112 000c 8460     		str	r4, [r0, #8]
+ 113 000e C560     		str	r5, [r0, #12]
+ 314:svt.c         **** 	Data->Data2 = 0;
+ 114              		.loc 1 314 0
+ 115 0010 0382     		strh	r3, [r0, #16]
+ 315:svt.c         **** 	Data->Data3 = 0;
+ 116              		.loc 1 315 0
+ 117 0012 4382     		strh	r3, [r0, #18]
+ 316:svt.c         **** 	Data->CheckSum = 0;
+ 118              		.loc 1 316 0
+ 119 0014 4361     		str	r3, [r0, #20]
+ 317:svt.c         **** 	Data->EndPacket = 0;
+ 120              		.loc 1 317 0
+ 121 0016 0376     		strb	r3, [r0, #24]
+ 318:svt.c         **** }
+ 122              		.loc 1 318 0
+ 123              		@ sp needed
+ 124 0018 30BD     		pop	{r4, r5, pc}
+ 125              		.cfi_endproc
+ 126              	.LFE5:
+ 127              		.size	ResetPacket, .-ResetPacket
+ 128 001a C046     		.section	.text.UnpackData,"ax",%progbits
+ 129              		.align	2
+ 130              		.global	UnpackData
+ 131              		.code	16
+ 132              		.thumb_func
+ 133              		.type	UnpackData, %function
+ 134              	UnpackData:
+ 135              	.LFB2:
+  47:svt.c         **** 	uint32_t ERR_CODE = 0;
+ 136              		.loc 1 47 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 9
+
+
+ 137              		.cfi_startproc
+ 138              	.LVL10:
+ 139 0000 30B5     		push	{r4, r5, lr}
+ 140              		.cfi_def_cfa_offset 12
+ 141              		.cfi_offset 4, -12
+ 142              		.cfi_offset 5, -8
+ 143              		.cfi_offset 14, -4
+ 144 0002 8FB0     		sub	sp, sp, #60
+ 145              		.cfi_def_cfa_offset 72
+ 146 0004 051C     		mov	r5, r0
+ 147              	.LVL11:
+  49:svt.c         ****     if (InByte == STX)
+ 148              		.loc 1 49 0
+ 149 0006 081C     		mov	r0, r1
+ 150              	.LVL12:
+ 151 0008 FFF7FEFF 		bl	DecodeByte
+ 152              	.LVL13:
+ 153 000c 041C     		mov	r4, r0
+ 154 000e 021E     		sub	r2, r0, #0
+ 155              	.LVL14:
+  50:svt.c         **** 	{
+ 156              		.loc 1 50 0
+ 157 0010 3C2A     		cmp	r2, #60
+ 158 0012 14D1     		bne	.L9
+  52:svt.c         **** 		ResetPacket(Data);
+ 159              		.loc 1 52 0
+ 160 0014 3B3A     		sub	r2, r2, #59
+ 161 0016 A34B     		ldr	r3, .L42
+ 162 0018 1A70     		strb	r2, [r3]
+  53:svt.c         **** 		LenSeq = 0;
+ 163              		.loc 1 53 0
+ 164 001a 281C     		mov	r0, r5
+ 165              	.LVL15:
+ 166 001c FFF7FEFF 		bl	ResetPacket
+ 167              	.LVL16:
+  54:svt.c         **** 		LenC = 0;
+ 168              		.loc 1 54 0
+ 169 0020 0023     		mov	r3, #0
+ 170 0022 A14A     		ldr	r2, .L42+4
+ 171 0024 1370     		strb	r3, [r2]
+  55:svt.c         **** 		LenChS = 0;
+ 172              		.loc 1 55 0
+ 173 0026 A14A     		ldr	r2, .L42+8
+ 174 0028 1370     		strb	r3, [r2]
+  56:svt.c         **** 		LenD1 = 0;
+ 175              		.loc 1 56 0
+ 176 002a A14A     		ldr	r2, .L42+12
+ 177 002c 1370     		strb	r3, [r2]
+  57:svt.c         **** 		LenD2 = 0;
+ 178              		.loc 1 57 0
+ 179 002e A14A     		ldr	r2, .L42+16
+ 180 0030 1370     		strb	r3, [r2]
+  58:svt.c         ****         LenD3 = 0;
+ 181              		.loc 1 58 0
+ 182 0032 A14A     		ldr	r2, .L42+20
+ 183 0034 1370     		strb	r3, [r2]
+  59:svt.c         ****     }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 10
+
+
+ 184              		.loc 1 59 0
+ 185 0036 A14A     		ldr	r2, .L42+24
+ 186 0038 1370     		strb	r3, [r2]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 187              		.loc 1 48 0
+ 188 003a 0020     		mov	r0, #0
+ 189 003c 2EE1     		b	.L10
+ 190              	.LVL17:
+ 191              	.L9:
+  63:svt.c         ****     		case READ_SQ:
+ 192              		.loc 1 63 0
+ 193 003e 994B     		ldr	r3, .L42
+ 194 0040 1978     		ldrb	r1, [r3]
+ 195 0042 0A29     		cmp	r1, #10
+ 196 0044 00D9     		bls	.LCB146
+ 197 0046 25E1     		b	.L11	@long jump
+ 198              	.LCB146:
+ 199 0048 8B00     		lsl	r3, r1, #2
+ 200 004a 9D49     		ldr	r1, .L42+28
+ 201 004c CB58     		ldr	r3, [r1, r3]
+ 202 004e 9F46     		mov	pc, r3
+ 203              		.section	.rodata
+ 204              		.align	2
+ 205              	.L13:
+ 206 0000 94020000 		.word	.L11
+ 207 0004 50000000 		.word	.L12
+ 208 0008 8A000000 		.word	.L14
+ 209 000c A8000000 		.word	.L15
+ 210 0010 E6000000 		.word	.L16
+ 211 0014 04010000 		.word	.L17
+ 212 0018 4C010000 		.word	.L18
+ 213 001c 8C010000 		.word	.L19
+ 214 0020 CC010000 		.word	.L20
+ 215 0024 EA010000 		.word	.L21
+ 216 0028 28020000 		.word	.L22
+ 217              		.section	.text.UnpackData
+ 218              	.L12:
+  66:svt.c         ****     			{
+ 219              		.loc 1 66 0
+ 220 0050 FFF7FEFF 		bl	CheckSymb
+ 221              	.LVL18:
+ 222 0054 0028     		cmp	r0, #0
+ 223 0056 13D0     		beq	.L23
+  68:svt.c         ****     				LenSeq++;
+ 224              		.loc 1 68 0
+ 225 0058 2B88     		ldrh	r3, [r5]
+ 226 005a 1C43     		orr	r4, r3
+ 227 005c 2C80     		strh	r4, [r5]
+  69:svt.c         ****     				if (LenSeq == LEN_SEQ)
+ 228              		.loc 1 69 0
+ 229 005e 924A     		ldr	r2, .L42+4
+ 230 0060 1378     		ldrb	r3, [r2]
+ 231 0062 0133     		add	r3, r3, #1
+ 232 0064 DBB2     		uxtb	r3, r3
+ 233 0066 1370     		strb	r3, [r2]
+  70:svt.c         ****     				{
+ 234              		.loc 1 70 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 11
+
+
+ 235 0068 042B     		cmp	r3, #4
+ 236 006a 04D1     		bne	.L24
+  72:svt.c         ****     				}
+ 237              		.loc 1 72 0
+ 238 006c 0222     		mov	r2, #2
+ 239 006e 8D4B     		ldr	r3, .L42
+ 240 0070 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 241              		.loc 1 48 0
+ 242 0072 0020     		mov	r0, #0
+ 243 0074 12E1     		b	.L10
+ 244              	.L24:
+  76:svt.c         ****     				}
+ 245              		.loc 1 76 0
+ 246 0076 2B88     		ldrh	r3, [r5]
+ 247 0078 1B01     		lsl	r3, r3, #4
+ 248 007a 2B80     		strh	r3, [r5]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 249              		.loc 1 48 0
+ 250 007c 0020     		mov	r0, #0
+ 251 007e 0DE1     		b	.L10
+ 252              	.L23:
+  80:svt.c         ****     				ERR_CODE = BAD_SEQ;
+ 253              		.loc 1 80 0
+ 254 0080 0022     		mov	r2, #0
+ 255 0082 884B     		ldr	r3, .L42
+ 256 0084 1A70     		strb	r2, [r3]
+ 257              	.LVL19:
+  81:svt.c         ****     			}
+ 258              		.loc 1 81 0
+ 259 0086 0120     		mov	r0, #1
+ 260 0088 08E1     		b	.L10
+ 261              	.LVL20:
+ 262              	.L14:
+  87:svt.c         ****     			{
+ 263              		.loc 1 87 0
+ 264 008a 2128     		cmp	r0, #33
+ 265 008c 04D1     		bne	.L25
+  89:svt.c         ****     			}
+ 266              		.loc 1 89 0
+ 267 008e 1E3A     		sub	r2, r2, #30
+ 268 0090 844B     		ldr	r3, .L42
+ 269 0092 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 270              		.loc 1 48 0
+ 271 0094 0020     		mov	r0, #0
+ 272              	.LVL21:
+ 273 0096 01E1     		b	.L10
+ 274              	.LVL22:
+ 275              	.L25:
+  93:svt.c         ****     				ERR_CODE = NO_FR1;
+ 276              		.loc 1 93 0
+ 277 0098 281C     		mov	r0, r5
+ 278              	.LVL23:
+ 279 009a FFF7FEFF 		bl	ResetPacket
+ 280              	.LVL24:
+  95:svt.c         ****     			}
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 12
+
+
+ 281              		.loc 1 95 0
+ 282 009e 0022     		mov	r2, #0
+ 283 00a0 804B     		ldr	r3, .L42
+ 284 00a2 1A70     		strb	r2, [r3]
+  94:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 285              		.loc 1 94 0
+ 286 00a4 0220     		mov	r0, #2
+ 287 00a6 F9E0     		b	.L10
+ 288              	.LVL25:
+ 289              	.L15:
+ 102:svt.c         ****     			{
+ 290              		.loc 1 102 0
+ 291 00a8 FFF7FEFF 		bl	CheckSymb
+ 292              	.LVL26:
+ 293 00ac 0028     		cmp	r0, #0
+ 294 00ae 12D0     		beq	.L26
+ 104:svt.c         ****     				LenC ++;
+ 295              		.loc 1 104 0
+ 296 00b0 6B68     		ldr	r3, [r5, #4]
+ 297 00b2 1C43     		orr	r4, r3
+ 298 00b4 6C60     		str	r4, [r5, #4]
+ 105:svt.c         ****     				//printf("LenC Command: %d\n", LenC);
+ 299              		.loc 1 105 0
+ 300 00b6 7D4A     		ldr	r2, .L42+8
+ 301 00b8 1378     		ldrb	r3, [r2]
+ 302 00ba 0133     		add	r3, r3, #1
+ 303 00bc DBB2     		uxtb	r3, r3
+ 304 00be 1370     		strb	r3, [r2]
+ 107:svt.c         ****     				{
+ 305              		.loc 1 107 0
+ 306 00c0 022B     		cmp	r3, #2
+ 307 00c2 04D1     		bne	.L27
+ 109:svt.c         ****     				}
+ 308              		.loc 1 109 0
+ 309 00c4 0422     		mov	r2, #4
+ 310 00c6 774B     		ldr	r3, .L42
+ 311 00c8 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 312              		.loc 1 48 0
+ 313 00ca 0020     		mov	r0, #0
+ 314 00cc E6E0     		b	.L10
+ 315              	.L27:
+ 113:svt.c         ****     				}
+ 316              		.loc 1 113 0
+ 317 00ce 2401     		lsl	r4, r4, #4
+ 318 00d0 6C60     		str	r4, [r5, #4]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 319              		.loc 1 48 0
+ 320 00d2 0020     		mov	r0, #0
+ 321 00d4 E2E0     		b	.L10
+ 322              	.L26:
+ 118:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 323              		.loc 1 118 0
+ 324 00d6 281C     		mov	r0, r5
+ 325 00d8 FFF7FEFF 		bl	ResetPacket
+ 326              	.LVL27:
+ 119:svt.c         ****     				ERR_CODE = INV_COMM;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 13
+
+
+ 327              		.loc 1 119 0
+ 328 00dc 0022     		mov	r2, #0
+ 329 00de 714B     		ldr	r3, .L42
+ 330 00e0 1A70     		strb	r2, [r3]
+ 331              	.LVL28:
+ 120:svt.c         ****     			}
+ 332              		.loc 1 120 0
+ 333 00e2 0320     		mov	r0, #3
+ 334 00e4 DAE0     		b	.L10
+ 335              	.LVL29:
+ 336              	.L16:
+ 126:svt.c         ****     			{
+ 337              		.loc 1 126 0
+ 338 00e6 3A28     		cmp	r0, #58
+ 339 00e8 04D1     		bne	.L28
+ 128:svt.c         ****     			}
+ 340              		.loc 1 128 0
+ 341 00ea 353A     		sub	r2, r2, #53
+ 342 00ec 6D4B     		ldr	r3, .L42
+ 343 00ee 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 344              		.loc 1 48 0
+ 345 00f0 0020     		mov	r0, #0
+ 346              	.LVL30:
+ 347 00f2 D3E0     		b	.L10
+ 348              	.LVL31:
+ 349              	.L28:
+ 132:svt.c         ****     				ERR_CODE = NO_FR2;
+ 350              		.loc 1 132 0
+ 351 00f4 281C     		mov	r0, r5
+ 352              	.LVL32:
+ 353 00f6 FFF7FEFF 		bl	ResetPacket
+ 354              	.LVL33:
+ 134:svt.c         ****     			}
+ 355              		.loc 1 134 0
+ 356 00fa 0022     		mov	r2, #0
+ 357 00fc 694B     		ldr	r3, .L42
+ 358 00fe 1A70     		strb	r2, [r3]
+ 133:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 359              		.loc 1 133 0
+ 360 0100 0420     		mov	r0, #4
+ 361 0102 CBE0     		b	.L10
+ 362              	.LVL34:
+ 363              	.L17:
+ 141:svt.c         ****     			{
+ 364              		.loc 1 141 0
+ 365 0104 FFF7FEFF 		bl	CheckSymb
+ 366              	.LVL35:
+ 367 0108 0028     		cmp	r0, #0
+ 368 010a 17D0     		beq	.L29
+ 143:svt.c         ****     				LenD1++;
+ 369              		.loc 1 143 0
+ 370 010c AB68     		ldr	r3, [r5, #8]
+ 371 010e 1C43     		orr	r4, r3
+ 372 0110 EA68     		ldr	r2, [r5, #12]
+ 373 0112 AC60     		str	r4, [r5, #8]
+ 144:svt.c         ****     				if (LenD1 == LEN_DA1)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 14
+
+
+ 374              		.loc 1 144 0
+ 375 0114 6749     		ldr	r1, .L42+16
+ 376 0116 0B78     		ldrb	r3, [r1]
+ 377 0118 0133     		add	r3, r3, #1
+ 378 011a DBB2     		uxtb	r3, r3
+ 379 011c 0B70     		strb	r3, [r1]
+ 145:svt.c         ****     				{
+ 380              		.loc 1 145 0
+ 381 011e 102B     		cmp	r3, #16
+ 382 0120 04D1     		bne	.L30
+ 147:svt.c         ****     				}
+ 383              		.loc 1 147 0
+ 384 0122 0622     		mov	r2, #6
+ 385 0124 5F4B     		ldr	r3, .L42
+ 386 0126 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 387              		.loc 1 48 0
+ 388 0128 0020     		mov	r0, #0
+ 389 012a B7E0     		b	.L10
+ 390              	.L30:
+ 151:svt.c         ****     				}
+ 391              		.loc 1 151 0
+ 392 012c 210F     		lsr	r1, r4, #28
+ 393 012e 1301     		lsl	r3, r2, #4
+ 394 0130 0B43     		orr	r3, r1
+ 395 0132 2401     		lsl	r4, r4, #4
+ 396 0134 AC60     		str	r4, [r5, #8]
+ 397 0136 EB60     		str	r3, [r5, #12]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 398              		.loc 1 48 0
+ 399 0138 0020     		mov	r0, #0
+ 400 013a AFE0     		b	.L10
+ 401              	.L29:
+ 155:svt.c         ****     				ERR_CODE = INV_DA1;
+ 402              		.loc 1 155 0
+ 403 013c 281C     		mov	r0, r5
+ 404 013e FFF7FEFF 		bl	ResetPacket
+ 405              	.LVL36:
+ 157:svt.c         ****     			}
+ 406              		.loc 1 157 0
+ 407 0142 0022     		mov	r2, #0
+ 408 0144 574B     		ldr	r3, .L42
+ 409 0146 1A70     		strb	r2, [r3]
+ 156:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 410              		.loc 1 156 0
+ 411 0148 0520     		mov	r0, #5
+ 412 014a A7E0     		b	.L10
+ 413              	.LVL37:
+ 414              	.L18:
+ 165:svt.c         ****     			{
+ 415              		.loc 1 165 0
+ 416 014c FFF7FEFF 		bl	CheckSymb
+ 417              	.LVL38:
+ 418 0150 0028     		cmp	r0, #0
+ 419 0152 13D0     		beq	.L31
+ 167:svt.c         ****     				LenD2++;
+ 420              		.loc 1 167 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 15
+
+
+ 421 0154 2B8A     		ldrh	r3, [r5, #16]
+ 422 0156 1C43     		orr	r4, r3
+ 423 0158 A4B2     		uxth	r4, r4
+ 424 015a 2C82     		strh	r4, [r5, #16]
+ 168:svt.c         ****     				if (LenD2 == LEN_DA2)
+ 425              		.loc 1 168 0
+ 426 015c 564A     		ldr	r2, .L42+20
+ 427 015e 1378     		ldrb	r3, [r2]
+ 428 0160 0133     		add	r3, r3, #1
+ 429 0162 DBB2     		uxtb	r3, r3
+ 430 0164 1370     		strb	r3, [r2]
+ 169:svt.c         ****     				{
+ 431              		.loc 1 169 0
+ 432 0166 042B     		cmp	r3, #4
+ 433 0168 04D1     		bne	.L32
+ 171:svt.c         ****     				}
+ 434              		.loc 1 171 0
+ 435 016a 0722     		mov	r2, #7
+ 436 016c 4D4B     		ldr	r3, .L42
+ 437 016e 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 438              		.loc 1 48 0
+ 439 0170 0020     		mov	r0, #0
+ 440 0172 93E0     		b	.L10
+ 441              	.L32:
+ 175:svt.c         ****     				}
+ 442              		.loc 1 175 0
+ 443 0174 2401     		lsl	r4, r4, #4
+ 444 0176 2C82     		strh	r4, [r5, #16]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 445              		.loc 1 48 0
+ 446 0178 0020     		mov	r0, #0
+ 447 017a 8FE0     		b	.L10
+ 448              	.L31:
+ 179:svt.c         ****     				ERR_CODE = INV_DA2;
+ 449              		.loc 1 179 0
+ 450 017c 281C     		mov	r0, r5
+ 451 017e FFF7FEFF 		bl	ResetPacket
+ 452              	.LVL39:
+ 181:svt.c         ****     			}
+ 453              		.loc 1 181 0
+ 454 0182 0022     		mov	r2, #0
+ 455 0184 474B     		ldr	r3, .L42
+ 456 0186 1A70     		strb	r2, [r3]
+ 180:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 457              		.loc 1 180 0
+ 458 0188 0620     		mov	r0, #6
+ 459 018a 87E0     		b	.L10
+ 460              	.LVL40:
+ 461              	.L19:
+ 187:svt.c         ****     			{
+ 462              		.loc 1 187 0
+ 463 018c FFF7FEFF 		bl	CheckSymb
+ 464              	.LVL41:
+ 465 0190 0028     		cmp	r0, #0
+ 466 0192 13D0     		beq	.L33
+ 189:svt.c         ****     				LenD3++;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 16
+
+
+ 467              		.loc 1 189 0
+ 468 0194 6B8A     		ldrh	r3, [r5, #18]
+ 469 0196 1C43     		orr	r4, r3
+ 470 0198 A4B2     		uxth	r4, r4
+ 471 019a 6C82     		strh	r4, [r5, #18]
+ 190:svt.c         ****     				if (LenD3 == LEN_DA3)
+ 472              		.loc 1 190 0
+ 473 019c 474A     		ldr	r2, .L42+24
+ 474 019e 1378     		ldrb	r3, [r2]
+ 475 01a0 0133     		add	r3, r3, #1
+ 476 01a2 DBB2     		uxtb	r3, r3
+ 477 01a4 1370     		strb	r3, [r2]
+ 191:svt.c         ****     				{
+ 478              		.loc 1 191 0
+ 479 01a6 042B     		cmp	r3, #4
+ 480 01a8 04D1     		bne	.L34
+ 193:svt.c         ****     				}
+ 481              		.loc 1 193 0
+ 482 01aa 0822     		mov	r2, #8
+ 483 01ac 3D4B     		ldr	r3, .L42
+ 484 01ae 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 485              		.loc 1 48 0
+ 486 01b0 0020     		mov	r0, #0
+ 487 01b2 73E0     		b	.L10
+ 488              	.L34:
+ 197:svt.c         ****     				}
+ 489              		.loc 1 197 0
+ 490 01b4 2401     		lsl	r4, r4, #4
+ 491 01b6 6C82     		strh	r4, [r5, #18]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 492              		.loc 1 48 0
+ 493 01b8 0020     		mov	r0, #0
+ 494 01ba 6FE0     		b	.L10
+ 495              	.L33:
+ 201:svt.c         ****     				ERR_CODE = INV_DA3;
+ 496              		.loc 1 201 0
+ 497 01bc 281C     		mov	r0, r5
+ 498 01be FFF7FEFF 		bl	ResetPacket
+ 499              	.LVL42:
+ 203:svt.c         ****     			}
+ 500              		.loc 1 203 0
+ 501 01c2 0022     		mov	r2, #0
+ 502 01c4 374B     		ldr	r3, .L42
+ 503 01c6 1A70     		strb	r2, [r3]
+ 202:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 504              		.loc 1 202 0
+ 505 01c8 0A20     		mov	r0, #10
+ 506 01ca 67E0     		b	.L10
+ 507              	.LVL43:
+ 508              	.L20:
+ 209:svt.c         ****     			{
+ 509              		.loc 1 209 0
+ 510 01cc 4028     		cmp	r0, #64
+ 511 01ce 04D1     		bne	.L35
+ 211:svt.c         ****     			}
+ 512              		.loc 1 211 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 17
+
+
+ 513 01d0 373A     		sub	r2, r2, #55
+ 514 01d2 344B     		ldr	r3, .L42
+ 515 01d4 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 516              		.loc 1 48 0
+ 517 01d6 0020     		mov	r0, #0
+ 518              	.LVL44:
+ 519 01d8 60E0     		b	.L10
+ 520              	.LVL45:
+ 521              	.L35:
+ 215:svt.c         ****     				ERR_CODE = NO_FR3;
+ 522              		.loc 1 215 0
+ 523 01da 281C     		mov	r0, r5
+ 524              	.LVL46:
+ 525 01dc FFF7FEFF 		bl	ResetPacket
+ 526              	.LVL47:
+ 217:svt.c         ****     			}
+ 527              		.loc 1 217 0
+ 528 01e0 0022     		mov	r2, #0
+ 529 01e2 304B     		ldr	r3, .L42
+ 530 01e4 1A70     		strb	r2, [r3]
+ 216:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 531              		.loc 1 216 0
+ 532 01e6 0720     		mov	r0, #7
+ 533 01e8 58E0     		b	.L10
+ 534              	.LVL48:
+ 535              	.L21:
+ 223:svt.c         ****     			{
+ 536              		.loc 1 223 0
+ 537 01ea FFF7FEFF 		bl	CheckSymb
+ 538              	.LVL49:
+ 539 01ee 0028     		cmp	r0, #0
+ 540 01f0 12D0     		beq	.L36
+ 225:svt.c         ****     				LenChS++;
+ 541              		.loc 1 225 0
+ 542 01f2 6B69     		ldr	r3, [r5, #20]
+ 543 01f4 1C43     		orr	r4, r3
+ 544 01f6 6C61     		str	r4, [r5, #20]
+ 226:svt.c         ****     				if (LenChS == LEN_CHS)
+ 545              		.loc 1 226 0
+ 546 01f8 2D4A     		ldr	r2, .L42+12
+ 547 01fa 1378     		ldrb	r3, [r2]
+ 548 01fc 0133     		add	r3, r3, #1
+ 549 01fe DBB2     		uxtb	r3, r3
+ 550 0200 1370     		strb	r3, [r2]
+ 227:svt.c         ****     				{
+ 551              		.loc 1 227 0
+ 552 0202 082B     		cmp	r3, #8
+ 553 0204 04D1     		bne	.L37
+ 229:svt.c         ****     				}
+ 554              		.loc 1 229 0
+ 555 0206 0A22     		mov	r2, #10
+ 556 0208 264B     		ldr	r3, .L42
+ 557 020a 1A70     		strb	r2, [r3]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 558              		.loc 1 48 0
+ 559 020c 0020     		mov	r0, #0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 18
+
+
+ 560 020e 45E0     		b	.L10
+ 561              	.L37:
+ 233:svt.c         ****     				}
+ 562              		.loc 1 233 0
+ 563 0210 2401     		lsl	r4, r4, #4
+ 564 0212 6C61     		str	r4, [r5, #20]
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 565              		.loc 1 48 0
+ 566 0214 0020     		mov	r0, #0
+ 567 0216 41E0     		b	.L10
+ 568              	.L36:
+ 238:svt.c         ****     				ERR_CODE = INV_CKECKSUM;
+ 569              		.loc 1 238 0
+ 570 0218 281C     		mov	r0, r5
+ 571 021a FFF7FEFF 		bl	ResetPacket
+ 572              	.LVL50:
+ 240:svt.c         ****     			}
+ 573              		.loc 1 240 0
+ 574 021e 0022     		mov	r2, #0
+ 575 0220 204B     		ldr	r3, .L42
+ 576 0222 1A70     		strb	r2, [r3]
+ 239:svt.c         ****     				PROTO_STATE = WAIT_STX;
+ 577              		.loc 1 239 0
+ 578 0224 0820     		mov	r0, #8
+ 579 0226 39E0     		b	.L10
+ 580              	.LVL51:
+ 581              	.L22:
+ 246:svt.c         ****     			{
+ 582              		.loc 1 246 0
+ 583 0228 3E28     		cmp	r0, #62
+ 584 022a 2BD1     		bne	.L38
+ 585              	.LBB2:
+ 253:svt.c         ****                     _tmpcrc = crc32_reset();
+ 586              		.loc 1 253 0
+ 587 022c 2A8A     		ldrh	r2, [r5, #16]
+ 588 022e 6B8A     		ldrh	r3, [r5, #18]
+ 250:svt.c         ****                         (uint32_t)((Data->Data1 & 0xFFFFFFFF00000000) >> 32), 
+ 589              		.loc 1 250 0
+ 590 0230 A968     		ldr	r1, [r5, #8]
+ 591 0232 0091     		str	r1, [sp]
+ 592 0234 0192     		str	r2, [sp, #4]
+ 593 0236 0293     		str	r3, [sp, #8]
+ 594 0238 04A8     		add	r0, sp, #16
+ 595              	.LVL52:
+ 596 023a 2249     		ldr	r1, .L42+32
+ 597 023c 6A68     		ldr	r2, [r5, #4]
+ 598 023e EB68     		ldr	r3, [r5, #12]
+ 599 0240 FFF7FEFF 		bl	sprintf
+ 600              	.LVL53:
+ 255:svt.c         ****                     _tmpcrc = crc32_calc_block((uint8_t *)_tmpdata, strlen(_tmpdata), _tmpcrc);
+ 601              		.loc 1 255 0
+ 602 0244 2048     		ldr	r0, .L42+36
+ 603 0246 0121     		mov	r1, #1
+ 604 0248 0122     		mov	r2, #1
+ 605 024a 5242     		neg	r2, r2
+ 606 024c FFF7FEFF 		bl	crc32_calc_block
+ 607              	.LVL54:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 19
+
+
+ 608 0250 041C     		mov	r4, r0
+ 609              	.LVL55:
+ 256:svt.c         ****     				_tmpcrc = crc32_calc_block((uint8_t *)"F", 1, _tmpcrc);
+ 610              		.loc 1 256 0
+ 611 0252 04A8     		add	r0, sp, #16
+ 612              	.LVL56:
+ 613 0254 FFF7FEFF 		bl	strlen
+ 614              	.LVL57:
+ 615 0258 011C     		mov	r1, r0
+ 616 025a 04A8     		add	r0, sp, #16
+ 617 025c 221C     		mov	r2, r4
+ 618 025e FFF7FEFF 		bl	crc32_calc_block
+ 619              	.LVL58:
+ 620 0262 021C     		mov	r2, r0
+ 621              	.LVL59:
+ 257:svt.c         ****                     _tmpcrc = crc32_final(_tmpcrc);
+ 622              		.loc 1 257 0
+ 623 0264 1948     		ldr	r0, .L42+40
+ 624              	.LVL60:
+ 625 0266 0121     		mov	r1, #1
+ 626 0268 FFF7FEFF 		bl	crc32_calc_block
+ 627              	.LVL61:
+ 258:svt.c         ****                     if (_tmpcrc == Data->CheckSum)
+ 628              		.loc 1 258 0
+ 629 026c C043     		mvn	r0, r0
+ 630              	.LVL62:
+ 259:svt.c         ****                     {
+ 631              		.loc 1 259 0
+ 632 026e 6B69     		ldr	r3, [r5, #20]
+ 633 0270 8342     		cmp	r3, r0
+ 634 0272 03D1     		bne	.L39
+ 261:svt.c         ****     				    ERR_CODE = PARSED_OK;
+ 635              		.loc 1 261 0
+ 636 0274 0123     		mov	r3, #1
+ 637 0276 2B76     		strb	r3, [r5, #24]
+ 262:svt.c         ****                     }
+ 638              		.loc 1 262 0
+ 639 0278 0020     		mov	r0, #0
+ 640              	.LVL63:
+ 641 027a 07E0     		b	.L41
+ 642              	.LVL64:
+ 643              	.L39:
+ 266:svt.c         ****                         ERR_CODE = 10;
+ 644              		.loc 1 266 0
+ 645 027c 0023     		mov	r3, #0
+ 646 027e 2B76     		strb	r3, [r5, #24]
+ 647              	.LVL65:
+ 267:svt.c         ****                     }
+ 648              		.loc 1 267 0
+ 649 0280 0A20     		mov	r0, #10
+ 650              	.LVL66:
+ 651 0282 03E0     		b	.L41
+ 652              	.LVL67:
+ 653              	.L38:
+ 654              	.LBE2:
+ 272:svt.c         ****     			}
+ 655              		.loc 1 272 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 20
+
+
+ 656 0284 281C     		mov	r0, r5
+ 657              	.LVL68:
+ 658 0286 FFF7FEFF 		bl	ResetPacket
+ 659              	.LVL69:
+ 271:svt.c         ****     				ResetPacket(Data);
+ 660              		.loc 1 271 0
+ 661 028a 0920     		mov	r0, #9
+ 662              	.LVL70:
+ 663              	.L41:
+ 274:svt.c         ****     			break;
+ 664              		.loc 1 274 0
+ 665 028c 0022     		mov	r2, #0
+ 666 028e 054B     		ldr	r3, .L42
+ 667 0290 1A70     		strb	r2, [r3]
+ 275:svt.c         ****     		}
+ 668              		.loc 1 275 0
+ 669 0292 03E0     		b	.L10
+ 670              	.LVL71:
+ 671              	.L11:
+ 279:svt.c         ****             }
+ 672              		.loc 1 279 0
+ 673 0294 281C     		mov	r0, r5
+ 674              	.LVL72:
+ 675 0296 FFF7FEFF 		bl	ResetPacket
+ 676              	.LVL73:
+  48:svt.c         **** 	InByte = DecodeByte(InByte);
+ 677              		.loc 1 48 0
+ 678 029a 0020     		mov	r0, #0
+ 679              	.LVL74:
+ 680              	.L10:
+ 283:svt.c         **** }
+ 681              		.loc 1 283 0
+ 682 029c C0B2     		uxtb	r0, r0
+ 683              	.LVL75:
+ 284:svt.c         **** 
+ 684              		.loc 1 284 0
+ 685 029e 0FB0     		add	sp, sp, #60
+ 686              		@ sp needed
+ 687              	.LVL76:
+ 688 02a0 30BD     		pop	{r4, r5, pc}
+ 689              	.L43:
+ 690 02a2 C046     		.align	2
+ 691              	.L42:
+ 692 02a4 00000000 		.word	PROTO_STATE
+ 693 02a8 00000000 		.word	LenSeq
+ 694 02ac 00000000 		.word	LenC
+ 695 02b0 00000000 		.word	LenChS
+ 696 02b4 00000000 		.word	LenD1
+ 697 02b8 00000000 		.word	LenD2
+ 698 02bc 00000000 		.word	LenD3
+ 699 02c0 00000000 		.word	.L13
+ 700 02c4 00000000 		.word	.LC8
+ 701 02c8 18000000 		.word	.LC10
+ 702 02cc 1C000000 		.word	.LC12
+ 703              		.cfi_endproc
+ 704              	.LFE2:
+ 705              		.size	UnpackData, .-UnpackData
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 21
+
+
+ 706              		.section	.text.PackData,"ax",%progbits
+ 707              		.align	2
+ 708              		.global	PackData
+ 709              		.code	16
+ 710              		.thumb_func
+ 711              		.type	PackData, %function
+ 712              	PackData:
+ 713              	.LFB6:
+ 319:svt.c         **** 
+ 320:svt.c         **** uint8_t PackData(char *buff, uint8_t *data, uint16_t Sequence)
+ 321:svt.c         **** {
+ 714              		.loc 1 321 0
+ 715              		.cfi_startproc
+ 716              	.LVL77:
+ 717 0000 70B5     		push	{r4, r5, r6, lr}
+ 718              		.cfi_def_cfa_offset 16
+ 719              		.cfi_offset 4, -16
+ 720              		.cfi_offset 5, -12
+ 721              		.cfi_offset 6, -8
+ 722              		.cfi_offset 14, -4
+ 723 0002 8AB0     		sub	sp, sp, #40
+ 724              		.cfi_def_cfa_offset 56
+ 725 0004 041C     		mov	r4, r0
+ 726 0006 0D1C     		mov	r5, r1
+ 727              	.LVL78:
+ 322:svt.c         ****     uint32_t _crc;
+ 323:svt.c         ****     char *_p;
+ 324:svt.c         ****     char szSeq[20];
+ 325:svt.c         ****     char szCheckSum[20];
+ 326:svt.c         ****     
+ 327:svt.c         ****     _p = (char *)data;
+ 328:svt.c         **** 
+ 329:svt.c         **** 
+ 330:svt.c         ****     sprintf(szSeq, "%04X", Sequence);
+ 728              		.loc 1 330 0
+ 729 0008 05A8     		add	r0, sp, #20
+ 730              	.LVL79:
+ 731 000a 2549     		ldr	r1, .L45
+ 732              	.LVL80:
+ 733 000c FFF7FEFF 		bl	sprintf
+ 734              	.LVL81:
+ 331:svt.c         ****     
+ 332:svt.c         ****     _crc = crc32_reset();
+ 333:svt.c         ****     _crc = crc32_calc_block((uint8_t *)"A", 1, _crc);
+ 735              		.loc 1 333 0
+ 736 0010 2448     		ldr	r0, .L45+4
+ 737 0012 0121     		mov	r1, #1
+ 738 0014 0122     		mov	r2, #1
+ 739 0016 5242     		neg	r2, r2
+ 740 0018 FFF7FEFF 		bl	crc32_calc_block
+ 741              	.LVL82:
+ 742 001c 061C     		mov	r6, r0
+ 743              	.LVL83:
+ 334:svt.c         ****     _crc = crc32_calc_block((uint8_t *)_p, strlen(_p), _crc);
+ 744              		.loc 1 334 0
+ 745 001e 281C     		mov	r0, r5
+ 746              	.LVL84:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 22
+
+
+ 747 0020 FFF7FEFF 		bl	strlen
+ 748              	.LVL85:
+ 749 0024 011C     		mov	r1, r0
+ 750 0026 281C     		mov	r0, r5
+ 751 0028 321C     		mov	r2, r6
+ 752 002a FFF7FEFF 		bl	crc32_calc_block
+ 753              	.LVL86:
+ 754 002e 021C     		mov	r2, r0
+ 755              	.LVL87:
+ 335:svt.c         ****     _crc = crc32_calc_block((uint8_t *)"F", 1, _crc);
+ 756              		.loc 1 335 0
+ 757 0030 1D48     		ldr	r0, .L45+8
+ 758              	.LVL88:
+ 759 0032 0121     		mov	r1, #1
+ 760 0034 FFF7FEFF 		bl	crc32_calc_block
+ 761              	.LVL89:
+ 336:svt.c         ****     _crc = crc32_final(_crc);
+ 762              		.loc 1 336 0
+ 763 0038 C243     		mvn	r2, r0
+ 764              	.LVL90:
+ 337:svt.c         ****     
+ 338:svt.c         ****     sprintf(szCheckSum, "%08X", _crc);
+ 765              		.loc 1 338 0
+ 766 003a 6846     		mov	r0, sp
+ 767 003c 1B49     		ldr	r1, .L45+12
+ 768 003e FFF7FEFF 		bl	sprintf
+ 769              	.LVL91:
+ 339:svt.c         ****     
+ 340:svt.c         ****     strcpy(buff, STX_S);
+ 770              		.loc 1 340 0
+ 771 0042 201C     		mov	r0, r4
+ 772 0044 1A49     		ldr	r1, .L45+16
+ 773 0046 0222     		mov	r2, #2
+ 774 0048 FFF7FEFF 		bl	memcpy
+ 775              	.LVL92:
+ 341:svt.c         ****     strcat(buff, szSeq);
+ 776              		.loc 1 341 0
+ 777 004c 201C     		mov	r0, r4
+ 778 004e 05A9     		add	r1, sp, #20
+ 779 0050 FFF7FEFF 		bl	strcat
+ 780              	.LVL93:
+ 342:svt.c         ****     strcat(buff, FRM0);
+ 781              		.loc 1 342 0
+ 782 0054 201C     		mov	r0, r4
+ 783 0056 FFF7FEFF 		bl	strlen
+ 784              	.LVL94:
+ 785 005a 2018     		add	r0, r4, r0
+ 786 005c 1549     		ldr	r1, .L45+20
+ 787 005e 0222     		mov	r2, #2
+ 788 0060 FFF7FEFF 		bl	memcpy
+ 789              	.LVL95:
+ 343:svt.c         ****     strcat(buff, _p);
+ 790              		.loc 1 343 0
+ 791 0064 201C     		mov	r0, r4
+ 792 0066 291C     		mov	r1, r5
+ 793 0068 FFF7FEFF 		bl	strcat
+ 794              	.LVL96:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 23
+
+
+ 344:svt.c         ****     strcat(buff, FRM1);    
+ 795              		.loc 1 344 0
+ 796 006c 201C     		mov	r0, r4
+ 797 006e FFF7FEFF 		bl	strlen
+ 798              	.LVL97:
+ 799 0072 2018     		add	r0, r4, r0
+ 800 0074 1049     		ldr	r1, .L45+24
+ 801 0076 0222     		mov	r2, #2
+ 802 0078 FFF7FEFF 		bl	memcpy
+ 803              	.LVL98:
+ 345:svt.c         ****     strcat(buff, szCheckSum);
+ 804              		.loc 1 345 0
+ 805 007c 201C     		mov	r0, r4
+ 806 007e 6946     		mov	r1, sp
+ 807 0080 FFF7FEFF 		bl	strcat
+ 808              	.LVL99:
+ 346:svt.c         ****     strcat(buff, ETX_S);
+ 809              		.loc 1 346 0
+ 810 0084 201C     		mov	r0, r4
+ 811 0086 FFF7FEFF 		bl	strlen
+ 812              	.LVL100:
+ 813 008a 2018     		add	r0, r4, r0
+ 814 008c 0B49     		ldr	r1, .L45+28
+ 815 008e 0222     		mov	r2, #2
+ 816 0090 FFF7FEFF 		bl	memcpy
+ 817              	.LVL101:
+ 347:svt.c         ****     
+ 348:svt.c         ****     return strlen(buff);
+ 818              		.loc 1 348 0
+ 819 0094 201C     		mov	r0, r4
+ 820 0096 FFF7FEFF 		bl	strlen
+ 821              	.LVL102:
+ 822 009a C0B2     		uxtb	r0, r0
+ 349:svt.c         **** }
+ 823              		.loc 1 349 0
+ 824 009c 0AB0     		add	sp, sp, #40
+ 825              		@ sp needed
+ 826              	.LVL103:
+ 827              	.LVL104:
+ 828 009e 70BD     		pop	{r4, r5, r6, pc}
+ 829              	.L46:
+ 830              		.align	2
+ 831              	.L45:
+ 832 00a0 20000000 		.word	.LC14
+ 833 00a4 18000000 		.word	.LC10
+ 834 00a8 1C000000 		.word	.LC12
+ 835 00ac 28000000 		.word	.LC18
+ 836 00b0 30000000 		.word	.LC20
+ 837 00b4 34000000 		.word	.LC22
+ 838 00b8 38000000 		.word	.LC24
+ 839 00bc 3C000000 		.word	.LC26
+ 840              		.cfi_endproc
+ 841              	.LFE6:
+ 842              		.size	PackData, .-PackData
+ 843              		.comm	LenC,1,1
+ 844              		.comm	LenChS,1,1
+ 845              		.comm	LenSeq,1,1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 24
+
+
+ 846              		.comm	LenD3,1,1
+ 847              		.comm	LenD2,1,1
+ 848              		.comm	LenD1,1,1
+ 849              		.comm	PROTO_STATE,1,1
+ 850              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 851              		.align	2
+ 852              	.LC8:
+ 853 0000 25303258 		.ascii	"%02X:%08X%08X%04X%04X\000"
+ 853      3A253038 
+ 853      58253038 
+ 853      58253034 
+ 853      58253034 
+ 854 0016 0000     		.space	2
+ 855              	.LC10:
+ 856 0018 4100     		.ascii	"A\000"
+ 857 001a 0000     		.space	2
+ 858              	.LC12:
+ 859 001c 4600     		.ascii	"F\000"
+ 860 001e 0000     		.space	2
+ 861              	.LC14:
+ 862 0020 25303458 		.ascii	"%04X\000"
+ 862      00
+ 863 0025 000000   		.space	3
+ 864              	.LC18:
+ 865 0028 25303858 		.ascii	"%08X\000"
+ 865      00
+ 866 002d 000000   		.space	3
+ 867              	.LC20:
+ 868 0030 3C00     		.ascii	"<\000"
+ 869 0032 0000     		.space	2
+ 870              	.LC22:
+ 871 0034 2100     		.ascii	"!\000"
+ 872 0036 0000     		.space	2
+ 873              	.LC24:
+ 874 0038 4000     		.ascii	"@\000"
+ 875 003a 0000     		.space	2
+ 876              	.LC26:
+ 877 003c 3E00     		.ascii	">\000"
+ 878 003e 0000     		.text
+ 879              	.Letext0:
+ 880              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 881              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 882              		.file 4 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 883              		.file 5 "svt.h"
+ 884              		.file 6 "<built-in>"
+ 885              		.file 7 "crc32.h"
+ 886              		.file 8 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 887              		.section	.debug_info,"",%progbits
+ 888              	.Ldebug_info0:
+ 889 0000 4B080000 		.4byte	0x84b
+ 890 0004 0400     		.2byte	0x4
+ 891 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 892 000a 04       		.byte	0x4
+ 893 000b 01       		.uleb128 0x1
+ 894 000c 05020000 		.4byte	.LASF79
+ 895 0010 01       		.byte	0x1
+ 896 0011 EB000000 		.4byte	.LASF80
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 25
+
+
+ 897 0015 71030000 		.4byte	.LASF81
+ 898 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 899 001d 00000000 		.4byte	0
+ 900 0021 00000000 		.4byte	.Ldebug_line0
+ 901 0025 02       		.uleb128 0x2
+ 902 0026 01       		.byte	0x1
+ 903 0027 06       		.byte	0x6
+ 904 0028 62000000 		.4byte	.LASF0
+ 905 002c 03       		.uleb128 0x3
+ 906 002d 2D000000 		.4byte	.LASF3
+ 907 0031 02       		.byte	0x2
+ 908 0032 1D       		.byte	0x1d
+ 909 0033 37000000 		.4byte	0x37
+ 910 0037 02       		.uleb128 0x2
+ 911 0038 01       		.byte	0x1
+ 912 0039 08       		.byte	0x8
+ 913 003a D6020000 		.4byte	.LASF1
+ 914 003e 02       		.uleb128 0x2
+ 915 003f 02       		.byte	0x2
+ 916 0040 05       		.byte	0x5
+ 917 0041 EF020000 		.4byte	.LASF2
+ 918 0045 03       		.uleb128 0x3
+ 919 0046 22030000 		.4byte	.LASF4
+ 920 004a 02       		.byte	0x2
+ 921 004b 2B       		.byte	0x2b
+ 922 004c 50000000 		.4byte	0x50
+ 923 0050 02       		.uleb128 0x2
+ 924 0051 02       		.byte	0x2
+ 925 0052 07       		.byte	0x7
+ 926 0053 2F010000 		.4byte	.LASF5
+ 927 0057 02       		.uleb128 0x2
+ 928 0058 04       		.byte	0x4
+ 929 0059 05       		.byte	0x5
+ 930 005a 7F000000 		.4byte	.LASF6
+ 931 005e 03       		.uleb128 0x3
+ 932 005f C0000000 		.4byte	.LASF7
+ 933 0063 02       		.byte	0x2
+ 934 0064 41       		.byte	0x41
+ 935 0065 69000000 		.4byte	0x69
+ 936 0069 02       		.uleb128 0x2
+ 937 006a 04       		.byte	0x4
+ 938 006b 07       		.byte	0x7
+ 939 006c 0E010000 		.4byte	.LASF8
+ 940 0070 02       		.uleb128 0x2
+ 941 0071 08       		.byte	0x8
+ 942 0072 05       		.byte	0x5
+ 943 0073 54000000 		.4byte	.LASF9
+ 944 0077 03       		.uleb128 0x3
+ 945 0078 A4020000 		.4byte	.LASF10
+ 946 007c 02       		.byte	0x2
+ 947 007d 5B       		.byte	0x5b
+ 948 007e 82000000 		.4byte	0x82
+ 949 0082 02       		.uleb128 0x2
+ 950 0083 08       		.byte	0x8
+ 951 0084 07       		.byte	0x7
+ 952 0085 37000000 		.4byte	.LASF11
+ 953 0089 04       		.uleb128 0x4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 26
+
+
+ 954 008a 04       		.byte	0x4
+ 955 008b 05       		.byte	0x5
+ 956 008c 696E7400 		.ascii	"int\000"
+ 957 0090 02       		.uleb128 0x2
+ 958 0091 04       		.byte	0x4
+ 959 0092 07       		.byte	0x7
+ 960 0093 F1000000 		.4byte	.LASF12
+ 961 0097 03       		.uleb128 0x3
+ 962 0098 64030000 		.4byte	.LASF13
+ 963 009c 03       		.byte	0x3
+ 964 009d 15       		.byte	0x15
+ 965 009e 2C000000 		.4byte	0x2c
+ 966 00a2 03       		.uleb128 0x3
+ 967 00a3 8F000000 		.4byte	.LASF14
+ 968 00a7 03       		.byte	0x3
+ 969 00a8 21       		.byte	0x21
+ 970 00a9 45000000 		.4byte	0x45
+ 971 00ad 03       		.uleb128 0x3
+ 972 00ae 14030000 		.4byte	.LASF15
+ 973 00b2 03       		.byte	0x3
+ 974 00b3 2D       		.byte	0x2d
+ 975 00b4 5E000000 		.4byte	0x5e
+ 976 00b8 03       		.uleb128 0x3
+ 977 00b9 24000000 		.4byte	.LASF16
+ 978 00bd 03       		.byte	0x3
+ 979 00be 39       		.byte	0x39
+ 980 00bf 77000000 		.4byte	0x77
+ 981 00c3 03       		.uleb128 0x3
+ 982 00c4 14000000 		.4byte	.LASF17
+ 983 00c8 04       		.byte	0x4
+ 984 00c9 D4       		.byte	0xd4
+ 985 00ca 90000000 		.4byte	0x90
+ 986 00ce 02       		.uleb128 0x2
+ 987 00cf 04       		.byte	0x4
+ 988 00d0 07       		.byte	0x7
+ 989 00d1 C1010000 		.4byte	.LASF18
+ 990 00d5 05       		.uleb128 0x5
+ 991 00d6 04       		.byte	0x4
+ 992 00d7 06       		.uleb128 0x6
+ 993 00d8 04       		.byte	0x4
+ 994 00d9 DD000000 		.4byte	0xdd
+ 995 00dd 02       		.uleb128 0x2
+ 996 00de 01       		.byte	0x1
+ 997 00df 08       		.byte	0x8
+ 998 00e0 1D030000 		.4byte	.LASF19
+ 999 00e4 06       		.uleb128 0x6
+ 1000 00e5 04       		.byte	0x4
+ 1001 00e6 EA000000 		.4byte	0xea
+ 1002 00ea 07       		.uleb128 0x7
+ 1003 00eb DD000000 		.4byte	0xdd
+ 1004 00ef 06       		.uleb128 0x6
+ 1005 00f0 04       		.byte	0x4
+ 1006 00f1 F5000000 		.4byte	0xf5
+ 1007 00f5 08       		.uleb128 0x8
+ 1008 00f6 02       		.uleb128 0x2
+ 1009 00f7 04       		.byte	0x4
+ 1010 00f8 04       		.byte	0x4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 27
+
+
+ 1011 00f9 AF020000 		.4byte	.LASF20
+ 1012 00fd 02       		.uleb128 0x2
+ 1013 00fe 08       		.byte	0x8
+ 1014 00ff 04       		.byte	0x4
+ 1015 0100 98000000 		.4byte	.LASF21
+ 1016 0104 09       		.uleb128 0x9
+ 1017 0105 D4010000 		.4byte	.LASF82
+ 1018 0109 20       		.byte	0x20
+ 1019 010a 05       		.byte	0x5
+ 1020 010b 08       		.byte	0x8
+ 1021 010c 65010000 		.4byte	0x165
+ 1022 0110 0A       		.uleb128 0xa
+ 1023 0111 53657100 		.ascii	"Seq\000"
+ 1024 0115 05       		.byte	0x5
+ 1025 0116 0A       		.byte	0xa
+ 1026 0117 A2000000 		.4byte	0xa2
+ 1027 011b 00       		.byte	0
+ 1028 011c 0B       		.uleb128 0xb
+ 1029 011d B1000000 		.4byte	.LASF22
+ 1030 0121 05       		.byte	0x5
+ 1031 0122 0B       		.byte	0xb
+ 1032 0123 89000000 		.4byte	0x89
+ 1033 0127 04       		.byte	0x4
+ 1034 0128 0B       		.uleb128 0xb
+ 1035 0129 42010000 		.4byte	.LASF23
+ 1036 012d 05       		.byte	0x5
+ 1037 012e 0C       		.byte	0xc
+ 1038 012f B8000000 		.4byte	0xb8
+ 1039 0133 08       		.byte	0x8
+ 1040 0134 0B       		.uleb128 0xb
+ 1041 0135 48010000 		.4byte	.LASF24
+ 1042 0139 05       		.byte	0x5
+ 1043 013a 0D       		.byte	0xd
+ 1044 013b A2000000 		.4byte	0xa2
+ 1045 013f 10       		.byte	0x10
+ 1046 0140 0B       		.uleb128 0xb
+ 1047 0141 4E010000 		.4byte	.LASF25
+ 1048 0145 05       		.byte	0x5
+ 1049 0146 0E       		.byte	0xe
+ 1050 0147 A2000000 		.4byte	0xa2
+ 1051 014b 12       		.byte	0x12
+ 1052 014c 0B       		.uleb128 0xb
+ 1053 014d B5020000 		.4byte	.LASF26
+ 1054 0151 05       		.byte	0x5
+ 1055 0152 0F       		.byte	0xf
+ 1056 0153 AD000000 		.4byte	0xad
+ 1057 0157 14       		.byte	0x14
+ 1058 0158 0B       		.uleb128 0xb
+ 1059 0159 E5030000 		.4byte	.LASF27
+ 1060 015d 05       		.byte	0x5
+ 1061 015e 10       		.byte	0x10
+ 1062 015f 97000000 		.4byte	0x97
+ 1063 0163 18       		.byte	0x18
+ 1064 0164 00       		.byte	0
+ 1065 0165 0C       		.uleb128 0xc
+ 1066 0166 02030000 		.4byte	.LASF39
+ 1067 016a 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 28
+
+
+ 1068 016b 05       		.byte	0x5
+ 1069 016c 14       		.byte	0x14
+ 1070 016d B4010000 		.4byte	0x1b4
+ 1071 0171 0D       		.uleb128 0xd
+ 1072 0172 CA010000 		.4byte	.LASF28
+ 1073 0176 00       		.sleb128 0
+ 1074 0177 0D       		.uleb128 0xd
+ 1075 0178 8F010000 		.4byte	.LASF29
+ 1076 017c 01       		.sleb128 1
+ 1077 017d 0D       		.uleb128 0xd
+ 1078 017e B9000000 		.4byte	.LASF30
+ 1079 0182 02       		.sleb128 2
+ 1080 0183 0D       		.uleb128 0xd
+ 1081 0184 1B000000 		.4byte	.LASF31
+ 1082 0188 03       		.sleb128 3
+ 1083 0189 0D       		.uleb128 0xd
+ 1084 018a DE030000 		.4byte	.LASF32
+ 1085 018e 04       		.sleb128 4
+ 1086 018f 0D       		.uleb128 0xd
+ 1087 0190 BE020000 		.4byte	.LASF33
+ 1088 0194 05       		.sleb128 5
+ 1089 0195 0D       		.uleb128 0xd
+ 1090 0196 C6020000 		.4byte	.LASF34
+ 1091 019a 06       		.sleb128 6
+ 1092 019b 0D       		.uleb128 0xd
+ 1093 019c CB000000 		.4byte	.LASF35
+ 1094 01a0 07       		.sleb128 7
+ 1095 01a1 0D       		.uleb128 0xd
+ 1096 01a2 4E030000 		.4byte	.LASF36
+ 1097 01a6 08       		.sleb128 8
+ 1098 01a7 0D       		.uleb128 0xd
+ 1099 01a8 2D030000 		.4byte	.LASF37
+ 1100 01ac 09       		.sleb128 9
+ 1101 01ad 0D       		.uleb128 0xd
+ 1102 01ae CE020000 		.4byte	.LASF38
+ 1103 01b2 0A       		.sleb128 10
+ 1104 01b3 00       		.byte	0
+ 1105 01b4 0C       		.uleb128 0xc
+ 1106 01b5 5B010000 		.4byte	.LASF40
+ 1107 01b9 01       		.byte	0x1
+ 1108 01ba 01       		.byte	0x1
+ 1109 01bb 1B       		.byte	0x1b
+ 1110 01bc 03020000 		.4byte	0x203
+ 1111 01c0 0D       		.uleb128 0xd
+ 1112 01c1 34030000 		.4byte	.LASF41
+ 1113 01c5 00       		.sleb128 0
+ 1114 01c6 0D       		.uleb128 0xd
+ 1115 01c7 46030000 		.4byte	.LASF42
+ 1116 01cb 01       		.sleb128 1
+ 1117 01cc 0D       		.uleb128 0xd
+ 1118 01cd 97010000 		.4byte	.LASF43
+ 1119 01d1 02       		.sleb128 2
+ 1120 01d2 0D       		.uleb128 0xd
+ 1121 01d3 F9020000 		.4byte	.LASF44
+ 1122 01d7 03       		.sleb128 3
+ 1123 01d8 0D       		.uleb128 0xd
+ 1124 01d9 A0010000 		.4byte	.LASF45
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 29
+
+
+ 1125 01dd 04       		.sleb128 4
+ 1126 01de 0D       		.uleb128 0xd
+ 1127 01df D9010000 		.4byte	.LASF46
+ 1128 01e3 05       		.sleb128 5
+ 1129 01e4 0D       		.uleb128 0xd
+ 1130 01e5 E2010000 		.4byte	.LASF47
+ 1131 01e9 06       		.sleb128 6
+ 1132 01ea 0D       		.uleb128 0xd
+ 1133 01eb EB010000 		.4byte	.LASF48
+ 1134 01ef 07       		.sleb128 7
+ 1135 01f0 0D       		.uleb128 0xd
+ 1136 01f1 A9010000 		.4byte	.LASF49
+ 1137 01f5 08       		.sleb128 8
+ 1138 01f6 0D       		.uleb128 0xd
+ 1139 01f7 3D030000 		.4byte	.LASF50
+ 1140 01fb 09       		.sleb128 9
+ 1141 01fc 0D       		.uleb128 0xd
+ 1142 01fd 00000000 		.4byte	.LASF51
+ 1143 0201 0A       		.sleb128 10
+ 1144 0202 00       		.byte	0
+ 1145 0203 0E       		.uleb128 0xe
+ 1146 0204 D2000000 		.4byte	.LASF52
+ 1147 0208 01       		.byte	0x1
+ 1148 0209 1E01     		.2byte	0x11e
+ 1149 020b 97000000 		.4byte	0x97
+ 1150 020f 00000000 		.4byte	.LFB3
+ 1151 0213 1E000000 		.4byte	.LFE3-.LFB3
+ 1152 0217 01       		.uleb128 0x1
+ 1153 0218 9C       		.byte	0x9c
+ 1154 0219 2E020000 		.4byte	0x22e
+ 1155 021d 0F       		.uleb128 0xf
+ 1156 021e 496E7000 		.ascii	"Inp\000"
+ 1157 0222 01       		.byte	0x1
+ 1158 0223 1E01     		.2byte	0x11e
+ 1159 0225 97000000 		.4byte	0x97
+ 1160 0229 00000000 		.4byte	.LLST0
+ 1161 022d 00       		.byte	0
+ 1162 022e 0E       		.uleb128 0xe
+ 1163 022f 20010000 		.4byte	.LASF53
+ 1164 0233 01       		.byte	0x1
+ 1165 0234 2A01     		.2byte	0x12a
+ 1166 0236 97000000 		.4byte	0x97
+ 1167 023a 00000000 		.4byte	.LFB4
+ 1168 023e 0C000000 		.4byte	.LFE4-.LFB4
+ 1169 0242 01       		.uleb128 0x1
+ 1170 0243 9C       		.byte	0x9c
+ 1171 0244 69020000 		.4byte	0x269
+ 1172 0248 0F       		.uleb128 0xf
+ 1173 0249 496E7000 		.ascii	"Inp\000"
+ 1174 024d 01       		.byte	0x1
+ 1175 024e 2A01     		.2byte	0x12a
+ 1176 0250 97000000 		.4byte	0x97
+ 1177 0254 42000000 		.4byte	.LLST1
+ 1178 0258 10       		.uleb128 0x10
+ 1179 0259 56616C00 		.ascii	"Val\000"
+ 1180 025d 01       		.byte	0x1
+ 1181 025e 2C01     		.2byte	0x12c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 30
+
+
+ 1182 0260 97000000 		.4byte	0x97
+ 1183 0264 7C000000 		.4byte	.LLST2
+ 1184 0268 00       		.byte	0
+ 1185 0269 11       		.uleb128 0x11
+ 1186 026a 73000000 		.4byte	.LASF83
+ 1187 026e 01       		.byte	0x1
+ 1188 026f 3501     		.2byte	0x135
+ 1189 0271 00000000 		.4byte	.LFB5
+ 1190 0275 1A000000 		.4byte	.LFE5-.LFB5
+ 1191 0279 01       		.uleb128 0x1
+ 1192 027a 9C       		.byte	0x9c
+ 1193 027b 8E020000 		.4byte	0x28e
+ 1194 027f 12       		.uleb128 0x12
+ 1195 0280 6C030000 		.4byte	.LASF54
+ 1196 0284 01       		.byte	0x1
+ 1197 0285 3501     		.2byte	0x135
+ 1198 0287 8E020000 		.4byte	0x28e
+ 1199 028b 01       		.uleb128 0x1
+ 1200 028c 50       		.byte	0x50
+ 1201 028d 00       		.byte	0
+ 1202 028e 06       		.uleb128 0x6
+ 1203 028f 04       		.byte	0x4
+ 1204 0290 04010000 		.4byte	0x104
+ 1205 0294 13       		.uleb128 0x13
+ 1206 0295 09000000 		.4byte	.LASF55
+ 1207 0299 01       		.byte	0x1
+ 1208 029a 2E       		.byte	0x2e
+ 1209 029b 97000000 		.4byte	0x97
+ 1210 029f 00000000 		.4byte	.LFB2
+ 1211 02a3 D0020000 		.4byte	.LFE2-.LFB2
+ 1212 02a7 01       		.uleb128 0x1
+ 1213 02a8 9C       		.byte	0x9c
+ 1214 02a9 BD040000 		.4byte	0x4bd
+ 1215 02ad 14       		.uleb128 0x14
+ 1216 02ae 6C030000 		.4byte	.LASF54
+ 1217 02b2 01       		.byte	0x1
+ 1218 02b3 2E       		.byte	0x2e
+ 1219 02b4 8E020000 		.4byte	0x28e
+ 1220 02b8 9B000000 		.4byte	.LLST3
+ 1221 02bc 14       		.uleb128 0x14
+ 1222 02bd 54010000 		.4byte	.LASF56
+ 1223 02c1 01       		.byte	0x1
+ 1224 02c2 2E       		.byte	0x2e
+ 1225 02c3 97000000 		.4byte	0x97
+ 1226 02c7 C7000000 		.4byte	.LLST4
+ 1227 02cb 15       		.uleb128 0x15
+ 1228 02cc E2000000 		.4byte	.LASF57
+ 1229 02d0 01       		.byte	0x1
+ 1230 02d1 30       		.byte	0x30
+ 1231 02d2 AD000000 		.4byte	0xad
+ 1232 02d6 98010000 		.4byte	.LLST5
+ 1233 02da 16       		.uleb128 0x16
+ 1234 02db 2C020000 		.4byte	.LBB2
+ 1235 02df 58000000 		.4byte	.LBE2-.LBB2
+ 1236 02e3 A5030000 		.4byte	0x3a5
+ 1237 02e7 15       		.uleb128 0x15
+ 1238 02e8 B9010000 		.4byte	.LASF58
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 31
+
+
+ 1239 02ec 01       		.byte	0x1
+ 1240 02ed F8       		.byte	0xf8
+ 1241 02ee AD000000 		.4byte	0xad
+ 1242 02f2 BE020000 		.4byte	.LLST6
+ 1243 02f6 17       		.uleb128 0x17
+ 1244 02f7 05010000 		.4byte	.LASF59
+ 1245 02fb 01       		.byte	0x1
+ 1246 02fc F9       		.byte	0xf9
+ 1247 02fd BD040000 		.4byte	0x4bd
+ 1248 0301 02       		.uleb128 0x2
+ 1249 0302 91       		.byte	0x91
+ 1250 0303 48       		.sleb128 -56
+ 1251 0304 18       		.uleb128 0x18
+ 1252 0305 6B010000 		.4byte	.LASF67
+ 1253 0309 06       		.byte	0x6
+ 1254 030a 00       		.byte	0
+ 1255 030b 89000000 		.4byte	0x89
+ 1256 030f 1F030000 		.4byte	0x31f
+ 1257 0313 19       		.uleb128 0x19
+ 1258 0314 D7000000 		.4byte	0xd7
+ 1259 0318 19       		.uleb128 0x19
+ 1260 0319 E4000000 		.4byte	0xe4
+ 1261 031d 1A       		.uleb128 0x1a
+ 1262 031e 00       		.byte	0
+ 1263 031f 1B       		.uleb128 0x1b
+ 1264 0320 44020000 		.4byte	.LVL53
+ 1265 0324 B3070000 		.4byte	0x7b3
+ 1266 0328 3C030000 		.4byte	0x33c
+ 1267 032c 1C       		.uleb128 0x1c
+ 1268 032d 01       		.uleb128 0x1
+ 1269 032e 51       		.byte	0x51
+ 1270 032f 05       		.uleb128 0x5
+ 1271 0330 03       		.byte	0x3
+ 1272 0331 00000000 		.4byte	.LC8
+ 1273 0335 1C       		.uleb128 0x1c
+ 1274 0336 01       		.uleb128 0x1
+ 1275 0337 50       		.byte	0x50
+ 1276 0338 02       		.uleb128 0x2
+ 1277 0339 91       		.byte	0x91
+ 1278 033a 48       		.sleb128 -56
+ 1279 033b 00       		.byte	0
+ 1280 033c 1B       		.uleb128 0x1b
+ 1281 033d 50020000 		.4byte	.LVL54
+ 1282 0341 CE070000 		.4byte	0x7ce
+ 1283 0345 5E030000 		.4byte	0x35e
+ 1284 0349 1C       		.uleb128 0x1c
+ 1285 034a 01       		.uleb128 0x1
+ 1286 034b 52       		.byte	0x52
+ 1287 034c 02       		.uleb128 0x2
+ 1288 034d 09       		.byte	0x9
+ 1289 034e FF       		.byte	0xff
+ 1290 034f 1C       		.uleb128 0x1c
+ 1291 0350 01       		.uleb128 0x1
+ 1292 0351 51       		.byte	0x51
+ 1293 0352 01       		.uleb128 0x1
+ 1294 0353 31       		.byte	0x31
+ 1295 0354 1C       		.uleb128 0x1c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 32
+
+
+ 1296 0355 01       		.uleb128 0x1
+ 1297 0356 50       		.byte	0x50
+ 1298 0357 05       		.uleb128 0x5
+ 1299 0358 03       		.byte	0x3
+ 1300 0359 18000000 		.4byte	.LC10
+ 1301 035d 00       		.byte	0
+ 1302 035e 1B       		.uleb128 0x1b
+ 1303 035f 58020000 		.4byte	.LVL57
+ 1304 0363 ED070000 		.4byte	0x7ed
+ 1305 0367 72030000 		.4byte	0x372
+ 1306 036b 1C       		.uleb128 0x1c
+ 1307 036c 01       		.uleb128 0x1
+ 1308 036d 50       		.byte	0x50
+ 1309 036e 02       		.uleb128 0x2
+ 1310 036f 91       		.byte	0x91
+ 1311 0370 48       		.sleb128 -56
+ 1312 0371 00       		.byte	0
+ 1313 0372 1B       		.uleb128 0x1b
+ 1314 0373 62020000 		.4byte	.LVL58
+ 1315 0377 CE070000 		.4byte	0x7ce
+ 1316 037b 8C030000 		.4byte	0x38c
+ 1317 037f 1C       		.uleb128 0x1c
+ 1318 0380 01       		.uleb128 0x1
+ 1319 0381 52       		.byte	0x52
+ 1320 0382 02       		.uleb128 0x2
+ 1321 0383 74       		.byte	0x74
+ 1322 0384 00       		.sleb128 0
+ 1323 0385 1C       		.uleb128 0x1c
+ 1324 0386 01       		.uleb128 0x1
+ 1325 0387 50       		.byte	0x50
+ 1326 0388 02       		.uleb128 0x2
+ 1327 0389 91       		.byte	0x91
+ 1328 038a 48       		.sleb128 -56
+ 1329 038b 00       		.byte	0
+ 1330 038c 1D       		.uleb128 0x1d
+ 1331 038d 6C020000 		.4byte	.LVL61
+ 1332 0391 CE070000 		.4byte	0x7ce
+ 1333 0395 1C       		.uleb128 0x1c
+ 1334 0396 01       		.uleb128 0x1
+ 1335 0397 51       		.byte	0x51
+ 1336 0398 01       		.uleb128 0x1
+ 1337 0399 31       		.byte	0x31
+ 1338 039a 1C       		.uleb128 0x1c
+ 1339 039b 01       		.uleb128 0x1
+ 1340 039c 50       		.byte	0x50
+ 1341 039d 05       		.uleb128 0x5
+ 1342 039e 03       		.byte	0x3
+ 1343 039f 1C000000 		.4byte	.LC12
+ 1344 03a3 00       		.byte	0
+ 1345 03a4 00       		.byte	0
+ 1346 03a5 1E       		.uleb128 0x1e
+ 1347 03a6 0C000000 		.4byte	.LVL13
+ 1348 03aa 03020000 		.4byte	0x203
+ 1349 03ae 1B       		.uleb128 0x1b
+ 1350 03af 20000000 		.4byte	.LVL16
+ 1351 03b3 69020000 		.4byte	0x269
+ 1352 03b7 C2030000 		.4byte	0x3c2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 33
+
+
+ 1353 03bb 1C       		.uleb128 0x1c
+ 1354 03bc 01       		.uleb128 0x1
+ 1355 03bd 50       		.byte	0x50
+ 1356 03be 02       		.uleb128 0x2
+ 1357 03bf 75       		.byte	0x75
+ 1358 03c0 00       		.sleb128 0
+ 1359 03c1 00       		.byte	0
+ 1360 03c2 1E       		.uleb128 0x1e
+ 1361 03c3 54000000 		.4byte	.LVL18
+ 1362 03c7 2E020000 		.4byte	0x22e
+ 1363 03cb 1B       		.uleb128 0x1b
+ 1364 03cc 9E000000 		.4byte	.LVL24
+ 1365 03d0 69020000 		.4byte	0x269
+ 1366 03d4 DF030000 		.4byte	0x3df
+ 1367 03d8 1C       		.uleb128 0x1c
+ 1368 03d9 01       		.uleb128 0x1
+ 1369 03da 50       		.byte	0x50
+ 1370 03db 02       		.uleb128 0x2
+ 1371 03dc 75       		.byte	0x75
+ 1372 03dd 00       		.sleb128 0
+ 1373 03de 00       		.byte	0
+ 1374 03df 1E       		.uleb128 0x1e
+ 1375 03e0 AC000000 		.4byte	.LVL26
+ 1376 03e4 2E020000 		.4byte	0x22e
+ 1377 03e8 1B       		.uleb128 0x1b
+ 1378 03e9 DC000000 		.4byte	.LVL27
+ 1379 03ed 69020000 		.4byte	0x269
+ 1380 03f1 FC030000 		.4byte	0x3fc
+ 1381 03f5 1C       		.uleb128 0x1c
+ 1382 03f6 01       		.uleb128 0x1
+ 1383 03f7 50       		.byte	0x50
+ 1384 03f8 02       		.uleb128 0x2
+ 1385 03f9 75       		.byte	0x75
+ 1386 03fa 00       		.sleb128 0
+ 1387 03fb 00       		.byte	0
+ 1388 03fc 1B       		.uleb128 0x1b
+ 1389 03fd FA000000 		.4byte	.LVL33
+ 1390 0401 69020000 		.4byte	0x269
+ 1391 0405 10040000 		.4byte	0x410
+ 1392 0409 1C       		.uleb128 0x1c
+ 1393 040a 01       		.uleb128 0x1
+ 1394 040b 50       		.byte	0x50
+ 1395 040c 02       		.uleb128 0x2
+ 1396 040d 75       		.byte	0x75
+ 1397 040e 00       		.sleb128 0
+ 1398 040f 00       		.byte	0
+ 1399 0410 1E       		.uleb128 0x1e
+ 1400 0411 08010000 		.4byte	.LVL35
+ 1401 0415 2E020000 		.4byte	0x22e
+ 1402 0419 1B       		.uleb128 0x1b
+ 1403 041a 42010000 		.4byte	.LVL36
+ 1404 041e 69020000 		.4byte	0x269
+ 1405 0422 2D040000 		.4byte	0x42d
+ 1406 0426 1C       		.uleb128 0x1c
+ 1407 0427 01       		.uleb128 0x1
+ 1408 0428 50       		.byte	0x50
+ 1409 0429 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 34
+
+
+ 1410 042a 75       		.byte	0x75
+ 1411 042b 00       		.sleb128 0
+ 1412 042c 00       		.byte	0
+ 1413 042d 1E       		.uleb128 0x1e
+ 1414 042e 50010000 		.4byte	.LVL38
+ 1415 0432 2E020000 		.4byte	0x22e
+ 1416 0436 1B       		.uleb128 0x1b
+ 1417 0437 82010000 		.4byte	.LVL39
+ 1418 043b 69020000 		.4byte	0x269
+ 1419 043f 4A040000 		.4byte	0x44a
+ 1420 0443 1C       		.uleb128 0x1c
+ 1421 0444 01       		.uleb128 0x1
+ 1422 0445 50       		.byte	0x50
+ 1423 0446 02       		.uleb128 0x2
+ 1424 0447 75       		.byte	0x75
+ 1425 0448 00       		.sleb128 0
+ 1426 0449 00       		.byte	0
+ 1427 044a 1E       		.uleb128 0x1e
+ 1428 044b 90010000 		.4byte	.LVL41
+ 1429 044f 2E020000 		.4byte	0x22e
+ 1430 0453 1B       		.uleb128 0x1b
+ 1431 0454 C2010000 		.4byte	.LVL42
+ 1432 0458 69020000 		.4byte	0x269
+ 1433 045c 67040000 		.4byte	0x467
+ 1434 0460 1C       		.uleb128 0x1c
+ 1435 0461 01       		.uleb128 0x1
+ 1436 0462 50       		.byte	0x50
+ 1437 0463 02       		.uleb128 0x2
+ 1438 0464 75       		.byte	0x75
+ 1439 0465 00       		.sleb128 0
+ 1440 0466 00       		.byte	0
+ 1441 0467 1B       		.uleb128 0x1b
+ 1442 0468 E0010000 		.4byte	.LVL47
+ 1443 046c 69020000 		.4byte	0x269
+ 1444 0470 7B040000 		.4byte	0x47b
+ 1445 0474 1C       		.uleb128 0x1c
+ 1446 0475 01       		.uleb128 0x1
+ 1447 0476 50       		.byte	0x50
+ 1448 0477 02       		.uleb128 0x2
+ 1449 0478 75       		.byte	0x75
+ 1450 0479 00       		.sleb128 0
+ 1451 047a 00       		.byte	0
+ 1452 047b 1E       		.uleb128 0x1e
+ 1453 047c EE010000 		.4byte	.LVL49
+ 1454 0480 2E020000 		.4byte	0x22e
+ 1455 0484 1B       		.uleb128 0x1b
+ 1456 0485 1E020000 		.4byte	.LVL50
+ 1457 0489 69020000 		.4byte	0x269
+ 1458 048d 98040000 		.4byte	0x498
+ 1459 0491 1C       		.uleb128 0x1c
+ 1460 0492 01       		.uleb128 0x1
+ 1461 0493 50       		.byte	0x50
+ 1462 0494 02       		.uleb128 0x2
+ 1463 0495 75       		.byte	0x75
+ 1464 0496 00       		.sleb128 0
+ 1465 0497 00       		.byte	0
+ 1466 0498 1B       		.uleb128 0x1b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 35
+
+
+ 1467 0499 8A020000 		.4byte	.LVL69
+ 1468 049d 69020000 		.4byte	0x269
+ 1469 04a1 AC040000 		.4byte	0x4ac
+ 1470 04a5 1C       		.uleb128 0x1c
+ 1471 04a6 01       		.uleb128 0x1
+ 1472 04a7 50       		.byte	0x50
+ 1473 04a8 02       		.uleb128 0x2
+ 1474 04a9 75       		.byte	0x75
+ 1475 04aa 00       		.sleb128 0
+ 1476 04ab 00       		.byte	0
+ 1477 04ac 1D       		.uleb128 0x1d
+ 1478 04ad 9A020000 		.4byte	.LVL73
+ 1479 04b1 69020000 		.4byte	0x269
+ 1480 04b5 1C       		.uleb128 0x1c
+ 1481 04b6 01       		.uleb128 0x1
+ 1482 04b7 50       		.byte	0x50
+ 1483 04b8 02       		.uleb128 0x2
+ 1484 04b9 75       		.byte	0x75
+ 1485 04ba 00       		.sleb128 0
+ 1486 04bb 00       		.byte	0
+ 1487 04bc 00       		.byte	0
+ 1488 04bd 1F       		.uleb128 0x1f
+ 1489 04be DD000000 		.4byte	0xdd
+ 1490 04c2 CD040000 		.4byte	0x4cd
+ 1491 04c6 20       		.uleb128 0x20
+ 1492 04c7 CE000000 		.4byte	0xce
+ 1493 04cb 27       		.byte	0x27
+ 1494 04cc 00       		.byte	0
+ 1495 04cd 0E       		.uleb128 0xe
+ 1496 04ce 7A010000 		.4byte	.LASF60
+ 1497 04d2 01       		.byte	0x1
+ 1498 04d3 4001     		.2byte	0x140
+ 1499 04d5 97000000 		.4byte	0x97
+ 1500 04d9 00000000 		.4byte	.LFB6
+ 1501 04dd C0000000 		.4byte	.LFE6-.LFB6
+ 1502 04e1 01       		.uleb128 0x1
+ 1503 04e2 9C       		.byte	0x9c
+ 1504 04e3 26070000 		.4byte	0x726
+ 1505 04e7 21       		.uleb128 0x21
+ 1506 04e8 6E000000 		.4byte	.LASF61
+ 1507 04ec 01       		.byte	0x1
+ 1508 04ed 4001     		.2byte	0x140
+ 1509 04ef D7000000 		.4byte	0xd7
+ 1510 04f3 15030000 		.4byte	.LLST7
+ 1511 04f7 21       		.uleb128 0x21
+ 1512 04f8 2A010000 		.4byte	.LASF62
+ 1513 04fc 01       		.byte	0x1
+ 1514 04fd 4001     		.2byte	0x140
+ 1515 04ff 26070000 		.4byte	0x726
+ 1516 0503 41030000 		.4byte	.LLST8
+ 1517 0507 21       		.uleb128 0x21
+ 1518 0508 5B030000 		.4byte	.LASF63
+ 1519 050c 01       		.byte	0x1
+ 1520 050d 4001     		.2byte	0x140
+ 1521 050f A2000000 		.4byte	0xa2
+ 1522 0513 6D030000 		.4byte	.LLST9
+ 1523 0517 22       		.uleb128 0x22
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 36
+
+
+ 1524 0518 DD000000 		.4byte	.LASF64
+ 1525 051c 01       		.byte	0x1
+ 1526 051d 4201     		.2byte	0x142
+ 1527 051f AD000000 		.4byte	0xad
+ 1528 0523 8E030000 		.4byte	.LLST10
+ 1529 0527 10       		.uleb128 0x10
+ 1530 0528 5F7000   		.ascii	"_p\000"
+ 1531 052b 01       		.byte	0x1
+ 1532 052c 4301     		.2byte	0x143
+ 1533 052e D7000000 		.4byte	0xd7
+ 1534 0532 E5030000 		.4byte	.LLST11
+ 1535 0536 23       		.uleb128 0x23
+ 1536 0537 4E000000 		.4byte	.LASF65
+ 1537 053b 01       		.byte	0x1
+ 1538 053c 4401     		.2byte	0x144
+ 1539 053e 2C070000 		.4byte	0x72c
+ 1540 0542 02       		.uleb128 0x2
+ 1541 0543 91       		.byte	0x91
+ 1542 0544 5C       		.sleb128 -36
+ 1543 0545 23       		.uleb128 0x23
+ 1544 0546 E4020000 		.4byte	.LASF66
+ 1545 054a 01       		.byte	0x1
+ 1546 054b 4501     		.2byte	0x145
+ 1547 054d 2C070000 		.4byte	0x72c
+ 1548 0551 02       		.uleb128 0x2
+ 1549 0552 91       		.byte	0x91
+ 1550 0553 48       		.sleb128 -56
+ 1551 0554 18       		.uleb128 0x18
+ 1552 0555 6B010000 		.4byte	.LASF67
+ 1553 0559 06       		.byte	0x6
+ 1554 055a 00       		.byte	0
+ 1555 055b 89000000 		.4byte	0x89
+ 1556 055f 6F050000 		.4byte	0x56f
+ 1557 0563 19       		.uleb128 0x19
+ 1558 0564 D7000000 		.4byte	0xd7
+ 1559 0568 19       		.uleb128 0x19
+ 1560 0569 E4000000 		.4byte	0xe4
+ 1561 056d 1A       		.uleb128 0x1a
+ 1562 056e 00       		.byte	0
+ 1563 056f 1B       		.uleb128 0x1b
+ 1564 0570 10000000 		.4byte	.LVL81
+ 1565 0574 B3070000 		.4byte	0x7b3
+ 1566 0578 8C050000 		.4byte	0x58c
+ 1567 057c 1C       		.uleb128 0x1c
+ 1568 057d 01       		.uleb128 0x1
+ 1569 057e 51       		.byte	0x51
+ 1570 057f 05       		.uleb128 0x5
+ 1571 0580 03       		.byte	0x3
+ 1572 0581 20000000 		.4byte	.LC14
+ 1573 0585 1C       		.uleb128 0x1c
+ 1574 0586 01       		.uleb128 0x1
+ 1575 0587 50       		.byte	0x50
+ 1576 0588 02       		.uleb128 0x2
+ 1577 0589 91       		.byte	0x91
+ 1578 058a 5C       		.sleb128 -36
+ 1579 058b 00       		.byte	0
+ 1580 058c 1B       		.uleb128 0x1b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 37
+
+
+ 1581 058d 1C000000 		.4byte	.LVL82
+ 1582 0591 CE070000 		.4byte	0x7ce
+ 1583 0595 AE050000 		.4byte	0x5ae
+ 1584 0599 1C       		.uleb128 0x1c
+ 1585 059a 01       		.uleb128 0x1
+ 1586 059b 52       		.byte	0x52
+ 1587 059c 02       		.uleb128 0x2
+ 1588 059d 09       		.byte	0x9
+ 1589 059e FF       		.byte	0xff
+ 1590 059f 1C       		.uleb128 0x1c
+ 1591 05a0 01       		.uleb128 0x1
+ 1592 05a1 51       		.byte	0x51
+ 1593 05a2 01       		.uleb128 0x1
+ 1594 05a3 31       		.byte	0x31
+ 1595 05a4 1C       		.uleb128 0x1c
+ 1596 05a5 01       		.uleb128 0x1
+ 1597 05a6 50       		.byte	0x50
+ 1598 05a7 05       		.uleb128 0x5
+ 1599 05a8 03       		.byte	0x3
+ 1600 05a9 18000000 		.4byte	.LC10
+ 1601 05ad 00       		.byte	0
+ 1602 05ae 1B       		.uleb128 0x1b
+ 1603 05af 24000000 		.4byte	.LVL85
+ 1604 05b3 ED070000 		.4byte	0x7ed
+ 1605 05b7 C2050000 		.4byte	0x5c2
+ 1606 05bb 1C       		.uleb128 0x1c
+ 1607 05bc 01       		.uleb128 0x1
+ 1608 05bd 50       		.byte	0x50
+ 1609 05be 02       		.uleb128 0x2
+ 1610 05bf 75       		.byte	0x75
+ 1611 05c0 00       		.sleb128 0
+ 1612 05c1 00       		.byte	0
+ 1613 05c2 1B       		.uleb128 0x1b
+ 1614 05c3 2E000000 		.4byte	.LVL86
+ 1615 05c7 CE070000 		.4byte	0x7ce
+ 1616 05cb DC050000 		.4byte	0x5dc
+ 1617 05cf 1C       		.uleb128 0x1c
+ 1618 05d0 01       		.uleb128 0x1
+ 1619 05d1 52       		.byte	0x52
+ 1620 05d2 02       		.uleb128 0x2
+ 1621 05d3 76       		.byte	0x76
+ 1622 05d4 00       		.sleb128 0
+ 1623 05d5 1C       		.uleb128 0x1c
+ 1624 05d6 01       		.uleb128 0x1
+ 1625 05d7 50       		.byte	0x50
+ 1626 05d8 02       		.uleb128 0x2
+ 1627 05d9 75       		.byte	0x75
+ 1628 05da 00       		.sleb128 0
+ 1629 05db 00       		.byte	0
+ 1630 05dc 1B       		.uleb128 0x1b
+ 1631 05dd 38000000 		.4byte	.LVL89
+ 1632 05e1 CE070000 		.4byte	0x7ce
+ 1633 05e5 F8050000 		.4byte	0x5f8
+ 1634 05e9 1C       		.uleb128 0x1c
+ 1635 05ea 01       		.uleb128 0x1
+ 1636 05eb 51       		.byte	0x51
+ 1637 05ec 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 38
+
+
+ 1638 05ed 31       		.byte	0x31
+ 1639 05ee 1C       		.uleb128 0x1c
+ 1640 05ef 01       		.uleb128 0x1
+ 1641 05f0 50       		.byte	0x50
+ 1642 05f1 05       		.uleb128 0x5
+ 1643 05f2 03       		.byte	0x3
+ 1644 05f3 1C000000 		.4byte	.LC12
+ 1645 05f7 00       		.byte	0
+ 1646 05f8 1B       		.uleb128 0x1b
+ 1647 05f9 42000000 		.4byte	.LVL91
+ 1648 05fd B3070000 		.4byte	0x7b3
+ 1649 0601 15060000 		.4byte	0x615
+ 1650 0605 1C       		.uleb128 0x1c
+ 1651 0606 01       		.uleb128 0x1
+ 1652 0607 51       		.byte	0x51
+ 1653 0608 05       		.uleb128 0x5
+ 1654 0609 03       		.byte	0x3
+ 1655 060a 28000000 		.4byte	.LC18
+ 1656 060e 1C       		.uleb128 0x1c
+ 1657 060f 01       		.uleb128 0x1
+ 1658 0610 50       		.byte	0x50
+ 1659 0611 02       		.uleb128 0x2
+ 1660 0612 7D       		.byte	0x7d
+ 1661 0613 00       		.sleb128 0
+ 1662 0614 00       		.byte	0
+ 1663 0615 1B       		.uleb128 0x1b
+ 1664 0616 4C000000 		.4byte	.LVL92
+ 1665 061a 02080000 		.4byte	0x802
+ 1666 061e 37060000 		.4byte	0x637
+ 1667 0622 1C       		.uleb128 0x1c
+ 1668 0623 01       		.uleb128 0x1
+ 1669 0624 52       		.byte	0x52
+ 1670 0625 01       		.uleb128 0x1
+ 1671 0626 32       		.byte	0x32
+ 1672 0627 1C       		.uleb128 0x1c
+ 1673 0628 01       		.uleb128 0x1
+ 1674 0629 51       		.byte	0x51
+ 1675 062a 05       		.uleb128 0x5
+ 1676 062b 03       		.byte	0x3
+ 1677 062c 30000000 		.4byte	.LC20
+ 1678 0630 1C       		.uleb128 0x1c
+ 1679 0631 01       		.uleb128 0x1
+ 1680 0632 50       		.byte	0x50
+ 1681 0633 02       		.uleb128 0x2
+ 1682 0634 74       		.byte	0x74
+ 1683 0635 00       		.sleb128 0
+ 1684 0636 00       		.byte	0
+ 1685 0637 1B       		.uleb128 0x1b
+ 1686 0638 54000000 		.4byte	.LVL93
+ 1687 063c 1F080000 		.4byte	0x81f
+ 1688 0640 51060000 		.4byte	0x651
+ 1689 0644 1C       		.uleb128 0x1c
+ 1690 0645 01       		.uleb128 0x1
+ 1691 0646 51       		.byte	0x51
+ 1692 0647 02       		.uleb128 0x2
+ 1693 0648 91       		.byte	0x91
+ 1694 0649 5C       		.sleb128 -36
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 39
+
+
+ 1695 064a 1C       		.uleb128 0x1c
+ 1696 064b 01       		.uleb128 0x1
+ 1697 064c 50       		.byte	0x50
+ 1698 064d 02       		.uleb128 0x2
+ 1699 064e 74       		.byte	0x74
+ 1700 064f 00       		.sleb128 0
+ 1701 0650 00       		.byte	0
+ 1702 0651 1B       		.uleb128 0x1b
+ 1703 0652 5A000000 		.4byte	.LVL94
+ 1704 0656 39080000 		.4byte	0x839
+ 1705 065a 65060000 		.4byte	0x665
+ 1706 065e 1C       		.uleb128 0x1c
+ 1707 065f 01       		.uleb128 0x1
+ 1708 0660 50       		.byte	0x50
+ 1709 0661 02       		.uleb128 0x2
+ 1710 0662 74       		.byte	0x74
+ 1711 0663 00       		.sleb128 0
+ 1712 0664 00       		.byte	0
+ 1713 0665 1B       		.uleb128 0x1b
+ 1714 0666 64000000 		.4byte	.LVL95
+ 1715 066a 02080000 		.4byte	0x802
+ 1716 066e 81060000 		.4byte	0x681
+ 1717 0672 1C       		.uleb128 0x1c
+ 1718 0673 01       		.uleb128 0x1
+ 1719 0674 52       		.byte	0x52
+ 1720 0675 01       		.uleb128 0x1
+ 1721 0676 32       		.byte	0x32
+ 1722 0677 1C       		.uleb128 0x1c
+ 1723 0678 01       		.uleb128 0x1
+ 1724 0679 51       		.byte	0x51
+ 1725 067a 05       		.uleb128 0x5
+ 1726 067b 03       		.byte	0x3
+ 1727 067c 34000000 		.4byte	.LC22
+ 1728 0680 00       		.byte	0
+ 1729 0681 1B       		.uleb128 0x1b
+ 1730 0682 6C000000 		.4byte	.LVL96
+ 1731 0686 1F080000 		.4byte	0x81f
+ 1732 068a 9B060000 		.4byte	0x69b
+ 1733 068e 1C       		.uleb128 0x1c
+ 1734 068f 01       		.uleb128 0x1
+ 1735 0690 51       		.byte	0x51
+ 1736 0691 02       		.uleb128 0x2
+ 1737 0692 75       		.byte	0x75
+ 1738 0693 00       		.sleb128 0
+ 1739 0694 1C       		.uleb128 0x1c
+ 1740 0695 01       		.uleb128 0x1
+ 1741 0696 50       		.byte	0x50
+ 1742 0697 02       		.uleb128 0x2
+ 1743 0698 74       		.byte	0x74
+ 1744 0699 00       		.sleb128 0
+ 1745 069a 00       		.byte	0
+ 1746 069b 1B       		.uleb128 0x1b
+ 1747 069c 72000000 		.4byte	.LVL97
+ 1748 06a0 39080000 		.4byte	0x839
+ 1749 06a4 AF060000 		.4byte	0x6af
+ 1750 06a8 1C       		.uleb128 0x1c
+ 1751 06a9 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 40
+
+
+ 1752 06aa 50       		.byte	0x50
+ 1753 06ab 02       		.uleb128 0x2
+ 1754 06ac 74       		.byte	0x74
+ 1755 06ad 00       		.sleb128 0
+ 1756 06ae 00       		.byte	0
+ 1757 06af 1B       		.uleb128 0x1b
+ 1758 06b0 7C000000 		.4byte	.LVL98
+ 1759 06b4 02080000 		.4byte	0x802
+ 1760 06b8 CB060000 		.4byte	0x6cb
+ 1761 06bc 1C       		.uleb128 0x1c
+ 1762 06bd 01       		.uleb128 0x1
+ 1763 06be 52       		.byte	0x52
+ 1764 06bf 01       		.uleb128 0x1
+ 1765 06c0 32       		.byte	0x32
+ 1766 06c1 1C       		.uleb128 0x1c
+ 1767 06c2 01       		.uleb128 0x1
+ 1768 06c3 51       		.byte	0x51
+ 1769 06c4 05       		.uleb128 0x5
+ 1770 06c5 03       		.byte	0x3
+ 1771 06c6 38000000 		.4byte	.LC24
+ 1772 06ca 00       		.byte	0
+ 1773 06cb 1B       		.uleb128 0x1b
+ 1774 06cc 84000000 		.4byte	.LVL99
+ 1775 06d0 1F080000 		.4byte	0x81f
+ 1776 06d4 E5060000 		.4byte	0x6e5
+ 1777 06d8 1C       		.uleb128 0x1c
+ 1778 06d9 01       		.uleb128 0x1
+ 1779 06da 51       		.byte	0x51
+ 1780 06db 02       		.uleb128 0x2
+ 1781 06dc 7D       		.byte	0x7d
+ 1782 06dd 00       		.sleb128 0
+ 1783 06de 1C       		.uleb128 0x1c
+ 1784 06df 01       		.uleb128 0x1
+ 1785 06e0 50       		.byte	0x50
+ 1786 06e1 02       		.uleb128 0x2
+ 1787 06e2 74       		.byte	0x74
+ 1788 06e3 00       		.sleb128 0
+ 1789 06e4 00       		.byte	0
+ 1790 06e5 1B       		.uleb128 0x1b
+ 1791 06e6 8A000000 		.4byte	.LVL100
+ 1792 06ea 39080000 		.4byte	0x839
+ 1793 06ee F9060000 		.4byte	0x6f9
+ 1794 06f2 1C       		.uleb128 0x1c
+ 1795 06f3 01       		.uleb128 0x1
+ 1796 06f4 50       		.byte	0x50
+ 1797 06f5 02       		.uleb128 0x2
+ 1798 06f6 74       		.byte	0x74
+ 1799 06f7 00       		.sleb128 0
+ 1800 06f8 00       		.byte	0
+ 1801 06f9 1B       		.uleb128 0x1b
+ 1802 06fa 94000000 		.4byte	.LVL101
+ 1803 06fe 02080000 		.4byte	0x802
+ 1804 0702 15070000 		.4byte	0x715
+ 1805 0706 1C       		.uleb128 0x1c
+ 1806 0707 01       		.uleb128 0x1
+ 1807 0708 52       		.byte	0x52
+ 1808 0709 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 41
+
+
+ 1809 070a 32       		.byte	0x32
+ 1810 070b 1C       		.uleb128 0x1c
+ 1811 070c 01       		.uleb128 0x1
+ 1812 070d 51       		.byte	0x51
+ 1813 070e 05       		.uleb128 0x5
+ 1814 070f 03       		.byte	0x3
+ 1815 0710 3C000000 		.4byte	.LC26
+ 1816 0714 00       		.byte	0
+ 1817 0715 1D       		.uleb128 0x1d
+ 1818 0716 9A000000 		.4byte	.LVL102
+ 1819 071a ED070000 		.4byte	0x7ed
+ 1820 071e 1C       		.uleb128 0x1c
+ 1821 071f 01       		.uleb128 0x1
+ 1822 0720 50       		.byte	0x50
+ 1823 0721 02       		.uleb128 0x2
+ 1824 0722 74       		.byte	0x74
+ 1825 0723 00       		.sleb128 0
+ 1826 0724 00       		.byte	0
+ 1827 0725 00       		.byte	0
+ 1828 0726 06       		.uleb128 0x6
+ 1829 0727 04       		.byte	0x4
+ 1830 0728 97000000 		.4byte	0x97
+ 1831 072c 1F       		.uleb128 0x1f
+ 1832 072d DD000000 		.4byte	0xdd
+ 1833 0731 3C070000 		.4byte	0x73c
+ 1834 0735 20       		.uleb128 0x20
+ 1835 0736 CE000000 		.4byte	0xce
+ 1836 073a 13       		.byte	0x13
+ 1837 073b 00       		.byte	0
+ 1838 073c 24       		.uleb128 0x24
+ 1839 073d 83010000 		.4byte	.LASF68
+ 1840 0741 01       		.byte	0x1
+ 1841 0742 19       		.byte	0x19
+ 1842 0743 97000000 		.4byte	0x97
+ 1843 0747 05       		.uleb128 0x5
+ 1844 0748 03       		.byte	0x3
+ 1845 0749 00000000 		.4byte	PROTO_STATE
+ 1846 074d 24       		.uleb128 0x24
+ 1847 074e 9F000000 		.4byte	.LASF69
+ 1848 0752 01       		.byte	0x1
+ 1849 0753 19       		.byte	0x19
+ 1850 0754 97000000 		.4byte	0x97
+ 1851 0758 05       		.uleb128 0x5
+ 1852 0759 03       		.byte	0x3
+ 1853 075a 00000000 		.4byte	LenD1
+ 1854 075e 24       		.uleb128 0x24
+ 1855 075f A5000000 		.4byte	.LASF70
+ 1856 0763 01       		.byte	0x1
+ 1857 0764 19       		.byte	0x19
+ 1858 0765 97000000 		.4byte	0x97
+ 1859 0769 05       		.uleb128 0x5
+ 1860 076a 03       		.byte	0x3
+ 1861 076b 00000000 		.4byte	LenD2
+ 1862 076f 24       		.uleb128 0x24
+ 1863 0770 AB000000 		.4byte	.LASF71
+ 1864 0774 01       		.byte	0x1
+ 1865 0775 19       		.byte	0x19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 42
+
+
+ 1866 0776 97000000 		.4byte	0x97
+ 1867 077a 05       		.uleb128 0x5
+ 1868 077b 03       		.byte	0x3
+ 1869 077c 00000000 		.4byte	LenD3
+ 1870 0780 24       		.uleb128 0x24
+ 1871 0781 B2010000 		.4byte	.LASF72
+ 1872 0785 01       		.byte	0x1
+ 1873 0786 19       		.byte	0x19
+ 1874 0787 97000000 		.4byte	0x97
+ 1875 078b 05       		.uleb128 0x5
+ 1876 078c 03       		.byte	0x3
+ 1877 078d 00000000 		.4byte	LenSeq
+ 1878 0791 24       		.uleb128 0x24
+ 1879 0792 0D030000 		.4byte	.LASF73
+ 1880 0796 01       		.byte	0x1
+ 1881 0797 19       		.byte	0x19
+ 1882 0798 97000000 		.4byte	0x97
+ 1883 079c 05       		.uleb128 0x5
+ 1884 079d 03       		.byte	0x3
+ 1885 079e 00000000 		.4byte	LenChS
+ 1886 07a2 24       		.uleb128 0x24
+ 1887 07a3 66010000 		.4byte	.LASF74
+ 1888 07a7 01       		.byte	0x1
+ 1889 07a8 19       		.byte	0x19
+ 1890 07a9 97000000 		.4byte	0x97
+ 1891 07ad 05       		.uleb128 0x5
+ 1892 07ae 03       		.byte	0x3
+ 1893 07af 00000000 		.4byte	LenC
+ 1894 07b3 18       		.uleb128 0x18
+ 1895 07b4 6B010000 		.4byte	.LASF67
+ 1896 07b8 06       		.byte	0x6
+ 1897 07b9 00       		.byte	0
+ 1898 07ba 89000000 		.4byte	0x89
+ 1899 07be CE070000 		.4byte	0x7ce
+ 1900 07c2 19       		.uleb128 0x19
+ 1901 07c3 D7000000 		.4byte	0xd7
+ 1902 07c7 19       		.uleb128 0x19
+ 1903 07c8 E4000000 		.4byte	0xe4
+ 1904 07cc 1A       		.uleb128 0x1a
+ 1905 07cd 00       		.byte	0
+ 1906 07ce 18       		.uleb128 0x18
+ 1907 07cf 93020000 		.4byte	.LASF75
+ 1908 07d3 07       		.byte	0x7
+ 1909 07d4 17       		.byte	0x17
+ 1910 07d5 AD000000 		.4byte	0xad
+ 1911 07d9 ED070000 		.4byte	0x7ed
+ 1912 07dd 19       		.uleb128 0x19
+ 1913 07de 26070000 		.4byte	0x726
+ 1914 07e2 19       		.uleb128 0x19
+ 1915 07e3 AD000000 		.4byte	0xad
+ 1916 07e7 19       		.uleb128 0x19
+ 1917 07e8 AD000000 		.4byte	0xad
+ 1918 07ec 00       		.byte	0
+ 1919 07ed 18       		.uleb128 0x18
+ 1920 07ee FE000000 		.4byte	.LASF76
+ 1921 07f2 08       		.byte	0x8
+ 1922 07f3 21       		.byte	0x21
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 43
+
+
+ 1923 07f4 C3000000 		.4byte	0xc3
+ 1924 07f8 02080000 		.4byte	0x802
+ 1925 07fc 19       		.uleb128 0x19
+ 1926 07fd E4000000 		.4byte	0xe4
+ 1927 0801 00       		.byte	0
+ 1928 0802 25       		.uleb128 0x25
+ 1929 0803 88000000 		.4byte	.LASF84
+ 1930 0807 D5000000 		.4byte	0xd5
+ 1931 080b 1F080000 		.4byte	0x81f
+ 1932 080f 19       		.uleb128 0x19
+ 1933 0810 D5000000 		.4byte	0xd5
+ 1934 0814 19       		.uleb128 0x19
+ 1935 0815 EF000000 		.4byte	0xef
+ 1936 0819 19       		.uleb128 0x19
+ 1937 081a CE000000 		.4byte	0xce
+ 1938 081e 00       		.byte	0
+ 1939 081f 18       		.uleb128 0x18
+ 1940 0820 73010000 		.4byte	.LASF77
+ 1941 0824 08       		.byte	0x8
+ 1942 0825 1A       		.byte	0x1a
+ 1943 0826 D7000000 		.4byte	0xd7
+ 1944 082a 39080000 		.4byte	0x839
+ 1945 082e 19       		.uleb128 0x19
+ 1946 082f D7000000 		.4byte	0xd7
+ 1947 0833 19       		.uleb128 0x19
+ 1948 0834 E4000000 		.4byte	0xe4
+ 1949 0838 00       		.byte	0
+ 1950 0839 26       		.uleb128 0x26
+ 1951 083a F4010000 		.4byte	.LASF78
+ 1952 083e 06       		.byte	0x6
+ 1953 083f 00       		.byte	0
+ 1954 0840 FE000000 		.4byte	.LASF76
+ 1955 0844 90000000 		.4byte	0x90
+ 1956 0848 19       		.uleb128 0x19
+ 1957 0849 E4000000 		.4byte	0xe4
+ 1958 084d 00       		.byte	0
+ 1959 084e 00       		.byte	0
+ 1960              		.section	.debug_abbrev,"",%progbits
+ 1961              	.Ldebug_abbrev0:
+ 1962 0000 01       		.uleb128 0x1
+ 1963 0001 11       		.uleb128 0x11
+ 1964 0002 01       		.byte	0x1
+ 1965 0003 25       		.uleb128 0x25
+ 1966 0004 0E       		.uleb128 0xe
+ 1967 0005 13       		.uleb128 0x13
+ 1968 0006 0B       		.uleb128 0xb
+ 1969 0007 03       		.uleb128 0x3
+ 1970 0008 0E       		.uleb128 0xe
+ 1971 0009 1B       		.uleb128 0x1b
+ 1972 000a 0E       		.uleb128 0xe
+ 1973 000b 55       		.uleb128 0x55
+ 1974 000c 17       		.uleb128 0x17
+ 1975 000d 11       		.uleb128 0x11
+ 1976 000e 01       		.uleb128 0x1
+ 1977 000f 10       		.uleb128 0x10
+ 1978 0010 17       		.uleb128 0x17
+ 1979 0011 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 44
+
+
+ 1980 0012 00       		.byte	0
+ 1981 0013 02       		.uleb128 0x2
+ 1982 0014 24       		.uleb128 0x24
+ 1983 0015 00       		.byte	0
+ 1984 0016 0B       		.uleb128 0xb
+ 1985 0017 0B       		.uleb128 0xb
+ 1986 0018 3E       		.uleb128 0x3e
+ 1987 0019 0B       		.uleb128 0xb
+ 1988 001a 03       		.uleb128 0x3
+ 1989 001b 0E       		.uleb128 0xe
+ 1990 001c 00       		.byte	0
+ 1991 001d 00       		.byte	0
+ 1992 001e 03       		.uleb128 0x3
+ 1993 001f 16       		.uleb128 0x16
+ 1994 0020 00       		.byte	0
+ 1995 0021 03       		.uleb128 0x3
+ 1996 0022 0E       		.uleb128 0xe
+ 1997 0023 3A       		.uleb128 0x3a
+ 1998 0024 0B       		.uleb128 0xb
+ 1999 0025 3B       		.uleb128 0x3b
+ 2000 0026 0B       		.uleb128 0xb
+ 2001 0027 49       		.uleb128 0x49
+ 2002 0028 13       		.uleb128 0x13
+ 2003 0029 00       		.byte	0
+ 2004 002a 00       		.byte	0
+ 2005 002b 04       		.uleb128 0x4
+ 2006 002c 24       		.uleb128 0x24
+ 2007 002d 00       		.byte	0
+ 2008 002e 0B       		.uleb128 0xb
+ 2009 002f 0B       		.uleb128 0xb
+ 2010 0030 3E       		.uleb128 0x3e
+ 2011 0031 0B       		.uleb128 0xb
+ 2012 0032 03       		.uleb128 0x3
+ 2013 0033 08       		.uleb128 0x8
+ 2014 0034 00       		.byte	0
+ 2015 0035 00       		.byte	0
+ 2016 0036 05       		.uleb128 0x5
+ 2017 0037 0F       		.uleb128 0xf
+ 2018 0038 00       		.byte	0
+ 2019 0039 0B       		.uleb128 0xb
+ 2020 003a 0B       		.uleb128 0xb
+ 2021 003b 00       		.byte	0
+ 2022 003c 00       		.byte	0
+ 2023 003d 06       		.uleb128 0x6
+ 2024 003e 0F       		.uleb128 0xf
+ 2025 003f 00       		.byte	0
+ 2026 0040 0B       		.uleb128 0xb
+ 2027 0041 0B       		.uleb128 0xb
+ 2028 0042 49       		.uleb128 0x49
+ 2029 0043 13       		.uleb128 0x13
+ 2030 0044 00       		.byte	0
+ 2031 0045 00       		.byte	0
+ 2032 0046 07       		.uleb128 0x7
+ 2033 0047 26       		.uleb128 0x26
+ 2034 0048 00       		.byte	0
+ 2035 0049 49       		.uleb128 0x49
+ 2036 004a 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 45
+
+
+ 2037 004b 00       		.byte	0
+ 2038 004c 00       		.byte	0
+ 2039 004d 08       		.uleb128 0x8
+ 2040 004e 26       		.uleb128 0x26
+ 2041 004f 00       		.byte	0
+ 2042 0050 00       		.byte	0
+ 2043 0051 00       		.byte	0
+ 2044 0052 09       		.uleb128 0x9
+ 2045 0053 13       		.uleb128 0x13
+ 2046 0054 01       		.byte	0x1
+ 2047 0055 03       		.uleb128 0x3
+ 2048 0056 0E       		.uleb128 0xe
+ 2049 0057 0B       		.uleb128 0xb
+ 2050 0058 0B       		.uleb128 0xb
+ 2051 0059 3A       		.uleb128 0x3a
+ 2052 005a 0B       		.uleb128 0xb
+ 2053 005b 3B       		.uleb128 0x3b
+ 2054 005c 0B       		.uleb128 0xb
+ 2055 005d 01       		.uleb128 0x1
+ 2056 005e 13       		.uleb128 0x13
+ 2057 005f 00       		.byte	0
+ 2058 0060 00       		.byte	0
+ 2059 0061 0A       		.uleb128 0xa
+ 2060 0062 0D       		.uleb128 0xd
+ 2061 0063 00       		.byte	0
+ 2062 0064 03       		.uleb128 0x3
+ 2063 0065 08       		.uleb128 0x8
+ 2064 0066 3A       		.uleb128 0x3a
+ 2065 0067 0B       		.uleb128 0xb
+ 2066 0068 3B       		.uleb128 0x3b
+ 2067 0069 0B       		.uleb128 0xb
+ 2068 006a 49       		.uleb128 0x49
+ 2069 006b 13       		.uleb128 0x13
+ 2070 006c 38       		.uleb128 0x38
+ 2071 006d 0B       		.uleb128 0xb
+ 2072 006e 00       		.byte	0
+ 2073 006f 00       		.byte	0
+ 2074 0070 0B       		.uleb128 0xb
+ 2075 0071 0D       		.uleb128 0xd
+ 2076 0072 00       		.byte	0
+ 2077 0073 03       		.uleb128 0x3
+ 2078 0074 0E       		.uleb128 0xe
+ 2079 0075 3A       		.uleb128 0x3a
+ 2080 0076 0B       		.uleb128 0xb
+ 2081 0077 3B       		.uleb128 0x3b
+ 2082 0078 0B       		.uleb128 0xb
+ 2083 0079 49       		.uleb128 0x49
+ 2084 007a 13       		.uleb128 0x13
+ 2085 007b 38       		.uleb128 0x38
+ 2086 007c 0B       		.uleb128 0xb
+ 2087 007d 00       		.byte	0
+ 2088 007e 00       		.byte	0
+ 2089 007f 0C       		.uleb128 0xc
+ 2090 0080 04       		.uleb128 0x4
+ 2091 0081 01       		.byte	0x1
+ 2092 0082 03       		.uleb128 0x3
+ 2093 0083 0E       		.uleb128 0xe
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 46
+
+
+ 2094 0084 0B       		.uleb128 0xb
+ 2095 0085 0B       		.uleb128 0xb
+ 2096 0086 3A       		.uleb128 0x3a
+ 2097 0087 0B       		.uleb128 0xb
+ 2098 0088 3B       		.uleb128 0x3b
+ 2099 0089 0B       		.uleb128 0xb
+ 2100 008a 01       		.uleb128 0x1
+ 2101 008b 13       		.uleb128 0x13
+ 2102 008c 00       		.byte	0
+ 2103 008d 00       		.byte	0
+ 2104 008e 0D       		.uleb128 0xd
+ 2105 008f 28       		.uleb128 0x28
+ 2106 0090 00       		.byte	0
+ 2107 0091 03       		.uleb128 0x3
+ 2108 0092 0E       		.uleb128 0xe
+ 2109 0093 1C       		.uleb128 0x1c
+ 2110 0094 0D       		.uleb128 0xd
+ 2111 0095 00       		.byte	0
+ 2112 0096 00       		.byte	0
+ 2113 0097 0E       		.uleb128 0xe
+ 2114 0098 2E       		.uleb128 0x2e
+ 2115 0099 01       		.byte	0x1
+ 2116 009a 3F       		.uleb128 0x3f
+ 2117 009b 19       		.uleb128 0x19
+ 2118 009c 03       		.uleb128 0x3
+ 2119 009d 0E       		.uleb128 0xe
+ 2120 009e 3A       		.uleb128 0x3a
+ 2121 009f 0B       		.uleb128 0xb
+ 2122 00a0 3B       		.uleb128 0x3b
+ 2123 00a1 05       		.uleb128 0x5
+ 2124 00a2 27       		.uleb128 0x27
+ 2125 00a3 19       		.uleb128 0x19
+ 2126 00a4 49       		.uleb128 0x49
+ 2127 00a5 13       		.uleb128 0x13
+ 2128 00a6 11       		.uleb128 0x11
+ 2129 00a7 01       		.uleb128 0x1
+ 2130 00a8 12       		.uleb128 0x12
+ 2131 00a9 06       		.uleb128 0x6
+ 2132 00aa 40       		.uleb128 0x40
+ 2133 00ab 18       		.uleb128 0x18
+ 2134 00ac 9742     		.uleb128 0x2117
+ 2135 00ae 19       		.uleb128 0x19
+ 2136 00af 01       		.uleb128 0x1
+ 2137 00b0 13       		.uleb128 0x13
+ 2138 00b1 00       		.byte	0
+ 2139 00b2 00       		.byte	0
+ 2140 00b3 0F       		.uleb128 0xf
+ 2141 00b4 05       		.uleb128 0x5
+ 2142 00b5 00       		.byte	0
+ 2143 00b6 03       		.uleb128 0x3
+ 2144 00b7 08       		.uleb128 0x8
+ 2145 00b8 3A       		.uleb128 0x3a
+ 2146 00b9 0B       		.uleb128 0xb
+ 2147 00ba 3B       		.uleb128 0x3b
+ 2148 00bb 05       		.uleb128 0x5
+ 2149 00bc 49       		.uleb128 0x49
+ 2150 00bd 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 47
+
+
+ 2151 00be 02       		.uleb128 0x2
+ 2152 00bf 17       		.uleb128 0x17
+ 2153 00c0 00       		.byte	0
+ 2154 00c1 00       		.byte	0
+ 2155 00c2 10       		.uleb128 0x10
+ 2156 00c3 34       		.uleb128 0x34
+ 2157 00c4 00       		.byte	0
+ 2158 00c5 03       		.uleb128 0x3
+ 2159 00c6 08       		.uleb128 0x8
+ 2160 00c7 3A       		.uleb128 0x3a
+ 2161 00c8 0B       		.uleb128 0xb
+ 2162 00c9 3B       		.uleb128 0x3b
+ 2163 00ca 05       		.uleb128 0x5
+ 2164 00cb 49       		.uleb128 0x49
+ 2165 00cc 13       		.uleb128 0x13
+ 2166 00cd 02       		.uleb128 0x2
+ 2167 00ce 17       		.uleb128 0x17
+ 2168 00cf 00       		.byte	0
+ 2169 00d0 00       		.byte	0
+ 2170 00d1 11       		.uleb128 0x11
+ 2171 00d2 2E       		.uleb128 0x2e
+ 2172 00d3 01       		.byte	0x1
+ 2173 00d4 3F       		.uleb128 0x3f
+ 2174 00d5 19       		.uleb128 0x19
+ 2175 00d6 03       		.uleb128 0x3
+ 2176 00d7 0E       		.uleb128 0xe
+ 2177 00d8 3A       		.uleb128 0x3a
+ 2178 00d9 0B       		.uleb128 0xb
+ 2179 00da 3B       		.uleb128 0x3b
+ 2180 00db 05       		.uleb128 0x5
+ 2181 00dc 27       		.uleb128 0x27
+ 2182 00dd 19       		.uleb128 0x19
+ 2183 00de 11       		.uleb128 0x11
+ 2184 00df 01       		.uleb128 0x1
+ 2185 00e0 12       		.uleb128 0x12
+ 2186 00e1 06       		.uleb128 0x6
+ 2187 00e2 40       		.uleb128 0x40
+ 2188 00e3 18       		.uleb128 0x18
+ 2189 00e4 9742     		.uleb128 0x2117
+ 2190 00e6 19       		.uleb128 0x19
+ 2191 00e7 01       		.uleb128 0x1
+ 2192 00e8 13       		.uleb128 0x13
+ 2193 00e9 00       		.byte	0
+ 2194 00ea 00       		.byte	0
+ 2195 00eb 12       		.uleb128 0x12
+ 2196 00ec 05       		.uleb128 0x5
+ 2197 00ed 00       		.byte	0
+ 2198 00ee 03       		.uleb128 0x3
+ 2199 00ef 0E       		.uleb128 0xe
+ 2200 00f0 3A       		.uleb128 0x3a
+ 2201 00f1 0B       		.uleb128 0xb
+ 2202 00f2 3B       		.uleb128 0x3b
+ 2203 00f3 05       		.uleb128 0x5
+ 2204 00f4 49       		.uleb128 0x49
+ 2205 00f5 13       		.uleb128 0x13
+ 2206 00f6 02       		.uleb128 0x2
+ 2207 00f7 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 48
+
+
+ 2208 00f8 00       		.byte	0
+ 2209 00f9 00       		.byte	0
+ 2210 00fa 13       		.uleb128 0x13
+ 2211 00fb 2E       		.uleb128 0x2e
+ 2212 00fc 01       		.byte	0x1
+ 2213 00fd 3F       		.uleb128 0x3f
+ 2214 00fe 19       		.uleb128 0x19
+ 2215 00ff 03       		.uleb128 0x3
+ 2216 0100 0E       		.uleb128 0xe
+ 2217 0101 3A       		.uleb128 0x3a
+ 2218 0102 0B       		.uleb128 0xb
+ 2219 0103 3B       		.uleb128 0x3b
+ 2220 0104 0B       		.uleb128 0xb
+ 2221 0105 27       		.uleb128 0x27
+ 2222 0106 19       		.uleb128 0x19
+ 2223 0107 49       		.uleb128 0x49
+ 2224 0108 13       		.uleb128 0x13
+ 2225 0109 11       		.uleb128 0x11
+ 2226 010a 01       		.uleb128 0x1
+ 2227 010b 12       		.uleb128 0x12
+ 2228 010c 06       		.uleb128 0x6
+ 2229 010d 40       		.uleb128 0x40
+ 2230 010e 18       		.uleb128 0x18
+ 2231 010f 9742     		.uleb128 0x2117
+ 2232 0111 19       		.uleb128 0x19
+ 2233 0112 01       		.uleb128 0x1
+ 2234 0113 13       		.uleb128 0x13
+ 2235 0114 00       		.byte	0
+ 2236 0115 00       		.byte	0
+ 2237 0116 14       		.uleb128 0x14
+ 2238 0117 05       		.uleb128 0x5
+ 2239 0118 00       		.byte	0
+ 2240 0119 03       		.uleb128 0x3
+ 2241 011a 0E       		.uleb128 0xe
+ 2242 011b 3A       		.uleb128 0x3a
+ 2243 011c 0B       		.uleb128 0xb
+ 2244 011d 3B       		.uleb128 0x3b
+ 2245 011e 0B       		.uleb128 0xb
+ 2246 011f 49       		.uleb128 0x49
+ 2247 0120 13       		.uleb128 0x13
+ 2248 0121 02       		.uleb128 0x2
+ 2249 0122 17       		.uleb128 0x17
+ 2250 0123 00       		.byte	0
+ 2251 0124 00       		.byte	0
+ 2252 0125 15       		.uleb128 0x15
+ 2253 0126 34       		.uleb128 0x34
+ 2254 0127 00       		.byte	0
+ 2255 0128 03       		.uleb128 0x3
+ 2256 0129 0E       		.uleb128 0xe
+ 2257 012a 3A       		.uleb128 0x3a
+ 2258 012b 0B       		.uleb128 0xb
+ 2259 012c 3B       		.uleb128 0x3b
+ 2260 012d 0B       		.uleb128 0xb
+ 2261 012e 49       		.uleb128 0x49
+ 2262 012f 13       		.uleb128 0x13
+ 2263 0130 02       		.uleb128 0x2
+ 2264 0131 17       		.uleb128 0x17
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 49
+
+
+ 2265 0132 00       		.byte	0
+ 2266 0133 00       		.byte	0
+ 2267 0134 16       		.uleb128 0x16
+ 2268 0135 0B       		.uleb128 0xb
+ 2269 0136 01       		.byte	0x1
+ 2270 0137 11       		.uleb128 0x11
+ 2271 0138 01       		.uleb128 0x1
+ 2272 0139 12       		.uleb128 0x12
+ 2273 013a 06       		.uleb128 0x6
+ 2274 013b 01       		.uleb128 0x1
+ 2275 013c 13       		.uleb128 0x13
+ 2276 013d 00       		.byte	0
+ 2277 013e 00       		.byte	0
+ 2278 013f 17       		.uleb128 0x17
+ 2279 0140 34       		.uleb128 0x34
+ 2280 0141 00       		.byte	0
+ 2281 0142 03       		.uleb128 0x3
+ 2282 0143 0E       		.uleb128 0xe
+ 2283 0144 3A       		.uleb128 0x3a
+ 2284 0145 0B       		.uleb128 0xb
+ 2285 0146 3B       		.uleb128 0x3b
+ 2286 0147 0B       		.uleb128 0xb
+ 2287 0148 49       		.uleb128 0x49
+ 2288 0149 13       		.uleb128 0x13
+ 2289 014a 02       		.uleb128 0x2
+ 2290 014b 18       		.uleb128 0x18
+ 2291 014c 00       		.byte	0
+ 2292 014d 00       		.byte	0
+ 2293 014e 18       		.uleb128 0x18
+ 2294 014f 2E       		.uleb128 0x2e
+ 2295 0150 01       		.byte	0x1
+ 2296 0151 3F       		.uleb128 0x3f
+ 2297 0152 19       		.uleb128 0x19
+ 2298 0153 03       		.uleb128 0x3
+ 2299 0154 0E       		.uleb128 0xe
+ 2300 0155 3A       		.uleb128 0x3a
+ 2301 0156 0B       		.uleb128 0xb
+ 2302 0157 3B       		.uleb128 0x3b
+ 2303 0158 0B       		.uleb128 0xb
+ 2304 0159 27       		.uleb128 0x27
+ 2305 015a 19       		.uleb128 0x19
+ 2306 015b 49       		.uleb128 0x49
+ 2307 015c 13       		.uleb128 0x13
+ 2308 015d 3C       		.uleb128 0x3c
+ 2309 015e 19       		.uleb128 0x19
+ 2310 015f 01       		.uleb128 0x1
+ 2311 0160 13       		.uleb128 0x13
+ 2312 0161 00       		.byte	0
+ 2313 0162 00       		.byte	0
+ 2314 0163 19       		.uleb128 0x19
+ 2315 0164 05       		.uleb128 0x5
+ 2316 0165 00       		.byte	0
+ 2317 0166 49       		.uleb128 0x49
+ 2318 0167 13       		.uleb128 0x13
+ 2319 0168 00       		.byte	0
+ 2320 0169 00       		.byte	0
+ 2321 016a 1A       		.uleb128 0x1a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 50
+
+
+ 2322 016b 18       		.uleb128 0x18
+ 2323 016c 00       		.byte	0
+ 2324 016d 00       		.byte	0
+ 2325 016e 00       		.byte	0
+ 2326 016f 1B       		.uleb128 0x1b
+ 2327 0170 898201   		.uleb128 0x4109
+ 2328 0173 01       		.byte	0x1
+ 2329 0174 11       		.uleb128 0x11
+ 2330 0175 01       		.uleb128 0x1
+ 2331 0176 31       		.uleb128 0x31
+ 2332 0177 13       		.uleb128 0x13
+ 2333 0178 01       		.uleb128 0x1
+ 2334 0179 13       		.uleb128 0x13
+ 2335 017a 00       		.byte	0
+ 2336 017b 00       		.byte	0
+ 2337 017c 1C       		.uleb128 0x1c
+ 2338 017d 8A8201   		.uleb128 0x410a
+ 2339 0180 00       		.byte	0
+ 2340 0181 02       		.uleb128 0x2
+ 2341 0182 18       		.uleb128 0x18
+ 2342 0183 9142     		.uleb128 0x2111
+ 2343 0185 18       		.uleb128 0x18
+ 2344 0186 00       		.byte	0
+ 2345 0187 00       		.byte	0
+ 2346 0188 1D       		.uleb128 0x1d
+ 2347 0189 898201   		.uleb128 0x4109
+ 2348 018c 01       		.byte	0x1
+ 2349 018d 11       		.uleb128 0x11
+ 2350 018e 01       		.uleb128 0x1
+ 2351 018f 31       		.uleb128 0x31
+ 2352 0190 13       		.uleb128 0x13
+ 2353 0191 00       		.byte	0
+ 2354 0192 00       		.byte	0
+ 2355 0193 1E       		.uleb128 0x1e
+ 2356 0194 898201   		.uleb128 0x4109
+ 2357 0197 00       		.byte	0
+ 2358 0198 11       		.uleb128 0x11
+ 2359 0199 01       		.uleb128 0x1
+ 2360 019a 31       		.uleb128 0x31
+ 2361 019b 13       		.uleb128 0x13
+ 2362 019c 00       		.byte	0
+ 2363 019d 00       		.byte	0
+ 2364 019e 1F       		.uleb128 0x1f
+ 2365 019f 01       		.uleb128 0x1
+ 2366 01a0 01       		.byte	0x1
+ 2367 01a1 49       		.uleb128 0x49
+ 2368 01a2 13       		.uleb128 0x13
+ 2369 01a3 01       		.uleb128 0x1
+ 2370 01a4 13       		.uleb128 0x13
+ 2371 01a5 00       		.byte	0
+ 2372 01a6 00       		.byte	0
+ 2373 01a7 20       		.uleb128 0x20
+ 2374 01a8 21       		.uleb128 0x21
+ 2375 01a9 00       		.byte	0
+ 2376 01aa 49       		.uleb128 0x49
+ 2377 01ab 13       		.uleb128 0x13
+ 2378 01ac 2F       		.uleb128 0x2f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 51
+
+
+ 2379 01ad 0B       		.uleb128 0xb
+ 2380 01ae 00       		.byte	0
+ 2381 01af 00       		.byte	0
+ 2382 01b0 21       		.uleb128 0x21
+ 2383 01b1 05       		.uleb128 0x5
+ 2384 01b2 00       		.byte	0
+ 2385 01b3 03       		.uleb128 0x3
+ 2386 01b4 0E       		.uleb128 0xe
+ 2387 01b5 3A       		.uleb128 0x3a
+ 2388 01b6 0B       		.uleb128 0xb
+ 2389 01b7 3B       		.uleb128 0x3b
+ 2390 01b8 05       		.uleb128 0x5
+ 2391 01b9 49       		.uleb128 0x49
+ 2392 01ba 13       		.uleb128 0x13
+ 2393 01bb 02       		.uleb128 0x2
+ 2394 01bc 17       		.uleb128 0x17
+ 2395 01bd 00       		.byte	0
+ 2396 01be 00       		.byte	0
+ 2397 01bf 22       		.uleb128 0x22
+ 2398 01c0 34       		.uleb128 0x34
+ 2399 01c1 00       		.byte	0
+ 2400 01c2 03       		.uleb128 0x3
+ 2401 01c3 0E       		.uleb128 0xe
+ 2402 01c4 3A       		.uleb128 0x3a
+ 2403 01c5 0B       		.uleb128 0xb
+ 2404 01c6 3B       		.uleb128 0x3b
+ 2405 01c7 05       		.uleb128 0x5
+ 2406 01c8 49       		.uleb128 0x49
+ 2407 01c9 13       		.uleb128 0x13
+ 2408 01ca 02       		.uleb128 0x2
+ 2409 01cb 17       		.uleb128 0x17
+ 2410 01cc 00       		.byte	0
+ 2411 01cd 00       		.byte	0
+ 2412 01ce 23       		.uleb128 0x23
+ 2413 01cf 34       		.uleb128 0x34
+ 2414 01d0 00       		.byte	0
+ 2415 01d1 03       		.uleb128 0x3
+ 2416 01d2 0E       		.uleb128 0xe
+ 2417 01d3 3A       		.uleb128 0x3a
+ 2418 01d4 0B       		.uleb128 0xb
+ 2419 01d5 3B       		.uleb128 0x3b
+ 2420 01d6 05       		.uleb128 0x5
+ 2421 01d7 49       		.uleb128 0x49
+ 2422 01d8 13       		.uleb128 0x13
+ 2423 01d9 02       		.uleb128 0x2
+ 2424 01da 18       		.uleb128 0x18
+ 2425 01db 00       		.byte	0
+ 2426 01dc 00       		.byte	0
+ 2427 01dd 24       		.uleb128 0x24
+ 2428 01de 34       		.uleb128 0x34
+ 2429 01df 00       		.byte	0
+ 2430 01e0 03       		.uleb128 0x3
+ 2431 01e1 0E       		.uleb128 0xe
+ 2432 01e2 3A       		.uleb128 0x3a
+ 2433 01e3 0B       		.uleb128 0xb
+ 2434 01e4 3B       		.uleb128 0x3b
+ 2435 01e5 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 52
+
+
+ 2436 01e6 49       		.uleb128 0x49
+ 2437 01e7 13       		.uleb128 0x13
+ 2438 01e8 3F       		.uleb128 0x3f
+ 2439 01e9 19       		.uleb128 0x19
+ 2440 01ea 02       		.uleb128 0x2
+ 2441 01eb 18       		.uleb128 0x18
+ 2442 01ec 00       		.byte	0
+ 2443 01ed 00       		.byte	0
+ 2444 01ee 25       		.uleb128 0x25
+ 2445 01ef 2E       		.uleb128 0x2e
+ 2446 01f0 01       		.byte	0x1
+ 2447 01f1 3F       		.uleb128 0x3f
+ 2448 01f2 19       		.uleb128 0x19
+ 2449 01f3 03       		.uleb128 0x3
+ 2450 01f4 0E       		.uleb128 0xe
+ 2451 01f5 27       		.uleb128 0x27
+ 2452 01f6 19       		.uleb128 0x19
+ 2453 01f7 49       		.uleb128 0x49
+ 2454 01f8 13       		.uleb128 0x13
+ 2455 01f9 34       		.uleb128 0x34
+ 2456 01fa 19       		.uleb128 0x19
+ 2457 01fb 3C       		.uleb128 0x3c
+ 2458 01fc 19       		.uleb128 0x19
+ 2459 01fd 01       		.uleb128 0x1
+ 2460 01fe 13       		.uleb128 0x13
+ 2461 01ff 00       		.byte	0
+ 2462 0200 00       		.byte	0
+ 2463 0201 26       		.uleb128 0x26
+ 2464 0202 2E       		.uleb128 0x2e
+ 2465 0203 01       		.byte	0x1
+ 2466 0204 3F       		.uleb128 0x3f
+ 2467 0205 19       		.uleb128 0x19
+ 2468 0206 03       		.uleb128 0x3
+ 2469 0207 0E       		.uleb128 0xe
+ 2470 0208 3A       		.uleb128 0x3a
+ 2471 0209 0B       		.uleb128 0xb
+ 2472 020a 3B       		.uleb128 0x3b
+ 2473 020b 0B       		.uleb128 0xb
+ 2474 020c 6E       		.uleb128 0x6e
+ 2475 020d 0E       		.uleb128 0xe
+ 2476 020e 27       		.uleb128 0x27
+ 2477 020f 19       		.uleb128 0x19
+ 2478 0210 49       		.uleb128 0x49
+ 2479 0211 13       		.uleb128 0x13
+ 2480 0212 3C       		.uleb128 0x3c
+ 2481 0213 19       		.uleb128 0x19
+ 2482 0214 00       		.byte	0
+ 2483 0215 00       		.byte	0
+ 2484 0216 00       		.byte	0
+ 2485              		.section	.debug_loc,"",%progbits
+ 2486              	.Ldebug_loc0:
+ 2487              	.LLST0:
+ 2488 0000 00000000 		.4byte	.LVL0
+ 2489 0004 0A000000 		.4byte	.LVL1
+ 2490 0008 0100     		.2byte	0x1
+ 2491 000a 50       		.byte	0x50
+ 2492 000b 0A000000 		.4byte	.LVL1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 53
+
+
+ 2493 000f 0C000000 		.4byte	.LVL2
+ 2494 0013 0400     		.2byte	0x4
+ 2495 0015 F3       		.byte	0xf3
+ 2496 0016 01       		.uleb128 0x1
+ 2497 0017 50       		.byte	0x50
+ 2498 0018 9F       		.byte	0x9f
+ 2499 0019 0C000000 		.4byte	.LVL2
+ 2500 001d 0E000000 		.4byte	.LVL3
+ 2501 0021 0100     		.2byte	0x1
+ 2502 0023 53       		.byte	0x53
+ 2503 0024 0E000000 		.4byte	.LVL3
+ 2504 0028 1A000000 		.4byte	.LVL4
+ 2505 002c 0100     		.2byte	0x1
+ 2506 002e 50       		.byte	0x50
+ 2507 002f 1A000000 		.4byte	.LVL4
+ 2508 0033 1E000000 		.4byte	.LFE3
+ 2509 0037 0100     		.2byte	0x1
+ 2510 0039 53       		.byte	0x53
+ 2511 003a 00000000 		.4byte	0
+ 2512 003e 00000000 		.4byte	0
+ 2513              	.LLST1:
+ 2514 0042 00000000 		.4byte	.LVL5
+ 2515 0046 06000000 		.4byte	.LVL6
+ 2516 004a 0100     		.2byte	0x1
+ 2517 004c 50       		.byte	0x50
+ 2518 004d 06000000 		.4byte	.LVL6
+ 2519 0051 08000000 		.4byte	.LVL7
+ 2520 0055 0400     		.2byte	0x4
+ 2521 0057 F3       		.byte	0xf3
+ 2522 0058 01       		.uleb128 0x1
+ 2523 0059 50       		.byte	0x50
+ 2524 005a 9F       		.byte	0x9f
+ 2525 005b 08000000 		.4byte	.LVL7
+ 2526 005f 0A000000 		.4byte	.LVL8
+ 2527 0063 0100     		.2byte	0x1
+ 2528 0065 50       		.byte	0x50
+ 2529 0066 0A000000 		.4byte	.LVL8
+ 2530 006a 0C000000 		.4byte	.LFE4
+ 2531 006e 0400     		.2byte	0x4
+ 2532 0070 F3       		.byte	0xf3
+ 2533 0071 01       		.uleb128 0x1
+ 2534 0072 50       		.byte	0x50
+ 2535 0073 9F       		.byte	0x9f
+ 2536 0074 00000000 		.4byte	0
+ 2537 0078 00000000 		.4byte	0
+ 2538              	.LLST2:
+ 2539 007c 00000000 		.4byte	.LVL5
+ 2540 0080 0A000000 		.4byte	.LVL8
+ 2541 0084 0200     		.2byte	0x2
+ 2542 0086 31       		.byte	0x31
+ 2543 0087 9F       		.byte	0x9f
+ 2544 0088 0A000000 		.4byte	.LVL8
+ 2545 008c 0C000000 		.4byte	.LFE4
+ 2546 0090 0100     		.2byte	0x1
+ 2547 0092 50       		.byte	0x50
+ 2548 0093 00000000 		.4byte	0
+ 2549 0097 00000000 		.4byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 54
+
+
+ 2550              	.LLST3:
+ 2551 009b 00000000 		.4byte	.LVL10
+ 2552 009f 08000000 		.4byte	.LVL12
+ 2553 00a3 0100     		.2byte	0x1
+ 2554 00a5 50       		.byte	0x50
+ 2555 00a6 08000000 		.4byte	.LVL12
+ 2556 00aa A0020000 		.4byte	.LVL76
+ 2557 00ae 0100     		.2byte	0x1
+ 2558 00b0 55       		.byte	0x55
+ 2559 00b1 A0020000 		.4byte	.LVL76
+ 2560 00b5 D0020000 		.4byte	.LFE2
+ 2561 00b9 0400     		.2byte	0x4
+ 2562 00bb F3       		.byte	0xf3
+ 2563 00bc 01       		.uleb128 0x1
+ 2564 00bd 50       		.byte	0x50
+ 2565 00be 9F       		.byte	0x9f
+ 2566 00bf 00000000 		.4byte	0
+ 2567 00c3 00000000 		.4byte	0
+ 2568              	.LLST4:
+ 2569 00c7 00000000 		.4byte	.LVL10
+ 2570 00cb 0B000000 		.4byte	.LVL13-1
+ 2571 00cf 0100     		.2byte	0x1
+ 2572 00d1 51       		.byte	0x51
+ 2573 00d2 0B000000 		.4byte	.LVL13-1
+ 2574 00d6 10000000 		.4byte	.LVL14
+ 2575 00da 0400     		.2byte	0x4
+ 2576 00dc F3       		.byte	0xf3
+ 2577 00dd 01       		.uleb128 0x1
+ 2578 00de 51       		.byte	0x51
+ 2579 00df 9F       		.byte	0x9f
+ 2580 00e0 10000000 		.4byte	.LVL14
+ 2581 00e4 1C000000 		.4byte	.LVL15
+ 2582 00e8 0100     		.2byte	0x1
+ 2583 00ea 50       		.byte	0x50
+ 2584 00eb 3E000000 		.4byte	.LVL17
+ 2585 00ef 53000000 		.4byte	.LVL18-1
+ 2586 00f3 0100     		.2byte	0x1
+ 2587 00f5 50       		.byte	0x50
+ 2588 00f6 8A000000 		.4byte	.LVL20
+ 2589 00fa 96000000 		.4byte	.LVL21
+ 2590 00fe 0100     		.2byte	0x1
+ 2591 0100 50       		.byte	0x50
+ 2592 0101 98000000 		.4byte	.LVL22
+ 2593 0105 9A000000 		.4byte	.LVL23
+ 2594 0109 0100     		.2byte	0x1
+ 2595 010b 50       		.byte	0x50
+ 2596 010c A8000000 		.4byte	.LVL25
+ 2597 0110 AB000000 		.4byte	.LVL26-1
+ 2598 0114 0100     		.2byte	0x1
+ 2599 0116 50       		.byte	0x50
+ 2600 0117 E6000000 		.4byte	.LVL29
+ 2601 011b F2000000 		.4byte	.LVL30
+ 2602 011f 0100     		.2byte	0x1
+ 2603 0121 50       		.byte	0x50
+ 2604 0122 F4000000 		.4byte	.LVL31
+ 2605 0126 F6000000 		.4byte	.LVL32
+ 2606 012a 0100     		.2byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 55
+
+
+ 2607 012c 50       		.byte	0x50
+ 2608 012d 04010000 		.4byte	.LVL34
+ 2609 0131 07010000 		.4byte	.LVL35-1
+ 2610 0135 0100     		.2byte	0x1
+ 2611 0137 50       		.byte	0x50
+ 2612 0138 4C010000 		.4byte	.LVL37
+ 2613 013c 4F010000 		.4byte	.LVL38-1
+ 2614 0140 0100     		.2byte	0x1
+ 2615 0142 50       		.byte	0x50
+ 2616 0143 8C010000 		.4byte	.LVL40
+ 2617 0147 8F010000 		.4byte	.LVL41-1
+ 2618 014b 0100     		.2byte	0x1
+ 2619 014d 50       		.byte	0x50
+ 2620 014e CC010000 		.4byte	.LVL43
+ 2621 0152 D8010000 		.4byte	.LVL44
+ 2622 0156 0100     		.2byte	0x1
+ 2623 0158 50       		.byte	0x50
+ 2624 0159 DA010000 		.4byte	.LVL45
+ 2625 015d DC010000 		.4byte	.LVL46
+ 2626 0161 0100     		.2byte	0x1
+ 2627 0163 50       		.byte	0x50
+ 2628 0164 EA010000 		.4byte	.LVL48
+ 2629 0168 ED010000 		.4byte	.LVL49-1
+ 2630 016c 0100     		.2byte	0x1
+ 2631 016e 50       		.byte	0x50
+ 2632 016f 28020000 		.4byte	.LVL51
+ 2633 0173 3A020000 		.4byte	.LVL52
+ 2634 0177 0100     		.2byte	0x1
+ 2635 0179 50       		.byte	0x50
+ 2636 017a 84020000 		.4byte	.LVL67
+ 2637 017e 86020000 		.4byte	.LVL68
+ 2638 0182 0100     		.2byte	0x1
+ 2639 0184 50       		.byte	0x50
+ 2640 0185 94020000 		.4byte	.LVL71
+ 2641 0189 96020000 		.4byte	.LVL72
+ 2642 018d 0100     		.2byte	0x1
+ 2643 018f 50       		.byte	0x50
+ 2644 0190 00000000 		.4byte	0
+ 2645 0194 00000000 		.4byte	0
+ 2646              	.LLST5:
+ 2647 0198 06000000 		.4byte	.LVL11
+ 2648 019c 86000000 		.4byte	.LVL19
+ 2649 01a0 0200     		.2byte	0x2
+ 2650 01a2 30       		.byte	0x30
+ 2651 01a3 9F       		.byte	0x9f
+ 2652 01a4 86000000 		.4byte	.LVL19
+ 2653 01a8 8A000000 		.4byte	.LVL20
+ 2654 01ac 0200     		.2byte	0x2
+ 2655 01ae 31       		.byte	0x31
+ 2656 01af 9F       		.byte	0x9f
+ 2657 01b0 8A000000 		.4byte	.LVL20
+ 2658 01b4 9E000000 		.4byte	.LVL24
+ 2659 01b8 0200     		.2byte	0x2
+ 2660 01ba 30       		.byte	0x30
+ 2661 01bb 9F       		.byte	0x9f
+ 2662 01bc 9E000000 		.4byte	.LVL24
+ 2663 01c0 A8000000 		.4byte	.LVL25
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 56
+
+
+ 2664 01c4 0200     		.2byte	0x2
+ 2665 01c6 32       		.byte	0x32
+ 2666 01c7 9F       		.byte	0x9f
+ 2667 01c8 A8000000 		.4byte	.LVL25
+ 2668 01cc E2000000 		.4byte	.LVL28
+ 2669 01d0 0200     		.2byte	0x2
+ 2670 01d2 30       		.byte	0x30
+ 2671 01d3 9F       		.byte	0x9f
+ 2672 01d4 E2000000 		.4byte	.LVL28
+ 2673 01d8 E6000000 		.4byte	.LVL29
+ 2674 01dc 0200     		.2byte	0x2
+ 2675 01de 33       		.byte	0x33
+ 2676 01df 9F       		.byte	0x9f
+ 2677 01e0 E6000000 		.4byte	.LVL29
+ 2678 01e4 FA000000 		.4byte	.LVL33
+ 2679 01e8 0200     		.2byte	0x2
+ 2680 01ea 30       		.byte	0x30
+ 2681 01eb 9F       		.byte	0x9f
+ 2682 01ec FA000000 		.4byte	.LVL33
+ 2683 01f0 04010000 		.4byte	.LVL34
+ 2684 01f4 0200     		.2byte	0x2
+ 2685 01f6 34       		.byte	0x34
+ 2686 01f7 9F       		.byte	0x9f
+ 2687 01f8 04010000 		.4byte	.LVL34
+ 2688 01fc 42010000 		.4byte	.LVL36
+ 2689 0200 0200     		.2byte	0x2
+ 2690 0202 30       		.byte	0x30
+ 2691 0203 9F       		.byte	0x9f
+ 2692 0204 42010000 		.4byte	.LVL36
+ 2693 0208 4C010000 		.4byte	.LVL37
+ 2694 020c 0200     		.2byte	0x2
+ 2695 020e 35       		.byte	0x35
+ 2696 020f 9F       		.byte	0x9f
+ 2697 0210 4C010000 		.4byte	.LVL37
+ 2698 0214 82010000 		.4byte	.LVL39
+ 2699 0218 0200     		.2byte	0x2
+ 2700 021a 30       		.byte	0x30
+ 2701 021b 9F       		.byte	0x9f
+ 2702 021c 82010000 		.4byte	.LVL39
+ 2703 0220 8C010000 		.4byte	.LVL40
+ 2704 0224 0200     		.2byte	0x2
+ 2705 0226 36       		.byte	0x36
+ 2706 0227 9F       		.byte	0x9f
+ 2707 0228 8C010000 		.4byte	.LVL40
+ 2708 022c C2010000 		.4byte	.LVL42
+ 2709 0230 0200     		.2byte	0x2
+ 2710 0232 30       		.byte	0x30
+ 2711 0233 9F       		.byte	0x9f
+ 2712 0234 C2010000 		.4byte	.LVL42
+ 2713 0238 CC010000 		.4byte	.LVL43
+ 2714 023c 0200     		.2byte	0x2
+ 2715 023e 3A       		.byte	0x3a
+ 2716 023f 9F       		.byte	0x9f
+ 2717 0240 CC010000 		.4byte	.LVL43
+ 2718 0244 E0010000 		.4byte	.LVL47
+ 2719 0248 0200     		.2byte	0x2
+ 2720 024a 30       		.byte	0x30
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 57
+
+
+ 2721 024b 9F       		.byte	0x9f
+ 2722 024c E0010000 		.4byte	.LVL47
+ 2723 0250 EA010000 		.4byte	.LVL48
+ 2724 0254 0200     		.2byte	0x2
+ 2725 0256 37       		.byte	0x37
+ 2726 0257 9F       		.byte	0x9f
+ 2727 0258 EA010000 		.4byte	.LVL48
+ 2728 025c 1E020000 		.4byte	.LVL50
+ 2729 0260 0200     		.2byte	0x2
+ 2730 0262 30       		.byte	0x30
+ 2731 0263 9F       		.byte	0x9f
+ 2732 0264 1E020000 		.4byte	.LVL50
+ 2733 0268 28020000 		.4byte	.LVL51
+ 2734 026c 0200     		.2byte	0x2
+ 2735 026e 38       		.byte	0x38
+ 2736 026f 9F       		.byte	0x9f
+ 2737 0270 28020000 		.4byte	.LVL51
+ 2738 0274 80020000 		.4byte	.LVL65
+ 2739 0278 0200     		.2byte	0x2
+ 2740 027a 30       		.byte	0x30
+ 2741 027b 9F       		.byte	0x9f
+ 2742 027c 80020000 		.4byte	.LVL65
+ 2743 0280 84020000 		.4byte	.LVL67
+ 2744 0284 0200     		.2byte	0x2
+ 2745 0286 3A       		.byte	0x3a
+ 2746 0287 9F       		.byte	0x9f
+ 2747 0288 84020000 		.4byte	.LVL67
+ 2748 028c 8C020000 		.4byte	.LVL70
+ 2749 0290 0200     		.2byte	0x2
+ 2750 0292 39       		.byte	0x39
+ 2751 0293 9F       		.byte	0x9f
+ 2752 0294 8C020000 		.4byte	.LVL70
+ 2753 0298 94020000 		.4byte	.LVL71
+ 2754 029c 0100     		.2byte	0x1
+ 2755 029e 50       		.byte	0x50
+ 2756 029f 94020000 		.4byte	.LVL71
+ 2757 02a3 9C020000 		.4byte	.LVL74
+ 2758 02a7 0200     		.2byte	0x2
+ 2759 02a9 30       		.byte	0x30
+ 2760 02aa 9F       		.byte	0x9f
+ 2761 02ab 9C020000 		.4byte	.LVL74
+ 2762 02af 9E020000 		.4byte	.LVL75
+ 2763 02b3 0100     		.2byte	0x1
+ 2764 02b5 50       		.byte	0x50
+ 2765 02b6 00000000 		.4byte	0
+ 2766 02ba 00000000 		.4byte	0
+ 2767              	.LLST6:
+ 2768 02be 44020000 		.4byte	.LVL53
+ 2769 02c2 52020000 		.4byte	.LVL55
+ 2770 02c6 0300     		.2byte	0x3
+ 2771 02c8 09       		.byte	0x9
+ 2772 02c9 FF       		.byte	0xff
+ 2773 02ca 9F       		.byte	0x9f
+ 2774 02cb 52020000 		.4byte	.LVL55
+ 2775 02cf 54020000 		.4byte	.LVL56
+ 2776 02d3 0100     		.2byte	0x1
+ 2777 02d5 50       		.byte	0x50
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 58
+
+
+ 2778 02d6 54020000 		.4byte	.LVL56
+ 2779 02da 64020000 		.4byte	.LVL59
+ 2780 02de 0100     		.2byte	0x1
+ 2781 02e0 54       		.byte	0x54
+ 2782 02e1 64020000 		.4byte	.LVL59
+ 2783 02e5 66020000 		.4byte	.LVL60
+ 2784 02e9 0100     		.2byte	0x1
+ 2785 02eb 50       		.byte	0x50
+ 2786 02ec 66020000 		.4byte	.LVL60
+ 2787 02f0 6B020000 		.4byte	.LVL61-1
+ 2788 02f4 0100     		.2byte	0x1
+ 2789 02f6 52       		.byte	0x52
+ 2790 02f7 6C020000 		.4byte	.LVL61
+ 2791 02fb 7A020000 		.4byte	.LVL63
+ 2792 02ff 0100     		.2byte	0x1
+ 2793 0301 50       		.byte	0x50
+ 2794 0302 7C020000 		.4byte	.LVL64
+ 2795 0306 82020000 		.4byte	.LVL66
+ 2796 030a 0100     		.2byte	0x1
+ 2797 030c 50       		.byte	0x50
+ 2798 030d 00000000 		.4byte	0
+ 2799 0311 00000000 		.4byte	0
+ 2800              	.LLST7:
+ 2801 0315 00000000 		.4byte	.LVL77
+ 2802 0319 0A000000 		.4byte	.LVL79
+ 2803 031d 0100     		.2byte	0x1
+ 2804 031f 50       		.byte	0x50
+ 2805 0320 0A000000 		.4byte	.LVL79
+ 2806 0324 9E000000 		.4byte	.LVL103
+ 2807 0328 0100     		.2byte	0x1
+ 2808 032a 54       		.byte	0x54
+ 2809 032b 9E000000 		.4byte	.LVL103
+ 2810 032f C0000000 		.4byte	.LFE6
+ 2811 0333 0400     		.2byte	0x4
+ 2812 0335 F3       		.byte	0xf3
+ 2813 0336 01       		.uleb128 0x1
+ 2814 0337 50       		.byte	0x50
+ 2815 0338 9F       		.byte	0x9f
+ 2816 0339 00000000 		.4byte	0
+ 2817 033d 00000000 		.4byte	0
+ 2818              	.LLST8:
+ 2819 0341 00000000 		.4byte	.LVL77
+ 2820 0345 0C000000 		.4byte	.LVL80
+ 2821 0349 0100     		.2byte	0x1
+ 2822 034b 51       		.byte	0x51
+ 2823 034c 0C000000 		.4byte	.LVL80
+ 2824 0350 9E000000 		.4byte	.LVL104
+ 2825 0354 0100     		.2byte	0x1
+ 2826 0356 55       		.byte	0x55
+ 2827 0357 9E000000 		.4byte	.LVL104
+ 2828 035b C0000000 		.4byte	.LFE6
+ 2829 035f 0400     		.2byte	0x4
+ 2830 0361 F3       		.byte	0xf3
+ 2831 0362 01       		.uleb128 0x1
+ 2832 0363 51       		.byte	0x51
+ 2833 0364 9F       		.byte	0x9f
+ 2834 0365 00000000 		.4byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 59
+
+
+ 2835 0369 00000000 		.4byte	0
+ 2836              	.LLST9:
+ 2837 036d 00000000 		.4byte	.LVL77
+ 2838 0371 0F000000 		.4byte	.LVL81-1
+ 2839 0375 0100     		.2byte	0x1
+ 2840 0377 52       		.byte	0x52
+ 2841 0378 0F000000 		.4byte	.LVL81-1
+ 2842 037c C0000000 		.4byte	.LFE6
+ 2843 0380 0400     		.2byte	0x4
+ 2844 0382 F3       		.byte	0xf3
+ 2845 0383 01       		.uleb128 0x1
+ 2846 0384 52       		.byte	0x52
+ 2847 0385 9F       		.byte	0x9f
+ 2848 0386 00000000 		.4byte	0
+ 2849 038a 00000000 		.4byte	0
+ 2850              	.LLST10:
+ 2851 038e 10000000 		.4byte	.LVL81
+ 2852 0392 1E000000 		.4byte	.LVL83
+ 2853 0396 0300     		.2byte	0x3
+ 2854 0398 09       		.byte	0x9
+ 2855 0399 FF       		.byte	0xff
+ 2856 039a 9F       		.byte	0x9f
+ 2857 039b 1E000000 		.4byte	.LVL83
+ 2858 039f 20000000 		.4byte	.LVL84
+ 2859 03a3 0100     		.2byte	0x1
+ 2860 03a5 50       		.byte	0x50
+ 2861 03a6 20000000 		.4byte	.LVL84
+ 2862 03aa 30000000 		.4byte	.LVL87
+ 2863 03ae 0100     		.2byte	0x1
+ 2864 03b0 56       		.byte	0x56
+ 2865 03b1 30000000 		.4byte	.LVL87
+ 2866 03b5 32000000 		.4byte	.LVL88
+ 2867 03b9 0100     		.2byte	0x1
+ 2868 03bb 50       		.byte	0x50
+ 2869 03bc 32000000 		.4byte	.LVL88
+ 2870 03c0 37000000 		.4byte	.LVL89-1
+ 2871 03c4 0100     		.2byte	0x1
+ 2872 03c6 52       		.byte	0x52
+ 2873 03c7 38000000 		.4byte	.LVL89
+ 2874 03cb 3A000000 		.4byte	.LVL90
+ 2875 03cf 0100     		.2byte	0x1
+ 2876 03d1 50       		.byte	0x50
+ 2877 03d2 3A000000 		.4byte	.LVL90
+ 2878 03d6 41000000 		.4byte	.LVL91-1
+ 2879 03da 0100     		.2byte	0x1
+ 2880 03dc 52       		.byte	0x52
+ 2881 03dd 00000000 		.4byte	0
+ 2882 03e1 00000000 		.4byte	0
+ 2883              	.LLST11:
+ 2884 03e5 08000000 		.4byte	.LVL78
+ 2885 03e9 0C000000 		.4byte	.LVL80
+ 2886 03ed 0100     		.2byte	0x1
+ 2887 03ef 51       		.byte	0x51
+ 2888 03f0 0C000000 		.4byte	.LVL80
+ 2889 03f4 9E000000 		.4byte	.LVL104
+ 2890 03f8 0100     		.2byte	0x1
+ 2891 03fa 55       		.byte	0x55
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 60
+
+
+ 2892 03fb 9E000000 		.4byte	.LVL104
+ 2893 03ff C0000000 		.4byte	.LFE6
+ 2894 0403 0400     		.2byte	0x4
+ 2895 0405 F3       		.byte	0xf3
+ 2896 0406 01       		.uleb128 0x1
+ 2897 0407 51       		.byte	0x51
+ 2898 0408 9F       		.byte	0x9f
+ 2899 0409 00000000 		.4byte	0
+ 2900 040d 00000000 		.4byte	0
+ 2901              		.section	.debug_aranges,"",%progbits
+ 2902 0000 3C000000 		.4byte	0x3c
+ 2903 0004 0200     		.2byte	0x2
+ 2904 0006 00000000 		.4byte	.Ldebug_info0
+ 2905 000a 04       		.byte	0x4
+ 2906 000b 00       		.byte	0
+ 2907 000c 0000     		.2byte	0
+ 2908 000e 0000     		.2byte	0
+ 2909 0010 00000000 		.4byte	.LFB3
+ 2910 0014 1E000000 		.4byte	.LFE3-.LFB3
+ 2911 0018 00000000 		.4byte	.LFB4
+ 2912 001c 0C000000 		.4byte	.LFE4-.LFB4
+ 2913 0020 00000000 		.4byte	.LFB5
+ 2914 0024 1A000000 		.4byte	.LFE5-.LFB5
+ 2915 0028 00000000 		.4byte	.LFB2
+ 2916 002c D0020000 		.4byte	.LFE2-.LFB2
+ 2917 0030 00000000 		.4byte	.LFB6
+ 2918 0034 C0000000 		.4byte	.LFE6-.LFB6
+ 2919 0038 00000000 		.4byte	0
+ 2920 003c 00000000 		.4byte	0
+ 2921              		.section	.debug_ranges,"",%progbits
+ 2922              	.Ldebug_ranges0:
+ 2923 0000 00000000 		.4byte	.LFB3
+ 2924 0004 1E000000 		.4byte	.LFE3
+ 2925 0008 00000000 		.4byte	.LFB4
+ 2926 000c 0C000000 		.4byte	.LFE4
+ 2927 0010 00000000 		.4byte	.LFB5
+ 2928 0014 1A000000 		.4byte	.LFE5
+ 2929 0018 00000000 		.4byte	.LFB2
+ 2930 001c D0020000 		.4byte	.LFE2
+ 2931 0020 00000000 		.4byte	.LFB6
+ 2932 0024 C0000000 		.4byte	.LFE6
+ 2933 0028 00000000 		.4byte	0
+ 2934 002c 00000000 		.4byte	0
+ 2935              		.section	.debug_line,"",%progbits
+ 2936              	.Ldebug_line0:
+ 2937 0000 0C030000 		.section	.debug_str,"MS",%progbits,1
+ 2937      0200C401 
+ 2937      00000201 
+ 2937      FB0E0D00 
+ 2937      01010101 
+ 2938              	.LASF51:
+ 2939 0000 52454144 		.ascii	"READ_ETX\000"
+ 2939      5F455458 
+ 2939      00
+ 2940              	.LASF55:
+ 2941 0009 556E7061 		.ascii	"UnpackData\000"
+ 2941      636B4461 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 61
+
+
+ 2941      746100
+ 2942              	.LASF17:
+ 2943 0014 73697A65 		.ascii	"size_t\000"
+ 2943      5F7400
+ 2944              	.LASF31:
+ 2945 001b 494E565F 		.ascii	"INV_COMM\000"
+ 2945      434F4D4D 
+ 2945      00
+ 2946              	.LASF16:
+ 2947 0024 75696E74 		.ascii	"uint64_t\000"
+ 2947      36345F74 
+ 2947      00
+ 2948              	.LASF3:
+ 2949 002d 5F5F7569 		.ascii	"__uint8_t\000"
+ 2949      6E74385F 
+ 2949      7400
+ 2950              	.LASF11:
+ 2951 0037 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2951      206C6F6E 
+ 2951      6720756E 
+ 2951      7369676E 
+ 2951      65642069 
+ 2952              	.LASF65:
+ 2953 004e 737A5365 		.ascii	"szSeq\000"
+ 2953      7100
+ 2954              	.LASF9:
+ 2955 0054 6C6F6E67 		.ascii	"long long int\000"
+ 2955      206C6F6E 
+ 2955      6720696E 
+ 2955      7400
+ 2956              	.LASF0:
+ 2957 0062 7369676E 		.ascii	"signed char\000"
+ 2957      65642063 
+ 2957      68617200 
+ 2958              	.LASF61:
+ 2959 006e 62756666 		.ascii	"buff\000"
+ 2959      00
+ 2960              	.LASF83:
+ 2961 0073 52657365 		.ascii	"ResetPacket\000"
+ 2961      74506163 
+ 2961      6B657400 
+ 2962              	.LASF6:
+ 2963 007f 6C6F6E67 		.ascii	"long int\000"
+ 2963      20696E74 
+ 2963      00
+ 2964              	.LASF84:
+ 2965 0088 6D656D63 		.ascii	"memcpy\000"
+ 2965      707900
+ 2966              	.LASF14:
+ 2967 008f 75696E74 		.ascii	"uint16_t\000"
+ 2967      31365F74 
+ 2967      00
+ 2968              	.LASF21:
+ 2969 0098 646F7562 		.ascii	"double\000"
+ 2969      6C6500
+ 2970              	.LASF69:
+ 2971 009f 4C656E44 		.ascii	"LenD1\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 62
+
+
+ 2971      3100
+ 2972              	.LASF70:
+ 2973 00a5 4C656E44 		.ascii	"LenD2\000"
+ 2973      3200
+ 2974              	.LASF71:
+ 2975 00ab 4C656E44 		.ascii	"LenD3\000"
+ 2975      3300
+ 2976              	.LASF22:
+ 2977 00b1 436F6D6D 		.ascii	"Command\000"
+ 2977      616E6400 
+ 2978              	.LASF30:
+ 2979 00b9 4E4F5F46 		.ascii	"NO_FR1\000"
+ 2979      523100
+ 2980              	.LASF7:
+ 2981 00c0 5F5F7569 		.ascii	"__uint32_t\000"
+ 2981      6E743332 
+ 2981      5F7400
+ 2982              	.LASF35:
+ 2983 00cb 4E4F5F46 		.ascii	"NO_FR3\000"
+ 2983      523300
+ 2984              	.LASF52:
+ 2985 00d2 4465636F 		.ascii	"DecodeByte\000"
+ 2985      64654279 
+ 2985      746500
+ 2986              	.LASF64:
+ 2987 00dd 5F637263 		.ascii	"_crc\000"
+ 2987      00
+ 2988              	.LASF57:
+ 2989 00e2 4552525F 		.ascii	"ERR_CODE\000"
+ 2989      434F4445 
+ 2989      00
+ 2990              	.LASF80:
+ 2991 00eb 7376742E 		.ascii	"svt.c\000"
+ 2991      6300
+ 2992              	.LASF12:
+ 2993 00f1 756E7369 		.ascii	"unsigned int\000"
+ 2993      676E6564 
+ 2993      20696E74 
+ 2993      00
+ 2994              	.LASF76:
+ 2995 00fe 7374726C 		.ascii	"strlen\000"
+ 2995      656E00
+ 2996              	.LASF59:
+ 2997 0105 5F746D70 		.ascii	"_tmpdata\000"
+ 2997      64617461 
+ 2997      00
+ 2998              	.LASF8:
+ 2999 010e 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2999      20756E73 
+ 2999      69676E65 
+ 2999      6420696E 
+ 2999      7400
+ 3000              	.LASF53:
+ 3001 0120 43686563 		.ascii	"CheckSymb\000"
+ 3001      6B53796D 
+ 3001      6200
+ 3002              	.LASF62:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 63
+
+
+ 3003 012a 64617461 		.ascii	"data\000"
+ 3003      00
+ 3004              	.LASF5:
+ 3005 012f 73686F72 		.ascii	"short unsigned int\000"
+ 3005      7420756E 
+ 3005      7369676E 
+ 3005      65642069 
+ 3005      6E7400
+ 3006              	.LASF23:
+ 3007 0142 44617461 		.ascii	"Data1\000"
+ 3007      3100
+ 3008              	.LASF24:
+ 3009 0148 44617461 		.ascii	"Data2\000"
+ 3009      3200
+ 3010              	.LASF25:
+ 3011 014e 44617461 		.ascii	"Data3\000"
+ 3011      3300
+ 3012              	.LASF56:
+ 3013 0154 496E4279 		.ascii	"InByte\000"
+ 3013      746500
+ 3014              	.LASF40:
+ 3015 015b 50524F5F 		.ascii	"PRO_STATES\000"
+ 3015      53544154 
+ 3015      455300
+ 3016              	.LASF74:
+ 3017 0166 4C656E43 		.ascii	"LenC\000"
+ 3017      00
+ 3018              	.LASF67:
+ 3019 016b 73707269 		.ascii	"sprintf\000"
+ 3019      6E746600 
+ 3020              	.LASF77:
+ 3021 0173 73747263 		.ascii	"strcat\000"
+ 3021      617400
+ 3022              	.LASF60:
+ 3023 017a 5061636B 		.ascii	"PackData\000"
+ 3023      44617461 
+ 3023      00
+ 3024              	.LASF68:
+ 3025 0183 50524F54 		.ascii	"PROTO_STATE\000"
+ 3025      4F5F5354 
+ 3025      41544500 
+ 3026              	.LASF29:
+ 3027 018f 4241445F 		.ascii	"BAD_SEQ\000"
+ 3027      53455100 
+ 3028              	.LASF43:
+ 3029 0197 52454144 		.ascii	"READ_FR1\000"
+ 3029      5F465231 
+ 3029      00
+ 3030              	.LASF45:
+ 3031 01a0 52454144 		.ascii	"READ_FR2\000"
+ 3031      5F465232 
+ 3031      00
+ 3032              	.LASF49:
+ 3033 01a9 52454144 		.ascii	"READ_FR3\000"
+ 3033      5F465233 
+ 3033      00
+ 3034              	.LASF72:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 64
+
+
+ 3035 01b2 4C656E53 		.ascii	"LenSeq\000"
+ 3035      657100
+ 3036              	.LASF58:
+ 3037 01b9 5F746D70 		.ascii	"_tmpcrc\000"
+ 3037      63726300 
+ 3038              	.LASF18:
+ 3039 01c1 73697A65 		.ascii	"sizetype\000"
+ 3039      74797065 
+ 3039      00
+ 3040              	.LASF28:
+ 3041 01ca 50415253 		.ascii	"PARSED_OK\000"
+ 3041      45445F4F 
+ 3041      4B00
+ 3042              	.LASF82:
+ 3043 01d4 52657370 		.ascii	"Resp\000"
+ 3043      00
+ 3044              	.LASF46:
+ 3045 01d9 52454144 		.ascii	"READ_DA1\000"
+ 3045      5F444131 
+ 3045      00
+ 3046              	.LASF47:
+ 3047 01e2 52454144 		.ascii	"READ_DA2\000"
+ 3047      5F444132 
+ 3047      00
+ 3048              	.LASF48:
+ 3049 01eb 52454144 		.ascii	"READ_DA3\000"
+ 3049      5F444133 
+ 3049      00
+ 3050              	.LASF78:
+ 3051 01f4 5F5F6275 		.ascii	"__builtin_strlen\000"
+ 3051      696C7469 
+ 3051      6E5F7374 
+ 3051      726C656E 
+ 3051      00
+ 3052              	.LASF79:
+ 3053 0205 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 3053      4320342E 
+ 3053      392E3320 
+ 3053      32303135 
+ 3053      30333033 
+ 3054 0238 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 3054      20726576 
+ 3054      6973696F 
+ 3054      6E203232 
+ 3054      31323230 
+ 3055 026b 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 3055      66756E63 
+ 3055      74696F6E 
+ 3055      2D736563 
+ 3055      74696F6E 
+ 3056              	.LASF75:
+ 3057 0293 63726333 		.ascii	"crc32_calc_block\000"
+ 3057      325F6361 
+ 3057      6C635F62 
+ 3057      6C6F636B 
+ 3057      00
+ 3058              	.LASF10:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 65
+
+
+ 3059 02a4 5F5F7569 		.ascii	"__uint64_t\000"
+ 3059      6E743634 
+ 3059      5F7400
+ 3060              	.LASF20:
+ 3061 02af 666C6F61 		.ascii	"float\000"
+ 3061      7400
+ 3062              	.LASF26:
+ 3063 02b5 43686563 		.ascii	"CheckSum\000"
+ 3063      6B53756D 
+ 3063      00
+ 3064              	.LASF33:
+ 3065 02be 494E565F 		.ascii	"INV_DA1\000"
+ 3065      44413100 
+ 3066              	.LASF34:
+ 3067 02c6 494E565F 		.ascii	"INV_DA2\000"
+ 3067      44413200 
+ 3068              	.LASF38:
+ 3069 02ce 494E565F 		.ascii	"INV_DA3\000"
+ 3069      44413300 
+ 3070              	.LASF1:
+ 3071 02d6 756E7369 		.ascii	"unsigned char\000"
+ 3071      676E6564 
+ 3071      20636861 
+ 3071      7200
+ 3072              	.LASF66:
+ 3073 02e4 737A4368 		.ascii	"szCheckSum\000"
+ 3073      65636B53 
+ 3073      756D00
+ 3074              	.LASF2:
+ 3075 02ef 73686F72 		.ascii	"short int\000"
+ 3075      7420696E 
+ 3075      7400
+ 3076              	.LASF44:
+ 3077 02f9 52454144 		.ascii	"READ_COM\000"
+ 3077      5F434F4D 
+ 3077      00
+ 3078              	.LASF39:
+ 3079 0302 50524F5F 		.ascii	"PRO_ERRORS\000"
+ 3079      4552524F 
+ 3079      525300
+ 3080              	.LASF73:
+ 3081 030d 4C656E43 		.ascii	"LenChS\000"
+ 3081      685300
+ 3082              	.LASF15:
+ 3083 0314 75696E74 		.ascii	"uint32_t\000"
+ 3083      33325F74 
+ 3083      00
+ 3084              	.LASF19:
+ 3085 031d 63686172 		.ascii	"char\000"
+ 3085      00
+ 3086              	.LASF4:
+ 3087 0322 5F5F7569 		.ascii	"__uint16_t\000"
+ 3087      6E743136 
+ 3087      5F7400
+ 3088              	.LASF37:
+ 3089 032d 4E4F5F45 		.ascii	"NO_ETX\000"
+ 3089      545800
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccpJzdVI.s 			page 66
+
+
+ 3090              	.LASF41:
+ 3091 0334 57414954 		.ascii	"WAIT_STX\000"
+ 3091      5F535458 
+ 3091      00
+ 3092              	.LASF50:
+ 3093 033d 52454144 		.ascii	"READ_CHS\000"
+ 3093      5F434853 
+ 3093      00
+ 3094              	.LASF42:
+ 3095 0346 52454144 		.ascii	"READ_SQ\000"
+ 3095      5F535100 
+ 3096              	.LASF36:
+ 3097 034e 494E565F 		.ascii	"INV_CKECKSUM\000"
+ 3097      434B4543 
+ 3097      4B53554D 
+ 3097      00
+ 3098              	.LASF63:
+ 3099 035b 53657175 		.ascii	"Sequence\000"
+ 3099      656E6365 
+ 3099      00
+ 3100              	.LASF13:
+ 3101 0364 75696E74 		.ascii	"uint8_t\000"
+ 3101      385F7400 
+ 3102              	.LASF54:
+ 3103 036c 44617461 		.ascii	"Data\000"
+ 3103      00
+ 3104              	.LASF81:
+ 3105 0371 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 3105      79707265 
+ 3105      73735C73 
+ 3105      79737465 
+ 3105      6D2D7374 
+ 3106 039f 6973685C 		.ascii	"ish\\sandbox\\v7_debug_ntp\\Finish(state machine)\\"
+ 3106      73616E64 
+ 3106      626F785C 
+ 3106      76375F64 
+ 3106      65627567 
+ 3107 03ce 64656275 		.ascii	"debug_ntp.cydsn\000"
+ 3107      675F6E74 
+ 3107      702E6379 
+ 3107      64736E00 
+ 3108              	.LASF32:
+ 3109 03de 4E4F5F46 		.ascii	"NO_FR2\000"
+ 3109      523200
+ 3110              	.LASF27:
+ 3111 03e5 456E6450 		.ascii	"EndPacket\000"
+ 3111      61636B65 
+ 3111      7400
+ 3112              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

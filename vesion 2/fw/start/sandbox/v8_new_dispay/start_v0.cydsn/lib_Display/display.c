@@ -40,7 +40,7 @@ static  char buff[100];
 void DisplayStart(void)
 {
     /*backlight off*/
-    LCD_BL_Write(0);
+    LCD_BL_Write(1);
     
     InitLCD(LCD_CONTRAST);
     setFont(SmallFont);
