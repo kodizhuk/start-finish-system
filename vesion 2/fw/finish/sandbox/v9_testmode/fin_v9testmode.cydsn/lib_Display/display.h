@@ -15,6 +15,7 @@ void DisplayIndicatorSD(SDindicator indicator);
 void DisplayIndicatorNetwork(NetworkIndicator indicator);
 void DisplayRealTime(void);
 void DisplayLoading(uint32_t numLoad);
+//void DisplayLoadingTestMode(uint32_t numLoad);
 void DisplayBattVoltage(float voltage);
 void DisplayNumSkierOnWay(uint32_t num);
 void DisplayLastSkierTime(uint32_t sec, uint16_t milisec);

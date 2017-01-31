@@ -5,6 +5,7 @@
 int main()
 {    
     DisplayStart(); 
+    LedInit(); 
     while(SystemInit() == ERROR);
     BLE_start();
     currentState = TIME_SYNC;
@@ -66,7 +67,7 @@ uint32_t SystemInit(void)
     uint32_t unixTime;
         
     SetRebootFlag();
-    LedInit();   
+    //LedInit();   
     //DisplayStart(); 
     DisplaBacklightOn();
     RTC_WDT_Init();

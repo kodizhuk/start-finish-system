@@ -7,9 +7,7 @@
 #include <lib_Testmode\testMode.h>
 #include <lib_DB\database.h>
 
-#define COUNTER_TEST_MODE_ON   5
-#define MAX_DELAY_CYCLES_IN_READING 2
-#define COUNTER_TEST_MODE_OFF   7
+#define COUNTER_TEST_MODE_ON   3
 
 enum status {STOPPED=0, RUN};
 typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
@@ -47,6 +45,7 @@ void newFuncTestMode()
         NetworkSendTestModeStatus(1);
         statusTestMode = STOPPED;
         allowNextTestSkier = 1;
+        enableTestMode = 1;
         if(networkState == RISING_EDGE && switchState == LOW_LEVEL)
             switchState = RISING_EDGE;
         if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
@@ -59,6 +58,7 @@ void newFuncTestMode()
         NetworkSendTestModeStatus(0);
         statusTestMode = STOPPED;
         allowNextTestSkier = 0;
+        enableTestMode = 0;
         if(networkState == FALLING_EDGE && switchState != FALLING_EDGE)
             switchState = LOW_LEVEL;
         if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
@@ -102,17 +102,28 @@ funcReturnValue ReadSwitchState()
     static uint8_t tmpCounter;
     
     if(SW_RunTestMode_Read() == 0)
+    {
         tmpCounter++;
+    }
     else
+    {
         tmpCounter = 0;
+    }
     
     if(tmpCounter > COUNTER_TEST_MODE_ON)
     {
-        if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
-        else if(switchState == HIGH_LEVEL)
+        if(SkierOnWay() != 0 && enableTestMode == 0)
         {
-            switchState = FALLING_EDGE;
-            NetworkSendTestModeStatus(0);
+            Display("testModeERR");
+        }
+        else
+        {
+            if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
+            else if(switchState == HIGH_LEVEL)
+            {
+                switchState = FALLING_EDGE;
+                NetworkSendTestModeStatus(0);
+            }
         }
     }
     else

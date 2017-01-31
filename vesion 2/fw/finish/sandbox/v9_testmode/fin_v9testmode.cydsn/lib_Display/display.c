@@ -173,6 +173,22 @@ void DisplayLoading(uint32_t numLoad)
 //    }
 }
 
+//void DisplayLoadingTestMode(uint32_t numLoad)
+//{
+//    uint8_t i;
+//    
+//    if(numLoad < 31)
+//    {
+//        setFont(TinyFont);
+//        for(i=0; i<numLoad; i++)
+//        {
+//            //printNumI(numLoad,43,31,1,' ');
+//            print("<",76-i,31);
+//        }
+//        update();
+//    }
+//}
+
 /*******************************************************************************
 * Function name: DisplayBattVoltage
 ********************************************************************************
