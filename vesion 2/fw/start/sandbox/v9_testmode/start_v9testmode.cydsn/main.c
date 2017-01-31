@@ -65,6 +65,7 @@ void  SystemInit(void)
     
     DisplayStart();
     Display("System init...");
+    DisplaBacklightOn();
     
     RTC_WDT_Init(); 
     InitNetwork();

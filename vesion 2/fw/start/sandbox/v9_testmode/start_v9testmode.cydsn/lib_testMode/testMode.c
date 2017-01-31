@@ -64,7 +64,7 @@ void newFuncTestMode()
     /*update test mode*/
     if(networkState == HIGH_LEVEL && switchState == HIGH_LEVEL )
     {
-        if(NetworkStatus() != NETWORK_DISCONN && FinWriteInDB() != NO_WRITE && FinReady() != NO_READY)
+        if(NetworkStatus() != NETWORK_DISCONN && FinWriteInDB() != NO_WRITE && FinReady() != NO_READY && statusTestMode == STOPPED)
         {
             /*start timer*/
             TestMode_UpdateNewRandomTime();

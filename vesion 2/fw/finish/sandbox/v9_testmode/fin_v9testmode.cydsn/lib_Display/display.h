@@ -19,6 +19,8 @@ void DisplayBattVoltage(float voltage);
 void DisplayNumSkierOnWay(uint32_t num);
 void DisplayLastSkierTime(uint32_t sec, uint16_t milisec);
 void DisplayTestMode(uint8_t state);
+void DisplaBacklightOn(void);
+void DisplaBacklightOff(void);
 
 
 #endif

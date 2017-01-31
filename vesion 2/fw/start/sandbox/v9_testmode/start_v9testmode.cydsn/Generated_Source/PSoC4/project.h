@@ -66,6 +66,8 @@
 #include "Pin_testMode_aliases.h"
 #include "SW_RunTestMode.h"
 #include "SW_RunTestMode_aliases.h"
+#include "LED_GREEN_PIN.h"
+#include "LED_GREEN_PIN_aliases.h"
 #include "UART_XB_SCBCLK.h"
 #include "UART_XB_tx.h"
 #include "UART_XB_tx_aliases.h"

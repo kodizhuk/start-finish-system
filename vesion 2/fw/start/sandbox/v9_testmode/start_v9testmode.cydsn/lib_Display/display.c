@@ -6,11 +6,12 @@
 #include "nokia5110/LCD5110_Graph.h"
 #include "project.h"
 
-#define BATT_0_PERCENT      0.36
-#define BATT_25_PERCENT     0.41
-#define BATT_50_PERCENT     0.46
-#define BATT_75_PERCENT     0.51
-#define BATT_100_PERCENT    0.56
+/*resistive voltage divider 1/10 */
+#define BATT_0_PERCENT      0.40
+#define BATT_25_PERCENT     0.42
+#define BATT_50_PERCENT     0.44
+#define BATT_75_PERCENT     0.46
+#define BATT_100_PERCENT    0.48
 
 #define MAX_LEN_DISPLAY     11
 
@@ -249,25 +250,44 @@ void DisplayLastSkierTime(uint32_t sec, uint16_t milisec)
 *******************************************************************************/
 void DisplayNumSkierOnWay(uint32_t num)
 {
-//    sprintf(buff, "%u/%u", num, MAX_SKIERS_ON_WAY);
-//    LCD_Position(1,10);
-//    LCD_PrintString(buff);
     setFont(MediumNumbers);
     printNumI(num,43,14,1,' ');
     printNumI(4,64,14,1,' ');
     update();
 }
 
+/*******************************************************************************
+* Function name: DisplayTestMode
+********************************************************************************
+*
+* Summary:
+*   display on indicator test mode
+*
+*******************************************************************************/
 void DisplayTestMode(uint8_t state)
 {
     setFont(TinyFont);
     if(state > 0)
-    {
         print("test",43,31);
-    }
     else
-    {
         print("    ",43,31); 
-    }
+}
+
+/*******************************************************************************
+* Function name: DisplaBacklightOn/DisplaBacklightOff
+********************************************************************************
+*
+* Summary:
+*   on and off backlight display
+*
+*******************************************************************************/
+void DisplaBacklightOn(void)
+{
+    LCD_BL_Write(1);
+}
+
+void DisplaBacklightOff(void)
+{
+    LCD_BL_Write(0);
 }
 /* [] END OF FILE */

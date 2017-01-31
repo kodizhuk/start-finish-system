@@ -67,7 +67,8 @@ uint32_t SystemInit(void)
         
     SetRebootFlag();
     LedInit();   
-    //DisplayStart();   
+    //DisplayStart(); 
+    DisplaBacklightOn();
     RTC_WDT_Init();
     InitNetwork();
     GateInit();
