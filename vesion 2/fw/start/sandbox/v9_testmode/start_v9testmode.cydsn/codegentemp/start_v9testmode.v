@@ -1,6 +1,6 @@
 // ======================================================================
 // start_v9testmode.v generated from TopDesign.cysch
-// 01/31/2017 at 22:01
+// 02/01/2017 at 00:07
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -1667,11 +1667,11 @@ module top ;
     defparam D_2.port_names = "A, K";
     defparam D_2.width = 2;
 
-	wire [0:0] tmpOE__LED_PIN_net;
-	wire [0:0] tmpFB_0__LED_PIN_net;
-	wire [0:0] tmpIO_0__LED_PIN_net;
-	wire [0:0] tmpINTERRUPT_0__LED_PIN_net;
-	electrical [0:0] tmpSIOVREF__LED_PIN_net;
+	wire [0:0] tmpOE__LED_RED_PIN_net;
+	wire [0:0] tmpFB_0__LED_RED_PIN_net;
+	wire [0:0] tmpIO_0__LED_RED_PIN_net;
+	wire [0:0] tmpINTERRUPT_0__LED_RED_PIN_net;
+	electrical [0:0] tmpSIOVREF__LED_RED_PIN_net;
 
 	cy_psoc3_pins_v1_10
 		#(.id("6bb0286d-ad59-4bbd-9432-acfd44e8380b"),
@@ -1726,13 +1726,13 @@ module top ;
 		  .ovt_needed(1'b0),
 		  .ovt_slew_control(2'b00),
 		  .input_buffer_sel(2'b00))
-		LED_PIN
-		 (.oe(tmpOE__LED_PIN_net),
+		LED_RED_PIN
+		 (.oe(tmpOE__LED_RED_PIN_net),
 		  .y({1'b0}),
-		  .fb({tmpFB_0__LED_PIN_net[0:0]}),
-		  .io({tmpIO_0__LED_PIN_net[0:0]}),
-		  .siovref(tmpSIOVREF__LED_PIN_net),
-		  .interrupt({tmpINTERRUPT_0__LED_PIN_net[0:0]}),
+		  .fb({tmpFB_0__LED_RED_PIN_net[0:0]}),
+		  .io({tmpIO_0__LED_RED_PIN_net[0:0]}),
+		  .siovref(tmpSIOVREF__LED_RED_PIN_net),
+		  .interrupt({tmpINTERRUPT_0__LED_RED_PIN_net[0:0]}),
 		  .annotation({Net_343}),
 		  .in_clock({1'b0}),
 		  .in_clock_en({1'b1}),
@@ -1741,7 +1741,7 @@ module top ;
 		  .out_clock_en({1'b1}),
 		  .out_reset({1'b0}));
 
-	assign tmpOE__LED_PIN_net = (`CYDEV_CHIP_MEMBER_USED == `CYDEV_CHIP_MEMBER_3A && `CYDEV_CHIP_REVISION_USED < `CYDEV_CHIP_REVISION_3A_ES3) ? ~{1'b1} : {1'b1};
+	assign tmpOE__LED_RED_PIN_net = (`CYDEV_CHIP_MEMBER_USED == `CYDEV_CHIP_MEMBER_3A && `CYDEV_CHIP_REVISION_USED < `CYDEV_CHIP_REVISION_3A_ES3) ? ~{1'b1} : {1'b1};
 
 	wire [0:0] tmpOE__debug_net;
 	wire [0:0] tmpFB_0__debug_net;

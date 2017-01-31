@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File Name: LED_PIN.h  
+* File Name: LED_RED_PIN.h  
 * Version 2.20
 *
 * Description:
@@ -15,8 +15,8 @@
 * the software package with which this file was provided.
 *******************************************************************************/
 
-#if !defined(CY_PINS_LED_PIN_ALIASES_H) /* Pins LED_PIN_ALIASES_H */
-#define CY_PINS_LED_PIN_ALIASES_H
+#if !defined(CY_PINS_LED_RED_PIN_ALIASES_H) /* Pins LED_RED_PIN_ALIASES_H */
+#define CY_PINS_LED_RED_PIN_ALIASES_H
 
 #include "cytypes.h"
 #include "cyfitter.h"
@@ -26,17 +26,17 @@
 /***************************************
 *              Constants        
 ***************************************/
-#define LED_PIN_0			(LED_PIN__0__PC)
-#define LED_PIN_0_PS		(LED_PIN__0__PS)
-#define LED_PIN_0_PC		(LED_PIN__0__PC)
-#define LED_PIN_0_DR		(LED_PIN__0__DR)
-#define LED_PIN_0_SHIFT	(LED_PIN__0__SHIFT)
-#define LED_PIN_0_INTR	((uint16)((uint16)0x0003u << (LED_PIN__0__SHIFT*2u)))
+#define LED_RED_PIN_0			(LED_RED_PIN__0__PC)
+#define LED_RED_PIN_0_PS		(LED_RED_PIN__0__PS)
+#define LED_RED_PIN_0_PC		(LED_RED_PIN__0__PC)
+#define LED_RED_PIN_0_DR		(LED_RED_PIN__0__DR)
+#define LED_RED_PIN_0_SHIFT	(LED_RED_PIN__0__SHIFT)
+#define LED_RED_PIN_0_INTR	((uint16)((uint16)0x0003u << (LED_RED_PIN__0__SHIFT*2u)))
 
-#define LED_PIN_INTR_ALL	 ((uint16)(LED_PIN_0_INTR))
+#define LED_RED_PIN_INTR_ALL	 ((uint16)(LED_RED_PIN_0_INTR))
 
 
-#endif /* End Pins LED_PIN_ALIASES_H */
+#endif /* End Pins LED_RED_PIN_ALIASES_H */
 
 
 /* [] END OF FILE */

@@ -61,7 +61,8 @@ void  SystemInit(void)
 {   
     SetRebootFlag();
     LedInit();
-    LedBlink(FREQ_INIT_BLINK);
+    //LedRedBlink(FREQ_INIT_BLINK);
+    SetLedsState(LED_ENABLE, LED_DISABLE);
     
     DisplayStart();
     Display("System init...");
@@ -81,7 +82,8 @@ uint32_t TimeSynchronize(void)
 {
     uint32_t result;
     
-    LedBlink(FREQ_INIT_BLINK);
+    //LedRedBlink(FREQ_INIT_BLINK);
+    SetLedsState(LED_ENABLE, LED_DISABLE);
     
     /*network connect*/
     if(NetworkStatus() == NETWORK_DISCONN)
@@ -121,11 +123,12 @@ uint32_t GetFinishStatus(void)
     
     if (NetworkStatus() == NETWORK_DISCONN || FinWriteInDB() == NO_WRITE || FinReady() == NO_READY)
     {
-        LedBlink(FREQ_ERR_BLINK);
-        result = ERROR;
+        //LedRedBlink(FREQ_ERR_BLINK);
+        SetLedsState(LED_ENABLE, LED_DISABLE);
         Display("Fin no ready");
         DisAllowNextSkier();
         MyDelay(TIMEOUT_USER_READ_INFO);
+        result = ERROR;
     }
     else
     {
@@ -152,14 +155,15 @@ uint32_t CheckGate(void)
     if(result == GATE_OPEN)
     {
         Display("Skier Started");
-        LedBlink(FREQ_INIT_BLINK);
+        //LedRedBlink(FREQ_INIT_BLINK);
+        SetLedsState(LED_ENABLE, LED_DISABLE);
         MyDelay(TIMEOUT_USER_READ_INFO);
 
     }
     else
     {
         Display("Start ready");
-        SetLedState(LED_ENABLE);
+        SetLedsState(LED_DISABLE, LED_ENABLE);
         AllowNextSkier();
 
     }
@@ -174,7 +178,9 @@ uint32_t SaveResult(void)
     uint64_t startUnixTime;
     uint32_t startRecentMs;
     
-    LedBlink(FREQ_INIT_BLINK);
+    //LedRedBlink(FREQ_INIT_BLINK);
+    SetLedsState(LED_ENABLE, LED_DISABLE);
+    
     Display("Save result");
     MyDelay(TIMEOUT_USER_READ_INFO);
     

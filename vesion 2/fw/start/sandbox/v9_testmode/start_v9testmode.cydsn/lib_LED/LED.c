@@ -11,7 +11,8 @@
 */
 #include "LED.h"
 #include <Timer_LED.h>
-#include <LED_PIN.h>
+#include <LED_RED_PIN.h>
+#include <LED_GREEN_PIN.h>
 #include <Int_Timer_Led.h>
 
 // Max pulses in 16-Bit Resolution
@@ -62,7 +63,7 @@ void LedInit(void)
 */
 CY_ISR(LedHandler)
 {
-    LED_PIN_Write(~LED_PIN_Read());
+    LED_RED_PIN_Write(~LED_RED_PIN_Read());
     Timer_LED_ClearInterrupt(Timer_LED_INTR_MASK_CC_MATCH);
 }
 
@@ -73,7 +74,7 @@ CY_ISR(LedHandler)
         Frequency with which LED will blinking
         Value in Hz
 */
-void LedBlink(uint16_t Frequency)
+void LedRedBlink(uint16_t Frequency)
 {
     uint32_t time_l;
     time_l = FreqToTicks(Frequency);
@@ -88,10 +89,11 @@ void LedBlink(uint16_t Frequency)
         High or low state.
         High - ENABLE (1u), Low - Disable(0u)
 */
-void SetLedState(uint8_t State)
+void SetLedsState(uint8_t stateRed, uint8_t stateGreen)
 {
     Timer_LED_Stop();
-    LED_PIN_Write(State);
+    LED_RED_PIN_Write(stateRed);
+    LED_GREEN_PIN_Write(stateGreen);
 }
 
 /* [] END OF FILE */

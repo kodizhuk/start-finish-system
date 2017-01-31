@@ -133,7 +133,7 @@ static void xmit_mmc(const BYTE* buff, UINT bc)
 {
 
 #if (CY_PSOC4)
-SD_CS_Write(0);
+    SD_CS_Write(0);
 
 //    mmSPI_SpiUartClearTxBuffer();
 //    mmSPI_SpiUartClearRxBuffer();
@@ -141,10 +141,7 @@ SD_CS_Write(0);
 //    SPIM_ClearTxBuffer();
 //    SPIM_ClearRxBuffer();
     
-   
-    
-    
-      CyDelay(5);
+    CyDelay(5);
     SD_CS_Write(1);
     //while(SPIM_ReadTxStatus() == SPIM_STS_TX_FIFO_NOT_FULL);
     //while(0u == (mmSPI_GetMasterInterruptSource() & mmSPI_INTR_MASTER_SPI_DONE));

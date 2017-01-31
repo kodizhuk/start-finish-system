@@ -5,7 +5,7 @@
 
 #define DEBUG_RTC
 #ifdef DEBUG_RTC
-    #include <debug.h>
+    #include <project.h>
 #endif
 
 /*time format*/

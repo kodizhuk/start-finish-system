@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v9testmode.v generated from TopDesign.cysch
-// 01/30/2017 at 22:24
+// 02/01/2017 at 00:04
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -536,9 +536,9 @@ module SwSPI_Master_v1_20_2 ;
 
 	cy_psoc3_pins_v1_10
 		#(.id("65194a92-6db7-4ffd-8a18-806a49d610e4/8d318d8b-cf7b-4b6b-b02c-ab1c5c49d0ba"),
-		  .drive_mode(3'b001),
+		  .drive_mode(3'b010),
 		  .ibuf_enabled(1'b1),
-		  .init_dr_st(1'b0),
+		  .init_dr_st(1'b1),
 		  .input_clk_en(0),
 		  .input_sync(1'b0),
 		  .input_sync_mode(1'b0),

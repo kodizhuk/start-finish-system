@@ -27,8 +27,8 @@
 #define LED_DISABLE             (0u)
 
 void LedInit(void);
-void LedBlink(uint16_t Frequency);
-void SetLedState(uint8_t State);
+void LedRedBlink(uint16_t Frequency);
+void SetLedsState(uint8_t StateRed, uint8_t StateGreen);
 
 extern uint8_t LED_InitValue;
 #endif
