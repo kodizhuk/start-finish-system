@@ -2156,7 +2156,7 @@
 #define Int_timerTestMode__INTC_SET_PD_REG CYREG_CM0_ISPR
 
 /* Miscellaneous */
-#define CY_PROJECT_NAME "fin_v0"
+#define CY_PROJECT_NAME "fin_v9testmode"
 #define CY_VERSION "PSoC Creator  4.0"
 #define CYDEV_BANDGAP_VOLTAGE 1.024
 #define CYDEV_BCLK__HFCLK__HZ 48000000U

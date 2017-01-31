@@ -7,8 +7,9 @@
 #include <lib_Testmode\testMode.h>
 #include <lib_DB\database.h>
 
-#define COUNTER_TEST_MODE   5
+#define COUNTER_TEST_MODE_ON   5
 #define MAX_DELAY_CYCLES_IN_READING 2
+#define COUNTER_TEST_MODE_OFF   7
 
 enum status {STOPPED=0, RUN};
 typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
@@ -46,18 +47,22 @@ void newFuncTestMode()
         NetworkSendTestModeStatus(1);
         statusTestMode = STOPPED;
         allowNextTestSkier = 1;
-        //switchState = HIGH_LEVEL;
-        //networkState = HIGH_LEVEL;
+        if(networkState == RISING_EDGE && switchState == LOW_LEVEL)
+            switchState = RISING_EDGE;
+        if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
+            networkState = RISING_EDGE;
     }
-    else if(switchState == FALLING_EDGE || networkState == FALLING_EDGE)        //disable test mode
+    if(switchState == FALLING_EDGE || networkState == FALLING_EDGE)        //disable test mode
     {
         TimerTestMode_Stop();
         DisplayTestMode(0);
         NetworkSendTestModeStatus(0);
         statusTestMode = STOPPED;
         allowNextTestSkier = 0;
-        //switchState = LOW_LEVEL;
-        //networkState = LOW_LEVEL;
+        if(networkState == FALLING_EDGE && switchState != FALLING_EDGE)
+            switchState = LOW_LEVEL;
+        if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
+            networkState = LOW_LEVEL;
     }
     //else    
     //{
@@ -101,7 +106,7 @@ funcReturnValue ReadSwitchState()
     else
         tmpCounter = 0;
     
-    if(tmpCounter > COUNTER_TEST_MODE)
+    if(tmpCounter > COUNTER_TEST_MODE_ON)
     {
         if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
         else if(switchState == HIGH_LEVEL)switchState = FALLING_EDGE;
@@ -111,6 +116,7 @@ funcReturnValue ReadSwitchState()
         if(switchState == RISING_EDGE)switchState = HIGH_LEVEL;
         else if(switchState == FALLING_EDGE)switchState = LOW_LEVEL;
     }
+
       
     return switchState;
 }
@@ -123,6 +129,8 @@ funcReturnValue ReadNetworkState()
     else if(networkState == RISING_EDGE && NetworkReadTestModeStatus() ==1)  networkState = HIGH_LEVEL;
     else if(networkState == FALLING_EDGE && NetworkReadTestModeStatus() == 0)  networkState = LOW_LEVEL;
     
+    /*no answer*/
+
     return networkState;   
 }
 
