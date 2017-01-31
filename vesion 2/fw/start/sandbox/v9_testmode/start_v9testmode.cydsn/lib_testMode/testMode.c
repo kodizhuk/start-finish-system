@@ -48,7 +48,7 @@ void newFuncTestMode()
         if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
             networkState = RISING_EDGE;
     }
-    if(switchState == FALLING_EDGE || networkState == FALLING_EDGE)        //disable test mode
+    if(/*switchState == FALLING_EDGE ||*/ networkState == FALLING_EDGE)        //disable test mode
     {
         TimerTestMode_Stop();
         DisplayTestMode(0);
@@ -103,7 +103,11 @@ funcReturnValue ReadSwitchState()
     if(tmpCounter > COUNTER_TEST_MODE_ON)
     {
         if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
-        else if(switchState == HIGH_LEVEL)switchState = FALLING_EDGE;
+        else if(switchState == HIGH_LEVEL)
+        {
+            switchState = FALLING_EDGE;
+            NetworkSendTestModeStatus(0);
+        }
     }
     else
     {
