@@ -77,14 +77,17 @@ void _LCD_Write(unsigned char data, unsigned char mode)
 //		data = data<<1;
 //		pulseClock;
 //	}
-    SPIM_WriteTxData(data);
+    //SPIM_WriteTxData(data);
+    CE_Write(0);
+    SwSPI_Master_SendByte(data);
+    CE_Write(1);
 
 	//sbi(P_CS, B_CS);
 }
 
 void InitLCD(int contrast)
 {
-    SPIM_Start();
+    //SPIM_Start();
     
 	if (contrast>0x7F)
 		contrast=0x7F;
