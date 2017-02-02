@@ -1,0 +1,3787 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"SPIM.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.SPIM_Enable,"ax",%progbits
+  18              		.align	1
+  19              		.global	SPIM_Enable
+  20              		.code	16
+  21              		.thumb_func
+  22              		.type	SPIM_Enable, %function
+  23              	SPIM_Enable:
+  24              	.LFB3:
+  25              		.file 1 "Generated_Source\\PSoC4\\SPIM.c"
+   1:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+   2:Generated_Source\PSoC4/SPIM.c **** * File Name: SPIM.c
+   3:Generated_Source\PSoC4/SPIM.c **** * Version 2.50
+   4:Generated_Source\PSoC4/SPIM.c **** *
+   5:Generated_Source\PSoC4/SPIM.c **** * Description:
+   6:Generated_Source\PSoC4/SPIM.c **** *  This file provides all API functionality of the SPI Master component.
+   7:Generated_Source\PSoC4/SPIM.c **** *
+   8:Generated_Source\PSoC4/SPIM.c **** * Note:
+   9:Generated_Source\PSoC4/SPIM.c **** *  None.
+  10:Generated_Source\PSoC4/SPIM.c **** *
+  11:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+  12:Generated_Source\PSoC4/SPIM.c **** * Copyright 2008-2015, Cypress Semiconductor Corporation.  All rights reserved.
+  13:Generated_Source\PSoC4/SPIM.c **** * You may use this file only in accordance with the license, terms, conditions,
+  14:Generated_Source\PSoC4/SPIM.c **** * disclaimers, and limitations in the end user license agreement accompanying
+  15:Generated_Source\PSoC4/SPIM.c **** * the software package with which this file was provided.
+  16:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+  17:Generated_Source\PSoC4/SPIM.c **** 
+  18:Generated_Source\PSoC4/SPIM.c **** #include "SPIM_PVT.h"
+  19:Generated_Source\PSoC4/SPIM.c **** 
+  20:Generated_Source\PSoC4/SPIM.c **** #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+  21:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_txBuffer[SPIM_TX_BUFFER_SIZE];
+  22:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_txBufferFull;
+  23:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_txBufferRead;
+  24:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_txBufferWrite;
+  25:Generated_Source\PSoC4/SPIM.c **** #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+  26:Generated_Source\PSoC4/SPIM.c **** 
+  27:Generated_Source\PSoC4/SPIM.c **** #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+  28:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_rxBuffer[SPIM_RX_BUFFER_SIZE];
+  29:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_rxBufferFull;
+  30:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_rxBufferRead;
+  31:Generated_Source\PSoC4/SPIM.c ****     volatile uint8 SPIM_rxBufferWrite;
+  32:Generated_Source\PSoC4/SPIM.c **** #endif /* (SPIM_RX_SOFTWARE_BUF_ENABLED) */
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 2
+
+
+  33:Generated_Source\PSoC4/SPIM.c **** 
+  34:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_initVar = 0u;
+  35:Generated_Source\PSoC4/SPIM.c **** 
+  36:Generated_Source\PSoC4/SPIM.c **** volatile uint8 SPIM_swStatusTx;
+  37:Generated_Source\PSoC4/SPIM.c **** volatile uint8 SPIM_swStatusRx;
+  38:Generated_Source\PSoC4/SPIM.c **** 
+  39:Generated_Source\PSoC4/SPIM.c **** 
+  40:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+  41:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_Init
+  42:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+  43:Generated_Source\PSoC4/SPIM.c **** *
+  44:Generated_Source\PSoC4/SPIM.c **** * Summary:
+  45:Generated_Source\PSoC4/SPIM.c **** *  Inits/Restores default SPIM configuration provided with customizer.
+  46:Generated_Source\PSoC4/SPIM.c **** *
+  47:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+  48:Generated_Source\PSoC4/SPIM.c **** *  None.
+  49:Generated_Source\PSoC4/SPIM.c **** *
+  50:Generated_Source\PSoC4/SPIM.c **** * Return:
+  51:Generated_Source\PSoC4/SPIM.c **** *  None.
+  52:Generated_Source\PSoC4/SPIM.c **** *
+  53:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+  54:Generated_Source\PSoC4/SPIM.c **** *  When this function is called it initializes all of the necessary parameters
+  55:Generated_Source\PSoC4/SPIM.c **** *  for execution. i.e. setting the initial interrupt mask, configuring the
+  56:Generated_Source\PSoC4/SPIM.c **** *  interrupt service routine, configuring the bit-counter parameters and
+  57:Generated_Source\PSoC4/SPIM.c **** *  clearing the FIFO and Status Register.
+  58:Generated_Source\PSoC4/SPIM.c **** *
+  59:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+  60:Generated_Source\PSoC4/SPIM.c **** *  No.
+  61:Generated_Source\PSoC4/SPIM.c **** *
+  62:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+  63:Generated_Source\PSoC4/SPIM.c **** void SPIM_Init(void) 
+  64:Generated_Source\PSoC4/SPIM.c **** {
+  65:Generated_Source\PSoC4/SPIM.c ****     /* Initialize the Bit counter */
+  66:Generated_Source\PSoC4/SPIM.c ****     SPIM_COUNTER_PERIOD_REG = SPIM_BITCTR_INIT;
+  67:Generated_Source\PSoC4/SPIM.c **** 
+  68:Generated_Source\PSoC4/SPIM.c ****     /* Init TX ISR  */
+  69:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_TX_INT_ENABLED)
+  70:Generated_Source\PSoC4/SPIM.c ****         CyIntDisable         (SPIM_TX_ISR_NUMBER);
+  71:Generated_Source\PSoC4/SPIM.c ****         CyIntSetPriority     (SPIM_TX_ISR_NUMBER,  SPIM_TX_ISR_PRIORITY);
+  72:Generated_Source\PSoC4/SPIM.c ****         (void) CyIntSetVector(SPIM_TX_ISR_NUMBER, &SPIM_TX_ISR);
+  73:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_TX_INT_ENABLED) */
+  74:Generated_Source\PSoC4/SPIM.c **** 
+  75:Generated_Source\PSoC4/SPIM.c ****     /* Init RX ISR  */
+  76:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_RX_INT_ENABLED)
+  77:Generated_Source\PSoC4/SPIM.c ****         CyIntDisable         (SPIM_RX_ISR_NUMBER);
+  78:Generated_Source\PSoC4/SPIM.c ****         CyIntSetPriority     (SPIM_RX_ISR_NUMBER,  SPIM_RX_ISR_PRIORITY);
+  79:Generated_Source\PSoC4/SPIM.c ****         (void) CyIntSetVector(SPIM_RX_ISR_NUMBER, &SPIM_RX_ISR);
+  80:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_RX_INT_ENABLED) */
+  81:Generated_Source\PSoC4/SPIM.c **** 
+  82:Generated_Source\PSoC4/SPIM.c ****     /* Clear any stray data from the RX and TX FIFO */
+  83:Generated_Source\PSoC4/SPIM.c ****     SPIM_ClearFIFO();
+  84:Generated_Source\PSoC4/SPIM.c **** 
+  85:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+  86:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferFull  = 0u;
+  87:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferRead  = 0u;
+  88:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferWrite = 0u;
+  89:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_RX_SOFTWARE_BUF_ENABLED) */
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 3
+
+
+  90:Generated_Source\PSoC4/SPIM.c **** 
+  91:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+  92:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferFull  = 0u;
+  93:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferRead  = 0u;
+  94:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferWrite = 0u;
+  95:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+  96:Generated_Source\PSoC4/SPIM.c **** 
+  97:Generated_Source\PSoC4/SPIM.c ****     (void) SPIM_ReadTxStatus(); /* Clear Tx status and swStatusTx */
+  98:Generated_Source\PSoC4/SPIM.c ****     (void) SPIM_ReadRxStatus(); /* Clear Rx status and swStatusRx */
+  99:Generated_Source\PSoC4/SPIM.c **** 
+ 100:Generated_Source\PSoC4/SPIM.c ****     /* Configure TX and RX interrupt mask */
+ 101:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_MASK_REG = SPIM_TX_INIT_INTERRUPTS_MASK;
+ 102:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG = SPIM_RX_INIT_INTERRUPTS_MASK;
+ 103:Generated_Source\PSoC4/SPIM.c **** }
+ 104:Generated_Source\PSoC4/SPIM.c **** 
+ 105:Generated_Source\PSoC4/SPIM.c **** 
+ 106:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 107:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_Enable
+ 108:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 109:Generated_Source\PSoC4/SPIM.c **** *
+ 110:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 111:Generated_Source\PSoC4/SPIM.c **** *  Enable SPIM component.
+ 112:Generated_Source\PSoC4/SPIM.c **** *
+ 113:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 114:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 115:Generated_Source\PSoC4/SPIM.c **** *
+ 116:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 117:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 118:Generated_Source\PSoC4/SPIM.c **** *
+ 119:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 120:Generated_Source\PSoC4/SPIM.c **** void SPIM_Enable(void) 
+ 121:Generated_Source\PSoC4/SPIM.c **** {
+  26              		.loc 1 121 0
+  27              		.cfi_startproc
+  28 0000 08B5     		push	{r3, lr}
+  29              		.cfi_def_cfa_offset 8
+  30              		.cfi_offset 3, -8
+  31              		.cfi_offset 14, -4
+ 122:Generated_Source\PSoC4/SPIM.c ****     uint8 enableInterrupts;
+ 123:Generated_Source\PSoC4/SPIM.c **** 
+ 124:Generated_Source\PSoC4/SPIM.c ****     enableInterrupts = CyEnterCriticalSection();
+  32              		.loc 1 124 0
+  33 0002 FFF7FEFF 		bl	CyEnterCriticalSection
+  34              	.LVL0:
+ 125:Generated_Source\PSoC4/SPIM.c ****     SPIM_COUNTER_CONTROL_REG |= SPIM_CNTR_ENABLE;
+  35              		.loc 1 125 0
+  36 0006 2021     		mov	r1, #32
+  37 0008 074A     		ldr	r2, .L2
+ 126:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_ACTL_REG  |= SPIM_INT_ENABLE;
+ 127:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_ACTL_REG  |= SPIM_INT_ENABLE;
+ 128:Generated_Source\PSoC4/SPIM.c ****     CyExitCriticalSection(enableInterrupts);
+ 129:Generated_Source\PSoC4/SPIM.c **** 
+ 130:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_CLOCK)
+ 131:Generated_Source\PSoC4/SPIM.c ****         SPIM_IntClock_Enable();
+ 132:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_CLOCK) */
+ 133:Generated_Source\PSoC4/SPIM.c **** 
+ 134:Generated_Source\PSoC4/SPIM.c ****     SPIM_EnableTxInt();
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 4
+
+
+ 135:Generated_Source\PSoC4/SPIM.c ****     SPIM_EnableRxInt();
+ 136:Generated_Source\PSoC4/SPIM.c **** }
+  38              		.loc 1 136 0
+  39              		@ sp needed
+ 125:Generated_Source\PSoC4/SPIM.c ****     SPIM_COUNTER_CONTROL_REG |= SPIM_CNTR_ENABLE;
+  40              		.loc 1 125 0
+  41 000a 1378     		ldrb	r3, [r2]
+  42 000c 0B43     		orr	r3, r1
+  43 000e 1370     		strb	r3, [r2]
+ 126:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_ACTL_REG  |= SPIM_INT_ENABLE;
+  44              		.loc 1 126 0
+  45 0010 064B     		ldr	r3, .L2+4
+  46 0012 1039     		sub	r1, r1, #16
+  47 0014 1A78     		ldrb	r2, [r3]
+  48 0016 0A43     		orr	r2, r1
+  49 0018 1A70     		strb	r2, [r3]
+ 127:Generated_Source\PSoC4/SPIM.c ****     CyExitCriticalSection(enableInterrupts);
+  50              		.loc 1 127 0
+  51 001a 054A     		ldr	r2, .L2+8
+  52 001c 1378     		ldrb	r3, [r2]
+  53 001e 0B43     		orr	r3, r1
+  54 0020 1370     		strb	r3, [r2]
+ 128:Generated_Source\PSoC4/SPIM.c **** 
+  55              		.loc 1 128 0
+  56 0022 FFF7FEFF 		bl	CyExitCriticalSection
+  57              	.LVL1:
+  58              		.loc 1 136 0
+  59 0026 08BD     		pop	{r3, pc}
+  60              	.L3:
+  61              		.align	2
+  62              	.L2:
+  63 0028 93000F40 		.word	1074725011
+  64 002c 92000F40 		.word	1074725010
+  65 0030 90000F40 		.word	1074725008
+  66              		.cfi_endproc
+  67              	.LFE3:
+  68              		.size	SPIM_Enable, .-SPIM_Enable
+  69              		.section	.text.SPIM_Stop,"ax",%progbits
+  70              		.align	1
+  71              		.global	SPIM_Stop
+  72              		.code	16
+  73              		.thumb_func
+  74              		.type	SPIM_Stop, %function
+  75              	SPIM_Stop:
+  76              	.LFB5:
+ 137:Generated_Source\PSoC4/SPIM.c **** 
+ 138:Generated_Source\PSoC4/SPIM.c **** 
+ 139:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 140:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_Start
+ 141:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 142:Generated_Source\PSoC4/SPIM.c **** *
+ 143:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 144:Generated_Source\PSoC4/SPIM.c **** *  Initialize and Enable the SPI Master component.
+ 145:Generated_Source\PSoC4/SPIM.c **** *
+ 146:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 147:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 148:Generated_Source\PSoC4/SPIM.c **** *
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 5
+
+
+ 149:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 150:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 151:Generated_Source\PSoC4/SPIM.c **** *
+ 152:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 153:Generated_Source\PSoC4/SPIM.c **** *  SPIM_initVar - used to check initial configuration, modified on
+ 154:Generated_Source\PSoC4/SPIM.c **** *  first function call.
+ 155:Generated_Source\PSoC4/SPIM.c **** *
+ 156:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 157:Generated_Source\PSoC4/SPIM.c **** *  Enable the clock input to enable operation.
+ 158:Generated_Source\PSoC4/SPIM.c **** *
+ 159:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 160:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 161:Generated_Source\PSoC4/SPIM.c **** *
+ 162:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 163:Generated_Source\PSoC4/SPIM.c **** void SPIM_Start(void) 
+ 164:Generated_Source\PSoC4/SPIM.c **** {
+ 165:Generated_Source\PSoC4/SPIM.c ****     if(0u == SPIM_initVar)
+ 166:Generated_Source\PSoC4/SPIM.c ****     {
+ 167:Generated_Source\PSoC4/SPIM.c ****         SPIM_Init();
+ 168:Generated_Source\PSoC4/SPIM.c ****         SPIM_initVar = 1u;
+ 169:Generated_Source\PSoC4/SPIM.c ****     }
+ 170:Generated_Source\PSoC4/SPIM.c **** 
+ 171:Generated_Source\PSoC4/SPIM.c ****     SPIM_Enable();
+ 172:Generated_Source\PSoC4/SPIM.c **** }
+ 173:Generated_Source\PSoC4/SPIM.c **** 
+ 174:Generated_Source\PSoC4/SPIM.c **** 
+ 175:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 176:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_Stop
+ 177:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 178:Generated_Source\PSoC4/SPIM.c **** *
+ 179:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 180:Generated_Source\PSoC4/SPIM.c **** *  Disable the SPI Master component.
+ 181:Generated_Source\PSoC4/SPIM.c **** *
+ 182:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 183:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 184:Generated_Source\PSoC4/SPIM.c **** *
+ 185:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 186:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 187:Generated_Source\PSoC4/SPIM.c **** *
+ 188:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 189:Generated_Source\PSoC4/SPIM.c **** *  Disable the clock input to enable operation.
+ 190:Generated_Source\PSoC4/SPIM.c **** *
+ 191:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 192:Generated_Source\PSoC4/SPIM.c **** void SPIM_Stop(void) 
+ 193:Generated_Source\PSoC4/SPIM.c **** {
+  77              		.loc 1 193 0
+  78              		.cfi_startproc
+  79 0000 08B5     		push	{r3, lr}
+  80              		.cfi_def_cfa_offset 8
+  81              		.cfi_offset 3, -8
+  82              		.cfi_offset 14, -4
+ 194:Generated_Source\PSoC4/SPIM.c ****     uint8 enableInterrupts;
+ 195:Generated_Source\PSoC4/SPIM.c **** 
+ 196:Generated_Source\PSoC4/SPIM.c ****     enableInterrupts = CyEnterCriticalSection();
+  83              		.loc 1 196 0
+  84 0002 FFF7FEFF 		bl	CyEnterCriticalSection
+  85              	.LVL2:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 6
+
+
+ 197:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_ACTL_REG &= ((uint8) ~SPIM_INT_ENABLE);
+  86              		.loc 1 197 0
+  87 0006 1021     		mov	r1, #16
+  88 0008 054A     		ldr	r2, .L5
+ 198:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_ACTL_REG &= ((uint8) ~SPIM_INT_ENABLE);
+ 199:Generated_Source\PSoC4/SPIM.c ****     CyExitCriticalSection(enableInterrupts);
+ 200:Generated_Source\PSoC4/SPIM.c **** 
+ 201:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_CLOCK)
+ 202:Generated_Source\PSoC4/SPIM.c ****         SPIM_IntClock_Disable();
+ 203:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_CLOCK) */
+ 204:Generated_Source\PSoC4/SPIM.c **** 
+ 205:Generated_Source\PSoC4/SPIM.c ****     SPIM_DisableTxInt();
+ 206:Generated_Source\PSoC4/SPIM.c ****     SPIM_DisableRxInt();
+ 207:Generated_Source\PSoC4/SPIM.c **** }
+  89              		.loc 1 207 0
+  90              		@ sp needed
+ 197:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_ACTL_REG &= ((uint8) ~SPIM_INT_ENABLE);
+  91              		.loc 1 197 0
+  92 000a 1378     		ldrb	r3, [r2]
+  93 000c 8B43     		bic	r3, r1
+  94 000e 1370     		strb	r3, [r2]
+ 198:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_ACTL_REG &= ((uint8) ~SPIM_INT_ENABLE);
+  95              		.loc 1 198 0
+  96 0010 044A     		ldr	r2, .L5+4
+  97 0012 1378     		ldrb	r3, [r2]
+  98 0014 8B43     		bic	r3, r1
+  99 0016 1370     		strb	r3, [r2]
+ 199:Generated_Source\PSoC4/SPIM.c **** 
+ 100              		.loc 1 199 0
+ 101 0018 FFF7FEFF 		bl	CyExitCriticalSection
+ 102              	.LVL3:
+ 103              		.loc 1 207 0
+ 104 001c 08BD     		pop	{r3, pc}
+ 105              	.L6:
+ 106 001e C046     		.align	2
+ 107              	.L5:
+ 108 0020 92000F40 		.word	1074725010
+ 109 0024 90000F40 		.word	1074725008
+ 110              		.cfi_endproc
+ 111              	.LFE5:
+ 112              		.size	SPIM_Stop, .-SPIM_Stop
+ 113              		.section	.text.SPIM_EnableTxInt,"ax",%progbits
+ 114              		.align	1
+ 115              		.global	SPIM_EnableTxInt
+ 116              		.code	16
+ 117              		.thumb_func
+ 118              		.type	SPIM_EnableTxInt, %function
+ 119              	SPIM_EnableTxInt:
+ 120              	.LFB6:
+ 208:Generated_Source\PSoC4/SPIM.c **** 
+ 209:Generated_Source\PSoC4/SPIM.c **** 
+ 210:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 211:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_EnableTxInt
+ 212:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 213:Generated_Source\PSoC4/SPIM.c **** *
+ 214:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 215:Generated_Source\PSoC4/SPIM.c **** *  Enable internal Tx interrupt generation.
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 7
+
+
+ 216:Generated_Source\PSoC4/SPIM.c **** *
+ 217:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 218:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 219:Generated_Source\PSoC4/SPIM.c **** *
+ 220:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 221:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 222:Generated_Source\PSoC4/SPIM.c **** *
+ 223:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 224:Generated_Source\PSoC4/SPIM.c **** *  Enable the internal Tx interrupt output -or- the interrupt component itself.
+ 225:Generated_Source\PSoC4/SPIM.c **** *
+ 226:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 227:Generated_Source\PSoC4/SPIM.c **** void SPIM_EnableTxInt(void) 
+ 228:Generated_Source\PSoC4/SPIM.c **** {
+ 121              		.loc 1 228 0
+ 122              		.cfi_startproc
+ 229:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_TX_INT_ENABLED)
+ 230:Generated_Source\PSoC4/SPIM.c ****         CyIntEnable(SPIM_TX_ISR_NUMBER);
+ 231:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_TX_INT_ENABLED) */
+ 232:Generated_Source\PSoC4/SPIM.c **** }
+ 123              		.loc 1 232 0
+ 124              		@ sp needed
+ 125 0000 7047     		bx	lr
+ 126              		.cfi_endproc
+ 127              	.LFE6:
+ 128              		.size	SPIM_EnableTxInt, .-SPIM_EnableTxInt
+ 129              		.section	.text.SPIM_EnableRxInt,"ax",%progbits
+ 130              		.align	1
+ 131              		.global	SPIM_EnableRxInt
+ 132              		.code	16
+ 133              		.thumb_func
+ 134              		.type	SPIM_EnableRxInt, %function
+ 135              	SPIM_EnableRxInt:
+ 136              	.LFB7:
+ 233:Generated_Source\PSoC4/SPIM.c **** 
+ 234:Generated_Source\PSoC4/SPIM.c **** 
+ 235:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 236:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_EnableRxInt
+ 237:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 238:Generated_Source\PSoC4/SPIM.c **** *
+ 239:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 240:Generated_Source\PSoC4/SPIM.c **** *  Enable internal Rx interrupt generation.
+ 241:Generated_Source\PSoC4/SPIM.c **** *
+ 242:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 243:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 244:Generated_Source\PSoC4/SPIM.c **** *
+ 245:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 246:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 247:Generated_Source\PSoC4/SPIM.c **** *
+ 248:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 249:Generated_Source\PSoC4/SPIM.c **** *  Enable the internal Rx interrupt output -or- the interrupt component itself.
+ 250:Generated_Source\PSoC4/SPIM.c **** *
+ 251:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 252:Generated_Source\PSoC4/SPIM.c **** void SPIM_EnableRxInt(void) 
+ 253:Generated_Source\PSoC4/SPIM.c **** {
+ 137              		.loc 1 253 0
+ 138              		.cfi_startproc
+ 254:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_RX_INT_ENABLED)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 8
+
+
+ 255:Generated_Source\PSoC4/SPIM.c ****         CyIntEnable(SPIM_RX_ISR_NUMBER);
+ 256:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_RX_INT_ENABLED) */
+ 257:Generated_Source\PSoC4/SPIM.c **** }
+ 139              		.loc 1 257 0
+ 140              		@ sp needed
+ 141 0000 7047     		bx	lr
+ 142              		.cfi_endproc
+ 143              	.LFE7:
+ 144              		.size	SPIM_EnableRxInt, .-SPIM_EnableRxInt
+ 145              		.section	.text.SPIM_DisableTxInt,"ax",%progbits
+ 146              		.align	1
+ 147              		.global	SPIM_DisableTxInt
+ 148              		.code	16
+ 149              		.thumb_func
+ 150              		.type	SPIM_DisableTxInt, %function
+ 151              	SPIM_DisableTxInt:
+ 152              	.LFB8:
+ 258:Generated_Source\PSoC4/SPIM.c **** 
+ 259:Generated_Source\PSoC4/SPIM.c **** 
+ 260:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 261:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_DisableTxInt
+ 262:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 263:Generated_Source\PSoC4/SPIM.c **** *
+ 264:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 265:Generated_Source\PSoC4/SPIM.c **** *  Disable internal Tx interrupt generation.
+ 266:Generated_Source\PSoC4/SPIM.c **** *
+ 267:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 268:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 269:Generated_Source\PSoC4/SPIM.c **** *
+ 270:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 271:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 272:Generated_Source\PSoC4/SPIM.c **** *
+ 273:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 274:Generated_Source\PSoC4/SPIM.c **** *  Disable the internal Tx interrupt output -or- the interrupt component itself.
+ 275:Generated_Source\PSoC4/SPIM.c **** *
+ 276:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 277:Generated_Source\PSoC4/SPIM.c **** void SPIM_DisableTxInt(void) 
+ 278:Generated_Source\PSoC4/SPIM.c **** {
+ 153              		.loc 1 278 0
+ 154              		.cfi_startproc
+ 279:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_TX_INT_ENABLED)
+ 280:Generated_Source\PSoC4/SPIM.c ****         CyIntDisable(SPIM_TX_ISR_NUMBER);
+ 281:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_TX_INT_ENABLED) */
+ 282:Generated_Source\PSoC4/SPIM.c **** }
+ 155              		.loc 1 282 0
+ 156              		@ sp needed
+ 157 0000 7047     		bx	lr
+ 158              		.cfi_endproc
+ 159              	.LFE8:
+ 160              		.size	SPIM_DisableTxInt, .-SPIM_DisableTxInt
+ 161              		.section	.text.SPIM_DisableRxInt,"ax",%progbits
+ 162              		.align	1
+ 163              		.global	SPIM_DisableRxInt
+ 164              		.code	16
+ 165              		.thumb_func
+ 166              		.type	SPIM_DisableRxInt, %function
+ 167              	SPIM_DisableRxInt:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 9
+
+
+ 168              	.LFB9:
+ 283:Generated_Source\PSoC4/SPIM.c **** 
+ 284:Generated_Source\PSoC4/SPIM.c **** 
+ 285:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 286:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_DisableRxInt
+ 287:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 288:Generated_Source\PSoC4/SPIM.c **** *
+ 289:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 290:Generated_Source\PSoC4/SPIM.c **** *  Disable internal Rx interrupt generation.
+ 291:Generated_Source\PSoC4/SPIM.c **** *
+ 292:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 293:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 294:Generated_Source\PSoC4/SPIM.c **** *
+ 295:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 296:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 297:Generated_Source\PSoC4/SPIM.c **** *
+ 298:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 299:Generated_Source\PSoC4/SPIM.c **** *  Disable the internal Rx interrupt output -or- the interrupt component itself.
+ 300:Generated_Source\PSoC4/SPIM.c **** *
+ 301:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 302:Generated_Source\PSoC4/SPIM.c **** void SPIM_DisableRxInt(void) 
+ 303:Generated_Source\PSoC4/SPIM.c **** {
+ 169              		.loc 1 303 0
+ 170              		.cfi_startproc
+ 304:Generated_Source\PSoC4/SPIM.c ****     #if(0u != SPIM_INTERNAL_RX_INT_ENABLED)
+ 305:Generated_Source\PSoC4/SPIM.c ****         CyIntDisable(SPIM_RX_ISR_NUMBER);
+ 306:Generated_Source\PSoC4/SPIM.c ****     #endif /* (0u != SPIM_INTERNAL_RX_INT_ENABLED) */
+ 307:Generated_Source\PSoC4/SPIM.c **** }
+ 171              		.loc 1 307 0
+ 172              		@ sp needed
+ 173 0000 7047     		bx	lr
+ 174              		.cfi_endproc
+ 175              	.LFE9:
+ 176              		.size	SPIM_DisableRxInt, .-SPIM_DisableRxInt
+ 177              		.section	.text.SPIM_SetTxInterruptMode,"ax",%progbits
+ 178              		.align	1
+ 179              		.global	SPIM_SetTxInterruptMode
+ 180              		.code	16
+ 181              		.thumb_func
+ 182              		.type	SPIM_SetTxInterruptMode, %function
+ 183              	SPIM_SetTxInterruptMode:
+ 184              	.LFB10:
+ 308:Generated_Source\PSoC4/SPIM.c **** 
+ 309:Generated_Source\PSoC4/SPIM.c **** 
+ 310:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 311:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_SetTxInterruptMode
+ 312:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 313:Generated_Source\PSoC4/SPIM.c **** *
+ 314:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 315:Generated_Source\PSoC4/SPIM.c **** *  Configure which status bits trigger an interrupt event.
+ 316:Generated_Source\PSoC4/SPIM.c **** *
+ 317:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 318:Generated_Source\PSoC4/SPIM.c **** *  intSrc: An or'd combination of the desired status bit masks (defined in the
+ 319:Generated_Source\PSoC4/SPIM.c **** *  header file).
+ 320:Generated_Source\PSoC4/SPIM.c **** *
+ 321:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 322:Generated_Source\PSoC4/SPIM.c **** *  None.
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 10
+
+
+ 323:Generated_Source\PSoC4/SPIM.c **** *
+ 324:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 325:Generated_Source\PSoC4/SPIM.c **** *  Enables the output of specific status bits to the interrupt controller.
+ 326:Generated_Source\PSoC4/SPIM.c **** *
+ 327:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 328:Generated_Source\PSoC4/SPIM.c **** void SPIM_SetTxInterruptMode(uint8 intSrc) 
+ 329:Generated_Source\PSoC4/SPIM.c **** {
+ 185              		.loc 1 329 0
+ 186              		.cfi_startproc
+ 187              	.LVL4:
+ 330:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_MASK_REG = intSrc;
+ 188              		.loc 1 330 0
+ 189 0000 014B     		ldr	r3, .L12
+ 331:Generated_Source\PSoC4/SPIM.c **** }
+ 190              		.loc 1 331 0
+ 191              		@ sp needed
+ 330:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_MASK_REG = intSrc;
+ 192              		.loc 1 330 0
+ 193 0002 1870     		strb	r0, [r3]
+ 194              		.loc 1 331 0
+ 195 0004 7047     		bx	lr
+ 196              	.L13:
+ 197 0006 C046     		.align	2
+ 198              	.L12:
+ 199 0008 82000F40 		.word	1074724994
+ 200              		.cfi_endproc
+ 201              	.LFE10:
+ 202              		.size	SPIM_SetTxInterruptMode, .-SPIM_SetTxInterruptMode
+ 203              		.section	.text.SPIM_SetRxInterruptMode,"ax",%progbits
+ 204              		.align	1
+ 205              		.global	SPIM_SetRxInterruptMode
+ 206              		.code	16
+ 207              		.thumb_func
+ 208              		.type	SPIM_SetRxInterruptMode, %function
+ 209              	SPIM_SetRxInterruptMode:
+ 210              	.LFB11:
+ 332:Generated_Source\PSoC4/SPIM.c **** 
+ 333:Generated_Source\PSoC4/SPIM.c **** 
+ 334:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 335:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_SetRxInterruptMode
+ 336:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 337:Generated_Source\PSoC4/SPIM.c **** *
+ 338:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 339:Generated_Source\PSoC4/SPIM.c **** *  Configure which status bits trigger an interrupt event.
+ 340:Generated_Source\PSoC4/SPIM.c **** *
+ 341:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 342:Generated_Source\PSoC4/SPIM.c **** *  intSrc: An or'd combination of the desired status bit masks (defined in the
+ 343:Generated_Source\PSoC4/SPIM.c **** *  header file).
+ 344:Generated_Source\PSoC4/SPIM.c **** *
+ 345:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 346:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 347:Generated_Source\PSoC4/SPIM.c **** *
+ 348:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 349:Generated_Source\PSoC4/SPIM.c **** *  Enables the output of specific status bits to the interrupt controller.
+ 350:Generated_Source\PSoC4/SPIM.c **** *
+ 351:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 352:Generated_Source\PSoC4/SPIM.c **** void SPIM_SetRxInterruptMode(uint8 intSrc) 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 11
+
+
+ 353:Generated_Source\PSoC4/SPIM.c **** {
+ 211              		.loc 1 353 0
+ 212              		.cfi_startproc
+ 213              	.LVL5:
+ 354:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG  = intSrc;
+ 214              		.loc 1 354 0
+ 215 0000 014B     		ldr	r3, .L15
+ 355:Generated_Source\PSoC4/SPIM.c **** }
+ 216              		.loc 1 355 0
+ 217              		@ sp needed
+ 354:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG  = intSrc;
+ 218              		.loc 1 354 0
+ 219 0002 1870     		strb	r0, [r3]
+ 220              		.loc 1 355 0
+ 221 0004 7047     		bx	lr
+ 222              	.L16:
+ 223 0006 C046     		.align	2
+ 224              	.L15:
+ 225 0008 80000F40 		.word	1074724992
+ 226              		.cfi_endproc
+ 227              	.LFE11:
+ 228              		.size	SPIM_SetRxInterruptMode, .-SPIM_SetRxInterruptMode
+ 229              		.section	.text.SPIM_ReadTxStatus,"ax",%progbits
+ 230              		.align	1
+ 231              		.global	SPIM_ReadTxStatus
+ 232              		.code	16
+ 233              		.thumb_func
+ 234              		.type	SPIM_ReadTxStatus, %function
+ 235              	SPIM_ReadTxStatus:
+ 236              	.LFB12:
+ 356:Generated_Source\PSoC4/SPIM.c **** 
+ 357:Generated_Source\PSoC4/SPIM.c **** 
+ 358:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 359:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ReadTxStatus
+ 360:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 361:Generated_Source\PSoC4/SPIM.c **** *
+ 362:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 363:Generated_Source\PSoC4/SPIM.c **** *  Read the Tx status register for the component.
+ 364:Generated_Source\PSoC4/SPIM.c **** *
+ 365:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 366:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 367:Generated_Source\PSoC4/SPIM.c **** *
+ 368:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 369:Generated_Source\PSoC4/SPIM.c **** *  Contents of the Tx status register.
+ 370:Generated_Source\PSoC4/SPIM.c **** *
+ 371:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 372:Generated_Source\PSoC4/SPIM.c **** *  SPIM_swStatusTx - used to store in software status register,
+ 373:Generated_Source\PSoC4/SPIM.c **** *  modified every function call - resets to zero.
+ 374:Generated_Source\PSoC4/SPIM.c **** *
+ 375:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 376:Generated_Source\PSoC4/SPIM.c **** *  Allows the user and the API to read the Tx status register for error
+ 377:Generated_Source\PSoC4/SPIM.c **** *  detection and flow control.
+ 378:Generated_Source\PSoC4/SPIM.c **** *
+ 379:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 380:Generated_Source\PSoC4/SPIM.c **** *  Clear Tx status register of the component.
+ 381:Generated_Source\PSoC4/SPIM.c **** *
+ 382:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 12
+
+
+ 383:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 384:Generated_Source\PSoC4/SPIM.c **** *
+ 385:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 386:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_ReadTxStatus(void) 
+ 387:Generated_Source\PSoC4/SPIM.c **** {
+ 237              		.loc 1 387 0
+ 238              		.cfi_startproc
+ 388:Generated_Source\PSoC4/SPIM.c ****     uint8 tmpStatus;
+ 389:Generated_Source\PSoC4/SPIM.c **** 
+ 390:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+ 391:Generated_Source\PSoC4/SPIM.c ****         /* Disable TX interrupt to protect global veriables */
+ 392:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableTxInt();
+ 393:Generated_Source\PSoC4/SPIM.c **** 
+ 394:Generated_Source\PSoC4/SPIM.c ****         tmpStatus = SPIM_GET_STATUS_TX(SPIM_swStatusTx);
+ 395:Generated_Source\PSoC4/SPIM.c ****         SPIM_swStatusTx = 0u;
+ 396:Generated_Source\PSoC4/SPIM.c **** 
+ 397:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableTxInt();
+ 398:Generated_Source\PSoC4/SPIM.c **** 
+ 399:Generated_Source\PSoC4/SPIM.c ****     #else
+ 400:Generated_Source\PSoC4/SPIM.c **** 
+ 401:Generated_Source\PSoC4/SPIM.c ****         tmpStatus = SPIM_TX_STATUS_REG;
+ 239              		.loc 1 401 0
+ 240 0000 014B     		ldr	r3, .L18
+ 402:Generated_Source\PSoC4/SPIM.c **** 
+ 403:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+ 404:Generated_Source\PSoC4/SPIM.c **** 
+ 405:Generated_Source\PSoC4/SPIM.c ****     return(tmpStatus);
+ 406:Generated_Source\PSoC4/SPIM.c **** }
+ 241              		.loc 1 406 0
+ 242              		@ sp needed
+ 401:Generated_Source\PSoC4/SPIM.c **** 
+ 243              		.loc 1 401 0
+ 244 0002 1878     		ldrb	r0, [r3]
+ 245 0004 C0B2     		uxtb	r0, r0
+ 246              	.LVL6:
+ 247              		.loc 1 406 0
+ 248 0006 7047     		bx	lr
+ 249              	.L19:
+ 250              		.align	2
+ 251              	.L18:
+ 252 0008 62000F40 		.word	1074724962
+ 253              		.cfi_endproc
+ 254              	.LFE12:
+ 255              		.size	SPIM_ReadTxStatus, .-SPIM_ReadTxStatus
+ 256              		.section	.text.SPIM_ReadRxStatus,"ax",%progbits
+ 257              		.align	1
+ 258              		.global	SPIM_ReadRxStatus
+ 259              		.code	16
+ 260              		.thumb_func
+ 261              		.type	SPIM_ReadRxStatus, %function
+ 262              	SPIM_ReadRxStatus:
+ 263              	.LFB13:
+ 407:Generated_Source\PSoC4/SPIM.c **** 
+ 408:Generated_Source\PSoC4/SPIM.c **** 
+ 409:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 410:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ReadRxStatus
+ 411:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 13
+
+
+ 412:Generated_Source\PSoC4/SPIM.c **** *
+ 413:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 414:Generated_Source\PSoC4/SPIM.c **** *  Read the Rx status register for the component.
+ 415:Generated_Source\PSoC4/SPIM.c **** *
+ 416:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 417:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 418:Generated_Source\PSoC4/SPIM.c **** *
+ 419:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 420:Generated_Source\PSoC4/SPIM.c **** *  Contents of the Rx status register.
+ 421:Generated_Source\PSoC4/SPIM.c **** *
+ 422:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 423:Generated_Source\PSoC4/SPIM.c **** *  SPIM_swStatusRx - used to store in software Rx status register,
+ 424:Generated_Source\PSoC4/SPIM.c **** *  modified every function call - resets to zero.
+ 425:Generated_Source\PSoC4/SPIM.c **** *
+ 426:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 427:Generated_Source\PSoC4/SPIM.c **** *  Allows the user and the API to read the Rx status register for error
+ 428:Generated_Source\PSoC4/SPIM.c **** *  detection and flow control.
+ 429:Generated_Source\PSoC4/SPIM.c **** *
+ 430:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 431:Generated_Source\PSoC4/SPIM.c **** *  Clear Rx status register of the component.
+ 432:Generated_Source\PSoC4/SPIM.c **** *
+ 433:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 434:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 435:Generated_Source\PSoC4/SPIM.c **** *
+ 436:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 437:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_ReadRxStatus(void) 
+ 438:Generated_Source\PSoC4/SPIM.c **** {
+ 264              		.loc 1 438 0
+ 265              		.cfi_startproc
+ 439:Generated_Source\PSoC4/SPIM.c ****     uint8 tmpStatus;
+ 440:Generated_Source\PSoC4/SPIM.c **** 
+ 441:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+ 442:Generated_Source\PSoC4/SPIM.c ****         /* Disable RX interrupt to protect global veriables */
+ 443:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableRxInt();
+ 444:Generated_Source\PSoC4/SPIM.c **** 
+ 445:Generated_Source\PSoC4/SPIM.c ****         tmpStatus = SPIM_GET_STATUS_RX(SPIM_swStatusRx);
+ 446:Generated_Source\PSoC4/SPIM.c ****         SPIM_swStatusRx = 0u;
+ 447:Generated_Source\PSoC4/SPIM.c **** 
+ 448:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableRxInt();
+ 449:Generated_Source\PSoC4/SPIM.c **** 
+ 450:Generated_Source\PSoC4/SPIM.c ****     #else
+ 451:Generated_Source\PSoC4/SPIM.c **** 
+ 452:Generated_Source\PSoC4/SPIM.c ****         tmpStatus = SPIM_RX_STATUS_REG;
+ 266              		.loc 1 452 0
+ 267 0000 014B     		ldr	r3, .L21
+ 453:Generated_Source\PSoC4/SPIM.c **** 
+ 454:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_RX_SOFTWARE_BUF_ENABLED) */
+ 455:Generated_Source\PSoC4/SPIM.c **** 
+ 456:Generated_Source\PSoC4/SPIM.c ****     return(tmpStatus);
+ 457:Generated_Source\PSoC4/SPIM.c **** }
+ 268              		.loc 1 457 0
+ 269              		@ sp needed
+ 452:Generated_Source\PSoC4/SPIM.c **** 
+ 270              		.loc 1 452 0
+ 271 0002 1878     		ldrb	r0, [r3]
+ 272 0004 C0B2     		uxtb	r0, r0
+ 273              	.LVL7:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 14
+
+
+ 274              		.loc 1 457 0
+ 275 0006 7047     		bx	lr
+ 276              	.L22:
+ 277              		.align	2
+ 278              	.L21:
+ 279 0008 60000F40 		.word	1074724960
+ 280              		.cfi_endproc
+ 281              	.LFE13:
+ 282              		.size	SPIM_ReadRxStatus, .-SPIM_ReadRxStatus
+ 283              		.section	.text.SPIM_WriteTxData,"ax",%progbits
+ 284              		.align	1
+ 285              		.global	SPIM_WriteTxData
+ 286              		.code	16
+ 287              		.thumb_func
+ 288              		.type	SPIM_WriteTxData, %function
+ 289              	SPIM_WriteTxData:
+ 290              	.LFB14:
+ 458:Generated_Source\PSoC4/SPIM.c **** 
+ 459:Generated_Source\PSoC4/SPIM.c **** 
+ 460:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 461:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_WriteTxData
+ 462:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 463:Generated_Source\PSoC4/SPIM.c **** *
+ 464:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 465:Generated_Source\PSoC4/SPIM.c **** *  Write a byte of data to be sent across the SPI.
+ 466:Generated_Source\PSoC4/SPIM.c **** *
+ 467:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 468:Generated_Source\PSoC4/SPIM.c **** *  txDataByte: The data value to send across the SPI.
+ 469:Generated_Source\PSoC4/SPIM.c **** *
+ 470:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 471:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 472:Generated_Source\PSoC4/SPIM.c **** *
+ 473:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 474:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferWrite - used for the account of the bytes which
+ 475:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the TX software buffer, modified every function
+ 476:Generated_Source\PSoC4/SPIM.c **** *  call if TX Software Buffer is used.
+ 477:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferRead - used for the account of the bytes which
+ 478:Generated_Source\PSoC4/SPIM.c **** *  have been read from the TX software buffer.
+ 479:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBuffer[SPIM_TX_BUFFER_SIZE] - used to store
+ 480:Generated_Source\PSoC4/SPIM.c **** *  data to sending, modified every function call if TX Software Buffer is used.
+ 481:Generated_Source\PSoC4/SPIM.c **** *
+ 482:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 483:Generated_Source\PSoC4/SPIM.c **** *  Allows the user to transmit any byte of data in a single transfer.
+ 484:Generated_Source\PSoC4/SPIM.c **** *
+ 485:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 486:Generated_Source\PSoC4/SPIM.c **** *  If this function is called again before the previous byte is finished then
+ 487:Generated_Source\PSoC4/SPIM.c **** *  the next byte will be appended to the transfer with no time between
+ 488:Generated_Source\PSoC4/SPIM.c **** *  the byte transfers. Clear Tx status register of the component.
+ 489:Generated_Source\PSoC4/SPIM.c **** *
+ 490:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 491:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 492:Generated_Source\PSoC4/SPIM.c **** *
+ 493:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 494:Generated_Source\PSoC4/SPIM.c **** void SPIM_WriteTxData(uint8 txData) 
+ 495:Generated_Source\PSoC4/SPIM.c **** {
+ 291              		.loc 1 495 0
+ 292              		.cfi_startproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 15
+
+
+ 293              	.LVL8:
+ 294              	.L24:
+ 496:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+ 497:Generated_Source\PSoC4/SPIM.c **** 
+ 498:Generated_Source\PSoC4/SPIM.c ****         uint8 tempStatus;
+ 499:Generated_Source\PSoC4/SPIM.c ****         uint8 tmpTxBufferRead;
+ 500:Generated_Source\PSoC4/SPIM.c **** 
+ 501:Generated_Source\PSoC4/SPIM.c ****         /* Block if TX buffer is FULL: don't overwrite */
+ 502:Generated_Source\PSoC4/SPIM.c ****         do
+ 503:Generated_Source\PSoC4/SPIM.c ****         {
+ 504:Generated_Source\PSoC4/SPIM.c ****             tmpTxBufferRead = SPIM_txBufferRead;
+ 505:Generated_Source\PSoC4/SPIM.c ****             if(0u == tmpTxBufferRead)
+ 506:Generated_Source\PSoC4/SPIM.c ****             {
+ 507:Generated_Source\PSoC4/SPIM.c ****                 tmpTxBufferRead = (SPIM_TX_BUFFER_SIZE - 1u);
+ 508:Generated_Source\PSoC4/SPIM.c ****             }
+ 509:Generated_Source\PSoC4/SPIM.c ****             else
+ 510:Generated_Source\PSoC4/SPIM.c ****             {
+ 511:Generated_Source\PSoC4/SPIM.c ****                 tmpTxBufferRead--;
+ 512:Generated_Source\PSoC4/SPIM.c ****             }
+ 513:Generated_Source\PSoC4/SPIM.c **** 
+ 514:Generated_Source\PSoC4/SPIM.c ****         }while(tmpTxBufferRead == SPIM_txBufferWrite);
+ 515:Generated_Source\PSoC4/SPIM.c **** 
+ 516:Generated_Source\PSoC4/SPIM.c ****         /* Disable TX interrupt to protect global veriables */
+ 517:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableTxInt();
+ 518:Generated_Source\PSoC4/SPIM.c **** 
+ 519:Generated_Source\PSoC4/SPIM.c ****         tempStatus = SPIM_GET_STATUS_TX(SPIM_swStatusTx);
+ 520:Generated_Source\PSoC4/SPIM.c ****         SPIM_swStatusTx = tempStatus;
+ 521:Generated_Source\PSoC4/SPIM.c **** 
+ 522:Generated_Source\PSoC4/SPIM.c **** 
+ 523:Generated_Source\PSoC4/SPIM.c ****         if((SPIM_txBufferRead == SPIM_txBufferWrite) &&
+ 524:Generated_Source\PSoC4/SPIM.c ****            (0u != (SPIM_swStatusTx & SPIM_STS_TX_FIFO_NOT_FULL)))
+ 525:Generated_Source\PSoC4/SPIM.c ****         {
+ 526:Generated_Source\PSoC4/SPIM.c ****             /* Put data element into the TX FIFO */
+ 527:Generated_Source\PSoC4/SPIM.c ****             CY_SET_REG8(SPIM_TXDATA_PTR, txData);
+ 528:Generated_Source\PSoC4/SPIM.c ****         }
+ 529:Generated_Source\PSoC4/SPIM.c ****         else
+ 530:Generated_Source\PSoC4/SPIM.c ****         {
+ 531:Generated_Source\PSoC4/SPIM.c ****             /* Add to the TX software buffer */
+ 532:Generated_Source\PSoC4/SPIM.c ****             SPIM_txBufferWrite++;
+ 533:Generated_Source\PSoC4/SPIM.c ****             if(SPIM_txBufferWrite >= SPIM_TX_BUFFER_SIZE)
+ 534:Generated_Source\PSoC4/SPIM.c ****             {
+ 535:Generated_Source\PSoC4/SPIM.c ****                 SPIM_txBufferWrite = 0u;
+ 536:Generated_Source\PSoC4/SPIM.c ****             }
+ 537:Generated_Source\PSoC4/SPIM.c **** 
+ 538:Generated_Source\PSoC4/SPIM.c ****             if(SPIM_txBufferWrite == SPIM_txBufferRead)
+ 539:Generated_Source\PSoC4/SPIM.c ****             {
+ 540:Generated_Source\PSoC4/SPIM.c ****                 SPIM_txBufferRead++;
+ 541:Generated_Source\PSoC4/SPIM.c ****                 if(SPIM_txBufferRead >= SPIM_TX_BUFFER_SIZE)
+ 542:Generated_Source\PSoC4/SPIM.c ****                 {
+ 543:Generated_Source\PSoC4/SPIM.c ****                     SPIM_txBufferRead = 0u;
+ 544:Generated_Source\PSoC4/SPIM.c ****                 }
+ 545:Generated_Source\PSoC4/SPIM.c ****                 SPIM_txBufferFull = 1u;
+ 546:Generated_Source\PSoC4/SPIM.c ****             }
+ 547:Generated_Source\PSoC4/SPIM.c **** 
+ 548:Generated_Source\PSoC4/SPIM.c ****             SPIM_txBuffer[SPIM_txBufferWrite] = txData;
+ 549:Generated_Source\PSoC4/SPIM.c **** 
+ 550:Generated_Source\PSoC4/SPIM.c ****             SPIM_TX_STATUS_MASK_REG |= SPIM_STS_TX_FIFO_NOT_FULL;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 16
+
+
+ 551:Generated_Source\PSoC4/SPIM.c ****         }
+ 552:Generated_Source\PSoC4/SPIM.c **** 
+ 553:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableTxInt();
+ 554:Generated_Source\PSoC4/SPIM.c **** 
+ 555:Generated_Source\PSoC4/SPIM.c ****     #else
+ 556:Generated_Source\PSoC4/SPIM.c ****         /* Wait until TX FIFO has a place */
+ 557:Generated_Source\PSoC4/SPIM.c ****         while(0u == (SPIM_TX_STATUS_REG & SPIM_STS_TX_FIFO_NOT_FULL))
+ 295              		.loc 1 557 0 discriminator 1
+ 296 0000 034B     		ldr	r3, .L27
+ 297 0002 1B78     		ldrb	r3, [r3]
+ 298 0004 5B07     		lsl	r3, r3, #29
+ 299 0006 FBD5     		bpl	.L24
+ 558:Generated_Source\PSoC4/SPIM.c ****         {
+ 559:Generated_Source\PSoC4/SPIM.c ****         }
+ 560:Generated_Source\PSoC4/SPIM.c **** 
+ 561:Generated_Source\PSoC4/SPIM.c ****         /* Put data element into the TX FIFO */
+ 562:Generated_Source\PSoC4/SPIM.c ****         CY_SET_REG8(SPIM_TXDATA_PTR, txData);
+ 300              		.loc 1 562 0
+ 301 0008 024B     		ldr	r3, .L27+4
+ 563:Generated_Source\PSoC4/SPIM.c **** 
+ 564:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+ 565:Generated_Source\PSoC4/SPIM.c **** }
+ 302              		.loc 1 565 0
+ 303              		@ sp needed
+ 562:Generated_Source\PSoC4/SPIM.c **** 
+ 304              		.loc 1 562 0
+ 305 000a 1870     		strb	r0, [r3]
+ 306              		.loc 1 565 0
+ 307 000c 7047     		bx	lr
+ 308              	.L28:
+ 309 000e C046     		.align	2
+ 310              	.L27:
+ 311 0010 62000F40 		.word	1074724962
+ 312 0014 43000F40 		.word	1074724931
+ 313              		.cfi_endproc
+ 314              	.LFE14:
+ 315              		.size	SPIM_WriteTxData, .-SPIM_WriteTxData
+ 316              		.section	.text.SPIM_ReadRxData,"ax",%progbits
+ 317              		.align	1
+ 318              		.global	SPIM_ReadRxData
+ 319              		.code	16
+ 320              		.thumb_func
+ 321              		.type	SPIM_ReadRxData, %function
+ 322              	SPIM_ReadRxData:
+ 323              	.LFB15:
+ 566:Generated_Source\PSoC4/SPIM.c **** 
+ 567:Generated_Source\PSoC4/SPIM.c **** 
+ 568:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 569:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ReadRxData
+ 570:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 571:Generated_Source\PSoC4/SPIM.c **** *
+ 572:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 573:Generated_Source\PSoC4/SPIM.c **** *  Read the next byte of data received across the SPI.
+ 574:Generated_Source\PSoC4/SPIM.c **** *
+ 575:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 576:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 577:Generated_Source\PSoC4/SPIM.c **** *
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 17
+
+
+ 578:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 579:Generated_Source\PSoC4/SPIM.c **** *  The next byte of data read from the FIFO.
+ 580:Generated_Source\PSoC4/SPIM.c **** *
+ 581:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 582:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferWrite - used for the account of the bytes which
+ 583:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the RX software buffer.
+ 584:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferRead - used for the account of the bytes which
+ 585:Generated_Source\PSoC4/SPIM.c **** *  have been read from the RX software buffer, modified every function
+ 586:Generated_Source\PSoC4/SPIM.c **** *  call if RX Software Buffer is used.
+ 587:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBuffer[SPIM_RX_BUFFER_SIZE] - used to store
+ 588:Generated_Source\PSoC4/SPIM.c **** *  received data.
+ 589:Generated_Source\PSoC4/SPIM.c **** *
+ 590:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 591:Generated_Source\PSoC4/SPIM.c **** *  Allows the user to read a byte of data received.
+ 592:Generated_Source\PSoC4/SPIM.c **** *
+ 593:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 594:Generated_Source\PSoC4/SPIM.c **** *  Will return invalid data if the FIFO is empty. The user should Call
+ 595:Generated_Source\PSoC4/SPIM.c **** *  GetRxBufferSize() and if it returns a non-zero value then it is safe to call
+ 596:Generated_Source\PSoC4/SPIM.c **** *  ReadByte() function.
+ 597:Generated_Source\PSoC4/SPIM.c **** *
+ 598:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 599:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 600:Generated_Source\PSoC4/SPIM.c **** *
+ 601:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 602:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_ReadRxData(void) 
+ 603:Generated_Source\PSoC4/SPIM.c **** {
+ 324              		.loc 1 603 0
+ 325              		.cfi_startproc
+ 604:Generated_Source\PSoC4/SPIM.c ****     uint8 rxData;
+ 605:Generated_Source\PSoC4/SPIM.c **** 
+ 606:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+ 607:Generated_Source\PSoC4/SPIM.c **** 
+ 608:Generated_Source\PSoC4/SPIM.c ****         /* Disable RX interrupt to protect global veriables */
+ 609:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableRxInt();
+ 610:Generated_Source\PSoC4/SPIM.c **** 
+ 611:Generated_Source\PSoC4/SPIM.c ****         if(SPIM_rxBufferRead != SPIM_rxBufferWrite)
+ 612:Generated_Source\PSoC4/SPIM.c ****         {
+ 613:Generated_Source\PSoC4/SPIM.c ****             if(0u == SPIM_rxBufferFull)
+ 614:Generated_Source\PSoC4/SPIM.c ****             {
+ 615:Generated_Source\PSoC4/SPIM.c ****                 SPIM_rxBufferRead++;
+ 616:Generated_Source\PSoC4/SPIM.c ****                 if(SPIM_rxBufferRead >= SPIM_RX_BUFFER_SIZE)
+ 617:Generated_Source\PSoC4/SPIM.c ****                 {
+ 618:Generated_Source\PSoC4/SPIM.c ****                     SPIM_rxBufferRead = 0u;
+ 619:Generated_Source\PSoC4/SPIM.c ****                 }
+ 620:Generated_Source\PSoC4/SPIM.c ****             }
+ 621:Generated_Source\PSoC4/SPIM.c ****             else
+ 622:Generated_Source\PSoC4/SPIM.c ****             {
+ 623:Generated_Source\PSoC4/SPIM.c ****                 SPIM_rxBufferFull = 0u;
+ 624:Generated_Source\PSoC4/SPIM.c ****             }
+ 625:Generated_Source\PSoC4/SPIM.c ****         }
+ 626:Generated_Source\PSoC4/SPIM.c **** 
+ 627:Generated_Source\PSoC4/SPIM.c ****         rxData = SPIM_rxBuffer[SPIM_rxBufferRead];
+ 628:Generated_Source\PSoC4/SPIM.c **** 
+ 629:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableRxInt();
+ 630:Generated_Source\PSoC4/SPIM.c **** 
+ 631:Generated_Source\PSoC4/SPIM.c ****     #else
+ 632:Generated_Source\PSoC4/SPIM.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 18
+
+
+ 633:Generated_Source\PSoC4/SPIM.c ****         rxData = CY_GET_REG8(SPIM_RXDATA_PTR);
+ 326              		.loc 1 633 0
+ 327 0000 014B     		ldr	r3, .L30
+ 634:Generated_Source\PSoC4/SPIM.c **** 
+ 635:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_RX_SOFTWARE_BUF_ENABLED) */
+ 636:Generated_Source\PSoC4/SPIM.c **** 
+ 637:Generated_Source\PSoC4/SPIM.c ****     return(rxData);
+ 638:Generated_Source\PSoC4/SPIM.c **** }
+ 328              		.loc 1 638 0
+ 329              		@ sp needed
+ 633:Generated_Source\PSoC4/SPIM.c **** 
+ 330              		.loc 1 633 0
+ 331 0002 1878     		ldrb	r0, [r3]
+ 332 0004 C0B2     		uxtb	r0, r0
+ 333              	.LVL9:
+ 334              		.loc 1 638 0
+ 335 0006 7047     		bx	lr
+ 336              	.L31:
+ 337              		.align	2
+ 338              	.L30:
+ 339 0008 53000F40 		.word	1074724947
+ 340              		.cfi_endproc
+ 341              	.LFE15:
+ 342              		.size	SPIM_ReadRxData, .-SPIM_ReadRxData
+ 343              		.section	.text.SPIM_GetRxBufferSize,"ax",%progbits
+ 344              		.align	1
+ 345              		.global	SPIM_GetRxBufferSize
+ 346              		.code	16
+ 347              		.thumb_func
+ 348              		.type	SPIM_GetRxBufferSize, %function
+ 349              	SPIM_GetRxBufferSize:
+ 350              	.LFB16:
+ 639:Generated_Source\PSoC4/SPIM.c **** 
+ 640:Generated_Source\PSoC4/SPIM.c **** 
+ 641:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 642:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_GetRxBufferSize
+ 643:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 644:Generated_Source\PSoC4/SPIM.c **** *
+ 645:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 646:Generated_Source\PSoC4/SPIM.c **** *  Returns the number of bytes/words of data currently held in the RX buffer.
+ 647:Generated_Source\PSoC4/SPIM.c **** *  If RX Software Buffer not used then function return 0 if FIFO empty or 1 if
+ 648:Generated_Source\PSoC4/SPIM.c **** *  FIFO not empty. In another case function return size of RX Software Buffer.
+ 649:Generated_Source\PSoC4/SPIM.c **** *
+ 650:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 651:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 652:Generated_Source\PSoC4/SPIM.c **** *
+ 653:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 654:Generated_Source\PSoC4/SPIM.c **** *  Integer count of the number of bytes/words in the RX buffer.
+ 655:Generated_Source\PSoC4/SPIM.c **** *
+ 656:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 657:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferWrite - used for the account of the bytes which
+ 658:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the RX software buffer.
+ 659:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferRead - used for the account of the bytes which
+ 660:Generated_Source\PSoC4/SPIM.c **** *  have been read from the RX software buffer.
+ 661:Generated_Source\PSoC4/SPIM.c **** *
+ 662:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 663:Generated_Source\PSoC4/SPIM.c **** *  Clear status register of the component.
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 19
+
+
+ 664:Generated_Source\PSoC4/SPIM.c **** *
+ 665:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 666:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_GetRxBufferSize(void) 
+ 667:Generated_Source\PSoC4/SPIM.c **** {
+ 351              		.loc 1 667 0
+ 352              		.cfi_startproc
+ 668:Generated_Source\PSoC4/SPIM.c ****     uint8 size;
+ 669:Generated_Source\PSoC4/SPIM.c **** 
+ 670:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+ 671:Generated_Source\PSoC4/SPIM.c **** 
+ 672:Generated_Source\PSoC4/SPIM.c ****         /* Disable RX interrupt to protect global veriables */
+ 673:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableRxInt();
+ 674:Generated_Source\PSoC4/SPIM.c **** 
+ 675:Generated_Source\PSoC4/SPIM.c ****         if(SPIM_rxBufferRead == SPIM_rxBufferWrite)
+ 676:Generated_Source\PSoC4/SPIM.c ****         {
+ 677:Generated_Source\PSoC4/SPIM.c ****             size = 0u;
+ 678:Generated_Source\PSoC4/SPIM.c ****         }
+ 679:Generated_Source\PSoC4/SPIM.c ****         else if(SPIM_rxBufferRead < SPIM_rxBufferWrite)
+ 680:Generated_Source\PSoC4/SPIM.c ****         {
+ 681:Generated_Source\PSoC4/SPIM.c ****             size = (SPIM_rxBufferWrite - SPIM_rxBufferRead);
+ 682:Generated_Source\PSoC4/SPIM.c ****         }
+ 683:Generated_Source\PSoC4/SPIM.c ****         else
+ 684:Generated_Source\PSoC4/SPIM.c ****         {
+ 685:Generated_Source\PSoC4/SPIM.c ****             size = (SPIM_RX_BUFFER_SIZE - SPIM_rxBufferRead) + SPIM_rxBufferWrite;
+ 686:Generated_Source\PSoC4/SPIM.c ****         }
+ 687:Generated_Source\PSoC4/SPIM.c **** 
+ 688:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableRxInt();
+ 689:Generated_Source\PSoC4/SPIM.c **** 
+ 690:Generated_Source\PSoC4/SPIM.c ****     #else
+ 691:Generated_Source\PSoC4/SPIM.c **** 
+ 692:Generated_Source\PSoC4/SPIM.c ****         /* We can only know if there is data in the RX FIFO */
+ 693:Generated_Source\PSoC4/SPIM.c ****         size = (0u != (SPIM_RX_STATUS_REG & SPIM_STS_RX_FIFO_NOT_EMPTY)) ? 1u : 0u;
+ 353              		.loc 1 693 0
+ 354 0000 024B     		ldr	r3, .L33
+ 694:Generated_Source\PSoC4/SPIM.c **** 
+ 695:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+ 696:Generated_Source\PSoC4/SPIM.c **** 
+ 697:Generated_Source\PSoC4/SPIM.c ****     return(size);
+ 698:Generated_Source\PSoC4/SPIM.c **** }
+ 355              		.loc 1 698 0
+ 356              		@ sp needed
+ 693:Generated_Source\PSoC4/SPIM.c **** 
+ 357              		.loc 1 693 0
+ 358 0002 1878     		ldrb	r0, [r3]
+ 359              	.LVL10:
+ 360 0004 8006     		lsl	r0, r0, #26
+ 361              	.LVL11:
+ 697:Generated_Source\PSoC4/SPIM.c **** }
+ 362              		.loc 1 697 0
+ 363 0006 C00F     		lsr	r0, r0, #31
+ 364              		.loc 1 698 0
+ 365 0008 7047     		bx	lr
+ 366              	.L34:
+ 367 000a C046     		.align	2
+ 368              	.L33:
+ 369 000c 60000F40 		.word	1074724960
+ 370              		.cfi_endproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 20
+
+
+ 371              	.LFE16:
+ 372              		.size	SPIM_GetRxBufferSize, .-SPIM_GetRxBufferSize
+ 373              		.section	.text.SPIM_GetTxBufferSize,"ax",%progbits
+ 374              		.align	1
+ 375              		.global	SPIM_GetTxBufferSize
+ 376              		.code	16
+ 377              		.thumb_func
+ 378              		.type	SPIM_GetTxBufferSize, %function
+ 379              	SPIM_GetTxBufferSize:
+ 380              	.LFB17:
+ 699:Generated_Source\PSoC4/SPIM.c **** 
+ 700:Generated_Source\PSoC4/SPIM.c **** 
+ 701:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 702:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_GetTxBufferSize
+ 703:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 704:Generated_Source\PSoC4/SPIM.c **** *
+ 705:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 706:Generated_Source\PSoC4/SPIM.c **** *  Returns the number of bytes/words of data currently held in the TX buffer.
+ 707:Generated_Source\PSoC4/SPIM.c **** *  If TX Software Buffer not used then function return 0 - if FIFO empty, 1 - if
+ 708:Generated_Source\PSoC4/SPIM.c **** *  FIFO not full, 4 - if FIFO full. In another case function return size of TX
+ 709:Generated_Source\PSoC4/SPIM.c **** *  Software Buffer.
+ 710:Generated_Source\PSoC4/SPIM.c **** *
+ 711:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 712:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 713:Generated_Source\PSoC4/SPIM.c **** *
+ 714:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 715:Generated_Source\PSoC4/SPIM.c **** *  Integer count of the number of bytes/words in the TX buffer.
+ 716:Generated_Source\PSoC4/SPIM.c **** *
+ 717:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 718:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferWrite - used for the account of the bytes which
+ 719:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the TX software buffer.
+ 720:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferRead - used for the account of the bytes which
+ 721:Generated_Source\PSoC4/SPIM.c **** *  have been read from the TX software buffer.
+ 722:Generated_Source\PSoC4/SPIM.c **** *
+ 723:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 724:Generated_Source\PSoC4/SPIM.c **** *  Clear status register of the component.
+ 725:Generated_Source\PSoC4/SPIM.c **** *
+ 726:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 727:Generated_Source\PSoC4/SPIM.c **** uint8  SPIM_GetTxBufferSize(void) 
+ 728:Generated_Source\PSoC4/SPIM.c **** {
+ 381              		.loc 1 728 0
+ 382              		.cfi_startproc
+ 729:Generated_Source\PSoC4/SPIM.c ****     uint8 size;
+ 730:Generated_Source\PSoC4/SPIM.c **** 
+ 731:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+ 732:Generated_Source\PSoC4/SPIM.c ****         /* Disable TX interrupt to protect global veriables */
+ 733:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableTxInt();
+ 734:Generated_Source\PSoC4/SPIM.c **** 
+ 735:Generated_Source\PSoC4/SPIM.c ****         if(SPIM_txBufferRead == SPIM_txBufferWrite)
+ 736:Generated_Source\PSoC4/SPIM.c ****         {
+ 737:Generated_Source\PSoC4/SPIM.c ****             size = 0u;
+ 738:Generated_Source\PSoC4/SPIM.c ****         }
+ 739:Generated_Source\PSoC4/SPIM.c ****         else if(SPIM_txBufferRead < SPIM_txBufferWrite)
+ 740:Generated_Source\PSoC4/SPIM.c ****         {
+ 741:Generated_Source\PSoC4/SPIM.c ****             size = (SPIM_txBufferWrite - SPIM_txBufferRead);
+ 742:Generated_Source\PSoC4/SPIM.c ****         }
+ 743:Generated_Source\PSoC4/SPIM.c ****         else
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 21
+
+
+ 744:Generated_Source\PSoC4/SPIM.c ****         {
+ 745:Generated_Source\PSoC4/SPIM.c ****             size = (SPIM_TX_BUFFER_SIZE - SPIM_txBufferRead) + SPIM_txBufferWrite;
+ 746:Generated_Source\PSoC4/SPIM.c ****         }
+ 747:Generated_Source\PSoC4/SPIM.c **** 
+ 748:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableTxInt();
+ 749:Generated_Source\PSoC4/SPIM.c **** 
+ 750:Generated_Source\PSoC4/SPIM.c ****     #else
+ 751:Generated_Source\PSoC4/SPIM.c **** 
+ 752:Generated_Source\PSoC4/SPIM.c ****         size = SPIM_TX_STATUS_REG;
+ 383              		.loc 1 752 0
+ 384 0000 054B     		ldr	r3, .L39
+ 753:Generated_Source\PSoC4/SPIM.c **** 
+ 754:Generated_Source\PSoC4/SPIM.c ****         if(0u != (size & SPIM_STS_TX_FIFO_EMPTY))
+ 755:Generated_Source\PSoC4/SPIM.c ****         {
+ 756:Generated_Source\PSoC4/SPIM.c ****             size = 0u;
+ 385              		.loc 1 756 0
+ 386 0002 0020     		mov	r0, #0
+ 752:Generated_Source\PSoC4/SPIM.c **** 
+ 387              		.loc 1 752 0
+ 388 0004 1B78     		ldrb	r3, [r3]
+ 389 0006 DBB2     		uxtb	r3, r3
+ 390              	.LVL12:
+ 754:Generated_Source\PSoC4/SPIM.c ****         {
+ 391              		.loc 1 754 0
+ 392 0008 9A07     		lsl	r2, r3, #30
+ 393 000a 04D4     		bmi	.L36
+ 757:Generated_Source\PSoC4/SPIM.c ****         }
+ 758:Generated_Source\PSoC4/SPIM.c ****         else if(0u != (size & SPIM_STS_TX_FIFO_NOT_FULL))
+ 394              		.loc 1 758 0
+ 395 000c 0422     		mov	r2, #4
+ 759:Generated_Source\PSoC4/SPIM.c ****         {
+ 760:Generated_Source\PSoC4/SPIM.c ****             size = 1u;
+ 396              		.loc 1 760 0
+ 397 000e 0130     		add	r0, r0, #1
+ 758:Generated_Source\PSoC4/SPIM.c ****         {
+ 398              		.loc 1 758 0
+ 399 0010 1342     		tst	r3, r2
+ 400 0012 00D1     		bne	.L36
+ 761:Generated_Source\PSoC4/SPIM.c ****         }
+ 762:Generated_Source\PSoC4/SPIM.c ****         else
+ 763:Generated_Source\PSoC4/SPIM.c ****         {
+ 764:Generated_Source\PSoC4/SPIM.c ****             size = SPIM_FIFO_SIZE;
+ 401              		.loc 1 764 0
+ 402 0014 101C     		mov	r0, r2
+ 403              	.L36:
+ 404              	.LVL13:
+ 765:Generated_Source\PSoC4/SPIM.c ****         }
+ 766:Generated_Source\PSoC4/SPIM.c **** 
+ 767:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+ 768:Generated_Source\PSoC4/SPIM.c **** 
+ 769:Generated_Source\PSoC4/SPIM.c ****     return(size);
+ 770:Generated_Source\PSoC4/SPIM.c **** }
+ 405              		.loc 1 770 0
+ 406              		@ sp needed
+ 407 0016 7047     		bx	lr
+ 408              	.L40:
+ 409              		.align	2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 22
+
+
+ 410              	.L39:
+ 411 0018 62000F40 		.word	1074724962
+ 412              		.cfi_endproc
+ 413              	.LFE17:
+ 414              		.size	SPIM_GetTxBufferSize, .-SPIM_GetTxBufferSize
+ 415              		.section	.text.SPIM_ClearRxBuffer,"ax",%progbits
+ 416              		.align	1
+ 417              		.global	SPIM_ClearRxBuffer
+ 418              		.code	16
+ 419              		.thumb_func
+ 420              		.type	SPIM_ClearRxBuffer, %function
+ 421              	SPIM_ClearRxBuffer:
+ 422              	.LFB18:
+ 771:Generated_Source\PSoC4/SPIM.c **** 
+ 772:Generated_Source\PSoC4/SPIM.c **** 
+ 773:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 774:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ClearRxBuffer
+ 775:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 776:Generated_Source\PSoC4/SPIM.c **** *
+ 777:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 778:Generated_Source\PSoC4/SPIM.c **** *  Clear the RX RAM buffer by setting the read and write pointers both to zero.
+ 779:Generated_Source\PSoC4/SPIM.c **** *
+ 780:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 781:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 782:Generated_Source\PSoC4/SPIM.c **** *
+ 783:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 784:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 785:Generated_Source\PSoC4/SPIM.c **** *
+ 786:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 787:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferWrite - used for the account of the bytes which
+ 788:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the RX software buffer, modified every function
+ 789:Generated_Source\PSoC4/SPIM.c **** *  call - resets to zero.
+ 790:Generated_Source\PSoC4/SPIM.c **** *  SPIM_rxBufferRead - used for the account of the bytes which
+ 791:Generated_Source\PSoC4/SPIM.c **** *  have been read from the RX software buffer, modified every function call -
+ 792:Generated_Source\PSoC4/SPIM.c **** *  resets to zero.
+ 793:Generated_Source\PSoC4/SPIM.c **** *
+ 794:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 795:Generated_Source\PSoC4/SPIM.c **** *  Setting the pointers to zero makes the system believe there is no data to
+ 796:Generated_Source\PSoC4/SPIM.c **** *  read and writing will resume at address 0 overwriting any data that may have
+ 797:Generated_Source\PSoC4/SPIM.c **** *  remained in the RAM.
+ 798:Generated_Source\PSoC4/SPIM.c **** *
+ 799:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 800:Generated_Source\PSoC4/SPIM.c **** *  Any received data not read from the RAM buffer will be lost when overwritten.
+ 801:Generated_Source\PSoC4/SPIM.c **** *
+ 802:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 803:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 804:Generated_Source\PSoC4/SPIM.c **** *
+ 805:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 806:Generated_Source\PSoC4/SPIM.c **** void SPIM_ClearRxBuffer(void) 
+ 807:Generated_Source\PSoC4/SPIM.c **** {
+ 423              		.loc 1 807 0
+ 424              		.cfi_startproc
+ 425              	.L42:
+ 808:Generated_Source\PSoC4/SPIM.c ****     /* Clear Hardware RX FIFO */
+ 809:Generated_Source\PSoC4/SPIM.c ****     while(0u !=(SPIM_RX_STATUS_REG & SPIM_STS_RX_FIFO_NOT_EMPTY))
+ 426              		.loc 1 809 0
+ 427 0000 034B     		ldr	r3, .L45
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 23
+
+
+ 428 0002 1B78     		ldrb	r3, [r3]
+ 429 0004 9B06     		lsl	r3, r3, #26
+ 430 0006 02D5     		bpl	.L44
+ 810:Generated_Source\PSoC4/SPIM.c ****     {
+ 811:Generated_Source\PSoC4/SPIM.c ****         (void) CY_GET_REG8(SPIM_RXDATA_PTR);
+ 431              		.loc 1 811 0
+ 432 0008 024B     		ldr	r3, .L45+4
+ 433 000a 1B78     		ldrb	r3, [r3]
+ 434 000c F8E7     		b	.L42
+ 435              	.L44:
+ 812:Generated_Source\PSoC4/SPIM.c ****     }
+ 813:Generated_Source\PSoC4/SPIM.c **** 
+ 814:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_RX_SOFTWARE_BUF_ENABLED)
+ 815:Generated_Source\PSoC4/SPIM.c ****         /* Disable RX interrupt to protect global veriables */
+ 816:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableRxInt();
+ 817:Generated_Source\PSoC4/SPIM.c **** 
+ 818:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferFull  = 0u;
+ 819:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferRead  = 0u;
+ 820:Generated_Source\PSoC4/SPIM.c ****         SPIM_rxBufferWrite = 0u;
+ 821:Generated_Source\PSoC4/SPIM.c **** 
+ 822:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableRxInt();
+ 823:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_RX_SOFTWARE_BUF_ENABLED) */
+ 824:Generated_Source\PSoC4/SPIM.c **** }
+ 436              		.loc 1 824 0
+ 437              		@ sp needed
+ 438 000e 7047     		bx	lr
+ 439              	.L46:
+ 440              		.align	2
+ 441              	.L45:
+ 442 0010 60000F40 		.word	1074724960
+ 443 0014 53000F40 		.word	1074724947
+ 444              		.cfi_endproc
+ 445              	.LFE18:
+ 446              		.size	SPIM_ClearRxBuffer, .-SPIM_ClearRxBuffer
+ 447              		.section	.text.SPIM_ClearTxBuffer,"ax",%progbits
+ 448              		.align	1
+ 449              		.global	SPIM_ClearTxBuffer
+ 450              		.code	16
+ 451              		.thumb_func
+ 452              		.type	SPIM_ClearTxBuffer, %function
+ 453              	SPIM_ClearTxBuffer:
+ 454              	.LFB19:
+ 825:Generated_Source\PSoC4/SPIM.c **** 
+ 826:Generated_Source\PSoC4/SPIM.c **** 
+ 827:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 828:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ClearTxBuffer
+ 829:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 830:Generated_Source\PSoC4/SPIM.c **** *
+ 831:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 832:Generated_Source\PSoC4/SPIM.c **** *  Clear the TX RAM buffer by setting the read and write pointers both to zero.
+ 833:Generated_Source\PSoC4/SPIM.c **** *
+ 834:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 835:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 836:Generated_Source\PSoC4/SPIM.c **** *
+ 837:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 838:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 839:Generated_Source\PSoC4/SPIM.c **** *
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 24
+
+
+ 840:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+ 841:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferWrite - used for the account of the bytes which
+ 842:Generated_Source\PSoC4/SPIM.c **** *  have been written down in the TX software buffer, modified every function
+ 843:Generated_Source\PSoC4/SPIM.c **** *  call - resets to zero.
+ 844:Generated_Source\PSoC4/SPIM.c **** *  SPIM_txBufferRead - used for the account of the bytes which
+ 845:Generated_Source\PSoC4/SPIM.c **** *  have been read from the TX software buffer, modified every function call -
+ 846:Generated_Source\PSoC4/SPIM.c **** *  resets to zero.
+ 847:Generated_Source\PSoC4/SPIM.c **** *
+ 848:Generated_Source\PSoC4/SPIM.c **** * Theory:
+ 849:Generated_Source\PSoC4/SPIM.c **** *  Setting the pointers to zero makes the system believe there is no data to
+ 850:Generated_Source\PSoC4/SPIM.c **** *  read and writing will resume at address 0 overwriting any data that may have
+ 851:Generated_Source\PSoC4/SPIM.c **** *  remained in the RAM.
+ 852:Generated_Source\PSoC4/SPIM.c **** *
+ 853:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 854:Generated_Source\PSoC4/SPIM.c **** *  Any data not yet transmitted from the RAM buffer will be lost when
+ 855:Generated_Source\PSoC4/SPIM.c **** *  overwritten.
+ 856:Generated_Source\PSoC4/SPIM.c **** *
+ 857:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 858:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 859:Generated_Source\PSoC4/SPIM.c **** *
+ 860:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 861:Generated_Source\PSoC4/SPIM.c **** void SPIM_ClearTxBuffer(void) 
+ 862:Generated_Source\PSoC4/SPIM.c **** {
+ 455              		.loc 1 862 0
+ 456              		.cfi_startproc
+ 457 0000 08B5     		push	{r3, lr}
+ 458              		.cfi_def_cfa_offset 8
+ 459              		.cfi_offset 3, -8
+ 460              		.cfi_offset 14, -4
+ 863:Generated_Source\PSoC4/SPIM.c ****     uint8 enableInterrupts;
+ 864:Generated_Source\PSoC4/SPIM.c **** 
+ 865:Generated_Source\PSoC4/SPIM.c ****     enableInterrupts = CyEnterCriticalSection();
+ 461              		.loc 1 865 0
+ 462 0002 FFF7FEFF 		bl	CyEnterCriticalSection
+ 463              	.LVL14:
+ 866:Generated_Source\PSoC4/SPIM.c ****     /* Clear TX FIFO */
+ 867:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG |= ((uint8)  SPIM_TX_FIFO_CLR);
+ 464              		.loc 1 867 0
+ 465 0006 0121     		mov	r1, #1
+ 466 0008 044B     		ldr	r3, .L48
+ 868:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 869:Generated_Source\PSoC4/SPIM.c **** 
+ 870:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_USE_SECOND_DATAPATH)
+ 871:Generated_Source\PSoC4/SPIM.c ****         /* Clear TX FIFO for 2nd Datapath */
+ 872:Generated_Source\PSoC4/SPIM.c ****         SPIM_AUX_CONTROL_DP1_REG |= ((uint8)  SPIM_TX_FIFO_CLR);
+ 873:Generated_Source\PSoC4/SPIM.c ****         SPIM_AUX_CONTROL_DP1_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 874:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_USE_SECOND_DATAPATH) */
+ 875:Generated_Source\PSoC4/SPIM.c ****     CyExitCriticalSection(enableInterrupts);
+ 876:Generated_Source\PSoC4/SPIM.c **** 
+ 877:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED)
+ 878:Generated_Source\PSoC4/SPIM.c ****         /* Disable TX interrupt to protect global veriables */
+ 879:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableTxInt();
+ 880:Generated_Source\PSoC4/SPIM.c **** 
+ 881:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferFull  = 0u;
+ 882:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferRead  = 0u;
+ 883:Generated_Source\PSoC4/SPIM.c ****         SPIM_txBufferWrite = 0u;
+ 884:Generated_Source\PSoC4/SPIM.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 25
+
+
+ 885:Generated_Source\PSoC4/SPIM.c ****         /* Buffer is EMPTY: disable TX FIFO NOT FULL interrupt */
+ 886:Generated_Source\PSoC4/SPIM.c ****         SPIM_TX_STATUS_MASK_REG &= ((uint8) ~SPIM_STS_TX_FIFO_NOT_FULL);
+ 887:Generated_Source\PSoC4/SPIM.c **** 
+ 888:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableTxInt();
+ 889:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED) */
+ 890:Generated_Source\PSoC4/SPIM.c **** }
+ 467              		.loc 1 890 0
+ 468              		@ sp needed
+ 867:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 469              		.loc 1 867 0
+ 470 000a 1A78     		ldrb	r2, [r3]
+ 471 000c 0A43     		orr	r2, r1
+ 472 000e 1A70     		strb	r2, [r3]
+ 868:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 473              		.loc 1 868 0
+ 474 0010 1A78     		ldrb	r2, [r3]
+ 475 0012 8A43     		bic	r2, r1
+ 476 0014 1A70     		strb	r2, [r3]
+ 875:Generated_Source\PSoC4/SPIM.c **** 
+ 477              		.loc 1 875 0
+ 478 0016 FFF7FEFF 		bl	CyExitCriticalSection
+ 479              	.LVL15:
+ 480              		.loc 1 890 0
+ 481 001a 08BD     		pop	{r3, pc}
+ 482              	.L49:
+ 483              		.align	2
+ 484              	.L48:
+ 485 001c 93000F40 		.word	1074725011
+ 486              		.cfi_endproc
+ 487              	.LFE19:
+ 488              		.size	SPIM_ClearTxBuffer, .-SPIM_ClearTxBuffer
+ 489              		.section	.text.SPIM_PutArray,"ax",%progbits
+ 490              		.align	1
+ 491              		.global	SPIM_PutArray
+ 492              		.code	16
+ 493              		.thumb_func
+ 494              		.type	SPIM_PutArray, %function
+ 495              	SPIM_PutArray:
+ 496              	.LFB20:
+ 891:Generated_Source\PSoC4/SPIM.c **** 
+ 892:Generated_Source\PSoC4/SPIM.c **** 
+ 893:Generated_Source\PSoC4/SPIM.c **** #if(0u != SPIM_BIDIRECTIONAL_MODE)
+ 894:Generated_Source\PSoC4/SPIM.c ****     /*******************************************************************************
+ 895:Generated_Source\PSoC4/SPIM.c ****     * Function Name: SPIM_TxEnable
+ 896:Generated_Source\PSoC4/SPIM.c ****     ********************************************************************************
+ 897:Generated_Source\PSoC4/SPIM.c ****     *
+ 898:Generated_Source\PSoC4/SPIM.c ****     * Summary:
+ 899:Generated_Source\PSoC4/SPIM.c ****     *  If the SPI master is configured to use a single bi-directional pin then this
+ 900:Generated_Source\PSoC4/SPIM.c ****     *  will set the bi-directional pin to transmit.
+ 901:Generated_Source\PSoC4/SPIM.c ****     *
+ 902:Generated_Source\PSoC4/SPIM.c ****     * Parameters:
+ 903:Generated_Source\PSoC4/SPIM.c ****     *  None.
+ 904:Generated_Source\PSoC4/SPIM.c ****     *
+ 905:Generated_Source\PSoC4/SPIM.c ****     * Return:
+ 906:Generated_Source\PSoC4/SPIM.c ****     *  None.
+ 907:Generated_Source\PSoC4/SPIM.c ****     *
+ 908:Generated_Source\PSoC4/SPIM.c ****     *******************************************************************************/
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 26
+
+
+ 909:Generated_Source\PSoC4/SPIM.c ****     void SPIM_TxEnable(void) 
+ 910:Generated_Source\PSoC4/SPIM.c ****     {
+ 911:Generated_Source\PSoC4/SPIM.c ****         SPIM_CONTROL_REG |= SPIM_CTRL_TX_SIGNAL_EN;
+ 912:Generated_Source\PSoC4/SPIM.c ****     }
+ 913:Generated_Source\PSoC4/SPIM.c **** 
+ 914:Generated_Source\PSoC4/SPIM.c **** 
+ 915:Generated_Source\PSoC4/SPIM.c ****     /*******************************************************************************
+ 916:Generated_Source\PSoC4/SPIM.c ****     * Function Name: SPIM_TxDisable
+ 917:Generated_Source\PSoC4/SPIM.c ****     ********************************************************************************
+ 918:Generated_Source\PSoC4/SPIM.c ****     *
+ 919:Generated_Source\PSoC4/SPIM.c ****     * Summary:
+ 920:Generated_Source\PSoC4/SPIM.c ****     *  If the SPI master is configured to use a single bi-directional pin then this
+ 921:Generated_Source\PSoC4/SPIM.c ****     *  will set the bi-directional pin to receive.
+ 922:Generated_Source\PSoC4/SPIM.c ****     *
+ 923:Generated_Source\PSoC4/SPIM.c ****     * Parameters:
+ 924:Generated_Source\PSoC4/SPIM.c ****     *  None.
+ 925:Generated_Source\PSoC4/SPIM.c ****     *
+ 926:Generated_Source\PSoC4/SPIM.c ****     * Return:
+ 927:Generated_Source\PSoC4/SPIM.c ****     *  None.
+ 928:Generated_Source\PSoC4/SPIM.c ****     *
+ 929:Generated_Source\PSoC4/SPIM.c ****     *******************************************************************************/
+ 930:Generated_Source\PSoC4/SPIM.c ****     void SPIM_TxDisable(void) 
+ 931:Generated_Source\PSoC4/SPIM.c ****     {
+ 932:Generated_Source\PSoC4/SPIM.c ****         SPIM_CONTROL_REG &= ((uint8) ~SPIM_CTRL_TX_SIGNAL_EN);
+ 933:Generated_Source\PSoC4/SPIM.c ****     }
+ 934:Generated_Source\PSoC4/SPIM.c **** 
+ 935:Generated_Source\PSoC4/SPIM.c **** #endif /* (0u != SPIM_BIDIRECTIONAL_MODE) */
+ 936:Generated_Source\PSoC4/SPIM.c **** 
+ 937:Generated_Source\PSoC4/SPIM.c **** 
+ 938:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 939:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_PutArray
+ 940:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 941:Generated_Source\PSoC4/SPIM.c **** *
+ 942:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ 943:Generated_Source\PSoC4/SPIM.c **** *  Write available data from ROM/RAM to the TX buffer while space is available
+ 944:Generated_Source\PSoC4/SPIM.c **** *  in the TX buffer. Keep trying until all data is passed to the TX buffer.
+ 945:Generated_Source\PSoC4/SPIM.c **** *
+ 946:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 947:Generated_Source\PSoC4/SPIM.c **** *  *buffer: Pointer to the location in RAM containing the data to send
+ 948:Generated_Source\PSoC4/SPIM.c **** *  byteCount: The number of bytes to move to the transmit buffer.
+ 949:Generated_Source\PSoC4/SPIM.c **** *
+ 950:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 951:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 952:Generated_Source\PSoC4/SPIM.c **** *
+ 953:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 954:Generated_Source\PSoC4/SPIM.c **** *  Will stay in this routine until all data has been sent.  May get locked in
+ 955:Generated_Source\PSoC4/SPIM.c **** *  this loop if data is not being initiated by the master if there is not
+ 956:Generated_Source\PSoC4/SPIM.c **** *  enough room in the TX FIFO.
+ 957:Generated_Source\PSoC4/SPIM.c **** *
+ 958:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+ 959:Generated_Source\PSoC4/SPIM.c **** *  No.
+ 960:Generated_Source\PSoC4/SPIM.c **** *
+ 961:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 962:Generated_Source\PSoC4/SPIM.c **** void SPIM_PutArray(const uint8 buffer[], uint8 byteCount)
+ 963:Generated_Source\PSoC4/SPIM.c ****                                                                           
+ 964:Generated_Source\PSoC4/SPIM.c **** {
+ 497              		.loc 1 964 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 27
+
+
+ 498              		.cfi_startproc
+ 499              	.LVL16:
+ 500 0000 38B5     		push	{r3, r4, r5, lr}
+ 501              		.cfi_def_cfa_offset 16
+ 502              		.cfi_offset 3, -16
+ 503              		.cfi_offset 4, -12
+ 504              		.cfi_offset 5, -8
+ 505              		.cfi_offset 14, -4
+ 506 0002 041C     		mov	r4, r0
+ 507 0004 4518     		add	r5, r0, r1
+ 508              	.LVL17:
+ 509              	.L51:
+ 965:Generated_Source\PSoC4/SPIM.c ****     uint8 bufIndex;
+ 966:Generated_Source\PSoC4/SPIM.c **** 
+ 967:Generated_Source\PSoC4/SPIM.c ****     bufIndex = 0u;
+ 968:Generated_Source\PSoC4/SPIM.c **** 
+ 969:Generated_Source\PSoC4/SPIM.c ****     while(byteCount > 0u)
+ 510              		.loc 1 969 0
+ 511 0006 AC42     		cmp	r4, r5
+ 512 0008 04D0     		beq	.L53
+ 970:Generated_Source\PSoC4/SPIM.c ****     {
+ 971:Generated_Source\PSoC4/SPIM.c ****         SPIM_WriteTxData(buffer[bufIndex]);
+ 513              		.loc 1 971 0
+ 514 000a 2078     		ldrb	r0, [r4]
+ 515 000c FFF7FEFF 		bl	SPIM_WriteTxData
+ 516              	.LVL18:
+ 517 0010 0134     		add	r4, r4, #1
+ 518              	.LVL19:
+ 519 0012 F8E7     		b	.L51
+ 520              	.LVL20:
+ 521              	.L53:
+ 972:Generated_Source\PSoC4/SPIM.c ****         bufIndex++;
+ 973:Generated_Source\PSoC4/SPIM.c ****         byteCount--;
+ 974:Generated_Source\PSoC4/SPIM.c ****     }
+ 975:Generated_Source\PSoC4/SPIM.c **** }
+ 522              		.loc 1 975 0
+ 523              		@ sp needed
+ 524              	.LVL21:
+ 525 0014 38BD     		pop	{r3, r4, r5, pc}
+ 526              		.cfi_endproc
+ 527              	.LFE20:
+ 528              		.size	SPIM_PutArray, .-SPIM_PutArray
+ 529              		.section	.text.SPIM_ClearFIFO,"ax",%progbits
+ 530              		.align	1
+ 531              		.global	SPIM_ClearFIFO
+ 532              		.code	16
+ 533              		.thumb_func
+ 534              		.type	SPIM_ClearFIFO, %function
+ 535              	SPIM_ClearFIFO:
+ 536              	.LFB21:
+ 976:Generated_Source\PSoC4/SPIM.c **** 
+ 977:Generated_Source\PSoC4/SPIM.c **** 
+ 978:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+ 979:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ClearFIFO
+ 980:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+ 981:Generated_Source\PSoC4/SPIM.c **** *
+ 982:Generated_Source\PSoC4/SPIM.c **** * Summary:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 28
+
+
+ 983:Generated_Source\PSoC4/SPIM.c **** *  Clear the RX and TX FIFO's of all data for a fresh start.
+ 984:Generated_Source\PSoC4/SPIM.c **** *
+ 985:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+ 986:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 987:Generated_Source\PSoC4/SPIM.c **** *
+ 988:Generated_Source\PSoC4/SPIM.c **** * Return:
+ 989:Generated_Source\PSoC4/SPIM.c **** *  None.
+ 990:Generated_Source\PSoC4/SPIM.c **** *
+ 991:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+ 992:Generated_Source\PSoC4/SPIM.c **** *  Clear status register of the component.
+ 993:Generated_Source\PSoC4/SPIM.c **** *
+ 994:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+ 995:Generated_Source\PSoC4/SPIM.c **** void SPIM_ClearFIFO(void) 
+ 996:Generated_Source\PSoC4/SPIM.c **** {
+ 537              		.loc 1 996 0
+ 538              		.cfi_startproc
+ 539 0000 08B5     		push	{r3, lr}
+ 540              		.cfi_def_cfa_offset 8
+ 541              		.cfi_offset 3, -8
+ 542              		.cfi_offset 14, -4
+ 543              	.L55:
+ 997:Generated_Source\PSoC4/SPIM.c ****     uint8 enableInterrupts;
+ 998:Generated_Source\PSoC4/SPIM.c **** 
+ 999:Generated_Source\PSoC4/SPIM.c ****     /* Clear Hardware RX FIFO */
+1000:Generated_Source\PSoC4/SPIM.c ****     while(0u !=(SPIM_RX_STATUS_REG & SPIM_STS_RX_FIFO_NOT_EMPTY))
+ 544              		.loc 1 1000 0
+ 545 0002 0A4B     		ldr	r3, .L58
+ 546 0004 1B78     		ldrb	r3, [r3]
+ 547 0006 9B06     		lsl	r3, r3, #26
+ 548 0008 02D5     		bpl	.L57
+1001:Generated_Source\PSoC4/SPIM.c ****     {
+1002:Generated_Source\PSoC4/SPIM.c ****         (void) CY_GET_REG8(SPIM_RXDATA_PTR);
+ 549              		.loc 1 1002 0
+ 550 000a 094B     		ldr	r3, .L58+4
+ 551 000c 1B78     		ldrb	r3, [r3]
+ 552 000e F8E7     		b	.L55
+ 553              	.L57:
+1003:Generated_Source\PSoC4/SPIM.c ****     }
+1004:Generated_Source\PSoC4/SPIM.c **** 
+1005:Generated_Source\PSoC4/SPIM.c ****     enableInterrupts = CyEnterCriticalSection();
+ 554              		.loc 1 1005 0
+ 555 0010 FFF7FEFF 		bl	CyEnterCriticalSection
+ 556              	.LVL22:
+1006:Generated_Source\PSoC4/SPIM.c ****     /* Clear TX FIFO */
+1007:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG |= ((uint8)  SPIM_TX_FIFO_CLR);
+ 557              		.loc 1 1007 0
+ 558 0014 0121     		mov	r1, #1
+ 559 0016 074B     		ldr	r3, .L58+8
+1008:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+1009:Generated_Source\PSoC4/SPIM.c **** 
+1010:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_USE_SECOND_DATAPATH)
+1011:Generated_Source\PSoC4/SPIM.c ****         /* Clear TX FIFO for 2nd Datapath */
+1012:Generated_Source\PSoC4/SPIM.c ****         SPIM_AUX_CONTROL_DP1_REG |= ((uint8)  SPIM_TX_FIFO_CLR);
+1013:Generated_Source\PSoC4/SPIM.c ****         SPIM_AUX_CONTROL_DP1_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+1014:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_USE_SECOND_DATAPATH) */
+1015:Generated_Source\PSoC4/SPIM.c ****     CyExitCriticalSection(enableInterrupts);
+1016:Generated_Source\PSoC4/SPIM.c **** }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 29
+
+
+ 560              		.loc 1 1016 0
+ 561              		@ sp needed
+1007:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 562              		.loc 1 1007 0
+ 563 0018 1A78     		ldrb	r2, [r3]
+ 564 001a 0A43     		orr	r2, r1
+ 565 001c 1A70     		strb	r2, [r3]
+1008:Generated_Source\PSoC4/SPIM.c ****     SPIM_AUX_CONTROL_DP0_REG &= ((uint8) ~SPIM_TX_FIFO_CLR);
+ 566              		.loc 1 1008 0
+ 567 001e 1A78     		ldrb	r2, [r3]
+ 568 0020 8A43     		bic	r2, r1
+ 569 0022 1A70     		strb	r2, [r3]
+1015:Generated_Source\PSoC4/SPIM.c **** }
+ 570              		.loc 1 1015 0
+ 571 0024 FFF7FEFF 		bl	CyExitCriticalSection
+ 572              	.LVL23:
+ 573              		.loc 1 1016 0
+ 574 0028 08BD     		pop	{r3, pc}
+ 575              	.L59:
+ 576 002a C046     		.align	2
+ 577              	.L58:
+ 578 002c 60000F40 		.word	1074724960
+ 579 0030 53000F40 		.word	1074724947
+ 580 0034 93000F40 		.word	1074725011
+ 581              		.cfi_endproc
+ 582              	.LFE21:
+ 583              		.size	SPIM_ClearFIFO, .-SPIM_ClearFIFO
+ 584              		.section	.text.SPIM_Init,"ax",%progbits
+ 585              		.align	1
+ 586              		.global	SPIM_Init
+ 587              		.code	16
+ 588              		.thumb_func
+ 589              		.type	SPIM_Init, %function
+ 590              	SPIM_Init:
+ 591              	.LFB2:
+  64:Generated_Source\PSoC4/SPIM.c ****     /* Initialize the Bit counter */
+ 592              		.loc 1 64 0
+ 593              		.cfi_startproc
+  66:Generated_Source\PSoC4/SPIM.c **** 
+ 594              		.loc 1 66 0
+ 595 0000 0F22     		mov	r2, #15
+  64:Generated_Source\PSoC4/SPIM.c ****     /* Initialize the Bit counter */
+ 596              		.loc 1 64 0
+ 597 0002 08B5     		push	{r3, lr}
+ 598              		.cfi_def_cfa_offset 8
+ 599              		.cfi_offset 3, -8
+ 600              		.cfi_offset 14, -4
+  66:Generated_Source\PSoC4/SPIM.c **** 
+ 601              		.loc 1 66 0
+ 602 0004 064B     		ldr	r3, .L61
+ 103:Generated_Source\PSoC4/SPIM.c **** 
+ 603              		.loc 1 103 0
+ 604              		@ sp needed
+  66:Generated_Source\PSoC4/SPIM.c **** 
+ 605              		.loc 1 66 0
+ 606 0006 1A70     		strb	r2, [r3]
+  83:Generated_Source\PSoC4/SPIM.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 30
+
+
+ 607              		.loc 1 83 0
+ 608 0008 FFF7FEFF 		bl	SPIM_ClearFIFO
+ 609              	.LVL24:
+ 610              	.LBB22:
+ 611              	.LBB23:
+ 401:Generated_Source\PSoC4/SPIM.c **** 
+ 612              		.loc 1 401 0
+ 613 000c 054B     		ldr	r3, .L61+4
+ 614              	.LBE23:
+ 615              	.LBE22:
+ 101:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG = SPIM_RX_INIT_INTERRUPTS_MASK;
+ 616              		.loc 1 101 0
+ 617 000e 064A     		ldr	r2, .L61+8
+ 618              	.LBB25:
+ 619              	.LBB24:
+ 401:Generated_Source\PSoC4/SPIM.c **** 
+ 620              		.loc 1 401 0
+ 621 0010 1B78     		ldrb	r3, [r3]
+ 622              	.LVL25:
+ 623              	.LBE24:
+ 624              	.LBE25:
+ 625              	.LBB26:
+ 626              	.LBB27:
+ 452:Generated_Source\PSoC4/SPIM.c **** 
+ 627              		.loc 1 452 0
+ 628 0012 064B     		ldr	r3, .L61+12
+ 629 0014 1B78     		ldrb	r3, [r3]
+ 630              	.LVL26:
+ 631              	.LBE27:
+ 632              	.LBE26:
+ 101:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG = SPIM_RX_INIT_INTERRUPTS_MASK;
+ 633              		.loc 1 101 0
+ 634 0016 0023     		mov	r3, #0
+ 635 0018 1370     		strb	r3, [r2]
+ 102:Generated_Source\PSoC4/SPIM.c **** }
+ 636              		.loc 1 102 0
+ 637 001a 054A     		ldr	r2, .L61+16
+ 638 001c 1370     		strb	r3, [r2]
+ 103:Generated_Source\PSoC4/SPIM.c **** 
+ 639              		.loc 1 103 0
+ 640 001e 08BD     		pop	{r3, pc}
+ 641              	.L62:
+ 642              		.align	2
+ 643              	.L61:
+ 644 0020 83000F40 		.word	1074724995
+ 645 0024 62000F40 		.word	1074724962
+ 646 0028 82000F40 		.word	1074724994
+ 647 002c 60000F40 		.word	1074724960
+ 648 0030 80000F40 		.word	1074724992
+ 649              		.cfi_endproc
+ 650              	.LFE2:
+ 651              		.size	SPIM_Init, .-SPIM_Init
+ 652              		.section	.text.SPIM_Start,"ax",%progbits
+ 653              		.align	1
+ 654              		.global	SPIM_Start
+ 655              		.code	16
+ 656              		.thumb_func
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 31
+
+
+ 657              		.type	SPIM_Start, %function
+ 658              	SPIM_Start:
+ 659              	.LFB4:
+ 164:Generated_Source\PSoC4/SPIM.c ****     if(0u == SPIM_initVar)
+ 660              		.loc 1 164 0
+ 661              		.cfi_startproc
+ 662 0000 10B5     		push	{r4, lr}
+ 663              		.cfi_def_cfa_offset 8
+ 664              		.cfi_offset 4, -8
+ 665              		.cfi_offset 14, -4
+ 165:Generated_Source\PSoC4/SPIM.c ****     {
+ 666              		.loc 1 165 0
+ 667 0002 054C     		ldr	r4, .L65
+ 668 0004 2378     		ldrb	r3, [r4]
+ 669 0006 002B     		cmp	r3, #0
+ 670 0008 03D1     		bne	.L64
+ 167:Generated_Source\PSoC4/SPIM.c ****         SPIM_initVar = 1u;
+ 671              		.loc 1 167 0
+ 672 000a FFF7FEFF 		bl	SPIM_Init
+ 673              	.LVL27:
+ 168:Generated_Source\PSoC4/SPIM.c ****     }
+ 674              		.loc 1 168 0
+ 675 000e 0123     		mov	r3, #1
+ 676 0010 2370     		strb	r3, [r4]
+ 677              	.L64:
+ 171:Generated_Source\PSoC4/SPIM.c **** }
+ 678              		.loc 1 171 0
+ 679 0012 FFF7FEFF 		bl	SPIM_Enable
+ 680              	.LVL28:
+ 172:Generated_Source\PSoC4/SPIM.c **** 
+ 681              		.loc 1 172 0
+ 682              		@ sp needed
+ 683 0016 10BD     		pop	{r4, pc}
+ 684              	.L66:
+ 685              		.align	2
+ 686              	.L65:
+ 687 0018 00000000 		.word	.LANCHOR0
+ 688              		.cfi_endproc
+ 689              	.LFE4:
+ 690              		.size	SPIM_Start, .-SPIM_Start
+ 691              		.section	.text.SPIM_EnableInt,"ax",%progbits
+ 692              		.align	1
+ 693              		.global	SPIM_EnableInt
+ 694              		.code	16
+ 695              		.thumb_func
+ 696              		.type	SPIM_EnableInt, %function
+ 697              	SPIM_EnableInt:
+ 698              	.LFB22:
+1017:Generated_Source\PSoC4/SPIM.c **** 
+1018:Generated_Source\PSoC4/SPIM.c **** 
+1019:Generated_Source\PSoC4/SPIM.c **** /* Following functions are for version Compatibility, they are obsolete.
+1020:Generated_Source\PSoC4/SPIM.c **** *  Please do not use it in new projects.
+1021:Generated_Source\PSoC4/SPIM.c **** */
+1022:Generated_Source\PSoC4/SPIM.c **** 
+1023:Generated_Source\PSoC4/SPIM.c **** 
+1024:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+1025:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_EnableInt
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 32
+
+
+1026:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+1027:Generated_Source\PSoC4/SPIM.c **** *
+1028:Generated_Source\PSoC4/SPIM.c **** * Summary:
+1029:Generated_Source\PSoC4/SPIM.c **** *  Enable internal interrupt generation.
+1030:Generated_Source\PSoC4/SPIM.c **** *
+1031:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+1032:Generated_Source\PSoC4/SPIM.c **** *  None.
+1033:Generated_Source\PSoC4/SPIM.c **** *
+1034:Generated_Source\PSoC4/SPIM.c **** * Return:
+1035:Generated_Source\PSoC4/SPIM.c **** *  None.
+1036:Generated_Source\PSoC4/SPIM.c **** *
+1037:Generated_Source\PSoC4/SPIM.c **** * Theory:
+1038:Generated_Source\PSoC4/SPIM.c **** *  Enable the internal interrupt output -or- the interrupt component itself.
+1039:Generated_Source\PSoC4/SPIM.c **** *
+1040:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+1041:Generated_Source\PSoC4/SPIM.c **** void SPIM_EnableInt(void) 
+1042:Generated_Source\PSoC4/SPIM.c **** {
+ 699              		.loc 1 1042 0
+ 700              		.cfi_startproc
+1043:Generated_Source\PSoC4/SPIM.c ****     SPIM_EnableRxInt();
+1044:Generated_Source\PSoC4/SPIM.c ****     SPIM_EnableTxInt();
+1045:Generated_Source\PSoC4/SPIM.c **** }
+ 701              		.loc 1 1045 0
+ 702              		@ sp needed
+ 703 0000 7047     		bx	lr
+ 704              		.cfi_endproc
+ 705              	.LFE22:
+ 706              		.size	SPIM_EnableInt, .-SPIM_EnableInt
+ 707              		.section	.text.SPIM_DisableInt,"ax",%progbits
+ 708              		.align	1
+ 709              		.global	SPIM_DisableInt
+ 710              		.code	16
+ 711              		.thumb_func
+ 712              		.type	SPIM_DisableInt, %function
+ 713              	SPIM_DisableInt:
+ 714              	.LFB23:
+1046:Generated_Source\PSoC4/SPIM.c **** 
+1047:Generated_Source\PSoC4/SPIM.c **** 
+1048:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+1049:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_DisableInt
+1050:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+1051:Generated_Source\PSoC4/SPIM.c **** *
+1052:Generated_Source\PSoC4/SPIM.c **** * Summary:
+1053:Generated_Source\PSoC4/SPIM.c **** *  Disable internal interrupt generation.
+1054:Generated_Source\PSoC4/SPIM.c **** *
+1055:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+1056:Generated_Source\PSoC4/SPIM.c **** *  None.
+1057:Generated_Source\PSoC4/SPIM.c **** *
+1058:Generated_Source\PSoC4/SPIM.c **** * Return:
+1059:Generated_Source\PSoC4/SPIM.c **** *  None.
+1060:Generated_Source\PSoC4/SPIM.c **** *
+1061:Generated_Source\PSoC4/SPIM.c **** * Theory:
+1062:Generated_Source\PSoC4/SPIM.c **** *  Disable the internal interrupt output -or- the interrupt component itself.
+1063:Generated_Source\PSoC4/SPIM.c **** *
+1064:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+1065:Generated_Source\PSoC4/SPIM.c **** void SPIM_DisableInt(void) 
+1066:Generated_Source\PSoC4/SPIM.c **** {
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 33
+
+
+ 715              		.loc 1 1066 0
+ 716              		.cfi_startproc
+1067:Generated_Source\PSoC4/SPIM.c ****     SPIM_DisableTxInt();
+1068:Generated_Source\PSoC4/SPIM.c ****     SPIM_DisableRxInt();
+1069:Generated_Source\PSoC4/SPIM.c **** }
+ 717              		.loc 1 1069 0
+ 718              		@ sp needed
+ 719 0000 7047     		bx	lr
+ 720              		.cfi_endproc
+ 721              	.LFE23:
+ 722              		.size	SPIM_DisableInt, .-SPIM_DisableInt
+ 723              		.section	.text.SPIM_SetInterruptMode,"ax",%progbits
+ 724              		.align	1
+ 725              		.global	SPIM_SetInterruptMode
+ 726              		.code	16
+ 727              		.thumb_func
+ 728              		.type	SPIM_SetInterruptMode, %function
+ 729              	SPIM_SetInterruptMode:
+ 730              	.LFB24:
+1070:Generated_Source\PSoC4/SPIM.c **** 
+1071:Generated_Source\PSoC4/SPIM.c **** 
+1072:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+1073:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_SetInterruptMode
+1074:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+1075:Generated_Source\PSoC4/SPIM.c **** *
+1076:Generated_Source\PSoC4/SPIM.c **** * Summary:
+1077:Generated_Source\PSoC4/SPIM.c **** *  Configure which status bits trigger an interrupt event.
+1078:Generated_Source\PSoC4/SPIM.c **** *
+1079:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+1080:Generated_Source\PSoC4/SPIM.c **** *  intSrc: An or'd combination of the desired status bit masks (defined in the
+1081:Generated_Source\PSoC4/SPIM.c **** *  header file).
+1082:Generated_Source\PSoC4/SPIM.c **** *
+1083:Generated_Source\PSoC4/SPIM.c **** * Return:
+1084:Generated_Source\PSoC4/SPIM.c **** *  None.
+1085:Generated_Source\PSoC4/SPIM.c **** *
+1086:Generated_Source\PSoC4/SPIM.c **** * Theory:
+1087:Generated_Source\PSoC4/SPIM.c **** *  Enables the output of specific status bits to the interrupt controller.
+1088:Generated_Source\PSoC4/SPIM.c **** *
+1089:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+1090:Generated_Source\PSoC4/SPIM.c **** void SPIM_SetInterruptMode(uint8 intSrc) 
+1091:Generated_Source\PSoC4/SPIM.c **** {
+ 731              		.loc 1 1091 0
+ 732              		.cfi_startproc
+ 733              	.LVL29:
+1092:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_MASK_REG  = (intSrc & ((uint8) ~SPIM_STS_SPI_IDLE));
+ 734              		.loc 1 1092 0
+ 735 0000 1023     		mov	r3, #16
+ 736 0002 021C     		mov	r2, r0
+ 737 0004 9A43     		bic	r2, r3
+ 738 0006 024B     		ldr	r3, .L70
+1093:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG  =  intSrc;
+1094:Generated_Source\PSoC4/SPIM.c **** }
+ 739              		.loc 1 1094 0
+ 740              		@ sp needed
+1092:Generated_Source\PSoC4/SPIM.c ****     SPIM_TX_STATUS_MASK_REG  = (intSrc & ((uint8) ~SPIM_STS_SPI_IDLE));
+ 741              		.loc 1 1092 0
+ 742 0008 1A70     		strb	r2, [r3]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 34
+
+
+1093:Generated_Source\PSoC4/SPIM.c ****     SPIM_RX_STATUS_MASK_REG  =  intSrc;
+ 743              		.loc 1 1093 0
+ 744 000a 024B     		ldr	r3, .L70+4
+ 745 000c 1870     		strb	r0, [r3]
+ 746              		.loc 1 1094 0
+ 747 000e 7047     		bx	lr
+ 748              	.L71:
+ 749              		.align	2
+ 750              	.L70:
+ 751 0010 82000F40 		.word	1074724994
+ 752 0014 80000F40 		.word	1074724992
+ 753              		.cfi_endproc
+ 754              	.LFE24:
+ 755              		.size	SPIM_SetInterruptMode, .-SPIM_SetInterruptMode
+ 756              		.section	.text.SPIM_ReadStatus,"ax",%progbits
+ 757              		.align	1
+ 758              		.global	SPIM_ReadStatus
+ 759              		.code	16
+ 760              		.thumb_func
+ 761              		.type	SPIM_ReadStatus, %function
+ 762              	SPIM_ReadStatus:
+ 763              	.LFB25:
+1095:Generated_Source\PSoC4/SPIM.c **** 
+1096:Generated_Source\PSoC4/SPIM.c **** 
+1097:Generated_Source\PSoC4/SPIM.c **** /*******************************************************************************
+1098:Generated_Source\PSoC4/SPIM.c **** * Function Name: SPIM_ReadStatus
+1099:Generated_Source\PSoC4/SPIM.c **** ********************************************************************************
+1100:Generated_Source\PSoC4/SPIM.c **** *
+1101:Generated_Source\PSoC4/SPIM.c **** * Summary:
+1102:Generated_Source\PSoC4/SPIM.c **** *  Read the status register for the component.
+1103:Generated_Source\PSoC4/SPIM.c **** *
+1104:Generated_Source\PSoC4/SPIM.c **** * Parameters:
+1105:Generated_Source\PSoC4/SPIM.c **** *  None.
+1106:Generated_Source\PSoC4/SPIM.c **** *
+1107:Generated_Source\PSoC4/SPIM.c **** * Return:
+1108:Generated_Source\PSoC4/SPIM.c **** *  Contents of the status register.
+1109:Generated_Source\PSoC4/SPIM.c **** *
+1110:Generated_Source\PSoC4/SPIM.c **** * Global variables:
+1111:Generated_Source\PSoC4/SPIM.c **** *  SPIM_swStatus - used to store in software status register,
+1112:Generated_Source\PSoC4/SPIM.c **** *  modified every function call - resets to zero.
+1113:Generated_Source\PSoC4/SPIM.c **** *
+1114:Generated_Source\PSoC4/SPIM.c **** * Theory:
+1115:Generated_Source\PSoC4/SPIM.c **** *  Allows the user and the API to read the status register for error detection
+1116:Generated_Source\PSoC4/SPIM.c **** *  and flow control.
+1117:Generated_Source\PSoC4/SPIM.c **** *
+1118:Generated_Source\PSoC4/SPIM.c **** * Side Effects:
+1119:Generated_Source\PSoC4/SPIM.c **** *  Clear status register of the component.
+1120:Generated_Source\PSoC4/SPIM.c **** *
+1121:Generated_Source\PSoC4/SPIM.c **** * Reentrant:
+1122:Generated_Source\PSoC4/SPIM.c **** *  No.
+1123:Generated_Source\PSoC4/SPIM.c **** *
+1124:Generated_Source\PSoC4/SPIM.c **** *******************************************************************************/
+1125:Generated_Source\PSoC4/SPIM.c **** uint8 SPIM_ReadStatus(void) 
+1126:Generated_Source\PSoC4/SPIM.c **** {
+ 764              		.loc 1 1126 0
+ 765              		.cfi_startproc
+1127:Generated_Source\PSoC4/SPIM.c ****     uint8 tmpStatus;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 35
+
+
+1128:Generated_Source\PSoC4/SPIM.c **** 
+1129:Generated_Source\PSoC4/SPIM.c ****     #if(SPIM_TX_SOFTWARE_BUF_ENABLED || SPIM_RX_SOFTWARE_BUF_ENABLED)
+1130:Generated_Source\PSoC4/SPIM.c **** 
+1131:Generated_Source\PSoC4/SPIM.c ****         SPIM_DisableInt();
+1132:Generated_Source\PSoC4/SPIM.c **** 
+1133:Generated_Source\PSoC4/SPIM.c ****         tmpStatus  = SPIM_GET_STATUS_RX(SPIM_swStatusRx);
+1134:Generated_Source\PSoC4/SPIM.c ****         tmpStatus |= SPIM_GET_STATUS_TX(SPIM_swStatusTx);
+1135:Generated_Source\PSoC4/SPIM.c ****         tmpStatus &= ((uint8) ~SPIM_STS_SPI_IDLE);
+1136:Generated_Source\PSoC4/SPIM.c **** 
+1137:Generated_Source\PSoC4/SPIM.c ****         SPIM_swStatusTx = 0u;
+1138:Generated_Source\PSoC4/SPIM.c ****         SPIM_swStatusRx = 0u;
+1139:Generated_Source\PSoC4/SPIM.c **** 
+1140:Generated_Source\PSoC4/SPIM.c ****         SPIM_EnableInt();
+1141:Generated_Source\PSoC4/SPIM.c **** 
+1142:Generated_Source\PSoC4/SPIM.c ****     #else
+1143:Generated_Source\PSoC4/SPIM.c **** 
+1144:Generated_Source\PSoC4/SPIM.c ****         tmpStatus  = SPIM_RX_STATUS_REG;
+1145:Generated_Source\PSoC4/SPIM.c ****         tmpStatus |= SPIM_TX_STATUS_REG;
+ 766              		.loc 1 1145 0
+ 767 0000 034A     		ldr	r2, .L73
+1144:Generated_Source\PSoC4/SPIM.c ****         tmpStatus |= SPIM_TX_STATUS_REG;
+ 768              		.loc 1 1144 0
+ 769 0002 044B     		ldr	r3, .L73+4
+1146:Generated_Source\PSoC4/SPIM.c ****         tmpStatus &= ((uint8) ~SPIM_STS_SPI_IDLE);
+1147:Generated_Source\PSoC4/SPIM.c **** 
+1148:Generated_Source\PSoC4/SPIM.c ****     #endif /* (SPIM_TX_SOFTWARE_BUF_ENABLED || SPIM_RX_SOFTWARE_BUF_ENABLED) */
+1149:Generated_Source\PSoC4/SPIM.c **** 
+1150:Generated_Source\PSoC4/SPIM.c ****     return(tmpStatus);
+1151:Generated_Source\PSoC4/SPIM.c **** }
+ 770              		.loc 1 1151 0
+ 771              		@ sp needed
+1144:Generated_Source\PSoC4/SPIM.c ****         tmpStatus |= SPIM_TX_STATUS_REG;
+ 772              		.loc 1 1144 0
+ 773 0004 1B78     		ldrb	r3, [r3]
+ 774              	.LVL30:
+1145:Generated_Source\PSoC4/SPIM.c ****         tmpStatus &= ((uint8) ~SPIM_STS_SPI_IDLE);
+ 775              		.loc 1 1145 0
+ 776 0006 1078     		ldrb	r0, [r2]
+ 777 0008 1843     		orr	r0, r3
+ 778              	.LVL31:
+1150:Generated_Source\PSoC4/SPIM.c **** }
+ 779              		.loc 1 1150 0
+ 780 000a 1023     		mov	r3, #16
+ 781 000c 9843     		bic	r0, r3
+ 782              	.LVL32:
+ 783              		.loc 1 1151 0
+ 784 000e 7047     		bx	lr
+ 785              	.L74:
+ 786              		.align	2
+ 787              	.L73:
+ 788 0010 62000F40 		.word	1074724962
+ 789 0014 60000F40 		.word	1074724960
+ 790              		.cfi_endproc
+ 791              	.LFE25:
+ 792              		.size	SPIM_ReadStatus, .-SPIM_ReadStatus
+ 793              		.comm	SPIM_swStatusRx,1,1
+ 794              		.comm	SPIM_swStatusTx,1,1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 36
+
+
+ 795              		.global	SPIM_initVar
+ 796              		.bss
+ 797              		.set	.LANCHOR0,. + 0
+ 798              		.type	SPIM_initVar, %object
+ 799              		.size	SPIM_initVar, 1
+ 800              	SPIM_initVar:
+ 801 0000 00       		.space	1
+ 802              		.text
+ 803              	.Letext0:
+ 804              		.file 2 "Generated_Source\\PSoC4\\cytypes.h"
+ 805              		.file 3 "Generated_Source\\PSoC4\\CyLib.h"
+ 806              		.section	.debug_info,"",%progbits
+ 807              	.Ldebug_info0:
+ 808 0000 F4040000 		.4byte	0x4f4
+ 809 0004 0400     		.2byte	0x4
+ 810 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 811 000a 04       		.byte	0x4
+ 812 000b 01       		.uleb128 0x1
+ 813 000c 11000000 		.4byte	.LASF51
+ 814 0010 01       		.byte	0x1
+ 815 0011 26010000 		.4byte	.LASF52
+ 816 0015 43020000 		.4byte	.LASF53
+ 817 0019 18000000 		.4byte	.Ldebug_ranges0+0x18
+ 818 001d 00000000 		.4byte	0
+ 819 0021 00000000 		.4byte	.Ldebug_line0
+ 820 0025 02       		.uleb128 0x2
+ 821 0026 01       		.byte	0x1
+ 822 0027 06       		.byte	0x6
+ 823 0028 B1030000 		.4byte	.LASF0
+ 824 002c 02       		.uleb128 0x2
+ 825 002d 01       		.byte	0x1
+ 826 002e 08       		.byte	0x8
+ 827 002f D8010000 		.4byte	.LASF1
+ 828 0033 02       		.uleb128 0x2
+ 829 0034 02       		.byte	0x2
+ 830 0035 05       		.byte	0x5
+ 831 0036 49030000 		.4byte	.LASF2
+ 832 003a 02       		.uleb128 0x2
+ 833 003b 02       		.byte	0x2
+ 834 003c 07       		.byte	0x7
+ 835 003d BC000000 		.4byte	.LASF3
+ 836 0041 02       		.uleb128 0x2
+ 837 0042 04       		.byte	0x4
+ 838 0043 05       		.byte	0x5
+ 839 0044 9E030000 		.4byte	.LASF4
+ 840 0048 02       		.uleb128 0x2
+ 841 0049 04       		.byte	0x4
+ 842 004a 07       		.byte	0x7
+ 843 004b 91010000 		.4byte	.LASF5
+ 844 004f 02       		.uleb128 0x2
+ 845 0050 08       		.byte	0x8
+ 846 0051 05       		.byte	0x5
+ 847 0052 0F030000 		.4byte	.LASF6
+ 848 0056 02       		.uleb128 0x2
+ 849 0057 08       		.byte	0x8
+ 850 0058 07       		.byte	0x7
+ 851 0059 4A010000 		.4byte	.LASF7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 37
+
+
+ 852 005d 03       		.uleb128 0x3
+ 853 005e 04       		.byte	0x4
+ 854 005f 05       		.byte	0x5
+ 855 0060 696E7400 		.ascii	"int\000"
+ 856 0064 02       		.uleb128 0x2
+ 857 0065 04       		.byte	0x4
+ 858 0066 07       		.byte	0x7
+ 859 0067 AF020000 		.4byte	.LASF8
+ 860 006b 04       		.uleb128 0x4
+ 861 006c A3010000 		.4byte	.LASF12
+ 862 0070 02       		.byte	0x2
+ 863 0071 9801     		.2byte	0x198
+ 864 0073 2C000000 		.4byte	0x2c
+ 865 0077 02       		.uleb128 0x2
+ 866 0078 04       		.byte	0x4
+ 867 0079 04       		.byte	0x4
+ 868 007a 44010000 		.4byte	.LASF9
+ 869 007e 02       		.uleb128 0x2
+ 870 007f 08       		.byte	0x8
+ 871 0080 04       		.byte	0x4
+ 872 0081 F8010000 		.4byte	.LASF10
+ 873 0085 02       		.uleb128 0x2
+ 874 0086 01       		.byte	0x1
+ 875 0087 08       		.byte	0x8
+ 876 0088 CF000000 		.4byte	.LASF11
+ 877 008c 04       		.uleb128 0x4
+ 878 008d 7B010000 		.4byte	.LASF13
+ 879 0091 02       		.byte	0x2
+ 880 0092 4202     		.2byte	0x242
+ 881 0094 98000000 		.4byte	0x98
+ 882 0098 05       		.uleb128 0x5
+ 883 0099 6B000000 		.4byte	0x6b
+ 884 009d 02       		.uleb128 0x2
+ 885 009e 04       		.byte	0x4
+ 886 009f 07       		.byte	0x7
+ 887 00a0 06030000 		.4byte	.LASF14
+ 888 00a4 06       		.uleb128 0x6
+ 889 00a5 80010000 		.4byte	.LASF15
+ 890 00a9 01       		.byte	0x1
+ 891 00aa E3       		.byte	0xe3
+ 892 00ab 01       		.byte	0x1
+ 893 00ac 06       		.uleb128 0x6
+ 894 00ad 8D030000 		.4byte	.LASF16
+ 895 00b1 01       		.byte	0x1
+ 896 00b2 FC       		.byte	0xfc
+ 897 00b3 01       		.byte	0x1
+ 898 00b4 07       		.uleb128 0x7
+ 899 00b5 E6010000 		.4byte	.LASF17
+ 900 00b9 01       		.byte	0x1
+ 901 00ba 1501     		.2byte	0x115
+ 902 00bc 01       		.byte	0x1
+ 903 00bd 07       		.uleb128 0x7
+ 904 00be DA030000 		.4byte	.LASF18
+ 905 00c2 01       		.byte	0x1
+ 906 00c3 2E01     		.2byte	0x12e
+ 907 00c5 01       		.byte	0x1
+ 908 00c6 08       		.uleb128 0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 38
+
+
+ 909 00c7 C8030000 		.4byte	.LASF19
+ 910 00cb 01       		.byte	0x1
+ 911 00cc 8201     		.2byte	0x182
+ 912 00ce 6B000000 		.4byte	0x6b
+ 913 00d2 01       		.byte	0x1
+ 914 00d3 E4000000 		.4byte	0xe4
+ 915 00d7 09       		.uleb128 0x9
+ 916 00d8 A7030000 		.4byte	.LASF21
+ 917 00dc 01       		.byte	0x1
+ 918 00dd 8401     		.2byte	0x184
+ 919 00df 6B000000 		.4byte	0x6b
+ 920 00e3 00       		.byte	0
+ 921 00e4 08       		.uleb128 0x8
+ 922 00e5 DC020000 		.4byte	.LASF20
+ 923 00e9 01       		.byte	0x1
+ 924 00ea B501     		.2byte	0x1b5
+ 925 00ec 6B000000 		.4byte	0x6b
+ 926 00f0 01       		.byte	0x1
+ 927 00f1 02010000 		.4byte	0x102
+ 928 00f5 09       		.uleb128 0x9
+ 929 00f6 A7030000 		.4byte	.LASF21
+ 930 00fa 01       		.byte	0x1
+ 931 00fb B701     		.2byte	0x1b7
+ 932 00fd 6B000000 		.4byte	0x6b
+ 933 0101 00       		.byte	0
+ 934 0102 0A       		.uleb128 0xa
+ 935 0103 9F000000 		.4byte	.LASF22
+ 936 0107 01       		.byte	0x1
+ 937 0108 78       		.byte	0x78
+ 938 0109 00000000 		.4byte	.LFB3
+ 939 010d 34000000 		.4byte	.LFE3-.LFB3
+ 940 0111 01       		.uleb128 0x1
+ 941 0112 9C       		.byte	0x9c
+ 942 0113 39010000 		.4byte	0x139
+ 943 0117 0B       		.uleb128 0xb
+ 944 0118 B7010000 		.4byte	.LASF24
+ 945 011c 01       		.byte	0x1
+ 946 011d 7A       		.byte	0x7a
+ 947 011e 6B000000 		.4byte	0x6b
+ 948 0122 00000000 		.4byte	.LLST0
+ 949 0126 0C       		.uleb128 0xc
+ 950 0127 06000000 		.4byte	.LVL0
+ 951 012b DF040000 		.4byte	0x4df
+ 952 012f 0C       		.uleb128 0xc
+ 953 0130 26000000 		.4byte	.LVL1
+ 954 0134 EA040000 		.4byte	0x4ea
+ 955 0138 00       		.byte	0
+ 956 0139 0A       		.uleb128 0xa
+ 957 013a AB000000 		.4byte	.LASF23
+ 958 013e 01       		.byte	0x1
+ 959 013f C0       		.byte	0xc0
+ 960 0140 00000000 		.4byte	.LFB5
+ 961 0144 28000000 		.4byte	.LFE5-.LFB5
+ 962 0148 01       		.uleb128 0x1
+ 963 0149 9C       		.byte	0x9c
+ 964 014a 70010000 		.4byte	0x170
+ 965 014e 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 39
+
+
+ 966 014f B7010000 		.4byte	.LASF24
+ 967 0153 01       		.byte	0x1
+ 968 0154 C2       		.byte	0xc2
+ 969 0155 6B000000 		.4byte	0x6b
+ 970 0159 13000000 		.4byte	.LLST1
+ 971 015d 0C       		.uleb128 0xc
+ 972 015e 06000000 		.4byte	.LVL2
+ 973 0162 DF040000 		.4byte	0x4df
+ 974 0166 0C       		.uleb128 0xc
+ 975 0167 1C000000 		.4byte	.LVL3
+ 976 016b EA040000 		.4byte	0x4ea
+ 977 016f 00       		.byte	0
+ 978 0170 0D       		.uleb128 0xd
+ 979 0171 A4000000 		.4byte	0xa4
+ 980 0175 00000000 		.4byte	.LFB6
+ 981 0179 02000000 		.4byte	.LFE6-.LFB6
+ 982 017d 01       		.uleb128 0x1
+ 983 017e 9C       		.byte	0x9c
+ 984 017f 0D       		.uleb128 0xd
+ 985 0180 AC000000 		.4byte	0xac
+ 986 0184 00000000 		.4byte	.LFB7
+ 987 0188 02000000 		.4byte	.LFE7-.LFB7
+ 988 018c 01       		.uleb128 0x1
+ 989 018d 9C       		.byte	0x9c
+ 990 018e 0D       		.uleb128 0xd
+ 991 018f B4000000 		.4byte	0xb4
+ 992 0193 00000000 		.4byte	.LFB8
+ 993 0197 02000000 		.4byte	.LFE8-.LFB8
+ 994 019b 01       		.uleb128 0x1
+ 995 019c 9C       		.byte	0x9c
+ 996 019d 0D       		.uleb128 0xd
+ 997 019e BD000000 		.4byte	0xbd
+ 998 01a2 00000000 		.4byte	.LFB9
+ 999 01a6 02000000 		.4byte	.LFE9-.LFB9
+ 1000 01aa 01       		.uleb128 0x1
+ 1001 01ab 9C       		.byte	0x9c
+ 1002 01ac 0E       		.uleb128 0xe
+ 1003 01ad 2B020000 		.4byte	.LASF25
+ 1004 01b1 01       		.byte	0x1
+ 1005 01b2 4801     		.2byte	0x148
+ 1006 01b4 00000000 		.4byte	.LFB10
+ 1007 01b8 0C000000 		.4byte	.LFE10-.LFB10
+ 1008 01bc 01       		.uleb128 0x1
+ 1009 01bd 9C       		.byte	0x9c
+ 1010 01be D1010000 		.4byte	0x1d1
+ 1011 01c2 0F       		.uleb128 0xf
+ 1012 01c3 FF010000 		.4byte	.LASF27
+ 1013 01c7 01       		.byte	0x1
+ 1014 01c8 4801     		.2byte	0x148
+ 1015 01ca 6B000000 		.4byte	0x6b
+ 1016 01ce 01       		.uleb128 0x1
+ 1017 01cf 50       		.byte	0x50
+ 1018 01d0 00       		.byte	0
+ 1019 01d1 0E       		.uleb128 0xe
+ 1020 01d2 EA000000 		.4byte	.LASF26
+ 1021 01d6 01       		.byte	0x1
+ 1022 01d7 6001     		.2byte	0x160
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 40
+
+
+ 1023 01d9 00000000 		.4byte	.LFB11
+ 1024 01dd 0C000000 		.4byte	.LFE11-.LFB11
+ 1025 01e1 01       		.uleb128 0x1
+ 1026 01e2 9C       		.byte	0x9c
+ 1027 01e3 F6010000 		.4byte	0x1f6
+ 1028 01e7 0F       		.uleb128 0xf
+ 1029 01e8 FF010000 		.4byte	.LASF27
+ 1030 01ec 01       		.byte	0x1
+ 1031 01ed 6001     		.2byte	0x160
+ 1032 01ef 6B000000 		.4byte	0x6b
+ 1033 01f3 01       		.uleb128 0x1
+ 1034 01f4 50       		.byte	0x50
+ 1035 01f5 00       		.byte	0
+ 1036 01f6 10       		.uleb128 0x10
+ 1037 01f7 C6000000 		.4byte	0xc6
+ 1038 01fb 00000000 		.4byte	.LFB12
+ 1039 01ff 0C000000 		.4byte	.LFE12-.LFB12
+ 1040 0203 01       		.uleb128 0x1
+ 1041 0204 9C       		.byte	0x9c
+ 1042 0205 11020000 		.4byte	0x211
+ 1043 0209 11       		.uleb128 0x11
+ 1044 020a D7000000 		.4byte	0xd7
+ 1045 020e 01       		.uleb128 0x1
+ 1046 020f 50       		.byte	0x50
+ 1047 0210 00       		.byte	0
+ 1048 0211 10       		.uleb128 0x10
+ 1049 0212 E4000000 		.4byte	0xe4
+ 1050 0216 00000000 		.4byte	.LFB13
+ 1051 021a 0C000000 		.4byte	.LFE13-.LFB13
+ 1052 021e 01       		.uleb128 0x1
+ 1053 021f 9C       		.byte	0x9c
+ 1054 0220 2C020000 		.4byte	0x22c
+ 1055 0224 11       		.uleb128 0x11
+ 1056 0225 F5000000 		.4byte	0xf5
+ 1057 0229 01       		.uleb128 0x1
+ 1058 022a 50       		.byte	0x50
+ 1059 022b 00       		.byte	0
+ 1060 022c 0E       		.uleb128 0xe
+ 1061 022d 00000000 		.4byte	.LASF28
+ 1062 0231 01       		.byte	0x1
+ 1063 0232 EE01     		.2byte	0x1ee
+ 1064 0234 00000000 		.4byte	.LFB14
+ 1065 0238 18000000 		.4byte	.LFE14-.LFB14
+ 1066 023c 01       		.uleb128 0x1
+ 1067 023d 9C       		.byte	0x9c
+ 1068 023e 51020000 		.4byte	0x251
+ 1069 0242 0F       		.uleb128 0xf
+ 1070 0243 B5000000 		.4byte	.LASF29
+ 1071 0247 01       		.byte	0x1
+ 1072 0248 EE01     		.2byte	0x1ee
+ 1073 024a 6B000000 		.4byte	0x6b
+ 1074 024e 01       		.uleb128 0x1
+ 1075 024f 50       		.byte	0x50
+ 1076 0250 00       		.byte	0
+ 1077 0251 12       		.uleb128 0x12
+ 1078 0252 C8010000 		.4byte	.LASF31
+ 1079 0256 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 41
+
+
+ 1080 0257 5A02     		.2byte	0x25a
+ 1081 0259 6B000000 		.4byte	0x6b
+ 1082 025d 00000000 		.4byte	.LFB15
+ 1083 0261 0C000000 		.4byte	.LFE15-.LFB15
+ 1084 0265 01       		.uleb128 0x1
+ 1085 0266 9C       		.byte	0x9c
+ 1086 0267 7A020000 		.4byte	0x27a
+ 1087 026b 13       		.uleb128 0x13
+ 1088 026c 0F010000 		.4byte	.LASF30
+ 1089 0270 01       		.byte	0x1
+ 1090 0271 5C02     		.2byte	0x25c
+ 1091 0273 6B000000 		.4byte	0x6b
+ 1092 0277 01       		.uleb128 0x1
+ 1093 0278 50       		.byte	0x50
+ 1094 0279 00       		.byte	0
+ 1095 027a 12       		.uleb128 0x12
+ 1096 027b 16020000 		.4byte	.LASF32
+ 1097 027f 01       		.byte	0x1
+ 1098 0280 9A02     		.2byte	0x29a
+ 1099 0282 6B000000 		.4byte	0x6b
+ 1100 0286 00000000 		.4byte	.LFB16
+ 1101 028a 10000000 		.4byte	.LFE16-.LFB16
+ 1102 028e 01       		.uleb128 0x1
+ 1103 028f 9C       		.byte	0x9c
+ 1104 0290 A5020000 		.4byte	0x2a5
+ 1105 0294 14       		.uleb128 0x14
+ 1106 0295 61010000 		.4byte	.LASF33
+ 1107 0299 01       		.byte	0x1
+ 1108 029a 9C02     		.2byte	0x29c
+ 1109 029c 6B000000 		.4byte	0x6b
+ 1110 02a0 26000000 		.4byte	.LLST2
+ 1111 02a4 00       		.byte	0
+ 1112 02a5 12       		.uleb128 0x12
+ 1113 02a6 66010000 		.4byte	.LASF34
+ 1114 02aa 01       		.byte	0x1
+ 1115 02ab D702     		.2byte	0x2d7
+ 1116 02ad 6B000000 		.4byte	0x6b
+ 1117 02b1 00000000 		.4byte	.LFB17
+ 1118 02b5 1C000000 		.4byte	.LFE17-.LFB17
+ 1119 02b9 01       		.uleb128 0x1
+ 1120 02ba 9C       		.byte	0x9c
+ 1121 02bb D0020000 		.4byte	0x2d0
+ 1122 02bf 14       		.uleb128 0x14
+ 1123 02c0 61010000 		.4byte	.LASF33
+ 1124 02c4 01       		.byte	0x1
+ 1125 02c5 D902     		.2byte	0x2d9
+ 1126 02c7 6B000000 		.4byte	0x6b
+ 1127 02cb 42000000 		.4byte	.LLST3
+ 1128 02cf 00       		.byte	0
+ 1129 02d0 15       		.uleb128 0x15
+ 1130 02d1 36030000 		.4byte	.LASF43
+ 1131 02d5 01       		.byte	0x1
+ 1132 02d6 2603     		.2byte	0x326
+ 1133 02d8 00000000 		.4byte	.LFB18
+ 1134 02dc 18000000 		.4byte	.LFE18-.LFB18
+ 1135 02e0 01       		.uleb128 0x1
+ 1136 02e1 9C       		.byte	0x9c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 42
+
+
+ 1137 02e2 0E       		.uleb128 0xe
+ 1138 02e3 53030000 		.4byte	.LASF35
+ 1139 02e7 01       		.byte	0x1
+ 1140 02e8 5D03     		.2byte	0x35d
+ 1141 02ea 00000000 		.4byte	.LFB19
+ 1142 02ee 20000000 		.4byte	.LFE19-.LFB19
+ 1143 02f2 01       		.uleb128 0x1
+ 1144 02f3 9C       		.byte	0x9c
+ 1145 02f4 1B030000 		.4byte	0x31b
+ 1146 02f8 14       		.uleb128 0x14
+ 1147 02f9 B7010000 		.4byte	.LASF24
+ 1148 02fd 01       		.byte	0x1
+ 1149 02fe 5F03     		.2byte	0x35f
+ 1150 0300 6B000000 		.4byte	0x6b
+ 1151 0304 60000000 		.4byte	.LLST4
+ 1152 0308 0C       		.uleb128 0xc
+ 1153 0309 06000000 		.4byte	.LVL14
+ 1154 030d DF040000 		.4byte	0x4df
+ 1155 0311 0C       		.uleb128 0xc
+ 1156 0312 1A000000 		.4byte	.LVL15
+ 1157 0316 EA040000 		.4byte	0x4ea
+ 1158 031a 00       		.byte	0
+ 1159 031b 0E       		.uleb128 0xe
+ 1160 031c A9010000 		.4byte	.LASF36
+ 1161 0320 01       		.byte	0x1
+ 1162 0321 C203     		.2byte	0x3c2
+ 1163 0323 00000000 		.4byte	.LFB20
+ 1164 0327 16000000 		.4byte	.LFE20-.LFB20
+ 1165 032b 01       		.uleb128 0x1
+ 1166 032c 9C       		.byte	0x9c
+ 1167 032d 6B030000 		.4byte	0x36b
+ 1168 0331 16       		.uleb128 0x16
+ 1169 0332 66030000 		.4byte	.LASF37
+ 1170 0336 01       		.byte	0x1
+ 1171 0337 C203     		.2byte	0x3c2
+ 1172 0339 6B030000 		.4byte	0x36b
+ 1173 033d 73000000 		.4byte	.LLST5
+ 1174 0341 16       		.uleb128 0x16
+ 1175 0342 D2020000 		.4byte	.LASF38
+ 1176 0346 01       		.byte	0x1
+ 1177 0347 C203     		.2byte	0x3c2
+ 1178 0349 6B000000 		.4byte	0x6b
+ 1179 034d 94000000 		.4byte	.LLST6
+ 1180 0351 14       		.uleb128 0x14
+ 1181 0352 EE020000 		.4byte	.LASF39
+ 1182 0356 01       		.byte	0x1
+ 1183 0357 C503     		.2byte	0x3c5
+ 1184 0359 6B000000 		.4byte	0x6b
+ 1185 035d A7000000 		.4byte	.LLST7
+ 1186 0361 0C       		.uleb128 0xc
+ 1187 0362 10000000 		.4byte	.LVL18
+ 1188 0366 2C020000 		.4byte	0x22c
+ 1189 036a 00       		.byte	0
+ 1190 036b 17       		.uleb128 0x17
+ 1191 036c 04       		.byte	0x4
+ 1192 036d 71030000 		.4byte	0x371
+ 1193 0371 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 43
+
+
+ 1194 0372 6B000000 		.4byte	0x6b
+ 1195 0376 0E       		.uleb128 0xe
+ 1196 0377 27030000 		.4byte	.LASF40
+ 1197 037b 01       		.byte	0x1
+ 1198 037c E303     		.2byte	0x3e3
+ 1199 037e 00000000 		.4byte	.LFB21
+ 1200 0382 38000000 		.4byte	.LFE21-.LFB21
+ 1201 0386 01       		.uleb128 0x1
+ 1202 0387 9C       		.byte	0x9c
+ 1203 0388 AF030000 		.4byte	0x3af
+ 1204 038c 14       		.uleb128 0x14
+ 1205 038d B7010000 		.4byte	.LASF24
+ 1206 0391 01       		.byte	0x1
+ 1207 0392 E503     		.2byte	0x3e5
+ 1208 0394 6B000000 		.4byte	0x6b
+ 1209 0398 F0000000 		.4byte	.LLST8
+ 1210 039c 0C       		.uleb128 0xc
+ 1211 039d 14000000 		.4byte	.LVL22
+ 1212 03a1 DF040000 		.4byte	0x4df
+ 1213 03a5 0C       		.uleb128 0xc
+ 1214 03a6 28000000 		.4byte	.LVL23
+ 1215 03aa EA040000 		.4byte	0x4ea
+ 1216 03ae 00       		.byte	0
+ 1217 03af 0A       		.uleb128 0xa
+ 1218 03b0 1D030000 		.4byte	.LASF41
+ 1219 03b4 01       		.byte	0x1
+ 1220 03b5 3F       		.byte	0x3f
+ 1221 03b6 00000000 		.4byte	.LFB2
+ 1222 03ba 34000000 		.4byte	.LFE2-.LFB2
+ 1223 03be 01       		.uleb128 0x1
+ 1224 03bf 9C       		.byte	0x9c
+ 1225 03c0 10040000 		.4byte	0x410
+ 1226 03c4 19       		.uleb128 0x19
+ 1227 03c5 C6000000 		.4byte	0xc6
+ 1228 03c9 0C000000 		.4byte	.LBB22
+ 1229 03cd 00000000 		.4byte	.Ldebug_ranges0+0
+ 1230 03d1 01       		.byte	0x1
+ 1231 03d2 61       		.byte	0x61
+ 1232 03d3 E3030000 		.4byte	0x3e3
+ 1233 03d7 1A       		.uleb128 0x1a
+ 1234 03d8 00000000 		.4byte	.Ldebug_ranges0+0
+ 1235 03dc 1B       		.uleb128 0x1b
+ 1236 03dd D7000000 		.4byte	0xd7
+ 1237 03e1 00       		.byte	0
+ 1238 03e2 00       		.byte	0
+ 1239 03e3 1C       		.uleb128 0x1c
+ 1240 03e4 E4000000 		.4byte	0xe4
+ 1241 03e8 12000000 		.4byte	.LBB26
+ 1242 03ec 04000000 		.4byte	.LBE26-.LBB26
+ 1243 03f0 01       		.byte	0x1
+ 1244 03f1 62       		.byte	0x62
+ 1245 03f2 06040000 		.4byte	0x406
+ 1246 03f6 1D       		.uleb128 0x1d
+ 1247 03f7 12000000 		.4byte	.LBB27
+ 1248 03fb 04000000 		.4byte	.LBE27-.LBB27
+ 1249 03ff 1B       		.uleb128 0x1b
+ 1250 0400 F5000000 		.4byte	0xf5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 44
+
+
+ 1251 0404 00       		.byte	0
+ 1252 0405 00       		.byte	0
+ 1253 0406 0C       		.uleb128 0xc
+ 1254 0407 0C000000 		.4byte	.LVL24
+ 1255 040b 76030000 		.4byte	0x376
+ 1256 040f 00       		.byte	0
+ 1257 0410 0A       		.uleb128 0xa
+ 1258 0411 BD030000 		.4byte	.LASF42
+ 1259 0415 01       		.byte	0x1
+ 1260 0416 A3       		.byte	0xa3
+ 1261 0417 00000000 		.4byte	.LFB4
+ 1262 041b 1C000000 		.4byte	.LFE4-.LFB4
+ 1263 041f 01       		.uleb128 0x1
+ 1264 0420 9C       		.byte	0x9c
+ 1265 0421 38040000 		.4byte	0x438
+ 1266 0425 0C       		.uleb128 0xc
+ 1267 0426 0E000000 		.4byte	.LVL27
+ 1268 042a AF030000 		.4byte	0x3af
+ 1269 042e 0C       		.uleb128 0xc
+ 1270 042f 16000000 		.4byte	.LVL28
+ 1271 0433 02010000 		.4byte	0x102
+ 1272 0437 00       		.byte	0
+ 1273 0438 15       		.uleb128 0x15
+ 1274 0439 F7020000 		.4byte	.LASF44
+ 1275 043d 01       		.byte	0x1
+ 1276 043e 1104     		.2byte	0x411
+ 1277 0440 00000000 		.4byte	.LFB22
+ 1278 0444 02000000 		.4byte	.LFE22-.LFB22
+ 1279 0448 01       		.uleb128 0x1
+ 1280 0449 9C       		.byte	0x9c
+ 1281 044a 15       		.uleb128 0x15
+ 1282 044b 16010000 		.4byte	.LASF45
+ 1283 044f 01       		.byte	0x1
+ 1284 0450 2904     		.2byte	0x429
+ 1285 0452 00000000 		.4byte	.LFB23
+ 1286 0456 02000000 		.4byte	.LFE23-.LFB23
+ 1287 045a 01       		.uleb128 0x1
+ 1288 045b 9C       		.byte	0x9c
+ 1289 045c 0E       		.uleb128 0xe
+ 1290 045d D4000000 		.4byte	.LASF46
+ 1291 0461 01       		.byte	0x1
+ 1292 0462 4204     		.2byte	0x442
+ 1293 0464 00000000 		.4byte	.LFB24
+ 1294 0468 18000000 		.4byte	.LFE24-.LFB24
+ 1295 046c 01       		.uleb128 0x1
+ 1296 046d 9C       		.byte	0x9c
+ 1297 046e 81040000 		.4byte	0x481
+ 1298 0472 0F       		.uleb128 0xf
+ 1299 0473 FF010000 		.4byte	.LASF27
+ 1300 0477 01       		.byte	0x1
+ 1301 0478 4204     		.2byte	0x442
+ 1302 047a 6B000000 		.4byte	0x6b
+ 1303 047e 01       		.uleb128 0x1
+ 1304 047f 50       		.byte	0x50
+ 1305 0480 00       		.byte	0
+ 1306 0481 12       		.uleb128 0x12
+ 1307 0482 6D030000 		.4byte	.LASF47
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 45
+
+
+ 1308 0486 01       		.byte	0x1
+ 1309 0487 6504     		.2byte	0x465
+ 1310 0489 6B000000 		.4byte	0x6b
+ 1311 048d 00000000 		.4byte	.LFB25
+ 1312 0491 18000000 		.4byte	.LFE25-.LFB25
+ 1313 0495 01       		.uleb128 0x1
+ 1314 0496 9C       		.byte	0x9c
+ 1315 0497 AC040000 		.4byte	0x4ac
+ 1316 049b 14       		.uleb128 0x14
+ 1317 049c A7030000 		.4byte	.LASF21
+ 1318 04a0 01       		.byte	0x1
+ 1319 04a1 6704     		.2byte	0x467
+ 1320 04a3 6B000000 		.4byte	0x6b
+ 1321 04a7 03010000 		.4byte	.LLST9
+ 1322 04ab 00       		.byte	0
+ 1323 04ac 1E       		.uleb128 0x1e
+ 1324 04ad 02010000 		.4byte	.LASF48
+ 1325 04b1 01       		.byte	0x1
+ 1326 04b2 22       		.byte	0x22
+ 1327 04b3 6B000000 		.4byte	0x6b
+ 1328 04b7 05       		.uleb128 0x5
+ 1329 04b8 03       		.byte	0x3
+ 1330 04b9 00000000 		.4byte	SPIM_initVar
+ 1331 04bd 1E       		.uleb128 0x1e
+ 1332 04be 7D030000 		.4byte	.LASF49
+ 1333 04c2 01       		.byte	0x1
+ 1334 04c3 24       		.byte	0x24
+ 1335 04c4 98000000 		.4byte	0x98
+ 1336 04c8 05       		.uleb128 0x5
+ 1337 04c9 03       		.byte	0x3
+ 1338 04ca 00000000 		.4byte	SPIM_swStatusTx
+ 1339 04ce 1E       		.uleb128 0x1e
+ 1340 04cf 06020000 		.4byte	.LASF50
+ 1341 04d3 01       		.byte	0x1
+ 1342 04d4 25       		.byte	0x25
+ 1343 04d5 98000000 		.4byte	0x98
+ 1344 04d9 05       		.uleb128 0x5
+ 1345 04da 03       		.byte	0x3
+ 1346 04db 00000000 		.4byte	SPIM_swStatusRx
+ 1347 04df 1F       		.uleb128 0x1f
+ 1348 04e0 98020000 		.4byte	.LASF54
+ 1349 04e4 03       		.byte	0x3
+ 1350 04e5 E3       		.byte	0xe3
+ 1351 04e6 6B000000 		.4byte	0x6b
+ 1352 04ea 20       		.uleb128 0x20
+ 1353 04eb BC020000 		.4byte	.LASF55
+ 1354 04ef 03       		.byte	0x3
+ 1355 04f0 E4       		.byte	0xe4
+ 1356 04f1 21       		.uleb128 0x21
+ 1357 04f2 6B000000 		.4byte	0x6b
+ 1358 04f6 00       		.byte	0
+ 1359 04f7 00       		.byte	0
+ 1360              		.section	.debug_abbrev,"",%progbits
+ 1361              	.Ldebug_abbrev0:
+ 1362 0000 01       		.uleb128 0x1
+ 1363 0001 11       		.uleb128 0x11
+ 1364 0002 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 46
+
+
+ 1365 0003 25       		.uleb128 0x25
+ 1366 0004 0E       		.uleb128 0xe
+ 1367 0005 13       		.uleb128 0x13
+ 1368 0006 0B       		.uleb128 0xb
+ 1369 0007 03       		.uleb128 0x3
+ 1370 0008 0E       		.uleb128 0xe
+ 1371 0009 1B       		.uleb128 0x1b
+ 1372 000a 0E       		.uleb128 0xe
+ 1373 000b 55       		.uleb128 0x55
+ 1374 000c 17       		.uleb128 0x17
+ 1375 000d 11       		.uleb128 0x11
+ 1376 000e 01       		.uleb128 0x1
+ 1377 000f 10       		.uleb128 0x10
+ 1378 0010 17       		.uleb128 0x17
+ 1379 0011 00       		.byte	0
+ 1380 0012 00       		.byte	0
+ 1381 0013 02       		.uleb128 0x2
+ 1382 0014 24       		.uleb128 0x24
+ 1383 0015 00       		.byte	0
+ 1384 0016 0B       		.uleb128 0xb
+ 1385 0017 0B       		.uleb128 0xb
+ 1386 0018 3E       		.uleb128 0x3e
+ 1387 0019 0B       		.uleb128 0xb
+ 1388 001a 03       		.uleb128 0x3
+ 1389 001b 0E       		.uleb128 0xe
+ 1390 001c 00       		.byte	0
+ 1391 001d 00       		.byte	0
+ 1392 001e 03       		.uleb128 0x3
+ 1393 001f 24       		.uleb128 0x24
+ 1394 0020 00       		.byte	0
+ 1395 0021 0B       		.uleb128 0xb
+ 1396 0022 0B       		.uleb128 0xb
+ 1397 0023 3E       		.uleb128 0x3e
+ 1398 0024 0B       		.uleb128 0xb
+ 1399 0025 03       		.uleb128 0x3
+ 1400 0026 08       		.uleb128 0x8
+ 1401 0027 00       		.byte	0
+ 1402 0028 00       		.byte	0
+ 1403 0029 04       		.uleb128 0x4
+ 1404 002a 16       		.uleb128 0x16
+ 1405 002b 00       		.byte	0
+ 1406 002c 03       		.uleb128 0x3
+ 1407 002d 0E       		.uleb128 0xe
+ 1408 002e 3A       		.uleb128 0x3a
+ 1409 002f 0B       		.uleb128 0xb
+ 1410 0030 3B       		.uleb128 0x3b
+ 1411 0031 05       		.uleb128 0x5
+ 1412 0032 49       		.uleb128 0x49
+ 1413 0033 13       		.uleb128 0x13
+ 1414 0034 00       		.byte	0
+ 1415 0035 00       		.byte	0
+ 1416 0036 05       		.uleb128 0x5
+ 1417 0037 35       		.uleb128 0x35
+ 1418 0038 00       		.byte	0
+ 1419 0039 49       		.uleb128 0x49
+ 1420 003a 13       		.uleb128 0x13
+ 1421 003b 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 47
+
+
+ 1422 003c 00       		.byte	0
+ 1423 003d 06       		.uleb128 0x6
+ 1424 003e 2E       		.uleb128 0x2e
+ 1425 003f 00       		.byte	0
+ 1426 0040 3F       		.uleb128 0x3f
+ 1427 0041 19       		.uleb128 0x19
+ 1428 0042 03       		.uleb128 0x3
+ 1429 0043 0E       		.uleb128 0xe
+ 1430 0044 3A       		.uleb128 0x3a
+ 1431 0045 0B       		.uleb128 0xb
+ 1432 0046 3B       		.uleb128 0x3b
+ 1433 0047 0B       		.uleb128 0xb
+ 1434 0048 27       		.uleb128 0x27
+ 1435 0049 19       		.uleb128 0x19
+ 1436 004a 20       		.uleb128 0x20
+ 1437 004b 0B       		.uleb128 0xb
+ 1438 004c 00       		.byte	0
+ 1439 004d 00       		.byte	0
+ 1440 004e 07       		.uleb128 0x7
+ 1441 004f 2E       		.uleb128 0x2e
+ 1442 0050 00       		.byte	0
+ 1443 0051 3F       		.uleb128 0x3f
+ 1444 0052 19       		.uleb128 0x19
+ 1445 0053 03       		.uleb128 0x3
+ 1446 0054 0E       		.uleb128 0xe
+ 1447 0055 3A       		.uleb128 0x3a
+ 1448 0056 0B       		.uleb128 0xb
+ 1449 0057 3B       		.uleb128 0x3b
+ 1450 0058 05       		.uleb128 0x5
+ 1451 0059 27       		.uleb128 0x27
+ 1452 005a 19       		.uleb128 0x19
+ 1453 005b 20       		.uleb128 0x20
+ 1454 005c 0B       		.uleb128 0xb
+ 1455 005d 00       		.byte	0
+ 1456 005e 00       		.byte	0
+ 1457 005f 08       		.uleb128 0x8
+ 1458 0060 2E       		.uleb128 0x2e
+ 1459 0061 01       		.byte	0x1
+ 1460 0062 3F       		.uleb128 0x3f
+ 1461 0063 19       		.uleb128 0x19
+ 1462 0064 03       		.uleb128 0x3
+ 1463 0065 0E       		.uleb128 0xe
+ 1464 0066 3A       		.uleb128 0x3a
+ 1465 0067 0B       		.uleb128 0xb
+ 1466 0068 3B       		.uleb128 0x3b
+ 1467 0069 05       		.uleb128 0x5
+ 1468 006a 27       		.uleb128 0x27
+ 1469 006b 19       		.uleb128 0x19
+ 1470 006c 49       		.uleb128 0x49
+ 1471 006d 13       		.uleb128 0x13
+ 1472 006e 20       		.uleb128 0x20
+ 1473 006f 0B       		.uleb128 0xb
+ 1474 0070 01       		.uleb128 0x1
+ 1475 0071 13       		.uleb128 0x13
+ 1476 0072 00       		.byte	0
+ 1477 0073 00       		.byte	0
+ 1478 0074 09       		.uleb128 0x9
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 48
+
+
+ 1479 0075 34       		.uleb128 0x34
+ 1480 0076 00       		.byte	0
+ 1481 0077 03       		.uleb128 0x3
+ 1482 0078 0E       		.uleb128 0xe
+ 1483 0079 3A       		.uleb128 0x3a
+ 1484 007a 0B       		.uleb128 0xb
+ 1485 007b 3B       		.uleb128 0x3b
+ 1486 007c 05       		.uleb128 0x5
+ 1487 007d 49       		.uleb128 0x49
+ 1488 007e 13       		.uleb128 0x13
+ 1489 007f 00       		.byte	0
+ 1490 0080 00       		.byte	0
+ 1491 0081 0A       		.uleb128 0xa
+ 1492 0082 2E       		.uleb128 0x2e
+ 1493 0083 01       		.byte	0x1
+ 1494 0084 3F       		.uleb128 0x3f
+ 1495 0085 19       		.uleb128 0x19
+ 1496 0086 03       		.uleb128 0x3
+ 1497 0087 0E       		.uleb128 0xe
+ 1498 0088 3A       		.uleb128 0x3a
+ 1499 0089 0B       		.uleb128 0xb
+ 1500 008a 3B       		.uleb128 0x3b
+ 1501 008b 0B       		.uleb128 0xb
+ 1502 008c 27       		.uleb128 0x27
+ 1503 008d 19       		.uleb128 0x19
+ 1504 008e 11       		.uleb128 0x11
+ 1505 008f 01       		.uleb128 0x1
+ 1506 0090 12       		.uleb128 0x12
+ 1507 0091 06       		.uleb128 0x6
+ 1508 0092 40       		.uleb128 0x40
+ 1509 0093 18       		.uleb128 0x18
+ 1510 0094 9742     		.uleb128 0x2117
+ 1511 0096 19       		.uleb128 0x19
+ 1512 0097 01       		.uleb128 0x1
+ 1513 0098 13       		.uleb128 0x13
+ 1514 0099 00       		.byte	0
+ 1515 009a 00       		.byte	0
+ 1516 009b 0B       		.uleb128 0xb
+ 1517 009c 34       		.uleb128 0x34
+ 1518 009d 00       		.byte	0
+ 1519 009e 03       		.uleb128 0x3
+ 1520 009f 0E       		.uleb128 0xe
+ 1521 00a0 3A       		.uleb128 0x3a
+ 1522 00a1 0B       		.uleb128 0xb
+ 1523 00a2 3B       		.uleb128 0x3b
+ 1524 00a3 0B       		.uleb128 0xb
+ 1525 00a4 49       		.uleb128 0x49
+ 1526 00a5 13       		.uleb128 0x13
+ 1527 00a6 02       		.uleb128 0x2
+ 1528 00a7 17       		.uleb128 0x17
+ 1529 00a8 00       		.byte	0
+ 1530 00a9 00       		.byte	0
+ 1531 00aa 0C       		.uleb128 0xc
+ 1532 00ab 898201   		.uleb128 0x4109
+ 1533 00ae 00       		.byte	0
+ 1534 00af 11       		.uleb128 0x11
+ 1535 00b0 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 49
+
+
+ 1536 00b1 31       		.uleb128 0x31
+ 1537 00b2 13       		.uleb128 0x13
+ 1538 00b3 00       		.byte	0
+ 1539 00b4 00       		.byte	0
+ 1540 00b5 0D       		.uleb128 0xd
+ 1541 00b6 2E       		.uleb128 0x2e
+ 1542 00b7 00       		.byte	0
+ 1543 00b8 31       		.uleb128 0x31
+ 1544 00b9 13       		.uleb128 0x13
+ 1545 00ba 11       		.uleb128 0x11
+ 1546 00bb 01       		.uleb128 0x1
+ 1547 00bc 12       		.uleb128 0x12
+ 1548 00bd 06       		.uleb128 0x6
+ 1549 00be 40       		.uleb128 0x40
+ 1550 00bf 18       		.uleb128 0x18
+ 1551 00c0 9742     		.uleb128 0x2117
+ 1552 00c2 19       		.uleb128 0x19
+ 1553 00c3 00       		.byte	0
+ 1554 00c4 00       		.byte	0
+ 1555 00c5 0E       		.uleb128 0xe
+ 1556 00c6 2E       		.uleb128 0x2e
+ 1557 00c7 01       		.byte	0x1
+ 1558 00c8 3F       		.uleb128 0x3f
+ 1559 00c9 19       		.uleb128 0x19
+ 1560 00ca 03       		.uleb128 0x3
+ 1561 00cb 0E       		.uleb128 0xe
+ 1562 00cc 3A       		.uleb128 0x3a
+ 1563 00cd 0B       		.uleb128 0xb
+ 1564 00ce 3B       		.uleb128 0x3b
+ 1565 00cf 05       		.uleb128 0x5
+ 1566 00d0 27       		.uleb128 0x27
+ 1567 00d1 19       		.uleb128 0x19
+ 1568 00d2 11       		.uleb128 0x11
+ 1569 00d3 01       		.uleb128 0x1
+ 1570 00d4 12       		.uleb128 0x12
+ 1571 00d5 06       		.uleb128 0x6
+ 1572 00d6 40       		.uleb128 0x40
+ 1573 00d7 18       		.uleb128 0x18
+ 1574 00d8 9742     		.uleb128 0x2117
+ 1575 00da 19       		.uleb128 0x19
+ 1576 00db 01       		.uleb128 0x1
+ 1577 00dc 13       		.uleb128 0x13
+ 1578 00dd 00       		.byte	0
+ 1579 00de 00       		.byte	0
+ 1580 00df 0F       		.uleb128 0xf
+ 1581 00e0 05       		.uleb128 0x5
+ 1582 00e1 00       		.byte	0
+ 1583 00e2 03       		.uleb128 0x3
+ 1584 00e3 0E       		.uleb128 0xe
+ 1585 00e4 3A       		.uleb128 0x3a
+ 1586 00e5 0B       		.uleb128 0xb
+ 1587 00e6 3B       		.uleb128 0x3b
+ 1588 00e7 05       		.uleb128 0x5
+ 1589 00e8 49       		.uleb128 0x49
+ 1590 00e9 13       		.uleb128 0x13
+ 1591 00ea 02       		.uleb128 0x2
+ 1592 00eb 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 50
+
+
+ 1593 00ec 00       		.byte	0
+ 1594 00ed 00       		.byte	0
+ 1595 00ee 10       		.uleb128 0x10
+ 1596 00ef 2E       		.uleb128 0x2e
+ 1597 00f0 01       		.byte	0x1
+ 1598 00f1 31       		.uleb128 0x31
+ 1599 00f2 13       		.uleb128 0x13
+ 1600 00f3 11       		.uleb128 0x11
+ 1601 00f4 01       		.uleb128 0x1
+ 1602 00f5 12       		.uleb128 0x12
+ 1603 00f6 06       		.uleb128 0x6
+ 1604 00f7 40       		.uleb128 0x40
+ 1605 00f8 18       		.uleb128 0x18
+ 1606 00f9 9742     		.uleb128 0x2117
+ 1607 00fb 19       		.uleb128 0x19
+ 1608 00fc 01       		.uleb128 0x1
+ 1609 00fd 13       		.uleb128 0x13
+ 1610 00fe 00       		.byte	0
+ 1611 00ff 00       		.byte	0
+ 1612 0100 11       		.uleb128 0x11
+ 1613 0101 34       		.uleb128 0x34
+ 1614 0102 00       		.byte	0
+ 1615 0103 31       		.uleb128 0x31
+ 1616 0104 13       		.uleb128 0x13
+ 1617 0105 02       		.uleb128 0x2
+ 1618 0106 18       		.uleb128 0x18
+ 1619 0107 00       		.byte	0
+ 1620 0108 00       		.byte	0
+ 1621 0109 12       		.uleb128 0x12
+ 1622 010a 2E       		.uleb128 0x2e
+ 1623 010b 01       		.byte	0x1
+ 1624 010c 3F       		.uleb128 0x3f
+ 1625 010d 19       		.uleb128 0x19
+ 1626 010e 03       		.uleb128 0x3
+ 1627 010f 0E       		.uleb128 0xe
+ 1628 0110 3A       		.uleb128 0x3a
+ 1629 0111 0B       		.uleb128 0xb
+ 1630 0112 3B       		.uleb128 0x3b
+ 1631 0113 05       		.uleb128 0x5
+ 1632 0114 27       		.uleb128 0x27
+ 1633 0115 19       		.uleb128 0x19
+ 1634 0116 49       		.uleb128 0x49
+ 1635 0117 13       		.uleb128 0x13
+ 1636 0118 11       		.uleb128 0x11
+ 1637 0119 01       		.uleb128 0x1
+ 1638 011a 12       		.uleb128 0x12
+ 1639 011b 06       		.uleb128 0x6
+ 1640 011c 40       		.uleb128 0x40
+ 1641 011d 18       		.uleb128 0x18
+ 1642 011e 9742     		.uleb128 0x2117
+ 1643 0120 19       		.uleb128 0x19
+ 1644 0121 01       		.uleb128 0x1
+ 1645 0122 13       		.uleb128 0x13
+ 1646 0123 00       		.byte	0
+ 1647 0124 00       		.byte	0
+ 1648 0125 13       		.uleb128 0x13
+ 1649 0126 34       		.uleb128 0x34
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 51
+
+
+ 1650 0127 00       		.byte	0
+ 1651 0128 03       		.uleb128 0x3
+ 1652 0129 0E       		.uleb128 0xe
+ 1653 012a 3A       		.uleb128 0x3a
+ 1654 012b 0B       		.uleb128 0xb
+ 1655 012c 3B       		.uleb128 0x3b
+ 1656 012d 05       		.uleb128 0x5
+ 1657 012e 49       		.uleb128 0x49
+ 1658 012f 13       		.uleb128 0x13
+ 1659 0130 02       		.uleb128 0x2
+ 1660 0131 18       		.uleb128 0x18
+ 1661 0132 00       		.byte	0
+ 1662 0133 00       		.byte	0
+ 1663 0134 14       		.uleb128 0x14
+ 1664 0135 34       		.uleb128 0x34
+ 1665 0136 00       		.byte	0
+ 1666 0137 03       		.uleb128 0x3
+ 1667 0138 0E       		.uleb128 0xe
+ 1668 0139 3A       		.uleb128 0x3a
+ 1669 013a 0B       		.uleb128 0xb
+ 1670 013b 3B       		.uleb128 0x3b
+ 1671 013c 05       		.uleb128 0x5
+ 1672 013d 49       		.uleb128 0x49
+ 1673 013e 13       		.uleb128 0x13
+ 1674 013f 02       		.uleb128 0x2
+ 1675 0140 17       		.uleb128 0x17
+ 1676 0141 00       		.byte	0
+ 1677 0142 00       		.byte	0
+ 1678 0143 15       		.uleb128 0x15
+ 1679 0144 2E       		.uleb128 0x2e
+ 1680 0145 00       		.byte	0
+ 1681 0146 3F       		.uleb128 0x3f
+ 1682 0147 19       		.uleb128 0x19
+ 1683 0148 03       		.uleb128 0x3
+ 1684 0149 0E       		.uleb128 0xe
+ 1685 014a 3A       		.uleb128 0x3a
+ 1686 014b 0B       		.uleb128 0xb
+ 1687 014c 3B       		.uleb128 0x3b
+ 1688 014d 05       		.uleb128 0x5
+ 1689 014e 27       		.uleb128 0x27
+ 1690 014f 19       		.uleb128 0x19
+ 1691 0150 11       		.uleb128 0x11
+ 1692 0151 01       		.uleb128 0x1
+ 1693 0152 12       		.uleb128 0x12
+ 1694 0153 06       		.uleb128 0x6
+ 1695 0154 40       		.uleb128 0x40
+ 1696 0155 18       		.uleb128 0x18
+ 1697 0156 9742     		.uleb128 0x2117
+ 1698 0158 19       		.uleb128 0x19
+ 1699 0159 00       		.byte	0
+ 1700 015a 00       		.byte	0
+ 1701 015b 16       		.uleb128 0x16
+ 1702 015c 05       		.uleb128 0x5
+ 1703 015d 00       		.byte	0
+ 1704 015e 03       		.uleb128 0x3
+ 1705 015f 0E       		.uleb128 0xe
+ 1706 0160 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 52
+
+
+ 1707 0161 0B       		.uleb128 0xb
+ 1708 0162 3B       		.uleb128 0x3b
+ 1709 0163 05       		.uleb128 0x5
+ 1710 0164 49       		.uleb128 0x49
+ 1711 0165 13       		.uleb128 0x13
+ 1712 0166 02       		.uleb128 0x2
+ 1713 0167 17       		.uleb128 0x17
+ 1714 0168 00       		.byte	0
+ 1715 0169 00       		.byte	0
+ 1716 016a 17       		.uleb128 0x17
+ 1717 016b 0F       		.uleb128 0xf
+ 1718 016c 00       		.byte	0
+ 1719 016d 0B       		.uleb128 0xb
+ 1720 016e 0B       		.uleb128 0xb
+ 1721 016f 49       		.uleb128 0x49
+ 1722 0170 13       		.uleb128 0x13
+ 1723 0171 00       		.byte	0
+ 1724 0172 00       		.byte	0
+ 1725 0173 18       		.uleb128 0x18
+ 1726 0174 26       		.uleb128 0x26
+ 1727 0175 00       		.byte	0
+ 1728 0176 49       		.uleb128 0x49
+ 1729 0177 13       		.uleb128 0x13
+ 1730 0178 00       		.byte	0
+ 1731 0179 00       		.byte	0
+ 1732 017a 19       		.uleb128 0x19
+ 1733 017b 1D       		.uleb128 0x1d
+ 1734 017c 01       		.byte	0x1
+ 1735 017d 31       		.uleb128 0x31
+ 1736 017e 13       		.uleb128 0x13
+ 1737 017f 52       		.uleb128 0x52
+ 1738 0180 01       		.uleb128 0x1
+ 1739 0181 55       		.uleb128 0x55
+ 1740 0182 17       		.uleb128 0x17
+ 1741 0183 58       		.uleb128 0x58
+ 1742 0184 0B       		.uleb128 0xb
+ 1743 0185 59       		.uleb128 0x59
+ 1744 0186 0B       		.uleb128 0xb
+ 1745 0187 01       		.uleb128 0x1
+ 1746 0188 13       		.uleb128 0x13
+ 1747 0189 00       		.byte	0
+ 1748 018a 00       		.byte	0
+ 1749 018b 1A       		.uleb128 0x1a
+ 1750 018c 0B       		.uleb128 0xb
+ 1751 018d 01       		.byte	0x1
+ 1752 018e 55       		.uleb128 0x55
+ 1753 018f 17       		.uleb128 0x17
+ 1754 0190 00       		.byte	0
+ 1755 0191 00       		.byte	0
+ 1756 0192 1B       		.uleb128 0x1b
+ 1757 0193 34       		.uleb128 0x34
+ 1758 0194 00       		.byte	0
+ 1759 0195 31       		.uleb128 0x31
+ 1760 0196 13       		.uleb128 0x13
+ 1761 0197 00       		.byte	0
+ 1762 0198 00       		.byte	0
+ 1763 0199 1C       		.uleb128 0x1c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 53
+
+
+ 1764 019a 1D       		.uleb128 0x1d
+ 1765 019b 01       		.byte	0x1
+ 1766 019c 31       		.uleb128 0x31
+ 1767 019d 13       		.uleb128 0x13
+ 1768 019e 11       		.uleb128 0x11
+ 1769 019f 01       		.uleb128 0x1
+ 1770 01a0 12       		.uleb128 0x12
+ 1771 01a1 06       		.uleb128 0x6
+ 1772 01a2 58       		.uleb128 0x58
+ 1773 01a3 0B       		.uleb128 0xb
+ 1774 01a4 59       		.uleb128 0x59
+ 1775 01a5 0B       		.uleb128 0xb
+ 1776 01a6 01       		.uleb128 0x1
+ 1777 01a7 13       		.uleb128 0x13
+ 1778 01a8 00       		.byte	0
+ 1779 01a9 00       		.byte	0
+ 1780 01aa 1D       		.uleb128 0x1d
+ 1781 01ab 0B       		.uleb128 0xb
+ 1782 01ac 01       		.byte	0x1
+ 1783 01ad 11       		.uleb128 0x11
+ 1784 01ae 01       		.uleb128 0x1
+ 1785 01af 12       		.uleb128 0x12
+ 1786 01b0 06       		.uleb128 0x6
+ 1787 01b1 00       		.byte	0
+ 1788 01b2 00       		.byte	0
+ 1789 01b3 1E       		.uleb128 0x1e
+ 1790 01b4 34       		.uleb128 0x34
+ 1791 01b5 00       		.byte	0
+ 1792 01b6 03       		.uleb128 0x3
+ 1793 01b7 0E       		.uleb128 0xe
+ 1794 01b8 3A       		.uleb128 0x3a
+ 1795 01b9 0B       		.uleb128 0xb
+ 1796 01ba 3B       		.uleb128 0x3b
+ 1797 01bb 0B       		.uleb128 0xb
+ 1798 01bc 49       		.uleb128 0x49
+ 1799 01bd 13       		.uleb128 0x13
+ 1800 01be 3F       		.uleb128 0x3f
+ 1801 01bf 19       		.uleb128 0x19
+ 1802 01c0 02       		.uleb128 0x2
+ 1803 01c1 18       		.uleb128 0x18
+ 1804 01c2 00       		.byte	0
+ 1805 01c3 00       		.byte	0
+ 1806 01c4 1F       		.uleb128 0x1f
+ 1807 01c5 2E       		.uleb128 0x2e
+ 1808 01c6 00       		.byte	0
+ 1809 01c7 3F       		.uleb128 0x3f
+ 1810 01c8 19       		.uleb128 0x19
+ 1811 01c9 03       		.uleb128 0x3
+ 1812 01ca 0E       		.uleb128 0xe
+ 1813 01cb 3A       		.uleb128 0x3a
+ 1814 01cc 0B       		.uleb128 0xb
+ 1815 01cd 3B       		.uleb128 0x3b
+ 1816 01ce 0B       		.uleb128 0xb
+ 1817 01cf 27       		.uleb128 0x27
+ 1818 01d0 19       		.uleb128 0x19
+ 1819 01d1 49       		.uleb128 0x49
+ 1820 01d2 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 54
+
+
+ 1821 01d3 3C       		.uleb128 0x3c
+ 1822 01d4 19       		.uleb128 0x19
+ 1823 01d5 00       		.byte	0
+ 1824 01d6 00       		.byte	0
+ 1825 01d7 20       		.uleb128 0x20
+ 1826 01d8 2E       		.uleb128 0x2e
+ 1827 01d9 01       		.byte	0x1
+ 1828 01da 3F       		.uleb128 0x3f
+ 1829 01db 19       		.uleb128 0x19
+ 1830 01dc 03       		.uleb128 0x3
+ 1831 01dd 0E       		.uleb128 0xe
+ 1832 01de 3A       		.uleb128 0x3a
+ 1833 01df 0B       		.uleb128 0xb
+ 1834 01e0 3B       		.uleb128 0x3b
+ 1835 01e1 0B       		.uleb128 0xb
+ 1836 01e2 27       		.uleb128 0x27
+ 1837 01e3 19       		.uleb128 0x19
+ 1838 01e4 3C       		.uleb128 0x3c
+ 1839 01e5 19       		.uleb128 0x19
+ 1840 01e6 00       		.byte	0
+ 1841 01e7 00       		.byte	0
+ 1842 01e8 21       		.uleb128 0x21
+ 1843 01e9 05       		.uleb128 0x5
+ 1844 01ea 00       		.byte	0
+ 1845 01eb 49       		.uleb128 0x49
+ 1846 01ec 13       		.uleb128 0x13
+ 1847 01ed 00       		.byte	0
+ 1848 01ee 00       		.byte	0
+ 1849 01ef 00       		.byte	0
+ 1850              		.section	.debug_loc,"",%progbits
+ 1851              	.Ldebug_loc0:
+ 1852              	.LLST0:
+ 1853 0000 06000000 		.4byte	.LVL0
+ 1854 0004 25000000 		.4byte	.LVL1-1
+ 1855 0008 0100     		.2byte	0x1
+ 1856 000a 50       		.byte	0x50
+ 1857 000b 00000000 		.4byte	0
+ 1858 000f 00000000 		.4byte	0
+ 1859              	.LLST1:
+ 1860 0013 06000000 		.4byte	.LVL2
+ 1861 0017 1B000000 		.4byte	.LVL3-1
+ 1862 001b 0100     		.2byte	0x1
+ 1863 001d 50       		.byte	0x50
+ 1864 001e 00000000 		.4byte	0
+ 1865 0022 00000000 		.4byte	0
+ 1866              	.LLST2:
+ 1867 0026 04000000 		.4byte	.LVL10
+ 1868 002a 06000000 		.4byte	.LVL11
+ 1869 002e 0A00     		.2byte	0xa
+ 1870 0030 70       		.byte	0x70
+ 1871 0031 00       		.sleb128 0
+ 1872 0032 08       		.byte	0x8
+ 1873 0033 20       		.byte	0x20
+ 1874 0034 1A       		.byte	0x1a
+ 1875 0035 48       		.byte	0x48
+ 1876 0036 24       		.byte	0x24
+ 1877 0037 30       		.byte	0x30
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 55
+
+
+ 1878 0038 2E       		.byte	0x2e
+ 1879 0039 9F       		.byte	0x9f
+ 1880 003a 00000000 		.4byte	0
+ 1881 003e 00000000 		.4byte	0
+ 1882              	.LLST3:
+ 1883 0042 08000000 		.4byte	.LVL12
+ 1884 0046 16000000 		.4byte	.LVL13
+ 1885 004a 0100     		.2byte	0x1
+ 1886 004c 53       		.byte	0x53
+ 1887 004d 16000000 		.4byte	.LVL13
+ 1888 0051 1C000000 		.4byte	.LFE17
+ 1889 0055 0100     		.2byte	0x1
+ 1890 0057 50       		.byte	0x50
+ 1891 0058 00000000 		.4byte	0
+ 1892 005c 00000000 		.4byte	0
+ 1893              	.LLST4:
+ 1894 0060 06000000 		.4byte	.LVL14
+ 1895 0064 19000000 		.4byte	.LVL15-1
+ 1896 0068 0100     		.2byte	0x1
+ 1897 006a 50       		.byte	0x50
+ 1898 006b 00000000 		.4byte	0
+ 1899 006f 00000000 		.4byte	0
+ 1900              	.LLST5:
+ 1901 0073 00000000 		.4byte	.LVL16
+ 1902 0077 06000000 		.4byte	.LVL17
+ 1903 007b 0100     		.2byte	0x1
+ 1904 007d 50       		.byte	0x50
+ 1905 007e 06000000 		.4byte	.LVL17
+ 1906 0082 16000000 		.4byte	.LFE20
+ 1907 0086 0400     		.2byte	0x4
+ 1908 0088 F3       		.byte	0xf3
+ 1909 0089 01       		.uleb128 0x1
+ 1910 008a 50       		.byte	0x50
+ 1911 008b 9F       		.byte	0x9f
+ 1912 008c 00000000 		.4byte	0
+ 1913 0090 00000000 		.4byte	0
+ 1914              	.LLST6:
+ 1915 0094 00000000 		.4byte	.LVL16
+ 1916 0098 06000000 		.4byte	.LVL17
+ 1917 009c 0100     		.2byte	0x1
+ 1918 009e 51       		.byte	0x51
+ 1919 009f 00000000 		.4byte	0
+ 1920 00a3 00000000 		.4byte	0
+ 1921              	.LLST7:
+ 1922 00a7 00000000 		.4byte	.LVL16
+ 1923 00ab 06000000 		.4byte	.LVL17
+ 1924 00af 0200     		.2byte	0x2
+ 1925 00b1 30       		.byte	0x30
+ 1926 00b2 9F       		.byte	0x9f
+ 1927 00b3 06000000 		.4byte	.LVL17
+ 1928 00b7 10000000 		.4byte	.LVL18
+ 1929 00bb 0700     		.2byte	0x7
+ 1930 00bd 74       		.byte	0x74
+ 1931 00be 00       		.sleb128 0
+ 1932 00bf F3       		.byte	0xf3
+ 1933 00c0 01       		.uleb128 0x1
+ 1934 00c1 50       		.byte	0x50
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 56
+
+
+ 1935 00c2 1C       		.byte	0x1c
+ 1936 00c3 9F       		.byte	0x9f
+ 1937 00c4 10000000 		.4byte	.LVL18
+ 1938 00c8 12000000 		.4byte	.LVL19
+ 1939 00cc 0900     		.2byte	0x9
+ 1940 00ce 74       		.byte	0x74
+ 1941 00cf 00       		.sleb128 0
+ 1942 00d0 F3       		.byte	0xf3
+ 1943 00d1 01       		.uleb128 0x1
+ 1944 00d2 50       		.byte	0x50
+ 1945 00d3 1C       		.byte	0x1c
+ 1946 00d4 23       		.byte	0x23
+ 1947 00d5 01       		.uleb128 0x1
+ 1948 00d6 9F       		.byte	0x9f
+ 1949 00d7 14000000 		.4byte	.LVL20
+ 1950 00db 14000000 		.4byte	.LVL21
+ 1951 00df 0700     		.2byte	0x7
+ 1952 00e1 74       		.byte	0x74
+ 1953 00e2 00       		.sleb128 0
+ 1954 00e3 F3       		.byte	0xf3
+ 1955 00e4 01       		.uleb128 0x1
+ 1956 00e5 50       		.byte	0x50
+ 1957 00e6 1C       		.byte	0x1c
+ 1958 00e7 9F       		.byte	0x9f
+ 1959 00e8 00000000 		.4byte	0
+ 1960 00ec 00000000 		.4byte	0
+ 1961              	.LLST8:
+ 1962 00f0 14000000 		.4byte	.LVL22
+ 1963 00f4 27000000 		.4byte	.LVL23-1
+ 1964 00f8 0100     		.2byte	0x1
+ 1965 00fa 50       		.byte	0x50
+ 1966 00fb 00000000 		.4byte	0
+ 1967 00ff 00000000 		.4byte	0
+ 1968              	.LLST9:
+ 1969 0103 06000000 		.4byte	.LVL30
+ 1970 0107 0A000000 		.4byte	.LVL31
+ 1971 010b 0100     		.2byte	0x1
+ 1972 010d 53       		.byte	0x53
+ 1973 010e 0A000000 		.4byte	.LVL31
+ 1974 0112 0E000000 		.4byte	.LVL32
+ 1975 0116 0600     		.2byte	0x6
+ 1976 0118 70       		.byte	0x70
+ 1977 0119 00       		.sleb128 0
+ 1978 011a 09       		.byte	0x9
+ 1979 011b EF       		.byte	0xef
+ 1980 011c 1A       		.byte	0x1a
+ 1981 011d 9F       		.byte	0x9f
+ 1982 011e 00000000 		.4byte	0
+ 1983 0122 00000000 		.4byte	0
+ 1984              		.section	.debug_aranges,"",%progbits
+ 1985 0000 D4000000 		.4byte	0xd4
+ 1986 0004 0200     		.2byte	0x2
+ 1987 0006 00000000 		.4byte	.Ldebug_info0
+ 1988 000a 04       		.byte	0x4
+ 1989 000b 00       		.byte	0
+ 1990 000c 0000     		.2byte	0
+ 1991 000e 0000     		.2byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 57
+
+
+ 1992 0010 00000000 		.4byte	.LFB3
+ 1993 0014 34000000 		.4byte	.LFE3-.LFB3
+ 1994 0018 00000000 		.4byte	.LFB5
+ 1995 001c 28000000 		.4byte	.LFE5-.LFB5
+ 1996 0020 00000000 		.4byte	.LFB6
+ 1997 0024 02000000 		.4byte	.LFE6-.LFB6
+ 1998 0028 00000000 		.4byte	.LFB7
+ 1999 002c 02000000 		.4byte	.LFE7-.LFB7
+ 2000 0030 00000000 		.4byte	.LFB8
+ 2001 0034 02000000 		.4byte	.LFE8-.LFB8
+ 2002 0038 00000000 		.4byte	.LFB9
+ 2003 003c 02000000 		.4byte	.LFE9-.LFB9
+ 2004 0040 00000000 		.4byte	.LFB10
+ 2005 0044 0C000000 		.4byte	.LFE10-.LFB10
+ 2006 0048 00000000 		.4byte	.LFB11
+ 2007 004c 0C000000 		.4byte	.LFE11-.LFB11
+ 2008 0050 00000000 		.4byte	.LFB12
+ 2009 0054 0C000000 		.4byte	.LFE12-.LFB12
+ 2010 0058 00000000 		.4byte	.LFB13
+ 2011 005c 0C000000 		.4byte	.LFE13-.LFB13
+ 2012 0060 00000000 		.4byte	.LFB14
+ 2013 0064 18000000 		.4byte	.LFE14-.LFB14
+ 2014 0068 00000000 		.4byte	.LFB15
+ 2015 006c 0C000000 		.4byte	.LFE15-.LFB15
+ 2016 0070 00000000 		.4byte	.LFB16
+ 2017 0074 10000000 		.4byte	.LFE16-.LFB16
+ 2018 0078 00000000 		.4byte	.LFB17
+ 2019 007c 1C000000 		.4byte	.LFE17-.LFB17
+ 2020 0080 00000000 		.4byte	.LFB18
+ 2021 0084 18000000 		.4byte	.LFE18-.LFB18
+ 2022 0088 00000000 		.4byte	.LFB19
+ 2023 008c 20000000 		.4byte	.LFE19-.LFB19
+ 2024 0090 00000000 		.4byte	.LFB20
+ 2025 0094 16000000 		.4byte	.LFE20-.LFB20
+ 2026 0098 00000000 		.4byte	.LFB21
+ 2027 009c 38000000 		.4byte	.LFE21-.LFB21
+ 2028 00a0 00000000 		.4byte	.LFB2
+ 2029 00a4 34000000 		.4byte	.LFE2-.LFB2
+ 2030 00a8 00000000 		.4byte	.LFB4
+ 2031 00ac 1C000000 		.4byte	.LFE4-.LFB4
+ 2032 00b0 00000000 		.4byte	.LFB22
+ 2033 00b4 02000000 		.4byte	.LFE22-.LFB22
+ 2034 00b8 00000000 		.4byte	.LFB23
+ 2035 00bc 02000000 		.4byte	.LFE23-.LFB23
+ 2036 00c0 00000000 		.4byte	.LFB24
+ 2037 00c4 18000000 		.4byte	.LFE24-.LFB24
+ 2038 00c8 00000000 		.4byte	.LFB25
+ 2039 00cc 18000000 		.4byte	.LFE25-.LFB25
+ 2040 00d0 00000000 		.4byte	0
+ 2041 00d4 00000000 		.4byte	0
+ 2042              		.section	.debug_ranges,"",%progbits
+ 2043              	.Ldebug_ranges0:
+ 2044 0000 0C000000 		.4byte	.LBB22
+ 2045 0004 0E000000 		.4byte	.LBE22
+ 2046 0008 10000000 		.4byte	.LBB25
+ 2047 000c 12000000 		.4byte	.LBE25
+ 2048 0010 00000000 		.4byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 58
+
+
+ 2049 0014 00000000 		.4byte	0
+ 2050 0018 00000000 		.4byte	.LFB3
+ 2051 001c 34000000 		.4byte	.LFE3
+ 2052 0020 00000000 		.4byte	.LFB5
+ 2053 0024 28000000 		.4byte	.LFE5
+ 2054 0028 00000000 		.4byte	.LFB6
+ 2055 002c 02000000 		.4byte	.LFE6
+ 2056 0030 00000000 		.4byte	.LFB7
+ 2057 0034 02000000 		.4byte	.LFE7
+ 2058 0038 00000000 		.4byte	.LFB8
+ 2059 003c 02000000 		.4byte	.LFE8
+ 2060 0040 00000000 		.4byte	.LFB9
+ 2061 0044 02000000 		.4byte	.LFE9
+ 2062 0048 00000000 		.4byte	.LFB10
+ 2063 004c 0C000000 		.4byte	.LFE10
+ 2064 0050 00000000 		.4byte	.LFB11
+ 2065 0054 0C000000 		.4byte	.LFE11
+ 2066 0058 00000000 		.4byte	.LFB12
+ 2067 005c 0C000000 		.4byte	.LFE12
+ 2068 0060 00000000 		.4byte	.LFB13
+ 2069 0064 0C000000 		.4byte	.LFE13
+ 2070 0068 00000000 		.4byte	.LFB14
+ 2071 006c 18000000 		.4byte	.LFE14
+ 2072 0070 00000000 		.4byte	.LFB15
+ 2073 0074 0C000000 		.4byte	.LFE15
+ 2074 0078 00000000 		.4byte	.LFB16
+ 2075 007c 10000000 		.4byte	.LFE16
+ 2076 0080 00000000 		.4byte	.LFB17
+ 2077 0084 1C000000 		.4byte	.LFE17
+ 2078 0088 00000000 		.4byte	.LFB18
+ 2079 008c 18000000 		.4byte	.LFE18
+ 2080 0090 00000000 		.4byte	.LFB19
+ 2081 0094 20000000 		.4byte	.LFE19
+ 2082 0098 00000000 		.4byte	.LFB20
+ 2083 009c 16000000 		.4byte	.LFE20
+ 2084 00a0 00000000 		.4byte	.LFB21
+ 2085 00a4 38000000 		.4byte	.LFE21
+ 2086 00a8 00000000 		.4byte	.LFB2
+ 2087 00ac 34000000 		.4byte	.LFE2
+ 2088 00b0 00000000 		.4byte	.LFB4
+ 2089 00b4 1C000000 		.4byte	.LFE4
+ 2090 00b8 00000000 		.4byte	.LFB22
+ 2091 00bc 02000000 		.4byte	.LFE22
+ 2092 00c0 00000000 		.4byte	.LFB23
+ 2093 00c4 02000000 		.4byte	.LFE23
+ 2094 00c8 00000000 		.4byte	.LFB24
+ 2095 00cc 18000000 		.4byte	.LFE24
+ 2096 00d0 00000000 		.4byte	.LFB25
+ 2097 00d4 18000000 		.4byte	.LFE25
+ 2098 00d8 00000000 		.4byte	0
+ 2099 00dc 00000000 		.4byte	0
+ 2100              		.section	.debug_line,"",%progbits
+ 2101              	.Ldebug_line0:
+ 2102 0000 7D020000 		.section	.debug_str,"MS",%progbits,1
+ 2102      02004C00 
+ 2102      00000201 
+ 2102      FB0E0D00 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 59
+
+
+ 2102      01010101 
+ 2103              	.LASF28:
+ 2104 0000 5350494D 		.ascii	"SPIM_WriteTxData\000"
+ 2104      5F577269 
+ 2104      74655478 
+ 2104      44617461 
+ 2104      00
+ 2105              	.LASF51:
+ 2106 0011 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 2106      4320342E 
+ 2106      392E3320 
+ 2106      32303135 
+ 2106      30333033 
+ 2107 0044 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 2107      20726576 
+ 2107      6973696F 
+ 2107      6E203232 
+ 2107      31323230 
+ 2108 0077 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 2108      66756E63 
+ 2108      74696F6E 
+ 2108      2D736563 
+ 2108      74696F6E 
+ 2109              	.LASF22:
+ 2110 009f 5350494D 		.ascii	"SPIM_Enable\000"
+ 2110      5F456E61 
+ 2110      626C6500 
+ 2111              	.LASF23:
+ 2112 00ab 5350494D 		.ascii	"SPIM_Stop\000"
+ 2112      5F53746F 
+ 2112      7000
+ 2113              	.LASF29:
+ 2114 00b5 74784461 		.ascii	"txData\000"
+ 2114      746100
+ 2115              	.LASF3:
+ 2116 00bc 73686F72 		.ascii	"short unsigned int\000"
+ 2116      7420756E 
+ 2116      7369676E 
+ 2116      65642069 
+ 2116      6E7400
+ 2117              	.LASF11:
+ 2118 00cf 63686172 		.ascii	"char\000"
+ 2118      00
+ 2119              	.LASF46:
+ 2120 00d4 5350494D 		.ascii	"SPIM_SetInterruptMode\000"
+ 2120      5F536574 
+ 2120      496E7465 
+ 2120      72727570 
+ 2120      744D6F64 
+ 2121              	.LASF26:
+ 2122 00ea 5350494D 		.ascii	"SPIM_SetRxInterruptMode\000"
+ 2122      5F536574 
+ 2122      5278496E 
+ 2122      74657272 
+ 2122      7570744D 
+ 2123              	.LASF48:
+ 2124 0102 5350494D 		.ascii	"SPIM_initVar\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 60
+
+
+ 2124      5F696E69 
+ 2124      74566172 
+ 2124      00
+ 2125              	.LASF30:
+ 2126 010f 72784461 		.ascii	"rxData\000"
+ 2126      746100
+ 2127              	.LASF45:
+ 2128 0116 5350494D 		.ascii	"SPIM_DisableInt\000"
+ 2128      5F446973 
+ 2128      61626C65 
+ 2128      496E7400 
+ 2129              	.LASF52:
+ 2130 0126 47656E65 		.ascii	"Generated_Source\\PSoC4\\SPIM.c\000"
+ 2130      72617465 
+ 2130      645F536F 
+ 2130      75726365 
+ 2130      5C50536F 
+ 2131              	.LASF9:
+ 2132 0144 666C6F61 		.ascii	"float\000"
+ 2132      7400
+ 2133              	.LASF7:
+ 2134 014a 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2134      206C6F6E 
+ 2134      6720756E 
+ 2134      7369676E 
+ 2134      65642069 
+ 2135              	.LASF33:
+ 2136 0161 73697A65 		.ascii	"size\000"
+ 2136      00
+ 2137              	.LASF34:
+ 2138 0166 5350494D 		.ascii	"SPIM_GetTxBufferSize\000"
+ 2138      5F476574 
+ 2138      54784275 
+ 2138      66666572 
+ 2138      53697A65 
+ 2139              	.LASF13:
+ 2140 017b 72656738 		.ascii	"reg8\000"
+ 2140      00
+ 2141              	.LASF15:
+ 2142 0180 5350494D 		.ascii	"SPIM_EnableTxInt\000"
+ 2142      5F456E61 
+ 2142      626C6554 
+ 2142      78496E74 
+ 2142      00
+ 2143              	.LASF5:
+ 2144 0191 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2144      20756E73 
+ 2144      69676E65 
+ 2144      6420696E 
+ 2144      7400
+ 2145              	.LASF12:
+ 2146 01a3 75696E74 		.ascii	"uint8\000"
+ 2146      3800
+ 2147              	.LASF36:
+ 2148 01a9 5350494D 		.ascii	"SPIM_PutArray\000"
+ 2148      5F507574 
+ 2148      41727261 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 61
+
+
+ 2148      7900
+ 2149              	.LASF24:
+ 2150 01b7 656E6162 		.ascii	"enableInterrupts\000"
+ 2150      6C65496E 
+ 2150      74657272 
+ 2150      75707473 
+ 2150      00
+ 2151              	.LASF31:
+ 2152 01c8 5350494D 		.ascii	"SPIM_ReadRxData\000"
+ 2152      5F526561 
+ 2152      64527844 
+ 2152      61746100 
+ 2153              	.LASF1:
+ 2154 01d8 756E7369 		.ascii	"unsigned char\000"
+ 2154      676E6564 
+ 2154      20636861 
+ 2154      7200
+ 2155              	.LASF17:
+ 2156 01e6 5350494D 		.ascii	"SPIM_DisableTxInt\000"
+ 2156      5F446973 
+ 2156      61626C65 
+ 2156      5478496E 
+ 2156      7400
+ 2157              	.LASF10:
+ 2158 01f8 646F7562 		.ascii	"double\000"
+ 2158      6C6500
+ 2159              	.LASF27:
+ 2160 01ff 696E7453 		.ascii	"intSrc\000"
+ 2160      726300
+ 2161              	.LASF50:
+ 2162 0206 5350494D 		.ascii	"SPIM_swStatusRx\000"
+ 2162      5F737753 
+ 2162      74617475 
+ 2162      73527800 
+ 2163              	.LASF32:
+ 2164 0216 5350494D 		.ascii	"SPIM_GetRxBufferSize\000"
+ 2164      5F476574 
+ 2164      52784275 
+ 2164      66666572 
+ 2164      53697A65 
+ 2165              	.LASF25:
+ 2166 022b 5350494D 		.ascii	"SPIM_SetTxInterruptMode\000"
+ 2166      5F536574 
+ 2166      5478496E 
+ 2166      74657272 
+ 2166      7570744D 
+ 2167              	.LASF53:
+ 2168 0243 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 2168      79707265 
+ 2168      73735C73 
+ 2168      79737465 
+ 2168      6D2D7374 
+ 2169 0271 6973685C 		.ascii	"ish\\sandbox\\v8_new_dispay\\fin_v0.cydsn\000"
+ 2169      73616E64 
+ 2169      626F785C 
+ 2169      76385F6E 
+ 2169      65775F64 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 62
+
+
+ 2170              	.LASF54:
+ 2171 0298 4379456E 		.ascii	"CyEnterCriticalSection\000"
+ 2171      74657243 
+ 2171      72697469 
+ 2171      63616C53 
+ 2171      65637469 
+ 2172              	.LASF8:
+ 2173 02af 756E7369 		.ascii	"unsigned int\000"
+ 2173      676E6564 
+ 2173      20696E74 
+ 2173      00
+ 2174              	.LASF55:
+ 2175 02bc 43794578 		.ascii	"CyExitCriticalSection\000"
+ 2175      69744372 
+ 2175      69746963 
+ 2175      616C5365 
+ 2175      6374696F 
+ 2176              	.LASF38:
+ 2177 02d2 62797465 		.ascii	"byteCount\000"
+ 2177      436F756E 
+ 2177      7400
+ 2178              	.LASF20:
+ 2179 02dc 5350494D 		.ascii	"SPIM_ReadRxStatus\000"
+ 2179      5F526561 
+ 2179      64527853 
+ 2179      74617475 
+ 2179      7300
+ 2180              	.LASF39:
+ 2181 02ee 62756649 		.ascii	"bufIndex\000"
+ 2181      6E646578 
+ 2181      00
+ 2182              	.LASF44:
+ 2183 02f7 5350494D 		.ascii	"SPIM_EnableInt\000"
+ 2183      5F456E61 
+ 2183      626C6549 
+ 2183      6E7400
+ 2184              	.LASF14:
+ 2185 0306 73697A65 		.ascii	"sizetype\000"
+ 2185      74797065 
+ 2185      00
+ 2186              	.LASF6:
+ 2187 030f 6C6F6E67 		.ascii	"long long int\000"
+ 2187      206C6F6E 
+ 2187      6720696E 
+ 2187      7400
+ 2188              	.LASF41:
+ 2189 031d 5350494D 		.ascii	"SPIM_Init\000"
+ 2189      5F496E69 
+ 2189      7400
+ 2190              	.LASF40:
+ 2191 0327 5350494D 		.ascii	"SPIM_ClearFIFO\000"
+ 2191      5F436C65 
+ 2191      61724649 
+ 2191      464F00
+ 2192              	.LASF43:
+ 2193 0336 5350494D 		.ascii	"SPIM_ClearRxBuffer\000"
+ 2193      5F436C65 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 63
+
+
+ 2193      61725278 
+ 2193      42756666 
+ 2193      657200
+ 2194              	.LASF2:
+ 2195 0349 73686F72 		.ascii	"short int\000"
+ 2195      7420696E 
+ 2195      7400
+ 2196              	.LASF35:
+ 2197 0353 5350494D 		.ascii	"SPIM_ClearTxBuffer\000"
+ 2197      5F436C65 
+ 2197      61725478 
+ 2197      42756666 
+ 2197      657200
+ 2198              	.LASF37:
+ 2199 0366 62756666 		.ascii	"buffer\000"
+ 2199      657200
+ 2200              	.LASF47:
+ 2201 036d 5350494D 		.ascii	"SPIM_ReadStatus\000"
+ 2201      5F526561 
+ 2201      64537461 
+ 2201      74757300 
+ 2202              	.LASF49:
+ 2203 037d 5350494D 		.ascii	"SPIM_swStatusTx\000"
+ 2203      5F737753 
+ 2203      74617475 
+ 2203      73547800 
+ 2204              	.LASF16:
+ 2205 038d 5350494D 		.ascii	"SPIM_EnableRxInt\000"
+ 2205      5F456E61 
+ 2205      626C6552 
+ 2205      78496E74 
+ 2205      00
+ 2206              	.LASF4:
+ 2207 039e 6C6F6E67 		.ascii	"long int\000"
+ 2207      20696E74 
+ 2207      00
+ 2208              	.LASF21:
+ 2209 03a7 746D7053 		.ascii	"tmpStatus\000"
+ 2209      74617475 
+ 2209      7300
+ 2210              	.LASF0:
+ 2211 03b1 7369676E 		.ascii	"signed char\000"
+ 2211      65642063 
+ 2211      68617200 
+ 2212              	.LASF42:
+ 2213 03bd 5350494D 		.ascii	"SPIM_Start\000"
+ 2213      5F537461 
+ 2213      727400
+ 2214              	.LASF19:
+ 2215 03c8 5350494D 		.ascii	"SPIM_ReadTxStatus\000"
+ 2215      5F526561 
+ 2215      64547853 
+ 2215      74617475 
+ 2215      7300
+ 2216              	.LASF18:
+ 2217 03da 5350494D 		.ascii	"SPIM_DisableRxInt\000"
+ 2217      5F446973 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccN6Uqh8.s 			page 64
+
+
+ 2217      61626C65 
+ 2217      5278496E 
+ 2217      7400
+ 2218              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

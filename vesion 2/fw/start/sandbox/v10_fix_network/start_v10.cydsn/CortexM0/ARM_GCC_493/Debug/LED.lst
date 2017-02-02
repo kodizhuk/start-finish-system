@@ -1,0 +1,870 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"LED.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	LED_InitValue,1,1
+  18              		.section	.text.LedInit,"ax",%progbits
+  19              		.align	2
+  20              		.global	LedInit
+  21              		.code	16
+  22              		.thumb_func
+  23              		.type	LedInit, %function
+  24              	LedInit:
+  25              	.LFB2:
+  26              		.file 1 "lib_LED\\LED.c"
+   1:lib_LED/LED.c **** /* ========================================
+   2:lib_LED/LED.c ****  *
+   3:lib_LED/LED.c ****  * Copyright YOUR COMPANY, THE YEAR
+   4:lib_LED/LED.c ****  * All Rights Reserved
+   5:lib_LED/LED.c ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:lib_LED/LED.c ****  *
+   7:lib_LED/LED.c ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:lib_LED/LED.c ****  * WHICH IS THE PROPERTY OF your company.
+   9:lib_LED/LED.c ****  *
+  10:lib_LED/LED.c ****  * ========================================
+  11:lib_LED/LED.c **** */
+  12:lib_LED/LED.c **** #include "LED.h"
+  13:lib_LED/LED.c **** #include <Timer_LED.h>
+  14:lib_LED/LED.c **** #include <LED_RED_PIN.h>
+  15:lib_LED/LED.c **** #include <LED_GREEN_PIN.h>
+  16:lib_LED/LED.c **** #include <Int_Timer_Led.h>
+  17:lib_LED/LED.c **** 
+  18:lib_LED/LED.c **** // Max pulses in 16-Bit Resolution
+  19:lib_LED/LED.c **** #define MAX_TICKS_16BIT                      (65535)
+  20:lib_LED/LED.c **** 
+  21:lib_LED/LED.c **** // Frequency Timer for Led in Hz. 
+  22:lib_LED/LED.c **** #define FREQ_TIMER_LED                       (1000u)
+  23:lib_LED/LED.c **** 
+  24:lib_LED/LED.c **** /*******************************************
+  25:lib_LED/LED.c ****     Change Frequency value to count pulses
+  26:lib_LED/LED.c ****     Macros which value count pulses
+  27:lib_LED/LED.c ****     Arguments
+  28:lib_LED/LED.c ****                 Freq: Frequency with which want 
+  29:lib_LED/LED.c ****                     light LED indicator
+  30:lib_LED/LED.c ****     Macro
+  31:lib_LED/LED.c ****                 FREQ_TIMER_LED : 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 2
+
+
+  32:lib_LED/LED.c ****                     Input Clock Timer_LED Frequency
+  33:lib_LED/LED.c ****     Result 
+  34:lib_LED/LED.c ****                 Count pulses which need 
+  35:lib_LED/LED.c ****                     upload as Period in Timer
+  36:lib_LED/LED.c ****                 
+  37:lib_LED/LED.c ****                 Diving 2 because One Period have Low 
+  38:lib_LED/LED.c ****                     and Hidh Levels
+  39:lib_LED/LED.c ****     
+  40:lib_LED/LED.c **** *******************************************/
+  41:lib_LED/LED.c **** 
+  42:lib_LED/LED.c **** #define FreqToTicks(Freq)        FREQ_TIMER_LED/(2*Freq)  
+  43:lib_LED/LED.c **** CY_ISR_PROTO(LedHandler); /* Interrupt Timer */
+  44:lib_LED/LED.c **** 
+  45:lib_LED/LED.c **** uint8_t LED_InitValue;
+  46:lib_LED/LED.c **** 
+  47:lib_LED/LED.c **** 
+  48:lib_LED/LED.c **** /*
+  49:lib_LED/LED.c ****     Initialization timer and add interrupt to him 
+  50:lib_LED/LED.c **** */
+  51:lib_LED/LED.c **** void LedInit(void)
+  52:lib_LED/LED.c **** {
+  27              		.loc 1 52 0
+  28              		.cfi_startproc
+  29 0000 80B5     		push	{r7, lr}
+  30              		.cfi_def_cfa_offset 8
+  31              		.cfi_offset 7, -8
+  32              		.cfi_offset 14, -4
+  33 0002 00AF     		add	r7, sp, #0
+  34              		.cfi_def_cfa_register 7
+  53:lib_LED/LED.c ****     Timer_LED_Init();
+  35              		.loc 1 53 0
+  36 0004 FFF7FEFF 		bl	Timer_LED_Init
+  54:lib_LED/LED.c ****     if (!LED_InitValue)
+  37              		.loc 1 54 0
+  38 0008 064B     		ldr	r3, .L3
+  39 000a 1B78     		ldrb	r3, [r3]
+  40 000c 002B     		cmp	r3, #0
+  41 000e 03D1     		bne	.L2
+  55:lib_LED/LED.c ****     {
+  56:lib_LED/LED.c ****         Int_Timer_Led_StartEx(LedHandler);
+  42              		.loc 1 56 0
+  43 0010 054B     		ldr	r3, .L3+4
+  44 0012 181C     		mov	r0, r3
+  45 0014 FFF7FEFF 		bl	Int_Timer_Led_StartEx
+  46              	.L2:
+  57:lib_LED/LED.c ****     }
+  58:lib_LED/LED.c ****     LED_InitValue = 1;
+  47              		.loc 1 58 0
+  48 0018 024B     		ldr	r3, .L3
+  49 001a 0122     		mov	r2, #1
+  50 001c 1A70     		strb	r2, [r3]
+  59:lib_LED/LED.c **** }
+  51              		.loc 1 59 0
+  52 001e BD46     		mov	sp, r7
+  53              		@ sp needed
+  54 0020 80BD     		pop	{r7, pc}
+  55              	.L4:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 3
+
+
+  56 0022 C046     		.align	2
+  57              	.L3:
+  58 0024 00000000 		.word	LED_InitValue
+  59 0028 00000000 		.word	LedHandler
+  60              		.cfi_endproc
+  61              	.LFE2:
+  62              		.size	LedInit, .-LedInit
+  63              		.section	.text.LedHandler,"ax",%progbits
+  64              		.align	2
+  65              		.global	LedHandler
+  66              		.code	16
+  67              		.thumb_func
+  68              		.type	LedHandler, %function
+  69              	LedHandler:
+  70              	.LFB3:
+  60:lib_LED/LED.c **** 
+  61:lib_LED/LED.c **** /*
+  62:lib_LED/LED.c ****     Interrupt handler after lefting time one period light
+  63:lib_LED/LED.c **** */
+  64:lib_LED/LED.c **** CY_ISR(LedHandler)
+  65:lib_LED/LED.c **** {
+  71              		.loc 1 65 0
+  72              		.cfi_startproc
+  73 0000 80B5     		push	{r7, lr}
+  74              		.cfi_def_cfa_offset 8
+  75              		.cfi_offset 7, -8
+  76              		.cfi_offset 14, -4
+  77 0002 00AF     		add	r7, sp, #0
+  78              		.cfi_def_cfa_register 7
+  66:lib_LED/LED.c ****     LED_RED_PIN_Write(~LED_RED_PIN_Read());
+  79              		.loc 1 66 0
+  80 0004 FFF7FEFF 		bl	LED_RED_PIN_Read
+  81 0008 031C     		mov	r3, r0
+  82 000a DB43     		mvn	r3, r3
+  83 000c DBB2     		uxtb	r3, r3
+  84 000e 181C     		mov	r0, r3
+  85 0010 FFF7FEFF 		bl	LED_RED_PIN_Write
+  67:lib_LED/LED.c ****     Timer_LED_ClearInterrupt(Timer_LED_INTR_MASK_CC_MATCH);
+  86              		.loc 1 67 0
+  87 0014 0220     		mov	r0, #2
+  88 0016 FFF7FEFF 		bl	Timer_LED_ClearInterrupt
+  68:lib_LED/LED.c **** }
+  89              		.loc 1 68 0
+  90 001a BD46     		mov	sp, r7
+  91              		@ sp needed
+  92 001c 80BD     		pop	{r7, pc}
+  93              		.cfi_endproc
+  94              	.LFE3:
+  95              		.size	LedHandler, .-LedHandler
+  96              		.global	__aeabi_uidiv
+  97 001e C046     		.section	.text.LedRedBlink,"ax",%progbits
+  98              		.align	2
+  99              		.global	LedRedBlink
+ 100              		.code	16
+ 101              		.thumb_func
+ 102              		.type	LedRedBlink, %function
+ 103              	LedRedBlink:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 4
+
+
+ 104              	.LFB4:
+  69:lib_LED/LED.c **** 
+  70:lib_LED/LED.c **** /* 
+  71:lib_LED/LED.c ****     Blinking Led with Frequency
+  72:lib_LED/LED.c ****     Arguments: 
+  73:lib_LED/LED.c ****         uint16_t Frequency: 
+  74:lib_LED/LED.c ****         Frequency with which LED will blinking
+  75:lib_LED/LED.c ****         Value in Hz
+  76:lib_LED/LED.c **** */
+  77:lib_LED/LED.c **** void LedRedBlink(uint16_t Frequency)
+  78:lib_LED/LED.c **** {
+ 105              		.loc 1 78 0
+ 106              		.cfi_startproc
+ 107 0000 80B5     		push	{r7, lr}
+ 108              		.cfi_def_cfa_offset 8
+ 109              		.cfi_offset 7, -8
+ 110              		.cfi_offset 14, -4
+ 111 0002 84B0     		sub	sp, sp, #16
+ 112              		.cfi_def_cfa_offset 24
+ 113 0004 00AF     		add	r7, sp, #0
+ 114              		.cfi_def_cfa_register 7
+ 115 0006 021C     		mov	r2, r0
+ 116 0008 BB1D     		add	r3, r7, #6
+ 117 000a 1A80     		strh	r2, [r3]
+  79:lib_LED/LED.c ****     uint32_t time_l;
+  80:lib_LED/LED.c ****     time_l = FreqToTicks(Frequency);
+ 118              		.loc 1 80 0
+ 119 000c BB1D     		add	r3, r7, #6
+ 120 000e 1B88     		ldrh	r3, [r3]
+ 121 0010 5B00     		lsl	r3, r3, #1
+ 122 0012 1A1C     		mov	r2, r3
+ 123 0014 FA23     		mov	r3, #250
+ 124 0016 9800     		lsl	r0, r3, #2
+ 125 0018 111C     		mov	r1, r2
+ 126 001a FFF7FEFF 		bl	__aeabi_uidiv
+ 127 001e 031C     		mov	r3, r0
+ 128 0020 FB60     		str	r3, [r7, #12]
+  81:lib_LED/LED.c ****     Timer_LED_WritePeriod(time_l);
+ 129              		.loc 1 81 0
+ 130 0022 FB68     		ldr	r3, [r7, #12]
+ 131 0024 181C     		mov	r0, r3
+ 132 0026 FFF7FEFF 		bl	Timer_LED_WritePeriod
+  82:lib_LED/LED.c ****     Timer_LED_Enable();
+ 133              		.loc 1 82 0
+ 134 002a FFF7FEFF 		bl	Timer_LED_Enable
+  83:lib_LED/LED.c **** }
+ 135              		.loc 1 83 0
+ 136 002e BD46     		mov	sp, r7
+ 137 0030 04B0     		add	sp, sp, #16
+ 138              		@ sp needed
+ 139 0032 80BD     		pop	{r7, pc}
+ 140              		.cfi_endproc
+ 141              	.LFE4:
+ 142              		.size	LedRedBlink, .-LedRedBlink
+ 143              		.section	.text.SetLedsState,"ax",%progbits
+ 144              		.align	2
+ 145              		.global	SetLedsState
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 5
+
+
+ 146              		.code	16
+ 147              		.thumb_func
+ 148              		.type	SetLedsState, %function
+ 149              	SetLedsState:
+ 150              	.LFB5:
+  84:lib_LED/LED.c **** 
+  85:lib_LED/LED.c **** /* 
+  86:lib_LED/LED.c ****     Set static state LED indicator
+  87:lib_LED/LED.c ****     Arguments: 
+  88:lib_LED/LED.c ****         uint8_t State: 
+  89:lib_LED/LED.c ****         High or low state.
+  90:lib_LED/LED.c ****         High - ENABLE (1u), Low - Disable(0u)
+  91:lib_LED/LED.c **** */
+  92:lib_LED/LED.c **** void SetLedsState(uint8_t stateRed, uint8_t stateGreen)
+  93:lib_LED/LED.c **** {
+ 151              		.loc 1 93 0
+ 152              		.cfi_startproc
+ 153 0000 80B5     		push	{r7, lr}
+ 154              		.cfi_def_cfa_offset 8
+ 155              		.cfi_offset 7, -8
+ 156              		.cfi_offset 14, -4
+ 157 0002 82B0     		sub	sp, sp, #8
+ 158              		.cfi_def_cfa_offset 16
+ 159 0004 00AF     		add	r7, sp, #0
+ 160              		.cfi_def_cfa_register 7
+ 161 0006 021C     		mov	r2, r0
+ 162 0008 FB1D     		add	r3, r7, #7
+ 163 000a 1A70     		strb	r2, [r3]
+ 164 000c BB1D     		add	r3, r7, #6
+ 165 000e 0A1C     		add	r2, r1, #0
+ 166 0010 1A70     		strb	r2, [r3]
+  94:lib_LED/LED.c ****     Timer_LED_Stop();
+ 167              		.loc 1 94 0
+ 168 0012 FFF7FEFF 		bl	Timer_LED_Stop
+  95:lib_LED/LED.c ****     LED_RED_PIN_Write(stateRed);
+ 169              		.loc 1 95 0
+ 170 0016 FB1D     		add	r3, r7, #7
+ 171 0018 1B78     		ldrb	r3, [r3]
+ 172 001a 181C     		mov	r0, r3
+ 173 001c FFF7FEFF 		bl	LED_RED_PIN_Write
+  96:lib_LED/LED.c ****     LED_GREEN_PIN_Write(stateGreen);
+ 174              		.loc 1 96 0
+ 175 0020 BB1D     		add	r3, r7, #6
+ 176 0022 1B78     		ldrb	r3, [r3]
+ 177 0024 181C     		mov	r0, r3
+ 178 0026 FFF7FEFF 		bl	LED_GREEN_PIN_Write
+  97:lib_LED/LED.c **** }
+ 179              		.loc 1 97 0
+ 180 002a BD46     		mov	sp, r7
+ 181 002c 02B0     		add	sp, sp, #8
+ 182              		@ sp needed
+ 183 002e 80BD     		pop	{r7, pc}
+ 184              		.cfi_endproc
+ 185              	.LFE5:
+ 186              		.size	SetLedsState, .-SetLedsState
+ 187              		.text
+ 188              	.Letext0:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 6
+
+
+ 189              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 190              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 191              		.file 4 "Generated_Source\\PSoC4/cytypes.h"
+ 192              		.section	.debug_info,"",%progbits
+ 193              	.Ldebug_info0:
+ 194 0000 69010000 		.4byte	0x169
+ 195 0004 0400     		.2byte	0x4
+ 196 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 197 000a 04       		.byte	0x4
+ 198 000b 01       		.uleb128 0x1
+ 199 000c 9E000000 		.4byte	.LASF27
+ 200 0010 01       		.byte	0x1
+ 201 0011 49000000 		.4byte	.LASF28
+ 202 0015 A6010000 		.4byte	.LASF29
+ 203 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 204 001d 00000000 		.4byte	0
+ 205 0021 00000000 		.4byte	.Ldebug_line0
+ 206 0025 02       		.uleb128 0x2
+ 207 0026 01       		.byte	0x1
+ 208 0027 06       		.byte	0x6
+ 209 0028 28020000 		.4byte	.LASF0
+ 210 002c 03       		.uleb128 0x3
+ 211 002d 00000000 		.4byte	.LASF3
+ 212 0031 02       		.byte	0x2
+ 213 0032 1D       		.byte	0x1d
+ 214 0033 37000000 		.4byte	0x37
+ 215 0037 02       		.uleb128 0x2
+ 216 0038 01       		.byte	0x1
+ 217 0039 08       		.byte	0x8
+ 218 003a 22000000 		.4byte	.LASF1
+ 219 003e 02       		.uleb128 0x2
+ 220 003f 02       		.byte	0x2
+ 221 0040 05       		.byte	0x5
+ 222 0041 88010000 		.4byte	.LASF2
+ 223 0045 03       		.uleb128 0x3
+ 224 0046 81000000 		.4byte	.LASF4
+ 225 004a 02       		.byte	0x2
+ 226 004b 2B       		.byte	0x2b
+ 227 004c 50000000 		.4byte	0x50
+ 228 0050 02       		.uleb128 0x2
+ 229 0051 02       		.byte	0x2
+ 230 0052 07       		.byte	0x7
+ 231 0053 57000000 		.4byte	.LASF5
+ 232 0057 02       		.uleb128 0x2
+ 233 0058 04       		.byte	0x4
+ 234 0059 05       		.byte	0x5
+ 235 005a 0A020000 		.4byte	.LASF6
+ 236 005e 03       		.uleb128 0x3
+ 237 005f 93000000 		.4byte	.LASF7
+ 238 0063 02       		.byte	0x2
+ 239 0064 41       		.byte	0x41
+ 240 0065 69000000 		.4byte	0x69
+ 241 0069 02       		.uleb128 0x2
+ 242 006a 04       		.byte	0x4
+ 243 006b 07       		.byte	0x7
+ 244 006c 37000000 		.4byte	.LASF8
+ 245 0070 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 7
+
+
+ 246 0071 08       		.byte	0x8
+ 247 0072 05       		.byte	0x5
+ 248 0073 68010000 		.4byte	.LASF9
+ 249 0077 02       		.uleb128 0x2
+ 250 0078 08       		.byte	0x8
+ 251 0079 07       		.byte	0x7
+ 252 007a 40010000 		.4byte	.LASF10
+ 253 007e 04       		.uleb128 0x4
+ 254 007f 04       		.byte	0x4
+ 255 0080 05       		.byte	0x5
+ 256 0081 696E7400 		.ascii	"int\000"
+ 257 0085 02       		.uleb128 0x2
+ 258 0086 04       		.byte	0x4
+ 259 0087 07       		.byte	0x7
+ 260 0088 33010000 		.4byte	.LASF11
+ 261 008c 03       		.uleb128 0x3
+ 262 008d 57010000 		.4byte	.LASF12
+ 263 0091 03       		.byte	0x3
+ 264 0092 15       		.byte	0x15
+ 265 0093 2C000000 		.4byte	0x2c
+ 266 0097 03       		.uleb128 0x3
+ 267 0098 9D010000 		.4byte	.LASF13
+ 268 009c 03       		.byte	0x3
+ 269 009d 21       		.byte	0x21
+ 270 009e 45000000 		.4byte	0x45
+ 271 00a2 03       		.uleb128 0x3
+ 272 00a3 6A000000 		.4byte	.LASF14
+ 273 00a7 03       		.byte	0x3
+ 274 00a8 2D       		.byte	0x2d
+ 275 00a9 5E000000 		.4byte	0x5e
+ 276 00ad 05       		.uleb128 0x5
+ 277 00ae 2C010000 		.4byte	.LASF15
+ 278 00b2 04       		.byte	0x4
+ 279 00b3 9A01     		.2byte	0x19a
+ 280 00b5 69000000 		.4byte	0x69
+ 281 00b9 02       		.uleb128 0x2
+ 282 00ba 04       		.byte	0x4
+ 283 00bb 04       		.byte	0x4
+ 284 00bc 12000000 		.4byte	.LASF16
+ 285 00c0 02       		.uleb128 0x2
+ 286 00c1 08       		.byte	0x8
+ 287 00c2 04       		.byte	0x4
+ 288 00c3 8C000000 		.4byte	.LASF17
+ 289 00c7 02       		.uleb128 0x2
+ 290 00c8 01       		.byte	0x1
+ 291 00c9 08       		.byte	0x8
+ 292 00ca 76010000 		.4byte	.LASF18
+ 293 00ce 02       		.uleb128 0x2
+ 294 00cf 04       		.byte	0x4
+ 295 00d0 07       		.byte	0x7
+ 296 00d1 5F010000 		.4byte	.LASF19
+ 297 00d5 06       		.uleb128 0x6
+ 298 00d6 0A000000 		.4byte	.LASF20
+ 299 00da 01       		.byte	0x1
+ 300 00db 33       		.byte	0x33
+ 301 00dc 00000000 		.4byte	.LFB2
+ 302 00e0 2C000000 		.4byte	.LFE2-.LFB2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 8
+
+
+ 303 00e4 01       		.uleb128 0x1
+ 304 00e5 9C       		.byte	0x9c
+ 305 00e6 06       		.uleb128 0x6
+ 306 00e7 92010000 		.4byte	.LASF21
+ 307 00eb 01       		.byte	0x1
+ 308 00ec 40       		.byte	0x40
+ 309 00ed 00000000 		.4byte	.LFB3
+ 310 00f1 1E000000 		.4byte	.LFE3-.LFB3
+ 311 00f5 01       		.uleb128 0x1
+ 312 00f6 9C       		.byte	0x9c
+ 313 00f7 07       		.uleb128 0x7
+ 314 00f8 13020000 		.4byte	.LASF22
+ 315 00fc 01       		.byte	0x1
+ 316 00fd 4D       		.byte	0x4d
+ 317 00fe 00000000 		.4byte	.LFB4
+ 318 0102 34000000 		.4byte	.LFE4-.LFB4
+ 319 0106 01       		.uleb128 0x1
+ 320 0107 9C       		.byte	0x9c
+ 321 0108 29010000 		.4byte	0x129
+ 322 010c 08       		.uleb128 0x8
+ 323 010d 18000000 		.4byte	.LASF24
+ 324 0111 01       		.byte	0x1
+ 325 0112 4D       		.byte	0x4d
+ 326 0113 97000000 		.4byte	0x97
+ 327 0117 02       		.uleb128 0x2
+ 328 0118 91       		.byte	0x91
+ 329 0119 6E       		.sleb128 -18
+ 330 011a 09       		.uleb128 0x9
+ 331 011b 30000000 		.4byte	.LASF30
+ 332 011f 01       		.byte	0x1
+ 333 0120 4F       		.byte	0x4f
+ 334 0121 A2000000 		.4byte	0xa2
+ 335 0125 02       		.uleb128 0x2
+ 336 0126 91       		.byte	0x91
+ 337 0127 74       		.sleb128 -12
+ 338 0128 00       		.byte	0
+ 339 0129 07       		.uleb128 0x7
+ 340 012a 7B010000 		.4byte	.LASF23
+ 341 012e 01       		.byte	0x1
+ 342 012f 5C       		.byte	0x5c
+ 343 0130 00000000 		.4byte	.LFB5
+ 344 0134 30000000 		.4byte	.LFE5-.LFB5
+ 345 0138 01       		.uleb128 0x1
+ 346 0139 9C       		.byte	0x9c
+ 347 013a 5B010000 		.4byte	0x15b
+ 348 013e 08       		.uleb128 0x8
+ 349 013f 1F020000 		.4byte	.LASF25
+ 350 0143 01       		.byte	0x1
+ 351 0144 5C       		.byte	0x5c
+ 352 0145 8C000000 		.4byte	0x8c
+ 353 0149 02       		.uleb128 0x2
+ 354 014a 91       		.byte	0x91
+ 355 014b 77       		.sleb128 -9
+ 356 014c 08       		.uleb128 0x8
+ 357 014d FF010000 		.4byte	.LASF26
+ 358 0151 01       		.byte	0x1
+ 359 0152 5C       		.byte	0x5c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 9
+
+
+ 360 0153 8C000000 		.4byte	0x8c
+ 361 0157 02       		.uleb128 0x2
+ 362 0158 91       		.byte	0x91
+ 363 0159 76       		.sleb128 -10
+ 364 015a 00       		.byte	0
+ 365 015b 0A       		.uleb128 0xa
+ 366 015c 73000000 		.4byte	.LASF31
+ 367 0160 01       		.byte	0x1
+ 368 0161 2D       		.byte	0x2d
+ 369 0162 8C000000 		.4byte	0x8c
+ 370 0166 05       		.uleb128 0x5
+ 371 0167 03       		.byte	0x3
+ 372 0168 00000000 		.4byte	LED_InitValue
+ 373 016c 00       		.byte	0
+ 374              		.section	.debug_abbrev,"",%progbits
+ 375              	.Ldebug_abbrev0:
+ 376 0000 01       		.uleb128 0x1
+ 377 0001 11       		.uleb128 0x11
+ 378 0002 01       		.byte	0x1
+ 379 0003 25       		.uleb128 0x25
+ 380 0004 0E       		.uleb128 0xe
+ 381 0005 13       		.uleb128 0x13
+ 382 0006 0B       		.uleb128 0xb
+ 383 0007 03       		.uleb128 0x3
+ 384 0008 0E       		.uleb128 0xe
+ 385 0009 1B       		.uleb128 0x1b
+ 386 000a 0E       		.uleb128 0xe
+ 387 000b 55       		.uleb128 0x55
+ 388 000c 17       		.uleb128 0x17
+ 389 000d 11       		.uleb128 0x11
+ 390 000e 01       		.uleb128 0x1
+ 391 000f 10       		.uleb128 0x10
+ 392 0010 17       		.uleb128 0x17
+ 393 0011 00       		.byte	0
+ 394 0012 00       		.byte	0
+ 395 0013 02       		.uleb128 0x2
+ 396 0014 24       		.uleb128 0x24
+ 397 0015 00       		.byte	0
+ 398 0016 0B       		.uleb128 0xb
+ 399 0017 0B       		.uleb128 0xb
+ 400 0018 3E       		.uleb128 0x3e
+ 401 0019 0B       		.uleb128 0xb
+ 402 001a 03       		.uleb128 0x3
+ 403 001b 0E       		.uleb128 0xe
+ 404 001c 00       		.byte	0
+ 405 001d 00       		.byte	0
+ 406 001e 03       		.uleb128 0x3
+ 407 001f 16       		.uleb128 0x16
+ 408 0020 00       		.byte	0
+ 409 0021 03       		.uleb128 0x3
+ 410 0022 0E       		.uleb128 0xe
+ 411 0023 3A       		.uleb128 0x3a
+ 412 0024 0B       		.uleb128 0xb
+ 413 0025 3B       		.uleb128 0x3b
+ 414 0026 0B       		.uleb128 0xb
+ 415 0027 49       		.uleb128 0x49
+ 416 0028 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 10
+
+
+ 417 0029 00       		.byte	0
+ 418 002a 00       		.byte	0
+ 419 002b 04       		.uleb128 0x4
+ 420 002c 24       		.uleb128 0x24
+ 421 002d 00       		.byte	0
+ 422 002e 0B       		.uleb128 0xb
+ 423 002f 0B       		.uleb128 0xb
+ 424 0030 3E       		.uleb128 0x3e
+ 425 0031 0B       		.uleb128 0xb
+ 426 0032 03       		.uleb128 0x3
+ 427 0033 08       		.uleb128 0x8
+ 428 0034 00       		.byte	0
+ 429 0035 00       		.byte	0
+ 430 0036 05       		.uleb128 0x5
+ 431 0037 16       		.uleb128 0x16
+ 432 0038 00       		.byte	0
+ 433 0039 03       		.uleb128 0x3
+ 434 003a 0E       		.uleb128 0xe
+ 435 003b 3A       		.uleb128 0x3a
+ 436 003c 0B       		.uleb128 0xb
+ 437 003d 3B       		.uleb128 0x3b
+ 438 003e 05       		.uleb128 0x5
+ 439 003f 49       		.uleb128 0x49
+ 440 0040 13       		.uleb128 0x13
+ 441 0041 00       		.byte	0
+ 442 0042 00       		.byte	0
+ 443 0043 06       		.uleb128 0x6
+ 444 0044 2E       		.uleb128 0x2e
+ 445 0045 00       		.byte	0
+ 446 0046 3F       		.uleb128 0x3f
+ 447 0047 19       		.uleb128 0x19
+ 448 0048 03       		.uleb128 0x3
+ 449 0049 0E       		.uleb128 0xe
+ 450 004a 3A       		.uleb128 0x3a
+ 451 004b 0B       		.uleb128 0xb
+ 452 004c 3B       		.uleb128 0x3b
+ 453 004d 0B       		.uleb128 0xb
+ 454 004e 27       		.uleb128 0x27
+ 455 004f 19       		.uleb128 0x19
+ 456 0050 11       		.uleb128 0x11
+ 457 0051 01       		.uleb128 0x1
+ 458 0052 12       		.uleb128 0x12
+ 459 0053 06       		.uleb128 0x6
+ 460 0054 40       		.uleb128 0x40
+ 461 0055 18       		.uleb128 0x18
+ 462 0056 9642     		.uleb128 0x2116
+ 463 0058 19       		.uleb128 0x19
+ 464 0059 00       		.byte	0
+ 465 005a 00       		.byte	0
+ 466 005b 07       		.uleb128 0x7
+ 467 005c 2E       		.uleb128 0x2e
+ 468 005d 01       		.byte	0x1
+ 469 005e 3F       		.uleb128 0x3f
+ 470 005f 19       		.uleb128 0x19
+ 471 0060 03       		.uleb128 0x3
+ 472 0061 0E       		.uleb128 0xe
+ 473 0062 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 11
+
+
+ 474 0063 0B       		.uleb128 0xb
+ 475 0064 3B       		.uleb128 0x3b
+ 476 0065 0B       		.uleb128 0xb
+ 477 0066 27       		.uleb128 0x27
+ 478 0067 19       		.uleb128 0x19
+ 479 0068 11       		.uleb128 0x11
+ 480 0069 01       		.uleb128 0x1
+ 481 006a 12       		.uleb128 0x12
+ 482 006b 06       		.uleb128 0x6
+ 483 006c 40       		.uleb128 0x40
+ 484 006d 18       		.uleb128 0x18
+ 485 006e 9642     		.uleb128 0x2116
+ 486 0070 19       		.uleb128 0x19
+ 487 0071 01       		.uleb128 0x1
+ 488 0072 13       		.uleb128 0x13
+ 489 0073 00       		.byte	0
+ 490 0074 00       		.byte	0
+ 491 0075 08       		.uleb128 0x8
+ 492 0076 05       		.uleb128 0x5
+ 493 0077 00       		.byte	0
+ 494 0078 03       		.uleb128 0x3
+ 495 0079 0E       		.uleb128 0xe
+ 496 007a 3A       		.uleb128 0x3a
+ 497 007b 0B       		.uleb128 0xb
+ 498 007c 3B       		.uleb128 0x3b
+ 499 007d 0B       		.uleb128 0xb
+ 500 007e 49       		.uleb128 0x49
+ 501 007f 13       		.uleb128 0x13
+ 502 0080 02       		.uleb128 0x2
+ 503 0081 18       		.uleb128 0x18
+ 504 0082 00       		.byte	0
+ 505 0083 00       		.byte	0
+ 506 0084 09       		.uleb128 0x9
+ 507 0085 34       		.uleb128 0x34
+ 508 0086 00       		.byte	0
+ 509 0087 03       		.uleb128 0x3
+ 510 0088 0E       		.uleb128 0xe
+ 511 0089 3A       		.uleb128 0x3a
+ 512 008a 0B       		.uleb128 0xb
+ 513 008b 3B       		.uleb128 0x3b
+ 514 008c 0B       		.uleb128 0xb
+ 515 008d 49       		.uleb128 0x49
+ 516 008e 13       		.uleb128 0x13
+ 517 008f 02       		.uleb128 0x2
+ 518 0090 18       		.uleb128 0x18
+ 519 0091 00       		.byte	0
+ 520 0092 00       		.byte	0
+ 521 0093 0A       		.uleb128 0xa
+ 522 0094 34       		.uleb128 0x34
+ 523 0095 00       		.byte	0
+ 524 0096 03       		.uleb128 0x3
+ 525 0097 0E       		.uleb128 0xe
+ 526 0098 3A       		.uleb128 0x3a
+ 527 0099 0B       		.uleb128 0xb
+ 528 009a 3B       		.uleb128 0x3b
+ 529 009b 0B       		.uleb128 0xb
+ 530 009c 49       		.uleb128 0x49
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 12
+
+
+ 531 009d 13       		.uleb128 0x13
+ 532 009e 3F       		.uleb128 0x3f
+ 533 009f 19       		.uleb128 0x19
+ 534 00a0 02       		.uleb128 0x2
+ 535 00a1 18       		.uleb128 0x18
+ 536 00a2 00       		.byte	0
+ 537 00a3 00       		.byte	0
+ 538 00a4 00       		.byte	0
+ 539              		.section	.debug_aranges,"",%progbits
+ 540 0000 34000000 		.4byte	0x34
+ 541 0004 0200     		.2byte	0x2
+ 542 0006 00000000 		.4byte	.Ldebug_info0
+ 543 000a 04       		.byte	0x4
+ 544 000b 00       		.byte	0
+ 545 000c 0000     		.2byte	0
+ 546 000e 0000     		.2byte	0
+ 547 0010 00000000 		.4byte	.LFB2
+ 548 0014 2C000000 		.4byte	.LFE2-.LFB2
+ 549 0018 00000000 		.4byte	.LFB3
+ 550 001c 1E000000 		.4byte	.LFE3-.LFB3
+ 551 0020 00000000 		.4byte	.LFB4
+ 552 0024 34000000 		.4byte	.LFE4-.LFB4
+ 553 0028 00000000 		.4byte	.LFB5
+ 554 002c 30000000 		.4byte	.LFE5-.LFB5
+ 555 0030 00000000 		.4byte	0
+ 556 0034 00000000 		.4byte	0
+ 557              		.section	.debug_ranges,"",%progbits
+ 558              	.Ldebug_ranges0:
+ 559 0000 00000000 		.4byte	.LFB2
+ 560 0004 2C000000 		.4byte	.LFE2
+ 561 0008 00000000 		.4byte	.LFB3
+ 562 000c 1E000000 		.4byte	.LFE3
+ 563 0010 00000000 		.4byte	.LFB4
+ 564 0014 34000000 		.4byte	.LFE4
+ 565 0018 00000000 		.4byte	.LFB5
+ 566 001c 30000000 		.4byte	.LFE5
+ 567 0020 00000000 		.4byte	0
+ 568 0024 00000000 		.4byte	0
+ 569              		.section	.debug_line,"",%progbits
+ 570              	.Ldebug_line0:
+ 571 0000 95010000 		.section	.debug_str,"MS",%progbits,1
+ 571      02004001 
+ 571      00000201 
+ 571      FB0E0D00 
+ 571      01010101 
+ 572              	.LASF3:
+ 573 0000 5F5F7569 		.ascii	"__uint8_t\000"
+ 573      6E74385F 
+ 573      7400
+ 574              	.LASF20:
+ 575 000a 4C656449 		.ascii	"LedInit\000"
+ 575      6E697400 
+ 576              	.LASF16:
+ 577 0012 666C6F61 		.ascii	"float\000"
+ 577      7400
+ 578              	.LASF24:
+ 579 0018 46726571 		.ascii	"Frequency\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 13
+
+
+ 579      75656E63 
+ 579      7900
+ 580              	.LASF1:
+ 581 0022 756E7369 		.ascii	"unsigned char\000"
+ 581      676E6564 
+ 581      20636861 
+ 581      7200
+ 582              	.LASF30:
+ 583 0030 74696D65 		.ascii	"time_l\000"
+ 583      5F6C00
+ 584              	.LASF8:
+ 585 0037 6C6F6E67 		.ascii	"long unsigned int\000"
+ 585      20756E73 
+ 585      69676E65 
+ 585      6420696E 
+ 585      7400
+ 586              	.LASF28:
+ 587 0049 6C69625F 		.ascii	"lib_LED\\LED.c\000"
+ 587      4C45445C 
+ 587      4C45442E 
+ 587      6300
+ 588              	.LASF5:
+ 589 0057 73686F72 		.ascii	"short unsigned int\000"
+ 589      7420756E 
+ 589      7369676E 
+ 589      65642069 
+ 589      6E7400
+ 590              	.LASF14:
+ 591 006a 75696E74 		.ascii	"uint32_t\000"
+ 591      33325F74 
+ 591      00
+ 592              	.LASF31:
+ 593 0073 4C45445F 		.ascii	"LED_InitValue\000"
+ 593      496E6974 
+ 593      56616C75 
+ 593      6500
+ 594              	.LASF4:
+ 595 0081 5F5F7569 		.ascii	"__uint16_t\000"
+ 595      6E743136 
+ 595      5F7400
+ 596              	.LASF17:
+ 597 008c 646F7562 		.ascii	"double\000"
+ 597      6C6500
+ 598              	.LASF7:
+ 599 0093 5F5F7569 		.ascii	"__uint32_t\000"
+ 599      6E743332 
+ 599      5F7400
+ 600              	.LASF27:
+ 601 009e 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 601      4320342E 
+ 601      392E3320 
+ 601      32303135 
+ 601      30333033 
+ 602 00d1 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 602      20726576 
+ 602      6973696F 
+ 602      6E203232 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 14
+
+
+ 602      31323230 
+ 603 0104 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 603      66756E63 
+ 603      74696F6E 
+ 603      2D736563 
+ 603      74696F6E 
+ 604              	.LASF15:
+ 605 012c 75696E74 		.ascii	"uint32\000"
+ 605      333200
+ 606              	.LASF11:
+ 607 0133 756E7369 		.ascii	"unsigned int\000"
+ 607      676E6564 
+ 607      20696E74 
+ 607      00
+ 608              	.LASF10:
+ 609 0140 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 609      206C6F6E 
+ 609      6720756E 
+ 609      7369676E 
+ 609      65642069 
+ 610              	.LASF12:
+ 611 0157 75696E74 		.ascii	"uint8_t\000"
+ 611      385F7400 
+ 612              	.LASF19:
+ 613 015f 73697A65 		.ascii	"sizetype\000"
+ 613      74797065 
+ 613      00
+ 614              	.LASF9:
+ 615 0168 6C6F6E67 		.ascii	"long long int\000"
+ 615      206C6F6E 
+ 615      6720696E 
+ 615      7400
+ 616              	.LASF18:
+ 617 0176 63686172 		.ascii	"char\000"
+ 617      00
+ 618              	.LASF23:
+ 619 017b 5365744C 		.ascii	"SetLedsState\000"
+ 619      65647353 
+ 619      74617465 
+ 619      00
+ 620              	.LASF2:
+ 621 0188 73686F72 		.ascii	"short int\000"
+ 621      7420696E 
+ 621      7400
+ 622              	.LASF21:
+ 623 0192 4C656448 		.ascii	"LedHandler\000"
+ 623      616E646C 
+ 623      657200
+ 624              	.LASF13:
+ 625 019d 75696E74 		.ascii	"uint16_t\000"
+ 625      31365F74 
+ 625      00
+ 626              	.LASF29:
+ 627 01a6 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\sta"
+ 627      79707265 
+ 627      73735C73 
+ 627      79737465 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccGYH95v.s 			page 15
+
+
+ 627      6D2D7374 
+ 628 01d4 72745C73 		.ascii	"rt\\sandbox\\v10_fix_network\\start_v10.cydsn\000"
+ 628      616E6462 
+ 628      6F785C76 
+ 628      31305F66 
+ 628      69785F6E 
+ 629              	.LASF26:
+ 630 01ff 73746174 		.ascii	"stateGreen\000"
+ 630      65477265 
+ 630      656E00
+ 631              	.LASF6:
+ 632 020a 6C6F6E67 		.ascii	"long int\000"
+ 632      20696E74 
+ 632      00
+ 633              	.LASF22:
+ 634 0213 4C656452 		.ascii	"LedRedBlink\000"
+ 634      6564426C 
+ 634      696E6B00 
+ 635              	.LASF25:
+ 636 021f 73746174 		.ascii	"stateRed\000"
+ 636      65526564 
+ 636      00
+ 637              	.LASF0:
+ 638 0228 7369676E 		.ascii	"signed char\000"
+ 638      65642063 
+ 638      68617200 
+ 639              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br
