@@ -118,6 +118,7 @@ void updateData(void)
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
         
     CyDelay(50);
+    CyBle_ProcessEvents();
         
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_START_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferStart;
@@ -127,6 +128,7 @@ void updateData(void)
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
         
     CyDelay(50);
+    CyBle_ProcessEvents();
     
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_TIME_FINISH_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferFinish;
@@ -146,6 +148,7 @@ void updateData(void)
         CyBle_GattsNotification(cyBle_connHandle,&tempHandle);
         
     CyDelay(50);
+    CyBle_ProcessEvents();
         
     tempHandle.attrHandle = CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_CHAR_HANDLE;
   	tempHandle.value.val = (uint8 *) &sendBufferStatus;

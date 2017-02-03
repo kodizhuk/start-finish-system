@@ -13,7 +13,7 @@
 #define NO_ERROR    1
 #define ERROR       0
 
-#define TIMEOUT_NEXT_SKIER  2000
+#define TIMEOUT_NEXT_SKIER  3000
 #define TIMEOUT_STATE   500
 #define TIMEOUT_USER_READ_INFO  500
 

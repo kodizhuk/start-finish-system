@@ -537,7 +537,7 @@
 #define ble_bless_isr__INTC_MASK 0x1000u
 #define ble_bless_isr__INTC_NUMBER 12u
 #define ble_bless_isr__INTC_PRIOR_MASK 0xC0u
-#define ble_bless_isr__INTC_PRIOR_NUM 3u
+#define ble_bless_isr__INTC_PRIOR_NUM 0u
 #define ble_bless_isr__INTC_PRIOR_REG CYREG_CM0_IPR3
 #define ble_bless_isr__INTC_SET_EN_REG CYREG_CM0_ISER
 #define ble_bless_isr__INTC_SET_PD_REG CYREG_CM0_ISPR

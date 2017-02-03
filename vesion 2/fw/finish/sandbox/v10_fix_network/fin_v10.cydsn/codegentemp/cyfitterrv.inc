@@ -537,7 +537,7 @@ ble_bless_isr__INTC_CLR_PD_REG EQU CYREG_CM0_ICPR
 ble_bless_isr__INTC_MASK EQU 0x1000
 ble_bless_isr__INTC_NUMBER EQU 12
 ble_bless_isr__INTC_PRIOR_MASK EQU 0xC0
-ble_bless_isr__INTC_PRIOR_NUM EQU 3
+ble_bless_isr__INTC_PRIOR_NUM EQU 0
 ble_bless_isr__INTC_PRIOR_REG EQU CYREG_CM0_IPR3
 ble_bless_isr__INTC_SET_EN_REG EQU CYREG_CM0_ISER
 ble_bless_isr__INTC_SET_PD_REG EQU CYREG_CM0_ISPR

@@ -182,10 +182,10 @@ uint32_t SaveResult(void)
     SetLedsState(LED_ENABLE, LED_DISABLE);
     
     Display("Save result");
-    MyDelay(TIMEOUT_USER_READ_INFO);
     
     GetStartTime(&startUnixTime, &startRecentMs);
     SendSkierStart(startUnixTime, startRecentMs);
+    MyDelay(TIMEOUT_USER_READ_INFO);
     
     Display("Wait next skier");
     MyDelay(TIMEOUT_NEXT_SKIER);
