@@ -687,15 +687,17 @@ void DS1307_SetUnixTime( uint64 unixTime)
     /*day of week*/
     uint32_t dayOfWeek;
     uint32_t year;
+    uint32_t month;
     year = tmpYear;
-    if(tmpMonth < (uint32)DS1307_MARCH)
+    month = tmpMonth;
+    if(month < (uint32)DS1307_MARCH)
     {
-        tmpMonth = 12u + tmpMonth;
+        month = 12u + month;
         year--;
     }
     /* Calculates Day of Week using Zeller's congruence algorithms.
     */
-    dayOfWeek = (tmpDay + (((tmpMonth + 1u) * 26u) / 10u) + year + (year / 4u) + (6u * (year / 100u)) + (year / 400u)) % 7u;
+    dayOfWeek = (tmpDay + (((month + 1u) * 26u) / 10u) + year + (year / 4u) + (6u * (year / 100u)) + (year / 400u)) % 7u;
 
     /* Makes correction for Saturday. Saturday number should be 7 instead of 0. */
     if(0u == dayOfWeek)
