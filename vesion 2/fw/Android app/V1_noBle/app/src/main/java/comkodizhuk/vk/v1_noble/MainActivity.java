@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     int currentMs, currentSec, currentMin, currentHour;
     Handler handler = new Handler();
 
+
     /**
      * This manages the lifecycle of the BLE service.
      * When the service starts we get the service object, initialize the service, and connect.

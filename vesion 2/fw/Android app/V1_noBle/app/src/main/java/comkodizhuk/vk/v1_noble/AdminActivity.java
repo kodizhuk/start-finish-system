@@ -7,15 +7,19 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.sax.EndElementListener;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -27,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static android.R.color.transparent;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.AdminOnly.ADMIN_NO_ONLY;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.AdminOnly.ADMIN_ONLY;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.IDskier;
@@ -58,7 +63,9 @@ public class AdminActivity extends AppCompatActivity {
     TextView textViewNumSkierOnWay;
 
     ListView skierListItems;
-    SimpleAdapter sAdapter;
+    LinearLayout skierResultList;
+    //SimpleAdapter sAdapter;
+    SpecialAdapter sAdapter;
     ArrayList<Map<String, Object>> data;
     Map<String, Object> m;
 
@@ -69,12 +76,17 @@ public class AdminActivity extends AppCompatActivity {
     ArrayList<String> startSkier = new ArrayList<>();
     ArrayList<String> finishSkier = new ArrayList<>();
     ArrayList<String> resultSkier = new ArrayList<>();
+    ArrayList<Integer> colorList = new ArrayList<>();
 
     final String ATTRIBUTE_ID_TEXT = "id";
     final String ATTRIBUTE_START_TEXT = "start";
     final String ATTRIBUTE_FINISH_TEXT = "finish";
     final String ATTRIBUTE_RESULT_TEXT = "result";
+
     private  int IDoldSkier = -1;
+    private int flag_ReadDataFromSd = 0;
+    private int colorCurrentListner = 0;
+
 
     /**
      * This manages the lifecycle of the BLE service.
@@ -111,6 +123,9 @@ public class AdminActivity extends AppCompatActivity {
         imageViewNetwork = (ImageView)findViewById(R.id.imageViewNetwork);
         textViewNumSkierOnWay = (TextView)findViewById(R.id.textViewNumSkierOnWay);
 
+        skierResultList = (LinearLayout)findViewById(R.id.skierResultList);
+        //skierResultList.setBackgroundColor(getResources().getColor(R.color.colorListner2));
+
         final Intent intent = getIntent();
         mDeviceAddress = intent.getStringExtra(EXTRAS_BLE_ADDRESS);
 
@@ -129,15 +144,21 @@ public class AdminActivity extends AppCompatActivity {
         String[] from = {ATTRIBUTE_ID_TEXT, ATTRIBUTE_START_TEXT, ATTRIBUTE_FINISH_TEXT, ATTRIBUTE_RESULT_TEXT};
         int[] to = {R.id.tvSkierID, R.id.tvSkierStart, R.id.tvSkierFinish, R.id.tvSkierResult};
 
-        sAdapter = new SimpleAdapter(this, data, R.layout.skier_result_list, from, to);
+        //sAdapter = new SimpleAdapter(this, data, R.layout.skier_result_list, from, to);
+
+
+        sAdapter = new SpecialAdapter(this,data,R.layout.skier_result_list,from,to);
 
         skierListItems = (ListView) findViewById(R.id.skierListItems);
+
         skierListItems.setAdapter(sAdapter);
         registerForContextMenu(skierListItems);
         //---------------------------------------------------------------
 
         Intent SFsystemServiceIntent = new Intent(this, PSoCBleSFsystemService.class);
         bindService(SFsystemServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
+        flag_ReadDataFromSd = 0;
     }
 
 
@@ -218,7 +239,7 @@ public class AdminActivity extends AppCompatActivity {
                 case PSoCBleSFsystemService.ACTION_CONNECTED:
                     // No need to do anything here. Service discovery is started by the service.
                     Log.i(TAG, "ACTION_CONNECTED");
-                    //mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+                    //mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY)
                     break;
                 case PSoCBleSFsystemService.ACTION_DISCONNECTED:
                     Log.i(TAG, "ACTION_DISCONNECTED");
@@ -233,7 +254,17 @@ public class AdminActivity extends AppCompatActivity {
                     }else {
                         /*if new receive new skier*/
                         if(IDskier != IDoldSkier) {
-                        /*add new time skier on diaplay*/
+                            /*add new time skier on diaplay*/
+                            /*set color times skier*/
+                            if(IDskier < IDoldSkier){
+                                if(colorCurrentListner == 0){
+                                    colorCurrentListner = 1;
+                                }else{
+                                    colorCurrentListner = 0;
+                                }
+                            }
+                            colorList.add(colorCurrentListner);
+
                             m = new HashMap<String, Object>();
                             m.put(ATTRIBUTE_ID_TEXT, String.format("%d", IDskier));
                             m.put(ATTRIBUTE_START_TEXT,
@@ -243,9 +274,16 @@ public class AdminActivity extends AppCompatActivity {
                             m.put(ATTRIBUTE_RESULT_TEXT,
                                     String.format("%02d:%02d:%02d:%03d", timeResultSkier[HOUR], timeResultSkier[MIN], timeResultSkier[SEC], timeResultSkier[MS]));
 
-                            data.add(m);
+                            data.add(0,m);
+
                             sAdapter.notifyDataSetChanged();
+
+                            /*auto scrolling*/
+                            skierListItems.smoothScrollToPosition(View.SCROLL_INDICATOR_END);
+
                             IDoldSkier = IDskier;
+
+//                          skierResultList.setBackgroundColor(getResources().getColor(R.color.colorListner2));
                         }
                     }
 
@@ -299,7 +337,31 @@ public class AdminActivity extends AppCompatActivity {
         return intentFilter;
     }
 
-    public void onClickSD(View view) {
-        mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+//    public void onClickSD(View view) {
+//        if(flag_ReadDataFromSd == 0) {
+//            mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+//            flag_ReadDataFromSd = 1;
+//            imageViewSD.setBackgroundColor(getResources().getColor(transparent));
+//        }
+//    }
+
+    public class SpecialAdapter extends SimpleAdapter {
+
+        public int[] colors = new int[] { getResources().getColor(R.color.colorListner1),
+                getResources().getColor(R.color.colorListner2) };
+
+        public SpecialAdapter(Context context, ArrayList<Map<String, Object>> items, int resource, String[] from, int[] to) {
+            super(context, items, resource, from, to);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+            view.setBackgroundColor(colors[colorList.get(position)]);
+
+            Log.i(TAG," pos="+position+" colList "+colorList.get(position));
+
+            return view;
+        }
     }
 }
