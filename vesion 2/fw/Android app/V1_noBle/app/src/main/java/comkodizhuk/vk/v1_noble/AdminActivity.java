@@ -263,7 +263,7 @@ public class AdminActivity extends AppCompatActivity {
                                     colorCurrentListner = 0;
                                 }
                             }
-                            colorList.add(colorCurrentListner);
+                            colorList.add(0,colorCurrentListner);
 
                             m = new HashMap<String, Object>();
                             m.put(ATTRIBUTE_ID_TEXT, String.format("%d", IDskier));
