@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 
+import static android.R.color.transparent;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.AdminOnly.ADMIN_NO_ONLY;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.AdminOnly.ADMIN_ONLY;
 import static comkodizhuk.vk.v1_noble.PSoCBleSFsystemService.DataSkier.ID;
@@ -97,6 +98,7 @@ public class PSoCBleSFsystemService extends Service {
     public static int maxSkierOnWay;
     private static int unixTimeSystem;
     private static int adminIsOnly;
+    private  static int endSendNotificaton;
 
     //enableAllGlucoseCharacteristic in class bluetooth ble service
     //
@@ -516,7 +518,9 @@ public class PSoCBleSFsystemService extends Service {
             mBluetoothGatt.writeDescriptor(descriptor);
             Log.i(TAG, "Writing Notification");
             Toast.makeText(getApplicationContext(), "Sync bluetooth okey", Toast.LENGTH_SHORT).show();
+            endSendNotificaton = 1;
         }
+
     }
 
 
@@ -537,6 +541,10 @@ public class PSoCBleSFsystemService extends Service {
         }
 
         updateGattFlagAdminOnly(adminIsOnly);
+    }
+
+    public int readEndSendNotification(){
+        return endSendNotificaton;
     }
 
     /**

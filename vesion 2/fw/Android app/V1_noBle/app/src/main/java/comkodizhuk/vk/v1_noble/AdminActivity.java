@@ -189,7 +189,7 @@ public class AdminActivity extends AppCompatActivity {
         unbindService(mServiceConnection);
         mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_NO_ONLY);
         mPSoCBleSFsystemService = null;
-
+        flag_ReadDataFromSd = 0;
 
     }
 
@@ -249,6 +249,13 @@ public class AdminActivity extends AppCompatActivity {
                 case PSoCBleSFsystemService.ACTION_DATA_AVAILABLE:
                     Log.i(TAG, "ACTION_DATA_AVAILABLE");
 
+                    /*read all time from SD*/
+                    if(mPSoCBleSFsystemService.readEndSendNotification() == 1 && flag_ReadDataFromSd == 0 )
+                    {
+                        mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+                        flag_ReadDataFromSd = 1;
+                    }
+
                     if(timeResultSkier[HOUR] ==0 && timeResultSkier[MIN]==0 && timeResultSkier[SEC]==0 && timeResultSkier[MS]==0){
                         //do nothing
                     }else {
@@ -279,7 +286,7 @@ public class AdminActivity extends AppCompatActivity {
                             sAdapter.notifyDataSetChanged();
 
                             /*auto scrolling*/
-                            skierListItems.smoothScrollToPosition(View.SCROLL_INDICATOR_END);
+                            skierListItems.smoothScrollToPosition(View.SCROLL_INDICATOR_START);
 
                             IDoldSkier = IDskier;
 
@@ -337,13 +344,14 @@ public class AdminActivity extends AppCompatActivity {
         return intentFilter;
     }
 
-//    public void onClickSD(View view) {
-//        if(flag_ReadDataFromSd == 0) {
-//            mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
-//            flag_ReadDataFromSd = 1;
-//            imageViewSD.setBackgroundColor(getResources().getColor(transparent));
-//        }
-//    }
+    public void onClickSD(View view) {
+        //if(flag_ReadDataFromSd == 0) {
+            mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+            flag_ReadDataFromSd = 1;
+            imageViewSD.setBackgroundColor(getResources().getColor(transparent));
+            Log.i(TAG,"Click btn SD");
+        //}
+    }
 
     public class SpecialAdapter extends SimpleAdapter {
 
