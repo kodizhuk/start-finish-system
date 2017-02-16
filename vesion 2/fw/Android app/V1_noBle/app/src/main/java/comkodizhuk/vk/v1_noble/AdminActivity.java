@@ -249,11 +249,15 @@ public class AdminActivity extends AppCompatActivity {
                 case PSoCBleSFsystemService.ACTION_DATA_AVAILABLE:
                     Log.i(TAG, "ACTION_DATA_AVAILABLE");
 
+                    boolean resetFirstSkier = false;
+
                     /*read all time from SD*/
                     if(mPSoCBleSFsystemService.readEndSendNotification() == 1 && flag_ReadDataFromSd == 0 )
                     {
+                        /*send admin only*/
                         mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
                         flag_ReadDataFromSd = 1;
+                        resetFirstSkier = true;
                     }
 
                     if(timeResultSkier[HOUR] ==0 && timeResultSkier[MIN]==0 && timeResultSkier[SEC]==0 && timeResultSkier[MS]==0){
@@ -281,7 +285,9 @@ public class AdminActivity extends AppCompatActivity {
                             m.put(ATTRIBUTE_RESULT_TEXT,
                                     String.format("%02d:%02d:%02d:%03d", timeResultSkier[HOUR], timeResultSkier[MIN], timeResultSkier[SEC], timeResultSkier[MS]));
 
-                            data.add(0,m);
+                            if(resetFirstSkier == false) {
+                                data.add(0, m);
+                            }
 
                             sAdapter.notifyDataSetChanged();
 
@@ -344,14 +350,14 @@ public class AdminActivity extends AppCompatActivity {
         return intentFilter;
     }
 
-    public void onClickSD(View view) {
-        //if(flag_ReadDataFromSd == 0) {
-            mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
-            flag_ReadDataFromSd = 1;
-            imageViewSD.setBackgroundColor(getResources().getColor(transparent));
-            Log.i(TAG,"Click btn SD");
-        //}
-    }
+//    public void onClickSD(View view) {
+//        //if(flag_ReadDataFromSd == 0) {
+//            mPSoCBleSFsystemService.setFalgAdminOnly(ADMIN_ONLY);
+//            flag_ReadDataFromSd = 1;
+//            imageViewSD.setBackgroundColor(getResources().getColor(transparent));
+//            Log.i(TAG,"Click btn SD");
+//        //}
+//    }
 
     public class SpecialAdapter extends SimpleAdapter {
 
