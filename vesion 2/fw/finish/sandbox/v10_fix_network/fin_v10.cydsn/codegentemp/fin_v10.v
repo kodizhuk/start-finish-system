@@ -1,6 +1,6 @@
 // ======================================================================
 // fin_v10.v generated from TopDesign.cysch
-// 02/03/2017 at 17:14
+// 02/21/2017 at 13:57
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -2119,7 +2119,6 @@ module top ;
           wire  Net_583;
           wire  Net_582;
           wire  Net_595;
-          wire  Net_593;
           wire  Net_139;
           wire  Net_138;
           wire  Net_137;
@@ -2172,6 +2171,7 @@ module top ;
           wire  Net_141;
           wire  Net_140;
           wire  Net_587;
+          wire  Net_593;
     electrical  Net_314;
     electrical  Net_313;
     electrical  Net_58;
