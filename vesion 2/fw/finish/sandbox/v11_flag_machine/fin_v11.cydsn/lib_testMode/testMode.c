@@ -7,7 +7,7 @@
 #include <lib_Testmode\testMode.h>
 #include <lib_DB\database.h>
 
-#define COUNTER_TEST_MODE_ON   3
+#define COUNTER_TEST_MODE_ON   20
 
 enum status {STOPPED=0, RUN};
 typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
@@ -34,7 +34,7 @@ CY_ISR(testModeHandler)
 }
 
 
-void newFuncTestMode()
+void TestMode()
 {   
     ReadSwitchState();
     ReadNetworkState();
@@ -64,8 +64,6 @@ void newFuncTestMode()
         if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
             networkState = LOW_LEVEL;
     }
-    //else    
-    //{
     /*update test mode*/
     if(networkState == HIGH_LEVEL && switchState == HIGH_LEVEL )
     {
@@ -78,7 +76,6 @@ void newFuncTestMode()
             allowNextTestSkier = 0;
         }
     }
-    //}
 }
 
 
@@ -88,9 +85,9 @@ void TestMode_UpdateNewRandomTime()
     
     num = 30+rand()%60;
     
-    char buff[11];
-    sprintf(buff,"%d",num);
-    Display(buff);
+//    char buff[11];
+//    sprintf(buff,"%d",num);
+//    Display(buff);
     
     TimerTestMode_WriteCounter(0);
     TimerTestMode_WriteCompare(num*100);
@@ -114,7 +111,7 @@ funcReturnValue ReadSwitchState()
     {
         if(SkierOnWay() != 0 && enableTestMode == 0)
         {
-            Display("testModeERR");
+            //Display("testModeERR");
         }
         else
         {

@@ -237,7 +237,7 @@ uint32_t CheckReady(void)
     }
    
     /*test mode on/off*/
-    newFuncTestMode();
+    TestMode();
  
     return result;
 }

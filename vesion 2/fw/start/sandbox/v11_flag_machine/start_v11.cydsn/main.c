@@ -144,7 +144,7 @@ uint32_t GetFinishStatus(void)
         result = REBOOT;    
     }
     
-    newFuncTestMode();
+    TestMode();
     
     return result;
     

@@ -5,7 +5,7 @@
 
     uint8_t TestMode_ReadStatus();
     void TestMode_UpdateNewRandomTime();
-    void newFuncTestMode();
+    void TestMode();
     void AllowNextTestSkier();
     
 #endif

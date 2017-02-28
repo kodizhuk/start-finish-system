@@ -213,7 +213,6 @@ uint32_t ReadSkierResultAndSendBLE(void)
                 pointer++;
             }
                        
-            
             BLE_sendOneSkierTimeAll(sendIdSkier, sendStartTime, sendFinishTime, sendResultTime);
             BLE_processEvents();
             CyDelay(100);

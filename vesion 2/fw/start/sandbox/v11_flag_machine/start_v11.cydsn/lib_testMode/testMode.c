@@ -6,9 +6,7 @@
 #include <lib_Network\network.h>
 #include <lib_Testmode\testMode.h>
 
-#define COUNTER_TEST_MODE_ON   5
-#define COUNTER_TEST_MODE_OFF  7
-#define MAX_DELAY_CYCLES_IN_READING 2
+#define COUNTER_TEST_MODE_ON   20
 
 enum status {STOPPED=0, RUN};
 typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
@@ -33,7 +31,7 @@ CY_ISR(testModeHandler)
 }
 
 
-void newFuncTestMode()
+void TestMode()
 {   
     ReadSwitchState();
     ReadNetworkState();
@@ -82,9 +80,9 @@ void TestMode_UpdateNewRandomTime()
     
     num = 30+rand()%60;
     
-    char buff[11];
-    sprintf(buff,"%d",num);
-    Display(buff);
+//    char buff[11];
+//    sprintf(buff,"%d",num);
+//    Display(buff);
     
     TimerTestMode_WriteCounter(0);
     TimerTestMode_WriteCompare(num*100);
