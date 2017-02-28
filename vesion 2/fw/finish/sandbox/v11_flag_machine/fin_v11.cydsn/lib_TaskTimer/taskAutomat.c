@@ -153,6 +153,8 @@ void Action2(void)
     {
         uint32_t result;
         skierDB_El tmpStruct;
+        static uint32_t lastFifoSize;
+        static uint32_t tmpIDSkier;
         
         if (writeFlag == WRITE_NO_ERROR)
         {
@@ -163,18 +165,38 @@ void Action2(void)
         {
             tmpStruct = FifoGetLast();
         }
-        result = WriteSkierResult(&tmpStruct);
-        if(result != FR_OK)
+
+        
+        /*send finish skier result by buetooth*/
+        if(writeFlag == WRITE_NO_ERROR )
         {
-            LogStart();
-            writeFlag = WRITE_ERROR;
+            /*SD only*/
+            tmpIDSkier = GetIDskierFinished();
+            BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
         }
         else
         {
-            writeFlag = WRITE_NO_ERROR;
+            if(FifoGetSize() != lastFifoSize)
+            {
+                tmpIDSkier++;
+                BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
+                lastFifoSize = FifoGetSize();
+            }
         }
         
-        BLE_sendOneSkierTimeResult(&tmpStruct,GetIDskierFinished(),SkierOnWay(),MAX_SKIERS_ON_WAY);
+        result = WriteSkierResult(&tmpStruct);
+        
+        if(result != FR_OK)
+        {
+            LogStart();
+            writeFlag = WRITE_ERROR;          
+        }
+        else
+        {
+            writeFlag = WRITE_NO_ERROR; 
+        }   
+        
+        
     }
     SetTaskTimer(ACTION2, ACTION2_TIMEOUT);
 }

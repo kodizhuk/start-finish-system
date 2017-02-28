@@ -1,0 +1,1479 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"testMode.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	statusTestMode
+  18              		.bss
+  19              		.type	statusTestMode, %object
+  20              		.size	statusTestMode, 1
+  21              	statusTestMode:
+  22 0000 00       		.space	1
+  23              		.global	switchState
+  24              		.data
+  25              		.type	switchState, %object
+  26              		.size	switchState, 1
+  27              	switchState:
+  28 0000 03       		.byte	3
+  29              		.global	networkState
+  30              		.type	networkState, %object
+  31              		.size	networkState, 1
+  32              	networkState:
+  33 0001 03       		.byte	3
+  34              		.bss
+  35              	enableTestMode:
+  36 0001 00       		.space	1
+  37              		.section	.text.testModeHandler,"ax",%progbits
+  38              		.align	2
+  39              		.global	testModeHandler
+  40              		.code	16
+  41              		.thumb_func
+  42              		.type	testModeHandler, %function
+  43              	testModeHandler:
+  44              	.LFB63:
+  45              		.file 1 "lib_testMode\\testMode.c"
+   1:lib_testMode/testMode.c **** #include "project.h"
+   2:lib_testMode/testMode.c **** #include <stdlib.h>
+   3:lib_testMode/testMode.c **** 
+   4:lib_testMode/testMode.c **** #include <stdio.h>
+   5:lib_testMode/testMode.c **** #include <lib_Display\Display.h>
+   6:lib_testMode/testMode.c **** #include <lib_Network\network.h>
+   7:lib_testMode/testMode.c **** #include <lib_Testmode\testMode.h>
+   8:lib_testMode/testMode.c **** 
+   9:lib_testMode/testMode.c **** #define COUNTER_TEST_MODE_ON   5
+  10:lib_testMode/testMode.c **** #define COUNTER_TEST_MODE_OFF  7
+  11:lib_testMode/testMode.c **** #define MAX_DELAY_CYCLES_IN_READING 2
+  12:lib_testMode/testMode.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 2
+
+
+  13:lib_testMode/testMode.c **** enum status {STOPPED=0, RUN};
+  14:lib_testMode/testMode.c **** typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
+  15:lib_testMode/testMode.c **** 
+  16:lib_testMode/testMode.c **** uint8_t statusTestMode = STOPPED;
+  17:lib_testMode/testMode.c **** 
+  18:lib_testMode/testMode.c **** funcReturnValue switchState = LOW_LEVEL;
+  19:lib_testMode/testMode.c **** funcReturnValue networkState = LOW_LEVEL;
+  20:lib_testMode/testMode.c **** 
+  21:lib_testMode/testMode.c **** funcReturnValue ReadSwitchState();
+  22:lib_testMode/testMode.c **** funcReturnValue ReadNetworkState();
+  23:lib_testMode/testMode.c **** 
+  24:lib_testMode/testMode.c **** static uint8_t enableTestMode;
+  25:lib_testMode/testMode.c **** 
+  26:lib_testMode/testMode.c **** CY_ISR(testModeHandler)
+  27:lib_testMode/testMode.c **** {
+  46              		.loc 1 27 0
+  47              		.cfi_startproc
+  48 0000 80B5     		push	{r7, lr}
+  49              		.cfi_def_cfa_offset 8
+  50              		.cfi_offset 7, -8
+  51              		.cfi_offset 14, -4
+  52 0002 00AF     		add	r7, sp, #0
+  53              		.cfi_def_cfa_register 7
+  28:lib_testMode/testMode.c ****     Pin_testMode_Write(0);
+  54              		.loc 1 28 0
+  55 0004 0020     		mov	r0, #0
+  56 0006 FFF7FEFF 		bl	Pin_testMode_Write
+  29:lib_testMode/testMode.c ****     Pin_testMode_Write(1);
+  57              		.loc 1 29 0
+  58 000a 0120     		mov	r0, #1
+  59 000c FFF7FEFF 		bl	Pin_testMode_Write
+  30:lib_testMode/testMode.c ****     
+  31:lib_testMode/testMode.c ****     TimerTestMode_ClearInterrupt(TimerTestMode_INTR_MASK_CC_MATCH);
+  60              		.loc 1 31 0
+  61 0010 0220     		mov	r0, #2
+  62 0012 FFF7FEFF 		bl	TimerTestMode_ClearInterrupt
+  32:lib_testMode/testMode.c ****     statusTestMode = STOPPED;
+  63              		.loc 1 32 0
+  64 0016 024B     		ldr	r3, .L2
+  65 0018 0022     		mov	r2, #0
+  66 001a 1A70     		strb	r2, [r3]
+  33:lib_testMode/testMode.c **** }
+  67              		.loc 1 33 0
+  68 001c BD46     		mov	sp, r7
+  69              		@ sp needed
+  70 001e 80BD     		pop	{r7, pc}
+  71              	.L3:
+  72              		.align	2
+  73              	.L2:
+  74 0020 00000000 		.word	statusTestMode
+  75              		.cfi_endproc
+  76              	.LFE63:
+  77              		.size	testModeHandler, .-testModeHandler
+  78              		.section	.text.newFuncTestMode,"ax",%progbits
+  79              		.align	2
+  80              		.global	newFuncTestMode
+  81              		.code	16
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 3
+
+
+  82              		.thumb_func
+  83              		.type	newFuncTestMode, %function
+  84              	newFuncTestMode:
+  85              	.LFB64:
+  34:lib_testMode/testMode.c **** 
+  35:lib_testMode/testMode.c **** 
+  36:lib_testMode/testMode.c **** void newFuncTestMode()
+  37:lib_testMode/testMode.c **** {   
+  86              		.loc 1 37 0
+  87              		.cfi_startproc
+  88 0000 80B5     		push	{r7, lr}
+  89              		.cfi_def_cfa_offset 8
+  90              		.cfi_offset 7, -8
+  91              		.cfi_offset 14, -4
+  92 0002 00AF     		add	r7, sp, #0
+  93              		.cfi_def_cfa_register 7
+  38:lib_testMode/testMode.c ****     ReadSwitchState();
+  94              		.loc 1 38 0
+  95 0004 FFF7FEFF 		bl	ReadSwitchState
+  39:lib_testMode/testMode.c ****     ReadNetworkState();
+  96              		.loc 1 39 0
+  97 0008 FFF7FEFF 		bl	ReadNetworkState
+  40:lib_testMode/testMode.c ****     
+  41:lib_testMode/testMode.c ****     if(switchState == RISING_EDGE || networkState == RISING_EDGE)   //enable test mode
+  98              		.loc 1 41 0
+  99 000c 374B     		ldr	r3, .L11
+ 100 000e 1B78     		ldrb	r3, [r3]
+ 101 0010 012B     		cmp	r3, #1
+ 102 0012 03D0     		beq	.L5
+ 103              		.loc 1 41 0 is_stmt 0 discriminator 1
+ 104 0014 364B     		ldr	r3, .L11+4
+ 105 0016 1B78     		ldrb	r3, [r3]
+ 106 0018 012B     		cmp	r3, #1
+ 107 001a 1ED1     		bne	.L6
+ 108              	.L5:
+  42:lib_testMode/testMode.c ****     {
+  43:lib_testMode/testMode.c ****         DisplayTestMode(1);
+ 109              		.loc 1 43 0 is_stmt 1
+ 110 001c 0120     		mov	r0, #1
+ 111 001e FFF7FEFF 		bl	DisplayTestMode
+  44:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(1);
+ 112              		.loc 1 44 0
+ 113 0022 0120     		mov	r0, #1
+ 114 0024 FFF7FEFF 		bl	NetworkSendTestModeStatus
+  45:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+ 115              		.loc 1 45 0
+ 116 0028 324B     		ldr	r3, .L11+8
+ 117 002a 0022     		mov	r2, #0
+ 118 002c 1A70     		strb	r2, [r3]
+  46:lib_testMode/testMode.c ****         if(networkState == RISING_EDGE && switchState == LOW_LEVEL)
+ 119              		.loc 1 46 0
+ 120 002e 304B     		ldr	r3, .L11+4
+ 121 0030 1B78     		ldrb	r3, [r3]
+ 122 0032 012B     		cmp	r3, #1
+ 123 0034 06D1     		bne	.L7
+ 124              		.loc 1 46 0 is_stmt 0 discriminator 1
+ 125 0036 2D4B     		ldr	r3, .L11
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 4
+
+
+ 126 0038 1B78     		ldrb	r3, [r3]
+ 127 003a 032B     		cmp	r3, #3
+ 128 003c 02D1     		bne	.L7
+  47:lib_testMode/testMode.c ****             switchState = RISING_EDGE;
+ 129              		.loc 1 47 0 is_stmt 1
+ 130 003e 2B4B     		ldr	r3, .L11
+ 131 0040 0122     		mov	r2, #1
+ 132 0042 1A70     		strb	r2, [r3]
+ 133              	.L7:
+  48:lib_testMode/testMode.c ****         if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
+ 134              		.loc 1 48 0
+ 135 0044 2A4B     		ldr	r3, .L11+4
+ 136 0046 1B78     		ldrb	r3, [r3]
+ 137 0048 032B     		cmp	r3, #3
+ 138 004a 06D1     		bne	.L6
+ 139              		.loc 1 48 0 is_stmt 0 discriminator 1
+ 140 004c 274B     		ldr	r3, .L11
+ 141 004e 1B78     		ldrb	r3, [r3]
+ 142 0050 012B     		cmp	r3, #1
+ 143 0052 02D1     		bne	.L6
+  49:lib_testMode/testMode.c ****             networkState = RISING_EDGE;
+ 144              		.loc 1 49 0 is_stmt 1
+ 145 0054 264B     		ldr	r3, .L11+4
+ 146 0056 0122     		mov	r2, #1
+ 147 0058 1A70     		strb	r2, [r3]
+ 148              	.L6:
+  50:lib_testMode/testMode.c ****     }
+  51:lib_testMode/testMode.c ****     if(/*switchState == FALLING_EDGE ||*/ networkState == FALLING_EDGE)        //disable test mode
+ 149              		.loc 1 51 0
+ 150 005a 254B     		ldr	r3, .L11+4
+ 151 005c 1B78     		ldrb	r3, [r3]
+ 152 005e 022B     		cmp	r3, #2
+ 153 0060 20D1     		bne	.L8
+  52:lib_testMode/testMode.c ****     {
+  53:lib_testMode/testMode.c ****         TimerTestMode_Stop();
+ 154              		.loc 1 53 0
+ 155 0062 FFF7FEFF 		bl	TimerTestMode_Stop
+  54:lib_testMode/testMode.c ****         DisplayTestMode(0);
+ 156              		.loc 1 54 0
+ 157 0066 0020     		mov	r0, #0
+ 158 0068 FFF7FEFF 		bl	DisplayTestMode
+  55:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(0);
+ 159              		.loc 1 55 0
+ 160 006c 0020     		mov	r0, #0
+ 161 006e FFF7FEFF 		bl	NetworkSendTestModeStatus
+  56:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+ 162              		.loc 1 56 0
+ 163 0072 204B     		ldr	r3, .L11+8
+ 164 0074 0022     		mov	r2, #0
+ 165 0076 1A70     		strb	r2, [r3]
+  57:lib_testMode/testMode.c ****         if(networkState == FALLING_EDGE && switchState != FALLING_EDGE)
+ 166              		.loc 1 57 0
+ 167 0078 1D4B     		ldr	r3, .L11+4
+ 168 007a 1B78     		ldrb	r3, [r3]
+ 169 007c 022B     		cmp	r3, #2
+ 170 007e 06D1     		bne	.L9
+ 171              		.loc 1 57 0 is_stmt 0 discriminator 1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 5
+
+
+ 172 0080 1A4B     		ldr	r3, .L11
+ 173 0082 1B78     		ldrb	r3, [r3]
+ 174 0084 022B     		cmp	r3, #2
+ 175 0086 02D0     		beq	.L9
+  58:lib_testMode/testMode.c ****             switchState = LOW_LEVEL;
+ 176              		.loc 1 58 0 is_stmt 1
+ 177 0088 184B     		ldr	r3, .L11
+ 178 008a 0322     		mov	r2, #3
+ 179 008c 1A70     		strb	r2, [r3]
+ 180              	.L9:
+  59:lib_testMode/testMode.c ****         if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
+ 181              		.loc 1 59 0
+ 182 008e 184B     		ldr	r3, .L11+4
+ 183 0090 1B78     		ldrb	r3, [r3]
+ 184 0092 022B     		cmp	r3, #2
+ 185 0094 06D0     		beq	.L8
+ 186              		.loc 1 59 0 is_stmt 0 discriminator 1
+ 187 0096 154B     		ldr	r3, .L11
+ 188 0098 1B78     		ldrb	r3, [r3]
+ 189 009a 022B     		cmp	r3, #2
+ 190 009c 02D1     		bne	.L8
+  60:lib_testMode/testMode.c ****             networkState = LOW_LEVEL;
+ 191              		.loc 1 60 0 is_stmt 1
+ 192 009e 144B     		ldr	r3, .L11+4
+ 193 00a0 0322     		mov	r2, #3
+ 194 00a2 1A70     		strb	r2, [r3]
+ 195              	.L8:
+  61:lib_testMode/testMode.c ****     }
+  62:lib_testMode/testMode.c ****     //else    
+  63:lib_testMode/testMode.c ****     //{
+  64:lib_testMode/testMode.c ****     /*update test mode*/
+  65:lib_testMode/testMode.c ****     if(networkState == HIGH_LEVEL && switchState == HIGH_LEVEL )
+ 196              		.loc 1 65 0
+ 197 00a4 124B     		ldr	r3, .L11+4
+ 198 00a6 1B78     		ldrb	r3, [r3]
+ 199 00a8 002B     		cmp	r3, #0
+ 200 00aa 1CD1     		bne	.L4
+ 201              		.loc 1 65 0 is_stmt 0 discriminator 1
+ 202 00ac 0F4B     		ldr	r3, .L11
+ 203 00ae 1B78     		ldrb	r3, [r3]
+ 204 00b0 002B     		cmp	r3, #0
+ 205 00b2 18D1     		bne	.L4
+  66:lib_testMode/testMode.c ****     {
+  67:lib_testMode/testMode.c ****         if(NetworkStatus() != NETWORK_DISCONN && FinWriteInDB() != NO_WRITE && FinReady() != NO_REA
+ 206              		.loc 1 67 0 is_stmt 1
+ 207 00b4 FFF7FEFF 		bl	NetworkStatus
+ 208 00b8 031E     		sub	r3, r0, #0
+ 209 00ba 14D0     		beq	.L4
+ 210              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 211 00bc FFF7FEFF 		bl	FinWriteInDB
+ 212 00c0 031E     		sub	r3, r0, #0
+ 213 00c2 10D0     		beq	.L4
+ 214              		.loc 1 67 0 discriminator 2
+ 215 00c4 FFF7FEFF 		bl	FinReady
+ 216 00c8 031E     		sub	r3, r0, #0
+ 217 00ca 0CD0     		beq	.L4
+ 218              		.loc 1 67 0 discriminator 3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 6
+
+
+ 219 00cc 094B     		ldr	r3, .L11+8
+ 220 00ce 1B78     		ldrb	r3, [r3]
+ 221 00d0 002B     		cmp	r3, #0
+ 222 00d2 08D1     		bne	.L4
+  68:lib_testMode/testMode.c ****         {
+  69:lib_testMode/testMode.c ****             /*start timer*/
+  70:lib_testMode/testMode.c ****             TestMode_UpdateNewRandomTime();
+ 223              		.loc 1 70 0 is_stmt 1
+ 224 00d4 FFF7FEFF 		bl	TestMode_UpdateNewRandomTime
+  71:lib_testMode/testMode.c ****             Int_timerTestMode_StartEx(testModeHandler);
+ 225              		.loc 1 71 0
+ 226 00d8 074B     		ldr	r3, .L11+12
+ 227 00da 181C     		mov	r0, r3
+ 228 00dc FFF7FEFF 		bl	Int_timerTestMode_StartEx
+  72:lib_testMode/testMode.c ****             statusTestMode = RUN;
+ 229              		.loc 1 72 0
+ 230 00e0 044B     		ldr	r3, .L11+8
+ 231 00e2 0122     		mov	r2, #1
+ 232 00e4 1A70     		strb	r2, [r3]
+ 233              	.L4:
+  73:lib_testMode/testMode.c ****         }
+  74:lib_testMode/testMode.c ****     }
+  75:lib_testMode/testMode.c ****     //}
+  76:lib_testMode/testMode.c **** }
+ 234              		.loc 1 76 0
+ 235 00e6 BD46     		mov	sp, r7
+ 236              		@ sp needed
+ 237 00e8 80BD     		pop	{r7, pc}
+ 238              	.L12:
+ 239 00ea C046     		.align	2
+ 240              	.L11:
+ 241 00ec 00000000 		.word	switchState
+ 242 00f0 00000000 		.word	networkState
+ 243 00f4 00000000 		.word	statusTestMode
+ 244 00f8 00000000 		.word	testModeHandler
+ 245              		.cfi_endproc
+ 246              	.LFE64:
+ 247              		.size	newFuncTestMode, .-newFuncTestMode
+ 248              		.global	__aeabi_idivmod
+ 249              		.section	.rodata
+ 250              		.align	2
+ 251              	.LC5:
+ 252 0000 256400   		.ascii	"%d\000"
+ 253 0003 00       		.section	.text.TestMode_UpdateNewRandomTime,"ax",%progbits
+ 254              		.align	2
+ 255              		.global	TestMode_UpdateNewRandomTime
+ 256              		.code	16
+ 257              		.thumb_func
+ 258              		.type	TestMode_UpdateNewRandomTime, %function
+ 259              	TestMode_UpdateNewRandomTime:
+ 260              	.LFB65:
+  77:lib_testMode/testMode.c **** 
+  78:lib_testMode/testMode.c **** 
+  79:lib_testMode/testMode.c **** void TestMode_UpdateNewRandomTime()
+  80:lib_testMode/testMode.c **** {
+ 261              		.loc 1 80 0
+ 262              		.cfi_startproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 7
+
+
+ 263 0000 80B5     		push	{r7, lr}
+ 264              		.cfi_def_cfa_offset 8
+ 265              		.cfi_offset 7, -8
+ 266              		.cfi_offset 14, -4
+ 267 0002 84B0     		sub	sp, sp, #16
+ 268              		.cfi_def_cfa_offset 24
+ 269 0004 00AF     		add	r7, sp, #0
+ 270              		.cfi_def_cfa_register 7
+  81:lib_testMode/testMode.c ****     uint8_t num;
+  82:lib_testMode/testMode.c ****     
+  83:lib_testMode/testMode.c ****     num = 30+rand()%60;
+ 271              		.loc 1 83 0
+ 272 0006 FFF7FEFF 		bl	rand
+ 273 000a 031C     		mov	r3, r0
+ 274 000c 181C     		mov	r0, r3
+ 275 000e 3C21     		mov	r1, #60
+ 276 0010 FFF7FEFF 		bl	__aeabi_idivmod
+ 277 0014 0B1C     		mov	r3, r1
+ 278 0016 DAB2     		uxtb	r2, r3
+ 279 0018 0F23     		mov	r3, #15
+ 280 001a FB18     		add	r3, r7, r3
+ 281 001c 1E32     		add	r2, r2, #30
+ 282 001e 1A70     		strb	r2, [r3]
+  84:lib_testMode/testMode.c ****     
+  85:lib_testMode/testMode.c ****     char buff[11];
+  86:lib_testMode/testMode.c ****     sprintf(buff,"%d",num);
+ 283              		.loc 1 86 0
+ 284 0020 0F23     		mov	r3, #15
+ 285 0022 FB18     		add	r3, r7, r3
+ 286 0024 1B78     		ldrb	r3, [r3]
+ 287 0026 391D     		add	r1, r7, #4
+ 288 0028 0C4A     		ldr	r2, .L14
+ 289 002a 081C     		mov	r0, r1
+ 290 002c 111C     		mov	r1, r2
+ 291 002e 1A1C     		mov	r2, r3
+ 292 0030 FFF7FEFF 		bl	sprintf
+  87:lib_testMode/testMode.c ****     Display(buff);
+ 293              		.loc 1 87 0
+ 294 0034 3B1D     		add	r3, r7, #4
+ 295 0036 181C     		mov	r0, r3
+ 296 0038 FFF7FEFF 		bl	Display
+  88:lib_testMode/testMode.c ****     
+  89:lib_testMode/testMode.c ****     TimerTestMode_WriteCounter(0);
+ 297              		.loc 1 89 0
+ 298 003c 0020     		mov	r0, #0
+ 299 003e FFF7FEFF 		bl	TimerTestMode_WriteCounter
+  90:lib_testMode/testMode.c ****     TimerTestMode_WriteCompare(num*100);
+ 300              		.loc 1 90 0
+ 301 0042 0F23     		mov	r3, #15
+ 302 0044 FB18     		add	r3, r7, r3
+ 303 0046 1B78     		ldrb	r3, [r3]
+ 304 0048 6422     		mov	r2, #100
+ 305 004a 5343     		mul	r3, r2
+ 306 004c 181C     		mov	r0, r3
+ 307 004e FFF7FEFF 		bl	TimerTestMode_WriteCompare
+  91:lib_testMode/testMode.c ****     TimerTestMode_Start();   
+ 308              		.loc 1 91 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 8
+
+
+ 309 0052 FFF7FEFF 		bl	TimerTestMode_Start
+  92:lib_testMode/testMode.c **** }
+ 310              		.loc 1 92 0
+ 311 0056 BD46     		mov	sp, r7
+ 312 0058 04B0     		add	sp, sp, #16
+ 313              		@ sp needed
+ 314 005a 80BD     		pop	{r7, pc}
+ 315              	.L15:
+ 316              		.align	2
+ 317              	.L14:
+ 318 005c 00000000 		.word	.LC5
+ 319              		.cfi_endproc
+ 320              	.LFE65:
+ 321              		.size	TestMode_UpdateNewRandomTime, .-TestMode_UpdateNewRandomTime
+ 322              		.section	.text.ReadSwitchState,"ax",%progbits
+ 323              		.align	2
+ 324              		.global	ReadSwitchState
+ 325              		.code	16
+ 326              		.thumb_func
+ 327              		.type	ReadSwitchState, %function
+ 328              	ReadSwitchState:
+ 329              	.LFB66:
+  93:lib_testMode/testMode.c **** 
+  94:lib_testMode/testMode.c **** funcReturnValue ReadSwitchState()
+  95:lib_testMode/testMode.c **** {  
+ 330              		.loc 1 95 0
+ 331              		.cfi_startproc
+ 332 0000 80B5     		push	{r7, lr}
+ 333              		.cfi_def_cfa_offset 8
+ 334              		.cfi_offset 7, -8
+ 335              		.cfi_offset 14, -4
+ 336 0002 00AF     		add	r7, sp, #0
+ 337              		.cfi_def_cfa_register 7
+  96:lib_testMode/testMode.c ****     static uint8_t tmpCounter;
+  97:lib_testMode/testMode.c ****     
+  98:lib_testMode/testMode.c ****     if(SW_RunTestMode_Read() == 0)
+ 338              		.loc 1 98 0
+ 339 0004 FFF7FEFF 		bl	SW_RunTestMode_Read
+ 340 0008 031E     		sub	r3, r0, #0
+ 341 000a 06D1     		bne	.L17
+  99:lib_testMode/testMode.c ****         tmpCounter++;
+ 342              		.loc 1 99 0
+ 343 000c 1A4B     		ldr	r3, .L25
+ 344 000e 1B78     		ldrb	r3, [r3]
+ 345 0010 0133     		add	r3, r3, #1
+ 346 0012 DAB2     		uxtb	r2, r3
+ 347 0014 184B     		ldr	r3, .L25
+ 348 0016 1A70     		strb	r2, [r3]
+ 349 0018 02E0     		b	.L18
+ 350              	.L17:
+ 100:lib_testMode/testMode.c ****     else
+ 101:lib_testMode/testMode.c ****         tmpCounter = 0;
+ 351              		.loc 1 101 0
+ 352 001a 174B     		ldr	r3, .L25
+ 353 001c 0022     		mov	r2, #0
+ 354 001e 1A70     		strb	r2, [r3]
+ 355              	.L18:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 9
+
+
+ 102:lib_testMode/testMode.c ****     
+ 103:lib_testMode/testMode.c ****     if(tmpCounter > COUNTER_TEST_MODE_ON)
+ 356              		.loc 1 103 0
+ 357 0020 154B     		ldr	r3, .L25
+ 358 0022 1B78     		ldrb	r3, [r3]
+ 359 0024 052B     		cmp	r3, #5
+ 360 0026 12D9     		bls	.L19
+ 104:lib_testMode/testMode.c ****     {
+ 105:lib_testMode/testMode.c ****         if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
+ 361              		.loc 1 105 0
+ 362 0028 144B     		ldr	r3, .L25+4
+ 363 002a 1B78     		ldrb	r3, [r3]
+ 364 002c 032B     		cmp	r3, #3
+ 365 002e 03D1     		bne	.L20
+ 366              		.loc 1 105 0 is_stmt 0 discriminator 1
+ 367 0030 124B     		ldr	r3, .L25+4
+ 368 0032 0122     		mov	r2, #1
+ 369 0034 1A70     		strb	r2, [r3]
+ 370 0036 19E0     		b	.L22
+ 371              	.L20:
+ 106:lib_testMode/testMode.c ****         else if(switchState == HIGH_LEVEL)
+ 372              		.loc 1 106 0 is_stmt 1
+ 373 0038 104B     		ldr	r3, .L25+4
+ 374 003a 1B78     		ldrb	r3, [r3]
+ 375 003c 002B     		cmp	r3, #0
+ 376 003e 15D1     		bne	.L22
+ 107:lib_testMode/testMode.c ****         {
+ 108:lib_testMode/testMode.c ****             switchState = FALLING_EDGE;
+ 377              		.loc 1 108 0
+ 378 0040 0E4B     		ldr	r3, .L25+4
+ 379 0042 0222     		mov	r2, #2
+ 380 0044 1A70     		strb	r2, [r3]
+ 109:lib_testMode/testMode.c ****             NetworkSendTestModeStatus(0);
+ 381              		.loc 1 109 0
+ 382 0046 0020     		mov	r0, #0
+ 383 0048 FFF7FEFF 		bl	NetworkSendTestModeStatus
+ 384 004c 0EE0     		b	.L22
+ 385              	.L19:
+ 110:lib_testMode/testMode.c ****         }
+ 111:lib_testMode/testMode.c ****     }
+ 112:lib_testMode/testMode.c ****     else
+ 113:lib_testMode/testMode.c ****     {
+ 114:lib_testMode/testMode.c ****         if(switchState == RISING_EDGE)switchState = HIGH_LEVEL;
+ 386              		.loc 1 114 0
+ 387 004e 0B4B     		ldr	r3, .L25+4
+ 388 0050 1B78     		ldrb	r3, [r3]
+ 389 0052 012B     		cmp	r3, #1
+ 390 0054 03D1     		bne	.L23
+ 391              		.loc 1 114 0 is_stmt 0 discriminator 1
+ 392 0056 094B     		ldr	r3, .L25+4
+ 393 0058 0022     		mov	r2, #0
+ 394 005a 1A70     		strb	r2, [r3]
+ 395 005c 06E0     		b	.L22
+ 396              	.L23:
+ 115:lib_testMode/testMode.c ****         else if(switchState == FALLING_EDGE)switchState = LOW_LEVEL;
+ 397              		.loc 1 115 0 is_stmt 1
+ 398 005e 074B     		ldr	r3, .L25+4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 10
+
+
+ 399 0060 1B78     		ldrb	r3, [r3]
+ 400 0062 022B     		cmp	r3, #2
+ 401 0064 02D1     		bne	.L22
+ 402              		.loc 1 115 0 is_stmt 0 discriminator 1
+ 403 0066 054B     		ldr	r3, .L25+4
+ 404 0068 0322     		mov	r2, #3
+ 405 006a 1A70     		strb	r2, [r3]
+ 406              	.L22:
+ 116:lib_testMode/testMode.c ****     }
+ 117:lib_testMode/testMode.c **** 
+ 118:lib_testMode/testMode.c ****       
+ 119:lib_testMode/testMode.c ****     return switchState;
+ 407              		.loc 1 119 0 is_stmt 1
+ 408 006c 034B     		ldr	r3, .L25+4
+ 409 006e 1B78     		ldrb	r3, [r3]
+ 120:lib_testMode/testMode.c **** }
+ 410              		.loc 1 120 0
+ 411 0070 181C     		mov	r0, r3
+ 412 0072 BD46     		mov	sp, r7
+ 413              		@ sp needed
+ 414 0074 80BD     		pop	{r7, pc}
+ 415              	.L26:
+ 416 0076 C046     		.align	2
+ 417              	.L25:
+ 418 0078 02000000 		.word	tmpCounter.7637
+ 419 007c 00000000 		.word	switchState
+ 420              		.cfi_endproc
+ 421              	.LFE66:
+ 422              		.size	ReadSwitchState, .-ReadSwitchState
+ 423              		.section	.text.ReadNetworkState,"ax",%progbits
+ 424              		.align	2
+ 425              		.global	ReadNetworkState
+ 426              		.code	16
+ 427              		.thumb_func
+ 428              		.type	ReadNetworkState, %function
+ 429              	ReadNetworkState:
+ 430              	.LFB67:
+ 121:lib_testMode/testMode.c **** 
+ 122:lib_testMode/testMode.c **** 
+ 123:lib_testMode/testMode.c **** funcReturnValue ReadNetworkState()
+ 124:lib_testMode/testMode.c **** {
+ 431              		.loc 1 124 0
+ 432              		.cfi_startproc
+ 433 0000 80B5     		push	{r7, lr}
+ 434              		.cfi_def_cfa_offset 8
+ 435              		.cfi_offset 7, -8
+ 436              		.cfi_offset 14, -4
+ 437 0002 00AF     		add	r7, sp, #0
+ 438              		.cfi_def_cfa_register 7
+ 125:lib_testMode/testMode.c ****     if(networkState == LOW_LEVEL && NetworkReadTestModeStatus()==1)  networkState = RISING_EDGE;
+ 439              		.loc 1 125 0
+ 440 0004 1A4B     		ldr	r3, .L33
+ 441 0006 1B78     		ldrb	r3, [r3]
+ 442 0008 032B     		cmp	r3, #3
+ 443 000a 08D1     		bne	.L28
+ 444              		.loc 1 125 0 is_stmt 0 discriminator 1
+ 445 000c FFF7FEFF 		bl	NetworkReadTestModeStatus
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 11
+
+
+ 446 0010 031E     		sub	r3, r0, #0
+ 447 0012 012B     		cmp	r3, #1
+ 448 0014 03D1     		bne	.L28
+ 449              		.loc 1 125 0 discriminator 2
+ 450 0016 164B     		ldr	r3, .L33
+ 451 0018 0122     		mov	r2, #1
+ 452 001a 1A70     		strb	r2, [r3]
+ 453 001c 23E0     		b	.L29
+ 454              	.L28:
+ 126:lib_testMode/testMode.c ****     else if(networkState == HIGH_LEVEL && NetworkReadTestModeStatus() == 0)  networkState = FALLING
+ 455              		.loc 1 126 0 is_stmt 1
+ 456 001e 144B     		ldr	r3, .L33
+ 457 0020 1B78     		ldrb	r3, [r3]
+ 458 0022 002B     		cmp	r3, #0
+ 459 0024 07D1     		bne	.L30
+ 460              		.loc 1 126 0 is_stmt 0 discriminator 1
+ 461 0026 FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 462 002a 031E     		sub	r3, r0, #0
+ 463 002c 03D1     		bne	.L30
+ 464              		.loc 1 126 0 discriminator 2
+ 465 002e 104B     		ldr	r3, .L33
+ 466 0030 0222     		mov	r2, #2
+ 467 0032 1A70     		strb	r2, [r3]
+ 468 0034 17E0     		b	.L29
+ 469              	.L30:
+ 127:lib_testMode/testMode.c ****     else if(networkState == RISING_EDGE && NetworkReadTestModeStatus() ==1)  networkState = HIGH_LE
+ 470              		.loc 1 127 0 is_stmt 1
+ 471 0036 0E4B     		ldr	r3, .L33
+ 472 0038 1B78     		ldrb	r3, [r3]
+ 473 003a 012B     		cmp	r3, #1
+ 474 003c 08D1     		bne	.L31
+ 475              		.loc 1 127 0 is_stmt 0 discriminator 1
+ 476 003e FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 477 0042 031E     		sub	r3, r0, #0
+ 478 0044 012B     		cmp	r3, #1
+ 479 0046 03D1     		bne	.L31
+ 480              		.loc 1 127 0 discriminator 2
+ 481 0048 094B     		ldr	r3, .L33
+ 482 004a 0022     		mov	r2, #0
+ 483 004c 1A70     		strb	r2, [r3]
+ 484 004e 0AE0     		b	.L29
+ 485              	.L31:
+ 128:lib_testMode/testMode.c ****     else if(networkState == FALLING_EDGE && NetworkReadTestModeStatus() == 0)  networkState = LOW_L
+ 486              		.loc 1 128 0 is_stmt 1
+ 487 0050 074B     		ldr	r3, .L33
+ 488 0052 1B78     		ldrb	r3, [r3]
+ 489 0054 022B     		cmp	r3, #2
+ 490 0056 06D1     		bne	.L29
+ 491              		.loc 1 128 0 is_stmt 0 discriminator 1
+ 492 0058 FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 493 005c 031E     		sub	r3, r0, #0
+ 494 005e 02D1     		bne	.L29
+ 495              		.loc 1 128 0 discriminator 2
+ 496 0060 034B     		ldr	r3, .L33
+ 497 0062 0322     		mov	r2, #3
+ 498 0064 1A70     		strb	r2, [r3]
+ 499              	.L29:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 12
+
+
+ 129:lib_testMode/testMode.c **** 
+ 130:lib_testMode/testMode.c ****     return networkState;   
+ 500              		.loc 1 130 0 is_stmt 1
+ 501 0066 024B     		ldr	r3, .L33
+ 502 0068 1B78     		ldrb	r3, [r3]
+ 131:lib_testMode/testMode.c **** }...
+ 503              		.loc 1 131 0
+ 504 006a 181C     		mov	r0, r3
+ 505 006c BD46     		mov	sp, r7
+ 506              		@ sp needed
+ 507 006e 80BD     		pop	{r7, pc}
+ 508              	.L34:
+ 509              		.align	2
+ 510              	.L33:
+ 511 0070 00000000 		.word	networkState
+ 512              		.cfi_endproc
+ 513              	.LFE67:
+ 514              		.size	ReadNetworkState, .-ReadNetworkState
+ 515              		.bss
+ 516              	tmpCounter.7637:
+ 517 0002 00       		.space	1
+ 518              		.text
+ 519              	.Letext0:
+ 520              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 521              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 522              		.file 4 "Generated_Source\\PSoC4/cytypes.h"
+ 523              		.section	.debug_info,"",%progbits
+ 524              	.Ldebug_info0:
+ 525 0000 D3010000 		.4byte	0x1d3
+ 526 0004 0400     		.2byte	0x4
+ 527 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 528 000a 04       		.byte	0x4
+ 529 000b 01       		.uleb128 0x1
+ 530 000c 45010000 		.4byte	.LASF30
+ 531 0010 01       		.byte	0x1
+ 532 0011 69000000 		.4byte	.LASF31
+ 533 0015 A6000000 		.4byte	.LASF32
+ 534 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 535 001d 00000000 		.4byte	0
+ 536 0021 00000000 		.4byte	.Ldebug_line0
+ 537 0025 02       		.uleb128 0x2
+ 538 0026 01       		.byte	0x1
+ 539 0027 06       		.byte	0x6
+ 540 0028 7F020000 		.4byte	.LASF0
+ 541 002c 03       		.uleb128 0x3
+ 542 002d 0C000000 		.4byte	.LASF9
+ 543 0031 02       		.byte	0x2
+ 544 0032 1D       		.byte	0x1d
+ 545 0033 37000000 		.4byte	0x37
+ 546 0037 02       		.uleb128 0x2
+ 547 0038 01       		.byte	0x1
+ 548 0039 08       		.byte	0x8
+ 549 003a 5B000000 		.4byte	.LASF1
+ 550 003e 02       		.uleb128 0x2
+ 551 003f 02       		.byte	0x2
+ 552 0040 05       		.byte	0x5
+ 553 0041 4C020000 		.4byte	.LASF2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 13
+
+
+ 554 0045 02       		.uleb128 0x2
+ 555 0046 02       		.byte	0x2
+ 556 0047 07       		.byte	0x7
+ 557 0048 93000000 		.4byte	.LASF3
+ 558 004c 02       		.uleb128 0x2
+ 559 004d 04       		.byte	0x4
+ 560 004e 05       		.byte	0x5
+ 561 004f 76020000 		.4byte	.LASF4
+ 562 0053 02       		.uleb128 0x2
+ 563 0054 04       		.byte	0x4
+ 564 0055 07       		.byte	0x7
+ 565 0056 81000000 		.4byte	.LASF5
+ 566 005a 02       		.uleb128 0x2
+ 567 005b 08       		.byte	0x8
+ 568 005c 05       		.byte	0x5
+ 569 005d 29020000 		.4byte	.LASF6
+ 570 0061 02       		.uleb128 0x2
+ 571 0062 08       		.byte	0x8
+ 572 0063 07       		.byte	0x7
+ 573 0064 E7010000 		.4byte	.LASF7
+ 574 0068 04       		.uleb128 0x4
+ 575 0069 04       		.byte	0x4
+ 576 006a 05       		.byte	0x5
+ 577 006b 696E7400 		.ascii	"int\000"
+ 578 006f 02       		.uleb128 0x2
+ 579 0070 04       		.byte	0x4
+ 580 0071 07       		.byte	0x7
+ 581 0072 DA010000 		.4byte	.LASF8
+ 582 0076 03       		.uleb128 0x3
+ 583 0077 FE010000 		.4byte	.LASF10
+ 584 007b 03       		.byte	0x3
+ 585 007c 15       		.byte	0x15
+ 586 007d 2C000000 		.4byte	0x2c
+ 587 0081 05       		.uleb128 0x5
+ 588 0082 D3010000 		.4byte	.LASF11
+ 589 0086 04       		.byte	0x4
+ 590 0087 9A01     		.2byte	0x19a
+ 591 0089 53000000 		.4byte	0x53
+ 592 008d 02       		.uleb128 0x2
+ 593 008e 04       		.byte	0x4
+ 594 008f 04       		.byte	0x4
+ 595 0090 55000000 		.4byte	.LASF12
+ 596 0094 02       		.uleb128 0x2
+ 597 0095 08       		.byte	0x8
+ 598 0096 04       		.byte	0x4
+ 599 0097 10010000 		.4byte	.LASF13
+ 600 009b 02       		.uleb128 0x2
+ 601 009c 01       		.byte	0x1
+ 602 009d 08       		.byte	0x8
+ 603 009e 37020000 		.4byte	.LASF14
+ 604 00a2 02       		.uleb128 0x2
+ 605 00a3 04       		.byte	0x4
+ 606 00a4 07       		.byte	0x7
+ 607 00a5 20020000 		.4byte	.LASF15
+ 608 00a9 06       		.uleb128 0x6
+ 609 00aa 35000000 		.4byte	.LASF33
+ 610 00ae 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 14
+
+
+ 611 00af 01       		.byte	0x1
+ 612 00b0 0D       		.byte	0xd
+ 613 00b1 C2000000 		.4byte	0xc2
+ 614 00b5 07       		.uleb128 0x7
+ 615 00b6 20000000 		.4byte	.LASF16
+ 616 00ba 00       		.sleb128 0
+ 617 00bb 08       		.uleb128 0x8
+ 618 00bc 52554E00 		.ascii	"RUN\000"
+ 619 00c0 01       		.sleb128 1
+ 620 00c1 00       		.byte	0
+ 621 00c2 09       		.uleb128 0x9
+ 622 00c3 01       		.byte	0x1
+ 623 00c4 01       		.byte	0x1
+ 624 00c5 0E       		.byte	0xe
+ 625 00c6 E3000000 		.4byte	0xe3
+ 626 00ca 07       		.uleb128 0x7
+ 627 00cb 00010000 		.4byte	.LASF17
+ 628 00cf 00       		.sleb128 0
+ 629 00d0 07       		.uleb128 0x7
+ 630 00d1 00000000 		.4byte	.LASF18
+ 631 00d5 01       		.sleb128 1
+ 632 00d6 07       		.uleb128 0x7
+ 633 00d7 48000000 		.4byte	.LASF19
+ 634 00db 02       		.sleb128 2
+ 635 00dc 07       		.uleb128 0x7
+ 636 00dd 16000000 		.4byte	.LASF20
+ 637 00e1 03       		.sleb128 3
+ 638 00e2 00       		.byte	0
+ 639 00e3 03       		.uleb128 0x3
+ 640 00e4 9A020000 		.4byte	.LASF21
+ 641 00e8 01       		.byte	0x1
+ 642 00e9 0E       		.byte	0xe
+ 643 00ea C2000000 		.4byte	0xc2
+ 644 00ee 0A       		.uleb128 0xa
+ 645 00ef 3C020000 		.4byte	.LASF24
+ 646 00f3 01       		.byte	0x1
+ 647 00f4 1A       		.byte	0x1a
+ 648 00f5 00000000 		.4byte	.LFB63
+ 649 00f9 24000000 		.4byte	.LFE63-.LFB63
+ 650 00fd 01       		.uleb128 0x1
+ 651 00fe 9C       		.byte	0x9c
+ 652 00ff 0B       		.uleb128 0xb
+ 653 0100 66020000 		.4byte	.LASF34
+ 654 0104 01       		.byte	0x1
+ 655 0105 24       		.byte	0x24
+ 656 0106 00000000 		.4byte	.LFB64
+ 657 010a FC000000 		.4byte	.LFE64-.LFB64
+ 658 010e 01       		.uleb128 0x1
+ 659 010f 9C       		.byte	0x9c
+ 660 0110 0C       		.uleb128 0xc
+ 661 0111 17010000 		.4byte	.LASF35
+ 662 0115 01       		.byte	0x1
+ 663 0116 4F       		.byte	0x4f
+ 664 0117 00000000 		.4byte	.LFB65
+ 665 011b 60000000 		.4byte	.LFE65-.LFB65
+ 666 011f 01       		.uleb128 0x1
+ 667 0120 9C       		.byte	0x9c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 15
+
+
+ 668 0121 42010000 		.4byte	0x142
+ 669 0125 0D       		.uleb128 0xd
+ 670 0126 6E756D00 		.ascii	"num\000"
+ 671 012a 01       		.byte	0x1
+ 672 012b 51       		.byte	0x51
+ 673 012c 76000000 		.4byte	0x76
+ 674 0130 02       		.uleb128 0x2
+ 675 0131 91       		.byte	0x91
+ 676 0132 77       		.sleb128 -9
+ 677 0133 0E       		.uleb128 0xe
+ 678 0134 0B010000 		.4byte	.LASF22
+ 679 0138 01       		.byte	0x1
+ 680 0139 55       		.byte	0x55
+ 681 013a 42010000 		.4byte	0x142
+ 682 013e 02       		.uleb128 0x2
+ 683 013f 91       		.byte	0x91
+ 684 0140 6C       		.sleb128 -20
+ 685 0141 00       		.byte	0
+ 686 0142 0F       		.uleb128 0xf
+ 687 0143 9B000000 		.4byte	0x9b
+ 688 0147 52010000 		.4byte	0x152
+ 689 014b 10       		.uleb128 0x10
+ 690 014c A2000000 		.4byte	0xa2
+ 691 0150 0A       		.byte	0xa
+ 692 0151 00       		.byte	0
+ 693 0152 11       		.uleb128 0x11
+ 694 0153 56020000 		.4byte	.LASF36
+ 695 0157 01       		.byte	0x1
+ 696 0158 5E       		.byte	0x5e
+ 697 0159 E3000000 		.4byte	0xe3
+ 698 015d 00000000 		.4byte	.LFB66
+ 699 0161 80000000 		.4byte	.LFE66-.LFB66
+ 700 0165 01       		.uleb128 0x1
+ 701 0166 9C       		.byte	0x9c
+ 702 0167 7D010000 		.4byte	0x17d
+ 703 016b 0E       		.uleb128 0xe
+ 704 016c 15020000 		.4byte	.LASF23
+ 705 0170 01       		.byte	0x1
+ 706 0171 60       		.byte	0x60
+ 707 0172 76000000 		.4byte	0x76
+ 708 0176 05       		.uleb128 0x5
+ 709 0177 03       		.byte	0x3
+ 710 0178 02000000 		.4byte	tmpCounter.7637
+ 711 017c 00       		.byte	0
+ 712 017d 12       		.uleb128 0x12
+ 713 017e 34010000 		.4byte	.LASF25
+ 714 0182 01       		.byte	0x1
+ 715 0183 7B       		.byte	0x7b
+ 716 0184 E3000000 		.4byte	0xe3
+ 717 0188 00000000 		.4byte	.LFB67
+ 718 018c 74000000 		.4byte	.LFE67-.LFB67
+ 719 0190 01       		.uleb128 0x1
+ 720 0191 9C       		.byte	0x9c
+ 721 0192 0E       		.uleb128 0xe
+ 722 0193 06020000 		.4byte	.LASF26
+ 723 0197 01       		.byte	0x1
+ 724 0198 18       		.byte	0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 16
+
+
+ 725 0199 76000000 		.4byte	0x76
+ 726 019d 05       		.uleb128 0x5
+ 727 019e 03       		.byte	0x3
+ 728 019f 01000000 		.4byte	enableTestMode
+ 729 01a3 13       		.uleb128 0x13
+ 730 01a4 8B020000 		.4byte	.LASF27
+ 731 01a8 01       		.byte	0x1
+ 732 01a9 10       		.byte	0x10
+ 733 01aa 76000000 		.4byte	0x76
+ 734 01ae 05       		.uleb128 0x5
+ 735 01af 03       		.byte	0x3
+ 736 01b0 00000000 		.4byte	statusTestMode
+ 737 01b4 13       		.uleb128 0x13
+ 738 01b5 3C000000 		.4byte	.LASF28
+ 739 01b9 01       		.byte	0x1
+ 740 01ba 12       		.byte	0x12
+ 741 01bb E3000000 		.4byte	0xe3
+ 742 01bf 05       		.uleb128 0x5
+ 743 01c0 03       		.byte	0x3
+ 744 01c1 00000000 		.4byte	switchState
+ 745 01c5 13       		.uleb128 0x13
+ 746 01c6 28000000 		.4byte	.LASF29
+ 747 01ca 01       		.byte	0x1
+ 748 01cb 13       		.byte	0x13
+ 749 01cc E3000000 		.4byte	0xe3
+ 750 01d0 05       		.uleb128 0x5
+ 751 01d1 03       		.byte	0x3
+ 752 01d2 00000000 		.4byte	networkState
+ 753 01d6 00       		.byte	0
+ 754              		.section	.debug_abbrev,"",%progbits
+ 755              	.Ldebug_abbrev0:
+ 756 0000 01       		.uleb128 0x1
+ 757 0001 11       		.uleb128 0x11
+ 758 0002 01       		.byte	0x1
+ 759 0003 25       		.uleb128 0x25
+ 760 0004 0E       		.uleb128 0xe
+ 761 0005 13       		.uleb128 0x13
+ 762 0006 0B       		.uleb128 0xb
+ 763 0007 03       		.uleb128 0x3
+ 764 0008 0E       		.uleb128 0xe
+ 765 0009 1B       		.uleb128 0x1b
+ 766 000a 0E       		.uleb128 0xe
+ 767 000b 55       		.uleb128 0x55
+ 768 000c 17       		.uleb128 0x17
+ 769 000d 11       		.uleb128 0x11
+ 770 000e 01       		.uleb128 0x1
+ 771 000f 10       		.uleb128 0x10
+ 772 0010 17       		.uleb128 0x17
+ 773 0011 00       		.byte	0
+ 774 0012 00       		.byte	0
+ 775 0013 02       		.uleb128 0x2
+ 776 0014 24       		.uleb128 0x24
+ 777 0015 00       		.byte	0
+ 778 0016 0B       		.uleb128 0xb
+ 779 0017 0B       		.uleb128 0xb
+ 780 0018 3E       		.uleb128 0x3e
+ 781 0019 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 17
+
+
+ 782 001a 03       		.uleb128 0x3
+ 783 001b 0E       		.uleb128 0xe
+ 784 001c 00       		.byte	0
+ 785 001d 00       		.byte	0
+ 786 001e 03       		.uleb128 0x3
+ 787 001f 16       		.uleb128 0x16
+ 788 0020 00       		.byte	0
+ 789 0021 03       		.uleb128 0x3
+ 790 0022 0E       		.uleb128 0xe
+ 791 0023 3A       		.uleb128 0x3a
+ 792 0024 0B       		.uleb128 0xb
+ 793 0025 3B       		.uleb128 0x3b
+ 794 0026 0B       		.uleb128 0xb
+ 795 0027 49       		.uleb128 0x49
+ 796 0028 13       		.uleb128 0x13
+ 797 0029 00       		.byte	0
+ 798 002a 00       		.byte	0
+ 799 002b 04       		.uleb128 0x4
+ 800 002c 24       		.uleb128 0x24
+ 801 002d 00       		.byte	0
+ 802 002e 0B       		.uleb128 0xb
+ 803 002f 0B       		.uleb128 0xb
+ 804 0030 3E       		.uleb128 0x3e
+ 805 0031 0B       		.uleb128 0xb
+ 806 0032 03       		.uleb128 0x3
+ 807 0033 08       		.uleb128 0x8
+ 808 0034 00       		.byte	0
+ 809 0035 00       		.byte	0
+ 810 0036 05       		.uleb128 0x5
+ 811 0037 16       		.uleb128 0x16
+ 812 0038 00       		.byte	0
+ 813 0039 03       		.uleb128 0x3
+ 814 003a 0E       		.uleb128 0xe
+ 815 003b 3A       		.uleb128 0x3a
+ 816 003c 0B       		.uleb128 0xb
+ 817 003d 3B       		.uleb128 0x3b
+ 818 003e 05       		.uleb128 0x5
+ 819 003f 49       		.uleb128 0x49
+ 820 0040 13       		.uleb128 0x13
+ 821 0041 00       		.byte	0
+ 822 0042 00       		.byte	0
+ 823 0043 06       		.uleb128 0x6
+ 824 0044 04       		.uleb128 0x4
+ 825 0045 01       		.byte	0x1
+ 826 0046 03       		.uleb128 0x3
+ 827 0047 0E       		.uleb128 0xe
+ 828 0048 0B       		.uleb128 0xb
+ 829 0049 0B       		.uleb128 0xb
+ 830 004a 3A       		.uleb128 0x3a
+ 831 004b 0B       		.uleb128 0xb
+ 832 004c 3B       		.uleb128 0x3b
+ 833 004d 0B       		.uleb128 0xb
+ 834 004e 01       		.uleb128 0x1
+ 835 004f 13       		.uleb128 0x13
+ 836 0050 00       		.byte	0
+ 837 0051 00       		.byte	0
+ 838 0052 07       		.uleb128 0x7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 18
+
+
+ 839 0053 28       		.uleb128 0x28
+ 840 0054 00       		.byte	0
+ 841 0055 03       		.uleb128 0x3
+ 842 0056 0E       		.uleb128 0xe
+ 843 0057 1C       		.uleb128 0x1c
+ 844 0058 0D       		.uleb128 0xd
+ 845 0059 00       		.byte	0
+ 846 005a 00       		.byte	0
+ 847 005b 08       		.uleb128 0x8
+ 848 005c 28       		.uleb128 0x28
+ 849 005d 00       		.byte	0
+ 850 005e 03       		.uleb128 0x3
+ 851 005f 08       		.uleb128 0x8
+ 852 0060 1C       		.uleb128 0x1c
+ 853 0061 0D       		.uleb128 0xd
+ 854 0062 00       		.byte	0
+ 855 0063 00       		.byte	0
+ 856 0064 09       		.uleb128 0x9
+ 857 0065 04       		.uleb128 0x4
+ 858 0066 01       		.byte	0x1
+ 859 0067 0B       		.uleb128 0xb
+ 860 0068 0B       		.uleb128 0xb
+ 861 0069 3A       		.uleb128 0x3a
+ 862 006a 0B       		.uleb128 0xb
+ 863 006b 3B       		.uleb128 0x3b
+ 864 006c 0B       		.uleb128 0xb
+ 865 006d 01       		.uleb128 0x1
+ 866 006e 13       		.uleb128 0x13
+ 867 006f 00       		.byte	0
+ 868 0070 00       		.byte	0
+ 869 0071 0A       		.uleb128 0xa
+ 870 0072 2E       		.uleb128 0x2e
+ 871 0073 00       		.byte	0
+ 872 0074 3F       		.uleb128 0x3f
+ 873 0075 19       		.uleb128 0x19
+ 874 0076 03       		.uleb128 0x3
+ 875 0077 0E       		.uleb128 0xe
+ 876 0078 3A       		.uleb128 0x3a
+ 877 0079 0B       		.uleb128 0xb
+ 878 007a 3B       		.uleb128 0x3b
+ 879 007b 0B       		.uleb128 0xb
+ 880 007c 27       		.uleb128 0x27
+ 881 007d 19       		.uleb128 0x19
+ 882 007e 11       		.uleb128 0x11
+ 883 007f 01       		.uleb128 0x1
+ 884 0080 12       		.uleb128 0x12
+ 885 0081 06       		.uleb128 0x6
+ 886 0082 40       		.uleb128 0x40
+ 887 0083 18       		.uleb128 0x18
+ 888 0084 9642     		.uleb128 0x2116
+ 889 0086 19       		.uleb128 0x19
+ 890 0087 00       		.byte	0
+ 891 0088 00       		.byte	0
+ 892 0089 0B       		.uleb128 0xb
+ 893 008a 2E       		.uleb128 0x2e
+ 894 008b 00       		.byte	0
+ 895 008c 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 19
+
+
+ 896 008d 19       		.uleb128 0x19
+ 897 008e 03       		.uleb128 0x3
+ 898 008f 0E       		.uleb128 0xe
+ 899 0090 3A       		.uleb128 0x3a
+ 900 0091 0B       		.uleb128 0xb
+ 901 0092 3B       		.uleb128 0x3b
+ 902 0093 0B       		.uleb128 0xb
+ 903 0094 11       		.uleb128 0x11
+ 904 0095 01       		.uleb128 0x1
+ 905 0096 12       		.uleb128 0x12
+ 906 0097 06       		.uleb128 0x6
+ 907 0098 40       		.uleb128 0x40
+ 908 0099 18       		.uleb128 0x18
+ 909 009a 9642     		.uleb128 0x2116
+ 910 009c 19       		.uleb128 0x19
+ 911 009d 00       		.byte	0
+ 912 009e 00       		.byte	0
+ 913 009f 0C       		.uleb128 0xc
+ 914 00a0 2E       		.uleb128 0x2e
+ 915 00a1 01       		.byte	0x1
+ 916 00a2 3F       		.uleb128 0x3f
+ 917 00a3 19       		.uleb128 0x19
+ 918 00a4 03       		.uleb128 0x3
+ 919 00a5 0E       		.uleb128 0xe
+ 920 00a6 3A       		.uleb128 0x3a
+ 921 00a7 0B       		.uleb128 0xb
+ 922 00a8 3B       		.uleb128 0x3b
+ 923 00a9 0B       		.uleb128 0xb
+ 924 00aa 11       		.uleb128 0x11
+ 925 00ab 01       		.uleb128 0x1
+ 926 00ac 12       		.uleb128 0x12
+ 927 00ad 06       		.uleb128 0x6
+ 928 00ae 40       		.uleb128 0x40
+ 929 00af 18       		.uleb128 0x18
+ 930 00b0 9642     		.uleb128 0x2116
+ 931 00b2 19       		.uleb128 0x19
+ 932 00b3 01       		.uleb128 0x1
+ 933 00b4 13       		.uleb128 0x13
+ 934 00b5 00       		.byte	0
+ 935 00b6 00       		.byte	0
+ 936 00b7 0D       		.uleb128 0xd
+ 937 00b8 34       		.uleb128 0x34
+ 938 00b9 00       		.byte	0
+ 939 00ba 03       		.uleb128 0x3
+ 940 00bb 08       		.uleb128 0x8
+ 941 00bc 3A       		.uleb128 0x3a
+ 942 00bd 0B       		.uleb128 0xb
+ 943 00be 3B       		.uleb128 0x3b
+ 944 00bf 0B       		.uleb128 0xb
+ 945 00c0 49       		.uleb128 0x49
+ 946 00c1 13       		.uleb128 0x13
+ 947 00c2 02       		.uleb128 0x2
+ 948 00c3 18       		.uleb128 0x18
+ 949 00c4 00       		.byte	0
+ 950 00c5 00       		.byte	0
+ 951 00c6 0E       		.uleb128 0xe
+ 952 00c7 34       		.uleb128 0x34
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 20
+
+
+ 953 00c8 00       		.byte	0
+ 954 00c9 03       		.uleb128 0x3
+ 955 00ca 0E       		.uleb128 0xe
+ 956 00cb 3A       		.uleb128 0x3a
+ 957 00cc 0B       		.uleb128 0xb
+ 958 00cd 3B       		.uleb128 0x3b
+ 959 00ce 0B       		.uleb128 0xb
+ 960 00cf 49       		.uleb128 0x49
+ 961 00d0 13       		.uleb128 0x13
+ 962 00d1 02       		.uleb128 0x2
+ 963 00d2 18       		.uleb128 0x18
+ 964 00d3 00       		.byte	0
+ 965 00d4 00       		.byte	0
+ 966 00d5 0F       		.uleb128 0xf
+ 967 00d6 01       		.uleb128 0x1
+ 968 00d7 01       		.byte	0x1
+ 969 00d8 49       		.uleb128 0x49
+ 970 00d9 13       		.uleb128 0x13
+ 971 00da 01       		.uleb128 0x1
+ 972 00db 13       		.uleb128 0x13
+ 973 00dc 00       		.byte	0
+ 974 00dd 00       		.byte	0
+ 975 00de 10       		.uleb128 0x10
+ 976 00df 21       		.uleb128 0x21
+ 977 00e0 00       		.byte	0
+ 978 00e1 49       		.uleb128 0x49
+ 979 00e2 13       		.uleb128 0x13
+ 980 00e3 2F       		.uleb128 0x2f
+ 981 00e4 0B       		.uleb128 0xb
+ 982 00e5 00       		.byte	0
+ 983 00e6 00       		.byte	0
+ 984 00e7 11       		.uleb128 0x11
+ 985 00e8 2E       		.uleb128 0x2e
+ 986 00e9 01       		.byte	0x1
+ 987 00ea 3F       		.uleb128 0x3f
+ 988 00eb 19       		.uleb128 0x19
+ 989 00ec 03       		.uleb128 0x3
+ 990 00ed 0E       		.uleb128 0xe
+ 991 00ee 3A       		.uleb128 0x3a
+ 992 00ef 0B       		.uleb128 0xb
+ 993 00f0 3B       		.uleb128 0x3b
+ 994 00f1 0B       		.uleb128 0xb
+ 995 00f2 49       		.uleb128 0x49
+ 996 00f3 13       		.uleb128 0x13
+ 997 00f4 11       		.uleb128 0x11
+ 998 00f5 01       		.uleb128 0x1
+ 999 00f6 12       		.uleb128 0x12
+ 1000 00f7 06       		.uleb128 0x6
+ 1001 00f8 40       		.uleb128 0x40
+ 1002 00f9 18       		.uleb128 0x18
+ 1003 00fa 9642     		.uleb128 0x2116
+ 1004 00fc 19       		.uleb128 0x19
+ 1005 00fd 01       		.uleb128 0x1
+ 1006 00fe 13       		.uleb128 0x13
+ 1007 00ff 00       		.byte	0
+ 1008 0100 00       		.byte	0
+ 1009 0101 12       		.uleb128 0x12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 21
+
+
+ 1010 0102 2E       		.uleb128 0x2e
+ 1011 0103 00       		.byte	0
+ 1012 0104 3F       		.uleb128 0x3f
+ 1013 0105 19       		.uleb128 0x19
+ 1014 0106 03       		.uleb128 0x3
+ 1015 0107 0E       		.uleb128 0xe
+ 1016 0108 3A       		.uleb128 0x3a
+ 1017 0109 0B       		.uleb128 0xb
+ 1018 010a 3B       		.uleb128 0x3b
+ 1019 010b 0B       		.uleb128 0xb
+ 1020 010c 49       		.uleb128 0x49
+ 1021 010d 13       		.uleb128 0x13
+ 1022 010e 11       		.uleb128 0x11
+ 1023 010f 01       		.uleb128 0x1
+ 1024 0110 12       		.uleb128 0x12
+ 1025 0111 06       		.uleb128 0x6
+ 1026 0112 40       		.uleb128 0x40
+ 1027 0113 18       		.uleb128 0x18
+ 1028 0114 9642     		.uleb128 0x2116
+ 1029 0116 19       		.uleb128 0x19
+ 1030 0117 00       		.byte	0
+ 1031 0118 00       		.byte	0
+ 1032 0119 13       		.uleb128 0x13
+ 1033 011a 34       		.uleb128 0x34
+ 1034 011b 00       		.byte	0
+ 1035 011c 03       		.uleb128 0x3
+ 1036 011d 0E       		.uleb128 0xe
+ 1037 011e 3A       		.uleb128 0x3a
+ 1038 011f 0B       		.uleb128 0xb
+ 1039 0120 3B       		.uleb128 0x3b
+ 1040 0121 0B       		.uleb128 0xb
+ 1041 0122 49       		.uleb128 0x49
+ 1042 0123 13       		.uleb128 0x13
+ 1043 0124 3F       		.uleb128 0x3f
+ 1044 0125 19       		.uleb128 0x19
+ 1045 0126 02       		.uleb128 0x2
+ 1046 0127 18       		.uleb128 0x18
+ 1047 0128 00       		.byte	0
+ 1048 0129 00       		.byte	0
+ 1049 012a 00       		.byte	0
+ 1050              		.section	.debug_aranges,"",%progbits
+ 1051 0000 3C000000 		.4byte	0x3c
+ 1052 0004 0200     		.2byte	0x2
+ 1053 0006 00000000 		.4byte	.Ldebug_info0
+ 1054 000a 04       		.byte	0x4
+ 1055 000b 00       		.byte	0
+ 1056 000c 0000     		.2byte	0
+ 1057 000e 0000     		.2byte	0
+ 1058 0010 00000000 		.4byte	.LFB63
+ 1059 0014 24000000 		.4byte	.LFE63-.LFB63
+ 1060 0018 00000000 		.4byte	.LFB64
+ 1061 001c FC000000 		.4byte	.LFE64-.LFB64
+ 1062 0020 00000000 		.4byte	.LFB65
+ 1063 0024 60000000 		.4byte	.LFE65-.LFB65
+ 1064 0028 00000000 		.4byte	.LFB66
+ 1065 002c 80000000 		.4byte	.LFE66-.LFB66
+ 1066 0030 00000000 		.4byte	.LFB67
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 22
+
+
+ 1067 0034 74000000 		.4byte	.LFE67-.LFB67
+ 1068 0038 00000000 		.4byte	0
+ 1069 003c 00000000 		.4byte	0
+ 1070              		.section	.debug_ranges,"",%progbits
+ 1071              	.Ldebug_ranges0:
+ 1072 0000 00000000 		.4byte	.LFB63
+ 1073 0004 24000000 		.4byte	.LFE63
+ 1074 0008 00000000 		.4byte	.LFB64
+ 1075 000c FC000000 		.4byte	.LFE64
+ 1076 0010 00000000 		.4byte	.LFB65
+ 1077 0014 60000000 		.4byte	.LFE65
+ 1078 0018 00000000 		.4byte	.LFB66
+ 1079 001c 80000000 		.4byte	.LFE66
+ 1080 0020 00000000 		.4byte	.LFB67
+ 1081 0024 74000000 		.4byte	.LFE67
+ 1082 0028 00000000 		.4byte	0
+ 1083 002c 00000000 		.4byte	0
+ 1084              		.section	.debug_line,"",%progbits
+ 1085              	.Ldebug_line0:
+ 1086 0000 55020000 		.section	.debug_str,"MS",%progbits,1
+ 1086      02004A01 
+ 1086      00000201 
+ 1086      FB0E0D00 
+ 1086      01010101 
+ 1087              	.LASF18:
+ 1088 0000 52495349 		.ascii	"RISING_EDGE\000"
+ 1088      4E475F45 
+ 1088      44474500 
+ 1089              	.LASF9:
+ 1090 000c 5F5F7569 		.ascii	"__uint8_t\000"
+ 1090      6E74385F 
+ 1090      7400
+ 1091              	.LASF20:
+ 1092 0016 4C4F575F 		.ascii	"LOW_LEVEL\000"
+ 1092      4C455645 
+ 1092      4C00
+ 1093              	.LASF16:
+ 1094 0020 53544F50 		.ascii	"STOPPED\000"
+ 1094      50454400 
+ 1095              	.LASF29:
+ 1096 0028 6E657477 		.ascii	"networkState\000"
+ 1096      6F726B53 
+ 1096      74617465 
+ 1096      00
+ 1097              	.LASF33:
+ 1098 0035 73746174 		.ascii	"status\000"
+ 1098      757300
+ 1099              	.LASF28:
+ 1100 003c 73776974 		.ascii	"switchState\000"
+ 1100      63685374 
+ 1100      61746500 
+ 1101              	.LASF19:
+ 1102 0048 46414C4C 		.ascii	"FALLING_EDGE\000"
+ 1102      494E475F 
+ 1102      45444745 
+ 1102      00
+ 1103              	.LASF12:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 23
+
+
+ 1104 0055 666C6F61 		.ascii	"float\000"
+ 1104      7400
+ 1105              	.LASF1:
+ 1106 005b 756E7369 		.ascii	"unsigned char\000"
+ 1106      676E6564 
+ 1106      20636861 
+ 1106      7200
+ 1107              	.LASF31:
+ 1108 0069 6C69625F 		.ascii	"lib_testMode\\testMode.c\000"
+ 1108      74657374 
+ 1108      4D6F6465 
+ 1108      5C746573 
+ 1108      744D6F64 
+ 1109              	.LASF5:
+ 1110 0081 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1110      20756E73 
+ 1110      69676E65 
+ 1110      6420696E 
+ 1110      7400
+ 1111              	.LASF3:
+ 1112 0093 73686F72 		.ascii	"short unsigned int\000"
+ 1112      7420756E 
+ 1112      7369676E 
+ 1112      65642069 
+ 1112      6E7400
+ 1113              	.LASF32:
+ 1114 00a6 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\sta"
+ 1114      79707265 
+ 1114      73735C73 
+ 1114      79737465 
+ 1114      6D2D7374 
+ 1115 00d4 72745C73 		.ascii	"rt\\sandbox\\v11_flag_machine\\start_v11.cydsn\000"
+ 1115      616E6462 
+ 1115      6F785C76 
+ 1115      31315F66 
+ 1115      6C61675F 
+ 1116              	.LASF17:
+ 1117 0100 48494748 		.ascii	"HIGH_LEVEL\000"
+ 1117      5F4C4556 
+ 1117      454C00
+ 1118              	.LASF22:
+ 1119 010b 62756666 		.ascii	"buff\000"
+ 1119      00
+ 1120              	.LASF13:
+ 1121 0110 646F7562 		.ascii	"double\000"
+ 1121      6C6500
+ 1122              	.LASF35:
+ 1123 0117 54657374 		.ascii	"TestMode_UpdateNewRandomTime\000"
+ 1123      4D6F6465 
+ 1123      5F557064 
+ 1123      6174654E 
+ 1123      65775261 
+ 1124              	.LASF25:
+ 1125 0134 52656164 		.ascii	"ReadNetworkState\000"
+ 1125      4E657477 
+ 1125      6F726B53 
+ 1125      74617465 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 24
+
+
+ 1125      00
+ 1126              	.LASF30:
+ 1127 0145 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 1127      4320342E 
+ 1127      392E3320 
+ 1127      32303135 
+ 1127      30333033 
+ 1128 0178 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 1128      20726576 
+ 1128      6973696F 
+ 1128      6E203232 
+ 1128      31323230 
+ 1129 01ab 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 1129      66756E63 
+ 1129      74696F6E 
+ 1129      2D736563 
+ 1129      74696F6E 
+ 1130              	.LASF11:
+ 1131 01d3 75696E74 		.ascii	"uint32\000"
+ 1131      333200
+ 1132              	.LASF8:
+ 1133 01da 756E7369 		.ascii	"unsigned int\000"
+ 1133      676E6564 
+ 1133      20696E74 
+ 1133      00
+ 1134              	.LASF7:
+ 1135 01e7 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1135      206C6F6E 
+ 1135      6720756E 
+ 1135      7369676E 
+ 1135      65642069 
+ 1136              	.LASF10:
+ 1137 01fe 75696E74 		.ascii	"uint8_t\000"
+ 1137      385F7400 
+ 1138              	.LASF26:
+ 1139 0206 656E6162 		.ascii	"enableTestMode\000"
+ 1139      6C655465 
+ 1139      73744D6F 
+ 1139      646500
+ 1140              	.LASF23:
+ 1141 0215 746D7043 		.ascii	"tmpCounter\000"
+ 1141      6F756E74 
+ 1141      657200
+ 1142              	.LASF15:
+ 1143 0220 73697A65 		.ascii	"sizetype\000"
+ 1143      74797065 
+ 1143      00
+ 1144              	.LASF6:
+ 1145 0229 6C6F6E67 		.ascii	"long long int\000"
+ 1145      206C6F6E 
+ 1145      6720696E 
+ 1145      7400
+ 1146              	.LASF14:
+ 1147 0237 63686172 		.ascii	"char\000"
+ 1147      00
+ 1148              	.LASF24:
+ 1149 023c 74657374 		.ascii	"testModeHandler\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccrhscba.s 			page 25
+
+
+ 1149      4D6F6465 
+ 1149      48616E64 
+ 1149      6C657200 
+ 1150              	.LASF2:
+ 1151 024c 73686F72 		.ascii	"short int\000"
+ 1151      7420696E 
+ 1151      7400
+ 1152              	.LASF36:
+ 1153 0256 52656164 		.ascii	"ReadSwitchState\000"
+ 1153      53776974 
+ 1153      63685374 
+ 1153      61746500 
+ 1154              	.LASF34:
+ 1155 0266 6E657746 		.ascii	"newFuncTestMode\000"
+ 1155      756E6354 
+ 1155      6573744D 
+ 1155      6F646500 
+ 1156              	.LASF4:
+ 1157 0276 6C6F6E67 		.ascii	"long int\000"
+ 1157      20696E74 
+ 1157      00
+ 1158              	.LASF0:
+ 1159 027f 7369676E 		.ascii	"signed char\000"
+ 1159      65642063 
+ 1159      68617200 
+ 1160              	.LASF27:
+ 1161 028b 73746174 		.ascii	"statusTestMode\000"
+ 1161      75735465 
+ 1161      73744D6F 
+ 1161      646500
+ 1162              	.LASF21:
+ 1163 029a 66756E63 		.ascii	"funcReturnValue\000"
+ 1163      52657475 
+ 1163      726E5661 
+ 1163      6C756500 
+ 1164              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br

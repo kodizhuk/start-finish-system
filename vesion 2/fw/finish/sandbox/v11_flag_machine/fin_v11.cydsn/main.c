@@ -63,7 +63,7 @@ int main()
 void SystemInit(void)
 {
     DisplayStart(); 
-    DisplaBacklightOn();;
+    DisplaBacklightOn();
     LedInit(); 
     RTC_WDT_Init();
     InitNetwork();
@@ -284,4 +284,12 @@ void SaveResult(void)
     CyDelay(TIMEOUT_USER_READ_INFO);
 }
 
+void Delay(uint32_t delayMs)
+{
+    while(delayMs --)
+    {
+        CyDelay(1);
+        TaskCheck();
+    }
+}
 /* [] END OF FILE */

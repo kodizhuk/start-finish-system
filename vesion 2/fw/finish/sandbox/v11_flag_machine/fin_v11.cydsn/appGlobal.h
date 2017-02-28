@@ -37,6 +37,7 @@ uint32_t TimeSynchronize();
 uint32_t CheckReady(void);
 uint32_t CheckGate(void);
 void SaveResult(void);
+void Delay(uint32_t delayMs);
 
 
 #endif
