@@ -4,7 +4,7 @@
     #include <project.h>
     
     #define ACTION1_TIMEOUT 500
-    #define ACTION2_TIMEOUT 500
+    #define ACTION2_TIMEOUT 100
     #define ACTION3_TIMEOUT 500
     #define ACTION4_TIMEOUT 500
     #define ACTION5_TIMEOUT 500
