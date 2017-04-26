@@ -1,0 +1,2661 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"testMode.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.testModeHandler,"ax",%progbits
+  18              		.align	1
+  19              		.global	testModeHandler
+  20              		.code	16
+  21              		.thumb_func
+  22              		.type	testModeHandler, %function
+  23              	testModeHandler:
+  24              	.LFB63:
+  25              		.file 1 "lib_testMode\\testMode.c"
+   1:lib_testMode/testMode.c **** #include "project.h"
+   2:lib_testMode/testMode.c **** #include <stdlib.h>
+   3:lib_testMode/testMode.c **** 
+   4:lib_testMode/testMode.c **** #include <stdio.h>
+   5:lib_testMode/testMode.c **** #include <lib_Display\Display.h>
+   6:lib_testMode/testMode.c **** #include <lib_Network\network.h>
+   7:lib_testMode/testMode.c **** #include <lib_Testmode\testMode.h>
+   8:lib_testMode/testMode.c **** #include <lib_DB\database.h>
+   9:lib_testMode/testMode.c **** 
+  10:lib_testMode/testMode.c **** #define COUNTER_TEST_MODE_ON   20
+  11:lib_testMode/testMode.c **** 
+  12:lib_testMode/testMode.c **** enum status {STOPPED=0, RUN};
+  13:lib_testMode/testMode.c **** typedef enum {HIGH_LEVEL, RISING_EDGE, FALLING_EDGE, LOW_LEVEL}funcReturnValue;
+  14:lib_testMode/testMode.c **** 
+  15:lib_testMode/testMode.c **** uint8_t statusTestMode = STOPPED;
+  16:lib_testMode/testMode.c **** 
+  17:lib_testMode/testMode.c **** funcReturnValue switchState = LOW_LEVEL;
+  18:lib_testMode/testMode.c **** funcReturnValue networkState = LOW_LEVEL;
+  19:lib_testMode/testMode.c **** 
+  20:lib_testMode/testMode.c **** funcReturnValue ReadSwitchState();
+  21:lib_testMode/testMode.c **** funcReturnValue ReadNetworkState();
+  22:lib_testMode/testMode.c **** 
+  23:lib_testMode/testMode.c **** static uint8_t enableTestMode;
+  24:lib_testMode/testMode.c **** static uint8_t allowNextTestSkier;
+  25:lib_testMode/testMode.c **** 
+  26:lib_testMode/testMode.c **** CY_ISR(testModeHandler)
+  27:lib_testMode/testMode.c **** {
+  26              		.loc 1 27 0
+  27              		.cfi_startproc
+  28 0000 08B5     		push	{r3, lr}
+  29              		.cfi_def_cfa_offset 8
+  30              		.cfi_offset 3, -8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 2
+
+
+  31              		.cfi_offset 14, -4
+  28:lib_testMode/testMode.c ****     Pin_testMode_Write(0);
+  32              		.loc 1 28 0
+  33 0002 0020     		mov	r0, #0
+  34 0004 FFF7FEFF 		bl	Pin_testMode_Write
+  35              	.LVL0:
+  29:lib_testMode/testMode.c ****     Pin_testMode_Write(1);
+  36              		.loc 1 29 0
+  37 0008 0120     		mov	r0, #1
+  38 000a FFF7FEFF 		bl	Pin_testMode_Write
+  39              	.LVL1:
+  30:lib_testMode/testMode.c ****     
+  31:lib_testMode/testMode.c ****     TimerTestMode_ClearInterrupt(TimerTestMode_INTR_MASK_CC_MATCH);
+  40              		.loc 1 31 0
+  41 000e 0220     		mov	r0, #2
+  42 0010 FFF7FEFF 		bl	TimerTestMode_ClearInterrupt
+  43              	.LVL2:
+  32:lib_testMode/testMode.c ****     statusTestMode = STOPPED;
+  44              		.loc 1 32 0
+  45 0014 0022     		mov	r2, #0
+  46 0016 024B     		ldr	r3, .L2
+  33:lib_testMode/testMode.c ****     allowNextTestSkier = 0;
+  34:lib_testMode/testMode.c **** }
+  47              		.loc 1 34 0
+  48              		@ sp needed
+  32:lib_testMode/testMode.c ****     statusTestMode = STOPPED;
+  49              		.loc 1 32 0
+  50 0018 1A70     		strb	r2, [r3]
+  33:lib_testMode/testMode.c ****     allowNextTestSkier = 0;
+  51              		.loc 1 33 0
+  52 001a 5A70     		strb	r2, [r3, #1]
+  53              		.loc 1 34 0
+  54 001c 08BD     		pop	{r3, pc}
+  55              	.L3:
+  56 001e C046     		.align	2
+  57              	.L2:
+  58 0020 00000000 		.word	.LANCHOR0
+  59              		.cfi_endproc
+  60              	.LFE63:
+  61              		.size	testModeHandler, .-testModeHandler
+  62              		.global	__aeabi_idivmod
+  63              		.section	.text.TestMode_UpdateNewRandomTime,"ax",%progbits
+  64              		.align	1
+  65              		.global	TestMode_UpdateNewRandomTime
+  66              		.code	16
+  67              		.thumb_func
+  68              		.type	TestMode_UpdateNewRandomTime, %function
+  69              	TestMode_UpdateNewRandomTime:
+  70              	.LFB65:
+  35:lib_testMode/testMode.c **** 
+  36:lib_testMode/testMode.c **** 
+  37:lib_testMode/testMode.c **** void TestMode()
+  38:lib_testMode/testMode.c **** {   
+  39:lib_testMode/testMode.c ****     ReadSwitchState();
+  40:lib_testMode/testMode.c ****     ReadNetworkState();
+  41:lib_testMode/testMode.c ****     
+  42:lib_testMode/testMode.c ****     if(switchState == RISING_EDGE || networkState == RISING_EDGE)   //enable test mode
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 3
+
+
+  43:lib_testMode/testMode.c ****     {
+  44:lib_testMode/testMode.c ****         DisplayTestMode(1);
+  45:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(1);
+  46:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+  47:lib_testMode/testMode.c ****         allowNextTestSkier = 1;
+  48:lib_testMode/testMode.c ****         enableTestMode = 1;
+  49:lib_testMode/testMode.c ****         if(networkState == RISING_EDGE && switchState == LOW_LEVEL)
+  50:lib_testMode/testMode.c ****             switchState = RISING_EDGE;
+  51:lib_testMode/testMode.c ****         if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
+  52:lib_testMode/testMode.c ****             networkState = RISING_EDGE;
+  53:lib_testMode/testMode.c ****     }
+  54:lib_testMode/testMode.c ****     if(/*switchState == FALLING_EDGE ||*/ networkState == FALLING_EDGE)        //disable test mode
+  55:lib_testMode/testMode.c ****     {
+  56:lib_testMode/testMode.c ****         TimerTestMode_Stop();
+  57:lib_testMode/testMode.c ****         DisplayTestMode(0);
+  58:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(0);
+  59:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+  60:lib_testMode/testMode.c ****         allowNextTestSkier = 0;
+  61:lib_testMode/testMode.c ****         enableTestMode = 0;
+  62:lib_testMode/testMode.c ****         if(networkState == FALLING_EDGE && switchState != FALLING_EDGE)
+  63:lib_testMode/testMode.c ****             switchState = LOW_LEVEL;
+  64:lib_testMode/testMode.c ****         if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
+  65:lib_testMode/testMode.c ****             networkState = LOW_LEVEL;
+  66:lib_testMode/testMode.c ****     }
+  67:lib_testMode/testMode.c ****     /*update test mode*/
+  68:lib_testMode/testMode.c ****     if(networkState == HIGH_LEVEL && switchState == HIGH_LEVEL )
+  69:lib_testMode/testMode.c ****     {
+  70:lib_testMode/testMode.c ****         if(statusTestMode == STOPPED && SkierOnWay()>0 && allowNextTestSkier)
+  71:lib_testMode/testMode.c ****         {
+  72:lib_testMode/testMode.c ****             /*start timer*/
+  73:lib_testMode/testMode.c ****             TestMode_UpdateNewRandomTime();
+  74:lib_testMode/testMode.c ****             Int_timerTestMode_StartEx(testModeHandler);
+  75:lib_testMode/testMode.c ****             statusTestMode = RUN;
+  76:lib_testMode/testMode.c ****             allowNextTestSkier = 0;
+  77:lib_testMode/testMode.c ****         }
+  78:lib_testMode/testMode.c ****     }
+  79:lib_testMode/testMode.c **** }
+  80:lib_testMode/testMode.c **** 
+  81:lib_testMode/testMode.c **** 
+  82:lib_testMode/testMode.c **** void TestMode_UpdateNewRandomTime()
+  83:lib_testMode/testMode.c **** {
+  71              		.loc 1 83 0
+  72              		.cfi_startproc
+  73 0000 10B5     		push	{r4, lr}
+  74              		.cfi_def_cfa_offset 8
+  75              		.cfi_offset 4, -8
+  76              		.cfi_offset 14, -4
+  84:lib_testMode/testMode.c ****     uint8_t num;
+  85:lib_testMode/testMode.c ****     
+  86:lib_testMode/testMode.c ****     num = 30+rand()%60;
+  77              		.loc 1 86 0
+  78 0002 FFF7FEFF 		bl	rand
+  79              	.LVL3:
+  80 0006 041C     		mov	r4, r0
+  81              	.LVL4:
+  87:lib_testMode/testMode.c ****     
+  88:lib_testMode/testMode.c **** //    char buff[11];
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 4
+
+
+  89:lib_testMode/testMode.c **** //    sprintf(buff,"%d",num);
+  90:lib_testMode/testMode.c **** //    Display(buff);
+  91:lib_testMode/testMode.c ****     
+  92:lib_testMode/testMode.c ****     TimerTestMode_WriteCounter(0);
+  82              		.loc 1 92 0
+  83 0008 0020     		mov	r0, #0
+  84              	.LVL5:
+  85 000a FFF7FEFF 		bl	TimerTestMode_WriteCounter
+  86              	.LVL6:
+  86:lib_testMode/testMode.c ****     
+  87              		.loc 1 86 0
+  88 000e 201C     		mov	r0, r4
+  89 0010 3C21     		mov	r1, #60
+  90 0012 FFF7FEFF 		bl	__aeabi_idivmod
+  91              	.LVL7:
+  93:lib_testMode/testMode.c ****     TimerTestMode_WriteCompare(num*100);
+  92              		.loc 1 93 0
+  93 0016 6420     		mov	r0, #100
+  86:lib_testMode/testMode.c ****     
+  94              		.loc 1 86 0
+  95 0018 1E31     		add	r1, r1, #30
+  96              		.loc 1 93 0
+  97 001a C9B2     		uxtb	r1, r1
+  98 001c 4843     		mul	r0, r1
+  99 001e FFF7FEFF 		bl	TimerTestMode_WriteCompare
+ 100              	.LVL8:
+  94:lib_testMode/testMode.c ****     TimerTestMode_Start();   
+  95:lib_testMode/testMode.c **** }
+ 101              		.loc 1 95 0
+ 102              		@ sp needed
+  94:lib_testMode/testMode.c ****     TimerTestMode_Start();   
+ 103              		.loc 1 94 0
+ 104 0022 FFF7FEFF 		bl	TimerTestMode_Start
+ 105              	.LVL9:
+ 106              	.LVL10:
+ 107              		.loc 1 95 0
+ 108 0026 10BD     		pop	{r4, pc}
+ 109              		.cfi_endproc
+ 110              	.LFE65:
+ 111              		.size	TestMode_UpdateNewRandomTime, .-TestMode_UpdateNewRandomTime
+ 112              		.section	.text.ReadSwitchState,"ax",%progbits
+ 113              		.align	1
+ 114              		.global	ReadSwitchState
+ 115              		.code	16
+ 116              		.thumb_func
+ 117              		.type	ReadSwitchState, %function
+ 118              	ReadSwitchState:
+ 119              	.LFB66:
+  96:lib_testMode/testMode.c **** 
+  97:lib_testMode/testMode.c **** funcReturnValue ReadSwitchState()
+  98:lib_testMode/testMode.c **** {  
+ 120              		.loc 1 98 0
+ 121              		.cfi_startproc
+ 122 0000 38B5     		push	{r3, r4, r5, lr}
+ 123              		.cfi_def_cfa_offset 16
+ 124              		.cfi_offset 3, -16
+ 125              		.cfi_offset 4, -12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 5
+
+
+ 126              		.cfi_offset 5, -8
+ 127              		.cfi_offset 14, -4
+  99:lib_testMode/testMode.c ****     static uint8_t tmpCounter;
+ 100:lib_testMode/testMode.c ****     
+ 101:lib_testMode/testMode.c ****     if(SW_RunTestMode_Read() == 0)
+ 128              		.loc 1 101 0
+ 129 0002 FFF7FEFF 		bl	SW_RunTestMode_Read
+ 130              	.LVL11:
+ 131 0006 144D     		ldr	r5, .L20
+ 102:lib_testMode/testMode.c ****     {
+ 103:lib_testMode/testMode.c ****         tmpCounter++;
+ 104:lib_testMode/testMode.c ****     }
+ 105:lib_testMode/testMode.c ****     else
+ 106:lib_testMode/testMode.c ****     {
+ 107:lib_testMode/testMode.c ****         tmpCounter = 0;
+ 132              		.loc 1 107 0
+ 133 0008 0023     		mov	r3, #0
+ 101:lib_testMode/testMode.c ****     {
+ 134              		.loc 1 101 0
+ 135 000a 0028     		cmp	r0, #0
+ 136 000c 01D1     		bne	.L17
+ 103:lib_testMode/testMode.c ****     }
+ 137              		.loc 1 103 0
+ 138 000e AB78     		ldrb	r3, [r5, #2]
+ 139 0010 0133     		add	r3, r3, #1
+ 140              	.L17:
+ 141              		.loc 1 107 0
+ 142 0012 AB70     		strb	r3, [r5, #2]
+ 108:lib_testMode/testMode.c ****     }
+ 109:lib_testMode/testMode.c ****     
+ 110:lib_testMode/testMode.c ****     if(tmpCounter > COUNTER_TEST_MODE_ON)
+ 143              		.loc 1 110 0
+ 144 0014 AB78     		ldrb	r3, [r5, #2]
+ 145 0016 114C     		ldr	r4, .L20+4
+ 146 0018 142B     		cmp	r3, #20
+ 147 001a 11D9     		bls	.L8
+ 111:lib_testMode/testMode.c ****     {
+ 112:lib_testMode/testMode.c ****         if(SkierOnWay() != 0 && enableTestMode == 0)
+ 148              		.loc 1 112 0
+ 149 001c FFF7FEFF 		bl	SkierOnWay
+ 150              	.LVL12:
+ 151 0020 0028     		cmp	r0, #0
+ 152 0022 02D0     		beq	.L9
+ 153              		.loc 1 112 0 is_stmt 0 discriminator 1
+ 154 0024 EB78     		ldrb	r3, [r5, #3]
+ 155 0026 002B     		cmp	r3, #0
+ 156 0028 13D0     		beq	.L10
+ 157              	.L9:
+ 113:lib_testMode/testMode.c ****         {
+ 114:lib_testMode/testMode.c ****             //Display("testModeERR");
+ 115:lib_testMode/testMode.c ****         }
+ 116:lib_testMode/testMode.c ****         else
+ 117:lib_testMode/testMode.c ****         {
+ 118:lib_testMode/testMode.c ****             if(switchState == LOW_LEVEL)switchState = RISING_EDGE;
+ 158              		.loc 1 118 0 is_stmt 1
+ 159 002a 2078     		ldrb	r0, [r4]
+ 160 002c 0123     		mov	r3, #1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 6
+
+
+ 161 002e 0328     		cmp	r0, #3
+ 162 0030 0ED0     		beq	.L18
+ 119:lib_testMode/testMode.c ****             else if(switchState == HIGH_LEVEL)
+ 163              		.loc 1 119 0
+ 164 0032 0028     		cmp	r0, #0
+ 165 0034 0DD1     		bne	.L10
+ 120:lib_testMode/testMode.c ****             {
+ 121:lib_testMode/testMode.c ****                 switchState = FALLING_EDGE;
+ 166              		.loc 1 121 0
+ 167 0036 0223     		mov	r3, #2
+ 168 0038 2370     		strb	r3, [r4]
+ 122:lib_testMode/testMode.c ****                 NetworkSendTestModeStatus(0);
+ 169              		.loc 1 122 0
+ 170 003a FFF7FEFF 		bl	NetworkSendTestModeStatus
+ 171              	.LVL13:
+ 172 003e 08E0     		b	.L10
+ 173              	.L8:
+ 123:lib_testMode/testMode.c ****             }
+ 124:lib_testMode/testMode.c ****         }
+ 125:lib_testMode/testMode.c ****     }
+ 126:lib_testMode/testMode.c ****     else
+ 127:lib_testMode/testMode.c ****     {
+ 128:lib_testMode/testMode.c ****         if(switchState == RISING_EDGE)switchState = HIGH_LEVEL;
+ 174              		.loc 1 128 0
+ 175 0040 2378     		ldrb	r3, [r4]
+ 176 0042 012B     		cmp	r3, #1
+ 177 0044 01D1     		bne	.L13
+ 178              		.loc 1 128 0 is_stmt 0 discriminator 1
+ 179 0046 0023     		mov	r3, #0
+ 180 0048 02E0     		b	.L18
+ 181              	.L13:
+ 129:lib_testMode/testMode.c ****         else if(switchState == FALLING_EDGE)switchState = LOW_LEVEL;
+ 182              		.loc 1 129 0 is_stmt 1
+ 183 004a 022B     		cmp	r3, #2
+ 184 004c 01D1     		bne	.L10
+ 185              		.loc 1 129 0 is_stmt 0 discriminator 1
+ 186 004e 0133     		add	r3, r3, #1
+ 187              	.L18:
+ 188 0050 2370     		strb	r3, [r4]
+ 189              	.L10:
+ 130:lib_testMode/testMode.c ****     }
+ 131:lib_testMode/testMode.c **** 
+ 132:lib_testMode/testMode.c ****       
+ 133:lib_testMode/testMode.c ****     return switchState;
+ 190              		.loc 1 133 0 is_stmt 1
+ 191 0052 2078     		ldrb	r0, [r4]
+ 134:lib_testMode/testMode.c **** }
+ 192              		.loc 1 134 0
+ 193              		@ sp needed
+ 194 0054 38BD     		pop	{r3, r4, r5, pc}
+ 195              	.L21:
+ 196 0056 C046     		.align	2
+ 197              	.L20:
+ 198 0058 00000000 		.word	.LANCHOR0
+ 199 005c 00000000 		.word	.LANCHOR1
+ 200              		.cfi_endproc
+ 201              	.LFE66:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 7
+
+
+ 202              		.size	ReadSwitchState, .-ReadSwitchState
+ 203              		.section	.text.ReadNetworkState,"ax",%progbits
+ 204              		.align	1
+ 205              		.global	ReadNetworkState
+ 206              		.code	16
+ 207              		.thumb_func
+ 208              		.type	ReadNetworkState, %function
+ 209              	ReadNetworkState:
+ 210              	.LFB67:
+ 135:lib_testMode/testMode.c **** 
+ 136:lib_testMode/testMode.c **** 
+ 137:lib_testMode/testMode.c **** funcReturnValue ReadNetworkState()
+ 138:lib_testMode/testMode.c **** {
+ 211              		.loc 1 138 0
+ 212              		.cfi_startproc
+ 213 0000 10B5     		push	{r4, lr}
+ 214              		.cfi_def_cfa_offset 8
+ 215              		.cfi_offset 4, -8
+ 216              		.cfi_offset 14, -4
+ 139:lib_testMode/testMode.c ****     if(networkState == LOW_LEVEL && NetworkReadTestModeStatus()==1)  networkState = RISING_EDGE;
+ 217              		.loc 1 139 0
+ 218 0002 124C     		ldr	r4, .L30
+ 219 0004 6378     		ldrb	r3, [r4, #1]
+ 220 0006 032B     		cmp	r3, #3
+ 221 0008 05D1     		bne	.L23
+ 222              		.loc 1 139 0 is_stmt 0 discriminator 1
+ 223 000a FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 224              	.LVL14:
+ 225 000e 0128     		cmp	r0, #1
+ 226 0010 01D1     		bne	.L23
+ 227              		.loc 1 139 0 discriminator 2
+ 228 0012 6070     		strb	r0, [r4, #1]
+ 229 0014 18E0     		b	.L24
+ 230              	.L23:
+ 140:lib_testMode/testMode.c ****     else if(networkState == HIGH_LEVEL && NetworkReadTestModeStatus() == 0)  networkState = FALLING
+ 231              		.loc 1 140 0 is_stmt 1
+ 232 0016 6378     		ldrb	r3, [r4, #1]
+ 233 0018 002B     		cmp	r3, #0
+ 234 001a 04D1     		bne	.L25
+ 235              		.loc 1 140 0 is_stmt 0 discriminator 1
+ 236 001c FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 237              	.LVL15:
+ 238 0020 0223     		mov	r3, #2
+ 239 0022 0028     		cmp	r0, #0
+ 240 0024 0FD0     		beq	.L29
+ 241              	.L25:
+ 141:lib_testMode/testMode.c ****     else if(networkState == RISING_EDGE && NetworkReadTestModeStatus() ==1)  networkState = HIGH_LE
+ 242              		.loc 1 141 0 is_stmt 1
+ 243 0026 6378     		ldrb	r3, [r4, #1]
+ 244 0028 012B     		cmp	r3, #1
+ 245 002a 04D1     		bne	.L26
+ 246              		.loc 1 141 0 is_stmt 0 discriminator 1
+ 247 002c FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 248              	.LVL16:
+ 249 0030 0023     		mov	r3, #0
+ 250 0032 0128     		cmp	r0, #1
+ 251 0034 07D0     		beq	.L29
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 8
+
+
+ 252              	.L26:
+ 142:lib_testMode/testMode.c ****     else if(networkState == FALLING_EDGE && NetworkReadTestModeStatus() == 0)  networkState = LOW_L
+ 253              		.loc 1 142 0 is_stmt 1
+ 254 0036 6378     		ldrb	r3, [r4, #1]
+ 255 0038 022B     		cmp	r3, #2
+ 256 003a 05D1     		bne	.L24
+ 257              		.loc 1 142 0 is_stmt 0 discriminator 1
+ 258 003c FFF7FEFF 		bl	NetworkReadTestModeStatus
+ 259              	.LVL17:
+ 260 0040 0028     		cmp	r0, #0
+ 261 0042 01D1     		bne	.L24
+ 262              		.loc 1 142 0 discriminator 2
+ 263 0044 0323     		mov	r3, #3
+ 264              	.L29:
+ 265 0046 6370     		strb	r3, [r4, #1]
+ 266              	.L24:
+ 143:lib_testMode/testMode.c ****     
+ 144:lib_testMode/testMode.c ****     /*no answer*/
+ 145:lib_testMode/testMode.c **** 
+ 146:lib_testMode/testMode.c ****     return networkState;   
+ 267              		.loc 1 146 0 is_stmt 1
+ 268 0048 6078     		ldrb	r0, [r4, #1]
+ 147:lib_testMode/testMode.c **** }
+ 269              		.loc 1 147 0
+ 270              		@ sp needed
+ 271 004a 10BD     		pop	{r4, pc}
+ 272              	.L31:
+ 273              		.align	2
+ 274              	.L30:
+ 275 004c 00000000 		.word	.LANCHOR1
+ 276              		.cfi_endproc
+ 277              	.LFE67:
+ 278              		.size	ReadNetworkState, .-ReadNetworkState
+ 279              		.section	.text.TestMode,"ax",%progbits
+ 280              		.align	1
+ 281              		.global	TestMode
+ 282              		.code	16
+ 283              		.thumb_func
+ 284              		.type	TestMode, %function
+ 285              	TestMode:
+ 286              	.LFB64:
+  38:lib_testMode/testMode.c ****     ReadSwitchState();
+ 287              		.loc 1 38 0
+ 288              		.cfi_startproc
+ 289 0000 38B5     		push	{r3, r4, r5, lr}
+ 290              		.cfi_def_cfa_offset 16
+ 291              		.cfi_offset 3, -16
+ 292              		.cfi_offset 4, -12
+ 293              		.cfi_offset 5, -8
+ 294              		.cfi_offset 14, -4
+  39:lib_testMode/testMode.c ****     ReadNetworkState();
+ 295              		.loc 1 39 0
+ 296 0002 FFF7FEFF 		bl	ReadSwitchState
+ 297              	.LVL18:
+  40:lib_testMode/testMode.c ****     
+ 298              		.loc 1 40 0
+ 299 0006 FFF7FEFF 		bl	ReadNetworkState
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 9
+
+
+ 300              	.LVL19:
+  42:lib_testMode/testMode.c ****     {
+ 301              		.loc 1 42 0
+ 302 000a 2C4C     		ldr	r4, .L62
+ 303 000c 2378     		ldrb	r3, [r4]
+ 304 000e 012B     		cmp	r3, #1
+ 305 0010 02D0     		beq	.L33
+  42:lib_testMode/testMode.c ****     {
+ 306              		.loc 1 42 0 is_stmt 0 discriminator 1
+ 307 0012 6378     		ldrb	r3, [r4, #1]
+ 308 0014 012B     		cmp	r3, #1
+ 309 0016 19D1     		bne	.L34
+ 310              	.L33:
+  44:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(1);
+ 311              		.loc 1 44 0 is_stmt 1
+ 312 0018 0120     		mov	r0, #1
+ 313 001a FFF7FEFF 		bl	DisplayTestMode
+ 314              	.LVL20:
+  45:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+ 315              		.loc 1 45 0
+ 316 001e 0120     		mov	r0, #1
+ 317 0020 FFF7FEFF 		bl	NetworkSendTestModeStatus
+ 318              	.LVL21:
+  46:lib_testMode/testMode.c ****         allowNextTestSkier = 1;
+ 319              		.loc 1 46 0
+ 320 0024 0022     		mov	r2, #0
+ 321 0026 264B     		ldr	r3, .L62+4
+ 322 0028 1A70     		strb	r2, [r3]
+  47:lib_testMode/testMode.c ****         enableTestMode = 1;
+ 323              		.loc 1 47 0
+ 324 002a 0132     		add	r2, r2, #1
+ 325 002c 5A70     		strb	r2, [r3, #1]
+  48:lib_testMode/testMode.c ****         if(networkState == RISING_EDGE && switchState == LOW_LEVEL)
+ 326              		.loc 1 48 0
+ 327 002e DA70     		strb	r2, [r3, #3]
+  49:lib_testMode/testMode.c ****             switchState = RISING_EDGE;
+ 328              		.loc 1 49 0
+ 329 0030 6378     		ldrb	r3, [r4, #1]
+ 330 0032 9342     		cmp	r3, r2
+ 331 0034 04D1     		bne	.L35
+  49:lib_testMode/testMode.c ****             switchState = RISING_EDGE;
+ 332              		.loc 1 49 0 is_stmt 0 discriminator 1
+ 333 0036 2278     		ldrb	r2, [r4]
+ 334 0038 032A     		cmp	r2, #3
+ 335 003a 07D1     		bne	.L34
+  50:lib_testMode/testMode.c ****         if(networkState == LOW_LEVEL && switchState == RISING_EDGE)
+ 336              		.loc 1 50 0 is_stmt 1
+ 337 003c 2370     		strb	r3, [r4]
+ 338 003e 05E0     		b	.L34
+ 339              	.L35:
+  51:lib_testMode/testMode.c ****             networkState = RISING_EDGE;
+ 340              		.loc 1 51 0
+ 341 0040 032B     		cmp	r3, #3
+ 342 0042 03D1     		bne	.L34
+  51:lib_testMode/testMode.c ****             networkState = RISING_EDGE;
+ 343              		.loc 1 51 0 is_stmt 0 discriminator 1
+ 344 0044 2378     		ldrb	r3, [r4]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 10
+
+
+ 345 0046 012B     		cmp	r3, #1
+ 346 0048 00D1     		bne	.L34
+  52:lib_testMode/testMode.c ****     }
+ 347              		.loc 1 52 0 is_stmt 1
+ 348 004a 6370     		strb	r3, [r4, #1]
+ 349              	.L34:
+  54:lib_testMode/testMode.c ****     {
+ 350              		.loc 1 54 0
+ 351 004c 6378     		ldrb	r3, [r4, #1]
+ 352 004e 022B     		cmp	r3, #2
+ 353 0050 19D1     		bne	.L39
+  56:lib_testMode/testMode.c ****         DisplayTestMode(0);
+ 354              		.loc 1 56 0
+ 355 0052 FFF7FEFF 		bl	TimerTestMode_Stop
+ 356              	.LVL22:
+  57:lib_testMode/testMode.c ****         NetworkSendTestModeStatus(0);
+ 357              		.loc 1 57 0
+ 358 0056 0020     		mov	r0, #0
+ 359 0058 FFF7FEFF 		bl	DisplayTestMode
+ 360              	.LVL23:
+  58:lib_testMode/testMode.c ****         statusTestMode = STOPPED;
+ 361              		.loc 1 58 0
+ 362 005c 0020     		mov	r0, #0
+ 363 005e FFF7FEFF 		bl	NetworkSendTestModeStatus
+ 364              	.LVL24:
+  59:lib_testMode/testMode.c ****         allowNextTestSkier = 0;
+ 365              		.loc 1 59 0
+ 366 0062 0022     		mov	r2, #0
+ 367 0064 164B     		ldr	r3, .L62+4
+ 368 0066 1A70     		strb	r2, [r3]
+  60:lib_testMode/testMode.c ****         enableTestMode = 0;
+ 369              		.loc 1 60 0
+ 370 0068 5A70     		strb	r2, [r3, #1]
+  61:lib_testMode/testMode.c ****         if(networkState == FALLING_EDGE && switchState != FALLING_EDGE)
+ 371              		.loc 1 61 0
+ 372 006a DA70     		strb	r2, [r3, #3]
+  62:lib_testMode/testMode.c ****             switchState = LOW_LEVEL;
+ 373              		.loc 1 62 0
+ 374 006c 6278     		ldrb	r2, [r4, #1]
+ 375 006e 2378     		ldrb	r3, [r4]
+ 376 0070 022A     		cmp	r2, #2
+ 377 0072 04D1     		bne	.L40
+  62:lib_testMode/testMode.c ****             switchState = LOW_LEVEL;
+ 378              		.loc 1 62 0 is_stmt 0 discriminator 1
+ 379 0074 022B     		cmp	r3, #2
+ 380 0076 06D0     		beq	.L39
+  63:lib_testMode/testMode.c ****         if(networkState != FALLING_EDGE && switchState == FALLING_EDGE)
+ 381              		.loc 1 63 0 is_stmt 1
+ 382 0078 0323     		mov	r3, #3
+ 383 007a 2370     		strb	r3, [r4]
+ 384 007c 03E0     		b	.L39
+ 385              	.L40:
+  64:lib_testMode/testMode.c ****             networkState = LOW_LEVEL;
+ 386              		.loc 1 64 0
+ 387 007e 022B     		cmp	r3, #2
+ 388 0080 01D1     		bne	.L39
+  65:lib_testMode/testMode.c ****     }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 11
+
+
+ 389              		.loc 1 65 0
+ 390 0082 0323     		mov	r3, #3
+ 391 0084 6370     		strb	r3, [r4, #1]
+ 392              	.L39:
+  68:lib_testMode/testMode.c ****     {
+ 393              		.loc 1 68 0
+ 394 0086 6378     		ldrb	r3, [r4, #1]
+ 395 0088 002B     		cmp	r3, #0
+ 396 008a 15D1     		bne	.L32
+  68:lib_testMode/testMode.c ****     {
+ 397              		.loc 1 68 0 is_stmt 0 discriminator 1
+ 398 008c 2378     		ldrb	r3, [r4]
+ 399 008e 002B     		cmp	r3, #0
+ 400 0090 12D1     		bne	.L32
+  70:lib_testMode/testMode.c ****         {
+ 401              		.loc 1 70 0 is_stmt 1
+ 402 0092 0B4C     		ldr	r4, .L62+4
+ 403 0094 2578     		ldrb	r5, [r4]
+ 404 0096 002D     		cmp	r5, #0
+ 405 0098 0ED1     		bne	.L32
+  70:lib_testMode/testMode.c ****         {
+ 406              		.loc 1 70 0 is_stmt 0 discriminator 1
+ 407 009a FFF7FEFF 		bl	SkierOnWay
+ 408              	.LVL25:
+ 409 009e 0028     		cmp	r0, #0
+ 410 00a0 0AD0     		beq	.L32
+  70:lib_testMode/testMode.c ****         {
+ 411              		.loc 1 70 0 discriminator 2
+ 412 00a2 6378     		ldrb	r3, [r4, #1]
+ 413 00a4 002B     		cmp	r3, #0
+ 414 00a6 07D0     		beq	.L32
+  73:lib_testMode/testMode.c ****             Int_timerTestMode_StartEx(testModeHandler);
+ 415              		.loc 1 73 0 is_stmt 1
+ 416 00a8 FFF7FEFF 		bl	TestMode_UpdateNewRandomTime
+ 417              	.LVL26:
+  74:lib_testMode/testMode.c ****             statusTestMode = RUN;
+ 418              		.loc 1 74 0
+ 419 00ac 0548     		ldr	r0, .L62+8
+ 420 00ae FFF7FEFF 		bl	Int_timerTestMode_StartEx
+ 421              	.LVL27:
+  75:lib_testMode/testMode.c ****             allowNextTestSkier = 0;
+ 422              		.loc 1 75 0
+ 423 00b2 0123     		mov	r3, #1
+  76:lib_testMode/testMode.c ****         }
+ 424              		.loc 1 76 0
+ 425 00b4 6570     		strb	r5, [r4, #1]
+  75:lib_testMode/testMode.c ****             allowNextTestSkier = 0;
+ 426              		.loc 1 75 0
+ 427 00b6 2370     		strb	r3, [r4]
+ 428              	.L32:
+  79:lib_testMode/testMode.c **** 
+ 429              		.loc 1 79 0
+ 430              		@ sp needed
+ 431 00b8 38BD     		pop	{r3, r4, r5, pc}
+ 432              	.L63:
+ 433 00ba C046     		.align	2
+ 434              	.L62:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 12
+
+
+ 435 00bc 00000000 		.word	.LANCHOR1
+ 436 00c0 00000000 		.word	.LANCHOR0
+ 437 00c4 00000000 		.word	testModeHandler
+ 438              		.cfi_endproc
+ 439              	.LFE64:
+ 440              		.size	TestMode, .-TestMode
+ 441              		.section	.text.AllowNextTestSkier,"ax",%progbits
+ 442              		.align	1
+ 443              		.global	AllowNextTestSkier
+ 444              		.code	16
+ 445              		.thumb_func
+ 446              		.type	AllowNextTestSkier, %function
+ 447              	AllowNextTestSkier:
+ 448              	.LFB68:
+ 148:lib_testMode/testMode.c **** 
+ 149:lib_testMode/testMode.c **** void AllowNextTestSkier()
+ 150:lib_testMode/testMode.c **** {
+ 449              		.loc 1 150 0
+ 450              		.cfi_startproc
+ 151:lib_testMode/testMode.c ****     allowNextTestSkier = 1;
+ 451              		.loc 1 151 0
+ 452 0000 0122     		mov	r2, #1
+ 453 0002 014B     		ldr	r3, .L65
+ 152:lib_testMode/testMode.c **** }...
+ 454              		.loc 1 152 0
+ 455              		@ sp needed
+ 151:lib_testMode/testMode.c ****     allowNextTestSkier = 1;
+ 456              		.loc 1 151 0
+ 457 0004 5A70     		strb	r2, [r3, #1]
+ 458              		.loc 1 152 0
+ 459 0006 7047     		bx	lr
+ 460              	.L66:
+ 461              		.align	2
+ 462              	.L65:
+ 463 0008 00000000 		.word	.LANCHOR0
+ 464              		.cfi_endproc
+ 465              	.LFE68:
+ 466              		.size	AllowNextTestSkier, .-AllowNextTestSkier
+ 467              		.global	networkState
+ 468              		.global	switchState
+ 469              		.global	statusTestMode
+ 470              		.data
+ 471              		.set	.LANCHOR1,. + 0
+ 472              		.type	switchState, %object
+ 473              		.size	switchState, 1
+ 474              	switchState:
+ 475 0000 03       		.byte	3
+ 476              		.type	networkState, %object
+ 477              		.size	networkState, 1
+ 478              	networkState:
+ 479 0001 03       		.byte	3
+ 480              		.bss
+ 481              		.set	.LANCHOR0,. + 0
+ 482              		.type	statusTestMode, %object
+ 483              		.size	statusTestMode, 1
+ 484              	statusTestMode:
+ 485 0000 00       		.space	1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 13
+
+
+ 486              		.type	allowNextTestSkier, %object
+ 487              		.size	allowNextTestSkier, 1
+ 488              	allowNextTestSkier:
+ 489 0001 00       		.space	1
+ 490              		.type	tmpCounter.9557, %object
+ 491              		.size	tmpCounter.9557, 1
+ 492              	tmpCounter.9557:
+ 493 0002 00       		.space	1
+ 494              		.type	enableTestMode, %object
+ 495              		.size	enableTestMode, 1
+ 496              	enableTestMode:
+ 497 0003 00       		.space	1
+ 498              		.text
+ 499              	.Letext0:
+ 500              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 501              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 502              		.file 4 "Generated_Source\\PSoC4/cytypes.h"
+ 503              		.file 5 "Generated_Source\\PSoC4/ble_Stack.h"
+ 504              		.file 6 "Generated_Source\\PSoC4/Pin_testMode.h"
+ 505              		.file 7 "Generated_Source\\PSoC4/TimerTestMode.h"
+ 506              		.file 8 "c:\\program files (x86)\\cypress\\psoc creator\\4.0\\psoc creator\\import\\gnu\\arm\\4.9.
+ 507              		.file 9 "Generated_Source\\PSoC4/SW_RunTestMode.h"
+ 508              		.file 10 "./lib_DB\\database.h"
+ 509              		.file 11 "./lib_Network\\network.h"
+ 510              		.file 12 "./lib_Display\\Display.h"
+ 511              		.file 13 "Generated_Source\\PSoC4/Int_timerTestMode.h"
+ 512              		.section	.debug_info,"",%progbits
+ 513              	.Ldebug_info0:
+ 514 0000 8D050000 		.4byte	0x58d
+ 515 0004 0400     		.2byte	0x4
+ 516 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 517 000a 04       		.byte	0x4
+ 518 000b 01       		.uleb128 0x1
+ 519 000c 47040000 		.4byte	.LASF106
+ 520 0010 01       		.byte	0x1
+ 521 0011 AE070000 		.4byte	.LASF107
+ 522 0015 37050000 		.4byte	.LASF108
+ 523 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 524 001d 00000000 		.4byte	0
+ 525 0021 00000000 		.4byte	.Ldebug_line0
+ 526 0025 02       		.uleb128 0x2
+ 527 0026 01       		.byte	0x1
+ 528 0027 06       		.byte	0x6
+ 529 0028 AE050000 		.4byte	.LASF0
+ 530 002c 03       		.uleb128 0x3
+ 531 002d CF0A0000 		.4byte	.LASF5
+ 532 0031 02       		.byte	0x2
+ 533 0032 1D       		.byte	0x1d
+ 534 0033 37000000 		.4byte	0x37
+ 535 0037 02       		.uleb128 0x2
+ 536 0038 01       		.byte	0x1
+ 537 0039 08       		.byte	0x8
+ 538 003a 39040000 		.4byte	.LASF1
+ 539 003e 02       		.uleb128 0x2
+ 540 003f 02       		.byte	0x2
+ 541 0040 05       		.byte	0x5
+ 542 0041 61030000 		.4byte	.LASF2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 14
+
+
+ 543 0045 02       		.uleb128 0x2
+ 544 0046 02       		.byte	0x2
+ 545 0047 07       		.byte	0x7
+ 546 0048 81070000 		.4byte	.LASF3
+ 547 004c 02       		.uleb128 0x2
+ 548 004d 04       		.byte	0x4
+ 549 004e 05       		.byte	0x5
+ 550 004f 18030000 		.4byte	.LASF4
+ 551 0053 03       		.uleb128 0x3
+ 552 0054 23010000 		.4byte	.LASF6
+ 553 0058 02       		.byte	0x2
+ 554 0059 41       		.byte	0x41
+ 555 005a 5E000000 		.4byte	0x5e
+ 556 005e 02       		.uleb128 0x2
+ 557 005f 04       		.byte	0x4
+ 558 0060 07       		.byte	0x7
+ 559 0061 43060000 		.4byte	.LASF7
+ 560 0065 02       		.uleb128 0x2
+ 561 0066 08       		.byte	0x8
+ 562 0067 05       		.byte	0x5
+ 563 0068 EE020000 		.4byte	.LASF8
+ 564 006c 02       		.uleb128 0x2
+ 565 006d 08       		.byte	0x8
+ 566 006e 07       		.byte	0x7
+ 567 006f EF000000 		.4byte	.LASF9
+ 568 0073 04       		.uleb128 0x4
+ 569 0074 04       		.byte	0x4
+ 570 0075 05       		.byte	0x5
+ 571 0076 696E7400 		.ascii	"int\000"
+ 572 007a 02       		.uleb128 0x2
+ 573 007b 04       		.byte	0x4
+ 574 007c 07       		.byte	0x7
+ 575 007d 1B060000 		.4byte	.LASF10
+ 576 0081 03       		.uleb128 0x3
+ 577 0082 C3010000 		.4byte	.LASF11
+ 578 0086 03       		.byte	0x3
+ 579 0087 15       		.byte	0x15
+ 580 0088 2C000000 		.4byte	0x2c
+ 581 008c 03       		.uleb128 0x3
+ 582 008d 4B020000 		.4byte	.LASF12
+ 583 0091 03       		.byte	0x3
+ 584 0092 2D       		.byte	0x2d
+ 585 0093 53000000 		.4byte	0x53
+ 586 0097 05       		.uleb128 0x5
+ 587 0098 FD030000 		.4byte	.LASF13
+ 588 009c 04       		.byte	0x4
+ 589 009d 9801     		.2byte	0x198
+ 590 009f 37000000 		.4byte	0x37
+ 591 00a3 05       		.uleb128 0x5
+ 592 00a4 16080000 		.4byte	.LASF14
+ 593 00a8 04       		.byte	0x4
+ 594 00a9 9A01     		.2byte	0x19a
+ 595 00ab 5E000000 		.4byte	0x5e
+ 596 00af 02       		.uleb128 0x2
+ 597 00b0 04       		.byte	0x4
+ 598 00b1 04       		.byte	0x4
+ 599 00b2 B2020000 		.4byte	.LASF15
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 15
+
+
+ 600 00b6 02       		.uleb128 0x2
+ 601 00b7 08       		.byte	0x8
+ 602 00b8 04       		.byte	0x4
+ 603 00b9 5E080000 		.4byte	.LASF16
+ 604 00bd 02       		.uleb128 0x2
+ 605 00be 01       		.byte	0x1
+ 606 00bf 08       		.byte	0x8
+ 607 00c0 28070000 		.4byte	.LASF17
+ 608 00c4 05       		.uleb128 0x5
+ 609 00c5 FC020000 		.4byte	.LASF18
+ 610 00c9 04       		.byte	0x4
+ 611 00ca 5402     		.2byte	0x254
+ 612 00cc D0000000 		.4byte	0xd0
+ 613 00d0 06       		.uleb128 0x6
+ 614 00d1 04       		.byte	0x4
+ 615 00d2 D6000000 		.4byte	0xd6
+ 616 00d6 07       		.uleb128 0x7
+ 617 00d7 02       		.uleb128 0x2
+ 618 00d8 04       		.byte	0x4
+ 619 00d9 07       		.byte	0x7
+ 620 00da E6000000 		.4byte	.LASF19
+ 621 00de 08       		.uleb128 0x8
+ 622 00df 01       		.byte	0x1
+ 623 00e0 05       		.byte	0x5
+ 624 00e1 A4       		.byte	0xa4
+ 625 00e2 63020000 		.4byte	0x263
+ 626 00e6 09       		.uleb128 0x9
+ 627 00e7 34020000 		.4byte	.LASF20
+ 628 00eb 00       		.sleb128 0
+ 629 00ec 09       		.uleb128 0x9
+ 630 00ed 54020000 		.4byte	.LASF21
+ 631 00f1 01       		.sleb128 1
+ 632 00f2 09       		.uleb128 0x9
+ 633 00f3 64090000 		.4byte	.LASF22
+ 634 00f7 02       		.sleb128 2
+ 635 00f8 09       		.uleb128 0x9
+ 636 00f9 DA080000 		.4byte	.LASF23
+ 637 00fd 03       		.sleb128 3
+ 638 00fe 09       		.uleb128 0x9
+ 639 00ff 41010000 		.4byte	.LASF24
+ 640 0103 04       		.sleb128 4
+ 641 0104 09       		.uleb128 0x9
+ 642 0105 93030000 		.4byte	.LASF25
+ 643 0109 05       		.sleb128 5
+ 644 010a 09       		.uleb128 0x9
+ 645 010b 40090000 		.4byte	.LASF26
+ 646 010f 20       		.sleb128 32
+ 647 0110 09       		.uleb128 0x9
+ 648 0111 55060000 		.4byte	.LASF27
+ 649 0115 21       		.sleb128 33
+ 650 0116 09       		.uleb128 0x9
+ 651 0117 0C000000 		.4byte	.LASF28
+ 652 011b 22       		.sleb128 34
+ 653 011c 09       		.uleb128 0x9
+ 654 011d AF030000 		.4byte	.LASF29
+ 655 0121 23       		.sleb128 35
+ 656 0122 09       		.uleb128 0x9
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 16
+
+
+ 657 0123 B8020000 		.4byte	.LASF30
+ 658 0127 24       		.sleb128 36
+ 659 0128 09       		.uleb128 0x9
+ 660 0129 AE000000 		.4byte	.LASF31
+ 661 012d 25       		.sleb128 37
+ 662 012e 09       		.uleb128 0x9
+ 663 012f B2080000 		.4byte	.LASF32
+ 664 0133 26       		.sleb128 38
+ 665 0134 09       		.uleb128 0x9
+ 666 0135 42030000 		.4byte	.LASF33
+ 667 0139 27       		.sleb128 39
+ 668 013a 09       		.uleb128 0x9
+ 669 013b 890A0000 		.4byte	.LASF34
+ 670 013f 28       		.sleb128 40
+ 671 0140 09       		.uleb128 0x9
+ 672 0141 06010000 		.4byte	.LASF35
+ 673 0145 29       		.sleb128 41
+ 674 0146 09       		.uleb128 0x9
+ 675 0147 FF060000 		.4byte	.LASF36
+ 676 014b 2A       		.sleb128 42
+ 677 014c 09       		.uleb128 0x9
+ 678 014d 080A0000 		.4byte	.LASF37
+ 679 0151 2B       		.sleb128 43
+ 680 0152 09       		.uleb128 0x9
+ 681 0153 CB010000 		.4byte	.LASF38
+ 682 0157 2C       		.sleb128 44
+ 683 0158 09       		.uleb128 0x9
+ 684 0159 43000000 		.4byte	.LASF39
+ 685 015d C000     		.sleb128 64
+ 686 015f 09       		.uleb128 0x9
+ 687 0160 28060000 		.4byte	.LASF40
+ 688 0164 C100     		.sleb128 65
+ 689 0166 09       		.uleb128 0x9
+ 690 0167 C8000000 		.4byte	.LASF41
+ 691 016b C200     		.sleb128 66
+ 692 016d 09       		.uleb128 0x9
+ 693 016e 98010000 		.4byte	.LASF42
+ 694 0172 C300     		.sleb128 67
+ 695 0174 09       		.uleb128 0x9
+ 696 0175 C6090000 		.4byte	.LASF43
+ 697 0179 C400     		.sleb128 68
+ 698 017b 09       		.uleb128 0x9
+ 699 017c 81090000 		.4byte	.LASF44
+ 700 0180 C500     		.sleb128 69
+ 701 0182 09       		.uleb128 0x9
+ 702 0183 56010000 		.4byte	.LASF45
+ 703 0187 C600     		.sleb128 70
+ 704 0189 09       		.uleb128 0x9
+ 705 018a 90050000 		.4byte	.LASF46
+ 706 018e C700     		.sleb128 71
+ 707 0190 09       		.uleb128 0x9
+ 708 0191 D4050000 		.4byte	.LASF47
+ 709 0195 C800     		.sleb128 72
+ 710 0197 09       		.uleb128 0x9
+ 711 0198 C4060000 		.4byte	.LASF48
+ 712 019c C900     		.sleb128 73
+ 713 019e 09       		.uleb128 0x9
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 17
+
+
+ 714 019f D9070000 		.4byte	.LASF49
+ 715 01a3 CA00     		.sleb128 74
+ 716 01a5 09       		.uleb128 0x9
+ 717 01a6 EF010000 		.4byte	.LASF50
+ 718 01aa CB00     		.sleb128 75
+ 719 01ac 09       		.uleb128 0x9
+ 720 01ad BA050000 		.4byte	.LASF51
+ 721 01b1 CC00     		.sleb128 76
+ 722 01b3 09       		.uleb128 0x9
+ 723 01b4 D4020000 		.4byte	.LASF52
+ 724 01b8 CD00     		.sleb128 77
+ 725 01ba 09       		.uleb128 0x9
+ 726 01bb A8090000 		.4byte	.LASF53
+ 727 01bf CE00     		.sleb128 78
+ 728 01c1 09       		.uleb128 0x9
+ 729 01c2 D5040000 		.4byte	.LASF54
+ 730 01c6 CF00     		.sleb128 79
+ 731 01c8 09       		.uleb128 0x9
+ 732 01c9 7C000000 		.4byte	.LASF55
+ 733 01cd D000     		.sleb128 80
+ 734 01cf 09       		.uleb128 0x9
+ 735 01d0 F7070000 		.4byte	.LASF56
+ 736 01d4 D100     		.sleb128 81
+ 737 01d6 09       		.uleb128 0x9
+ 738 01d7 77010000 		.4byte	.LASF57
+ 739 01db D200     		.sleb128 82
+ 740 01dd 09       		.uleb128 0x9
+ 741 01de 21030000 		.4byte	.LASF58
+ 742 01e2 D300     		.sleb128 83
+ 743 01e4 09       		.uleb128 0x9
+ 744 01e5 13020000 		.4byte	.LASF59
+ 745 01e9 D400     		.sleb128 84
+ 746 01eb 09       		.uleb128 0x9
+ 747 01ec AB0A0000 		.4byte	.LASF60
+ 748 01f0 D500     		.sleb128 85
+ 749 01f2 09       		.uleb128 0x9
+ 750 01f3 5E0A0000 		.4byte	.LASF61
+ 751 01f7 D600     		.sleb128 86
+ 752 01f9 09       		.uleb128 0x9
+ 753 01fa 350A0000 		.4byte	.LASF62
+ 754 01fe D700     		.sleb128 87
+ 755 0200 09       		.uleb128 0x9
+ 756 0201 13040000 		.4byte	.LASF63
+ 757 0205 F000     		.sleb128 112
+ 758 0207 09       		.uleb128 0x9
+ 759 0208 12090000 		.4byte	.LASF64
+ 760 020c F100     		.sleb128 113
+ 761 020e 09       		.uleb128 0x9
+ 762 020f 65070000 		.4byte	.LASF65
+ 763 0213 F200     		.sleb128 114
+ 764 0215 09       		.uleb128 0x9
+ 765 0216 94080000 		.4byte	.LASF66
+ 766 021a F300     		.sleb128 115
+ 767 021c 09       		.uleb128 0x9
+ 768 021d D5030000 		.4byte	.LASF67
+ 769 0221 F400     		.sleb128 116
+ 770 0223 09       		.uleb128 0x9
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 18
+
+
+ 771 0224 6C060000 		.4byte	.LASF68
+ 772 0228 F500     		.sleb128 117
+ 773 022a 09       		.uleb128 0x9
+ 774 022b 82020000 		.4byte	.LASF69
+ 775 022f F600     		.sleb128 118
+ 776 0231 09       		.uleb128 0x9
+ 777 0232 F3080000 		.4byte	.LASF70
+ 778 0236 F700     		.sleb128 119
+ 779 0238 09       		.uleb128 0x9
+ 780 0239 3B080000 		.4byte	.LASF71
+ 781 023d F800     		.sleb128 120
+ 782 023f 09       		.uleb128 0x9
+ 783 0240 71080000 		.4byte	.LASF72
+ 784 0244 F900     		.sleb128 121
+ 785 0246 09       		.uleb128 0x9
+ 786 0247 E4090000 		.4byte	.LASF73
+ 787 024b FA00     		.sleb128 122
+ 788 024d 09       		.uleb128 0x9
+ 789 024e 1D080000 		.4byte	.LASF74
+ 790 0252 FA01     		.sleb128 250
+ 791 0254 09       		.uleb128 0x9
+ 792 0255 F4040000 		.4byte	.LASF75
+ 793 0259 FB01     		.sleb128 251
+ 794 025b 09       		.uleb128 0x9
+ 795 025c 270A0000 		.4byte	.LASF76
+ 796 0260 FF01     		.sleb128 255
+ 797 0262 00       		.byte	0
+ 798 0263 0A       		.uleb128 0xa
+ 799 0264 F8060000 		.4byte	.LASF109
+ 800 0268 01       		.byte	0x1
+ 801 0269 01       		.byte	0x1
+ 802 026a 0C       		.byte	0xc
+ 803 026b 7C020000 		.4byte	0x27c
+ 804 026f 09       		.uleb128 0x9
+ 805 0270 38090000 		.4byte	.LASF77
+ 806 0274 00       		.sleb128 0
+ 807 0275 0B       		.uleb128 0xb
+ 808 0276 52554E00 		.ascii	"RUN\000"
+ 809 027a 01       		.sleb128 1
+ 810 027b 00       		.byte	0
+ 811 027c 08       		.uleb128 0x8
+ 812 027d 01       		.byte	0x1
+ 813 027e 01       		.byte	0x1
+ 814 027f 0D       		.byte	0xd
+ 815 0280 9D020000 		.4byte	0x29d
+ 816 0284 09       		.uleb128 0x9
+ 817 0285 6B030000 		.4byte	.LASF78
+ 818 0289 00       		.sleb128 0
+ 819 028a 09       		.uleb128 0x9
+ 820 028b 00000000 		.4byte	.LASF79
+ 821 028f 01       		.sleb128 1
+ 822 0290 09       		.uleb128 0x9
+ 823 0291 2D070000 		.4byte	.LASF80
+ 824 0295 02       		.sleb128 2
+ 825 0296 09       		.uleb128 0x9
+ 826 0297 F3030000 		.4byte	.LASF81
+ 827 029b 03       		.sleb128 3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 19
+
+
+ 828 029c 00       		.byte	0
+ 829 029d 03       		.uleb128 0x3
+ 830 029e FB050000 		.4byte	.LASF82
+ 831 02a2 01       		.byte	0x1
+ 832 02a3 0D       		.byte	0xd
+ 833 02a4 7C020000 		.4byte	0x27c
+ 834 02a8 0C       		.uleb128 0xc
+ 835 02a9 0B060000 		.4byte	.LASF83
+ 836 02ad 01       		.byte	0x1
+ 837 02ae 1A       		.byte	0x1a
+ 838 02af 00000000 		.4byte	.LFB63
+ 839 02b3 24000000 		.4byte	.LFE63-.LFB63
+ 840 02b7 01       		.uleb128 0x1
+ 841 02b8 9C       		.byte	0x9c
+ 842 02b9 F3020000 		.4byte	0x2f3
+ 843 02bd 0D       		.uleb128 0xd
+ 844 02be 08000000 		.4byte	.LVL0
+ 845 02c2 D2040000 		.4byte	0x4d2
+ 846 02c6 D0020000 		.4byte	0x2d0
+ 847 02ca 0E       		.uleb128 0xe
+ 848 02cb 01       		.uleb128 0x1
+ 849 02cc 50       		.byte	0x50
+ 850 02cd 01       		.uleb128 0x1
+ 851 02ce 30       		.byte	0x30
+ 852 02cf 00       		.byte	0
+ 853 02d0 0D       		.uleb128 0xd
+ 854 02d1 0E000000 		.4byte	.LVL1
+ 855 02d5 D2040000 		.4byte	0x4d2
+ 856 02d9 E3020000 		.4byte	0x2e3
+ 857 02dd 0E       		.uleb128 0xe
+ 858 02de 01       		.uleb128 0x1
+ 859 02df 50       		.byte	0x50
+ 860 02e0 01       		.uleb128 0x1
+ 861 02e1 31       		.byte	0x31
+ 862 02e2 00       		.byte	0
+ 863 02e3 0F       		.uleb128 0xf
+ 864 02e4 14000000 		.4byte	.LVL2
+ 865 02e8 E3040000 		.4byte	0x4e3
+ 866 02ec 0E       		.uleb128 0xe
+ 867 02ed 01       		.uleb128 0x1
+ 868 02ee 50       		.byte	0x50
+ 869 02ef 01       		.uleb128 0x1
+ 870 02f0 32       		.byte	0x32
+ 871 02f1 00       		.byte	0
+ 872 02f2 00       		.byte	0
+ 873 02f3 10       		.uleb128 0x10
+ 874 02f4 A7060000 		.4byte	.LASF87
+ 875 02f8 01       		.byte	0x1
+ 876 02f9 52       		.byte	0x52
+ 877 02fa 00000000 		.4byte	.LFB65
+ 878 02fe 28000000 		.4byte	.LFE65-.LFB65
+ 879 0302 01       		.uleb128 0x1
+ 880 0303 9C       		.byte	0x9c
+ 881 0304 46030000 		.4byte	0x346
+ 882 0308 11       		.uleb128 0x11
+ 883 0309 6E756D00 		.ascii	"num\000"
+ 884 030d 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 20
+
+
+ 885 030e 54       		.byte	0x54
+ 886 030f 81000000 		.4byte	0x81
+ 887 0313 00000000 		.4byte	.LLST0
+ 888 0317 12       		.uleb128 0x12
+ 889 0318 06000000 		.4byte	.LVL3
+ 890 031c F5040000 		.4byte	0x4f5
+ 891 0320 0D       		.uleb128 0xd
+ 892 0321 0E000000 		.4byte	.LVL6
+ 893 0325 00050000 		.4byte	0x500
+ 894 0329 33030000 		.4byte	0x333
+ 895 032d 0E       		.uleb128 0xe
+ 896 032e 01       		.uleb128 0x1
+ 897 032f 50       		.byte	0x50
+ 898 0330 01       		.uleb128 0x1
+ 899 0331 30       		.byte	0x30
+ 900 0332 00       		.byte	0
+ 901 0333 12       		.uleb128 0x12
+ 902 0334 22000000 		.4byte	.LVL8
+ 903 0338 12050000 		.4byte	0x512
+ 904 033c 12       		.uleb128 0x12
+ 905 033d 26000000 		.4byte	.LVL9
+ 906 0341 24050000 		.4byte	0x524
+ 907 0345 00       		.byte	0
+ 908 0346 13       		.uleb128 0x13
+ 909 0347 13050000 		.4byte	.LASF84
+ 910 034b 01       		.byte	0x1
+ 911 034c 61       		.byte	0x61
+ 912 034d 9D020000 		.4byte	0x29d
+ 913 0351 00000000 		.4byte	.LFB66
+ 914 0355 60000000 		.4byte	.LFE66-.LFB66
+ 915 0359 01       		.uleb128 0x1
+ 916 035a 9C       		.byte	0x9c
+ 917 035b 8C030000 		.4byte	0x38c
+ 918 035f 14       		.uleb128 0x14
+ 919 0360 76090000 		.4byte	.LASF85
+ 920 0364 01       		.byte	0x1
+ 921 0365 63       		.byte	0x63
+ 922 0366 81000000 		.4byte	0x81
+ 923 036a 05       		.uleb128 0x5
+ 924 036b 03       		.byte	0x3
+ 925 036c 02000000 		.4byte	tmpCounter.9557
+ 926 0370 12       		.uleb128 0x12
+ 927 0371 06000000 		.4byte	.LVL11
+ 928 0375 2C050000 		.4byte	0x52c
+ 929 0379 12       		.uleb128 0x12
+ 930 037a 20000000 		.4byte	.LVL12
+ 931 037e 37050000 		.4byte	0x537
+ 932 0382 12       		.uleb128 0x12
+ 933 0383 3E000000 		.4byte	.LVL13
+ 934 0387 48050000 		.4byte	0x548
+ 935 038b 00       		.byte	0
+ 936 038c 13       		.uleb128 0x13
+ 937 038d 54070000 		.4byte	.LASF86
+ 938 0391 01       		.byte	0x1
+ 939 0392 89       		.byte	0x89
+ 940 0393 9D020000 		.4byte	0x29d
+ 941 0397 00000000 		.4byte	.LFB67
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 21
+
+
+ 942 039b 50000000 		.4byte	.LFE67-.LFB67
+ 943 039f 01       		.uleb128 0x1
+ 944 03a0 9C       		.byte	0x9c
+ 945 03a1 CA030000 		.4byte	0x3ca
+ 946 03a5 12       		.uleb128 0x12
+ 947 03a6 0E000000 		.4byte	.LVL14
+ 948 03aa 59050000 		.4byte	0x559
+ 949 03ae 12       		.uleb128 0x12
+ 950 03af 20000000 		.4byte	.LVL15
+ 951 03b3 59050000 		.4byte	0x559
+ 952 03b7 12       		.uleb128 0x12
+ 953 03b8 30000000 		.4byte	.LVL16
+ 954 03bc 59050000 		.4byte	0x559
+ 955 03c0 12       		.uleb128 0x12
+ 956 03c1 40000000 		.4byte	.LVL17
+ 957 03c5 59050000 		.4byte	0x559
+ 958 03c9 00       		.byte	0
+ 959 03ca 15       		.uleb128 0x15
+ 960 03cb 800A0000 		.4byte	.LASF88
+ 961 03cf 01       		.byte	0x1
+ 962 03d0 25       		.byte	0x25
+ 963 03d1 00000000 		.4byte	.LFB64
+ 964 03d5 C8000000 		.4byte	.LFE64-.LFB64
+ 965 03d9 01       		.uleb128 0x1
+ 966 03da 9C       		.byte	0x9c
+ 967 03db 6C040000 		.4byte	0x46c
+ 968 03df 12       		.uleb128 0x12
+ 969 03e0 06000000 		.4byte	.LVL18
+ 970 03e4 46030000 		.4byte	0x346
+ 971 03e8 12       		.uleb128 0x12
+ 972 03e9 0A000000 		.4byte	.LVL19
+ 973 03ed 8C030000 		.4byte	0x38c
+ 974 03f1 0D       		.uleb128 0xd
+ 975 03f2 1E000000 		.4byte	.LVL20
+ 976 03f6 6A050000 		.4byte	0x56a
+ 977 03fa 04040000 		.4byte	0x404
+ 978 03fe 0E       		.uleb128 0xe
+ 979 03ff 01       		.uleb128 0x1
+ 980 0400 50       		.byte	0x50
+ 981 0401 01       		.uleb128 0x1
+ 982 0402 31       		.byte	0x31
+ 983 0403 00       		.byte	0
+ 984 0404 0D       		.uleb128 0xd
+ 985 0405 24000000 		.4byte	.LVL21
+ 986 0409 48050000 		.4byte	0x548
+ 987 040d 17040000 		.4byte	0x417
+ 988 0411 0E       		.uleb128 0xe
+ 989 0412 01       		.uleb128 0x1
+ 990 0413 50       		.byte	0x50
+ 991 0414 01       		.uleb128 0x1
+ 992 0415 31       		.byte	0x31
+ 993 0416 00       		.byte	0
+ 994 0417 12       		.uleb128 0x12
+ 995 0418 56000000 		.4byte	.LVL22
+ 996 041c 7B050000 		.4byte	0x57b
+ 997 0420 0D       		.uleb128 0xd
+ 998 0421 5C000000 		.4byte	.LVL23
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 22
+
+
+ 999 0425 6A050000 		.4byte	0x56a
+ 1000 0429 33040000 		.4byte	0x433
+ 1001 042d 0E       		.uleb128 0xe
+ 1002 042e 01       		.uleb128 0x1
+ 1003 042f 50       		.byte	0x50
+ 1004 0430 01       		.uleb128 0x1
+ 1005 0431 30       		.byte	0x30
+ 1006 0432 00       		.byte	0
+ 1007 0433 0D       		.uleb128 0xd
+ 1008 0434 62000000 		.4byte	.LVL24
+ 1009 0438 48050000 		.4byte	0x548
+ 1010 043c 46040000 		.4byte	0x446
+ 1011 0440 0E       		.uleb128 0xe
+ 1012 0441 01       		.uleb128 0x1
+ 1013 0442 50       		.byte	0x50
+ 1014 0443 01       		.uleb128 0x1
+ 1015 0444 30       		.byte	0x30
+ 1016 0445 00       		.byte	0
+ 1017 0446 12       		.uleb128 0x12
+ 1018 0447 9E000000 		.4byte	.LVL25
+ 1019 044b 37050000 		.4byte	0x537
+ 1020 044f 12       		.uleb128 0x12
+ 1021 0450 AC000000 		.4byte	.LVL26
+ 1022 0454 F3020000 		.4byte	0x2f3
+ 1023 0458 0F       		.uleb128 0xf
+ 1024 0459 B2000000 		.4byte	.LVL27
+ 1025 045d 83050000 		.4byte	0x583
+ 1026 0461 0E       		.uleb128 0xe
+ 1027 0462 01       		.uleb128 0x1
+ 1028 0463 50       		.byte	0x50
+ 1029 0464 05       		.uleb128 0x5
+ 1030 0465 03       		.byte	0x3
+ 1031 0466 00000000 		.4byte	testModeHandler
+ 1032 046a 00       		.byte	0
+ 1033 046b 00       		.byte	0
+ 1034 046c 16       		.uleb128 0x16
+ 1035 046d C6070000 		.4byte	.LASF110
+ 1036 0471 01       		.byte	0x1
+ 1037 0472 95       		.byte	0x95
+ 1038 0473 00000000 		.4byte	.LFB68
+ 1039 0477 0C000000 		.4byte	.LFE68-.LFB68
+ 1040 047b 01       		.uleb128 0x1
+ 1041 047c 9C       		.byte	0x9c
+ 1042 047d 14       		.uleb128 0x14
+ 1043 047e 09030000 		.4byte	.LASF89
+ 1044 0482 01       		.byte	0x1
+ 1045 0483 17       		.byte	0x17
+ 1046 0484 81000000 		.4byte	0x81
+ 1047 0488 05       		.uleb128 0x5
+ 1048 0489 03       		.byte	0x3
+ 1049 048a 03000000 		.4byte	enableTestMode
+ 1050 048e 14       		.uleb128 0x14
+ 1051 048f 9B000000 		.4byte	.LASF90
+ 1052 0493 01       		.byte	0x1
+ 1053 0494 18       		.byte	0x18
+ 1054 0495 81000000 		.4byte	0x81
+ 1055 0499 05       		.uleb128 0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 23
+
+
+ 1056 049a 03       		.byte	0x3
+ 1057 049b 01000000 		.4byte	allowNextTestSkier
+ 1058 049f 17       		.uleb128 0x17
+ 1059 04a0 A3020000 		.4byte	.LASF91
+ 1060 04a4 01       		.byte	0x1
+ 1061 04a5 0F       		.byte	0xf
+ 1062 04a6 81000000 		.4byte	0x81
+ 1063 04aa 05       		.uleb128 0x5
+ 1064 04ab 03       		.byte	0x3
+ 1065 04ac 00000000 		.4byte	statusTestMode
+ 1066 04b0 17       		.uleb128 0x17
+ 1067 04b1 65080000 		.4byte	.LASF92
+ 1068 04b5 01       		.byte	0x1
+ 1069 04b6 11       		.byte	0x11
+ 1070 04b7 9D020000 		.4byte	0x29d
+ 1071 04bb 05       		.uleb128 0x5
+ 1072 04bc 03       		.byte	0x3
+ 1073 04bd 00000000 		.4byte	switchState
+ 1074 04c1 17       		.uleb128 0x17
+ 1075 04c2 B6010000 		.4byte	.LASF93
+ 1076 04c6 01       		.byte	0x1
+ 1077 04c7 12       		.byte	0x12
+ 1078 04c8 9D020000 		.4byte	0x29d
+ 1079 04cc 05       		.uleb128 0x5
+ 1080 04cd 03       		.byte	0x3
+ 1081 04ce 00000000 		.4byte	networkState
+ 1082 04d2 18       		.uleb128 0x18
+ 1083 04d3 30000000 		.4byte	.LASF94
+ 1084 04d7 06       		.byte	0x6
+ 1085 04d8 33       		.byte	0x33
+ 1086 04d9 E3040000 		.4byte	0x4e3
+ 1087 04dd 19       		.uleb128 0x19
+ 1088 04de 97000000 		.4byte	0x97
+ 1089 04e2 00       		.byte	0
+ 1090 04e3 1A       		.uleb128 0x1a
+ 1091 04e4 76030000 		.4byte	.LASF95
+ 1092 04e8 07       		.byte	0x7
+ 1093 04e9 4701     		.2byte	0x147
+ 1094 04eb F5040000 		.4byte	0x4f5
+ 1095 04ef 19       		.uleb128 0x19
+ 1096 04f0 A3000000 		.4byte	0xa3
+ 1097 04f4 00       		.byte	0
+ 1098 04f5 1B       		.uleb128 0x1b
+ 1099 04f6 0E020000 		.4byte	.LASF98
+ 1100 04fa 08       		.byte	0x8
+ 1101 04fb 7D       		.byte	0x7d
+ 1102 04fc 73000000 		.4byte	0x73
+ 1103 0500 1A       		.uleb128 0x1a
+ 1104 0501 67020000 		.4byte	.LASF96
+ 1105 0505 07       		.byte	0x7
+ 1106 0506 4A01     		.2byte	0x14a
+ 1107 0508 12050000 		.4byte	0x512
+ 1108 050c 19       		.uleb128 0x19
+ 1109 050d A3000000 		.4byte	0xa3
+ 1110 0511 00       		.byte	0
+ 1111 0512 1A       		.uleb128 0x1a
+ 1112 0513 DD060000 		.4byte	.LASF97
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 24
+
+
+ 1113 0517 07       		.byte	0x7
+ 1114 0518 5501     		.2byte	0x155
+ 1115 051a 24050000 		.4byte	0x524
+ 1116 051e 19       		.uleb128 0x19
+ 1117 051f A3000000 		.4byte	0xa3
+ 1118 0523 00       		.byte	0
+ 1119 0524 1C       		.uleb128 0x1c
+ 1120 0525 68000000 		.4byte	.LASF104
+ 1121 0529 07       		.byte	0x7
+ 1122 052a 3201     		.2byte	0x132
+ 1123 052c 1B       		.uleb128 0x1b
+ 1124 052d 23050000 		.4byte	.LASF99
+ 1125 0531 09       		.byte	0x9
+ 1126 0532 32       		.byte	0x32
+ 1127 0533 97000000 		.4byte	0x97
+ 1128 0537 1D       		.uleb128 0x1d
+ 1129 0538 5D000000 		.4byte	.LASF100
+ 1130 053c 0A       		.byte	0xa
+ 1131 053d 21       		.byte	0x21
+ 1132 053e 8C000000 		.4byte	0x8c
+ 1133 0542 48050000 		.4byte	0x548
+ 1134 0546 1E       		.uleb128 0x1e
+ 1135 0547 00       		.byte	0
+ 1136 0548 18       		.uleb128 0x18
+ 1137 0549 8D060000 		.4byte	.LASF101
+ 1138 054d 0B       		.byte	0xb
+ 1139 054e 2E       		.byte	0x2e
+ 1140 054f 59050000 		.4byte	0x559
+ 1141 0553 19       		.uleb128 0x19
+ 1142 0554 81000000 		.4byte	0x81
+ 1143 0558 00       		.byte	0
+ 1144 0559 1D       		.uleb128 0x1d
+ 1145 055a 3A070000 		.4byte	.LASF102
+ 1146 055e 0B       		.byte	0xb
+ 1147 055f 2D       		.byte	0x2d
+ 1148 0560 81000000 		.4byte	0x81
+ 1149 0564 6A050000 		.4byte	0x56a
+ 1150 0568 1E       		.uleb128 0x1e
+ 1151 0569 00       		.byte	0
+ 1152 056a 18       		.uleb128 0x18
+ 1153 056b 03040000 		.4byte	.LASF103
+ 1154 056f 0C       		.byte	0xc
+ 1155 0570 16       		.byte	0x16
+ 1156 0571 7B050000 		.4byte	0x57b
+ 1157 0575 19       		.uleb128 0x19
+ 1158 0576 81000000 		.4byte	0x81
+ 1159 057a 00       		.byte	0
+ 1160 057b 1C       		.uleb128 0x1c
+ 1161 057c 2E010000 		.4byte	.LASF105
+ 1162 0580 07       		.byte	0x7
+ 1163 0581 3301     		.2byte	0x133
+ 1164 0583 1F       		.uleb128 0x1f
+ 1165 0584 94070000 		.4byte	.LASF111
+ 1166 0588 0D       		.byte	0xd
+ 1167 0589 18       		.byte	0x18
+ 1168 058a 19       		.uleb128 0x19
+ 1169 058b C4000000 		.4byte	0xc4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 25
+
+
+ 1170 058f 00       		.byte	0
+ 1171 0590 00       		.byte	0
+ 1172              		.section	.debug_abbrev,"",%progbits
+ 1173              	.Ldebug_abbrev0:
+ 1174 0000 01       		.uleb128 0x1
+ 1175 0001 11       		.uleb128 0x11
+ 1176 0002 01       		.byte	0x1
+ 1177 0003 25       		.uleb128 0x25
+ 1178 0004 0E       		.uleb128 0xe
+ 1179 0005 13       		.uleb128 0x13
+ 1180 0006 0B       		.uleb128 0xb
+ 1181 0007 03       		.uleb128 0x3
+ 1182 0008 0E       		.uleb128 0xe
+ 1183 0009 1B       		.uleb128 0x1b
+ 1184 000a 0E       		.uleb128 0xe
+ 1185 000b 55       		.uleb128 0x55
+ 1186 000c 17       		.uleb128 0x17
+ 1187 000d 11       		.uleb128 0x11
+ 1188 000e 01       		.uleb128 0x1
+ 1189 000f 10       		.uleb128 0x10
+ 1190 0010 17       		.uleb128 0x17
+ 1191 0011 00       		.byte	0
+ 1192 0012 00       		.byte	0
+ 1193 0013 02       		.uleb128 0x2
+ 1194 0014 24       		.uleb128 0x24
+ 1195 0015 00       		.byte	0
+ 1196 0016 0B       		.uleb128 0xb
+ 1197 0017 0B       		.uleb128 0xb
+ 1198 0018 3E       		.uleb128 0x3e
+ 1199 0019 0B       		.uleb128 0xb
+ 1200 001a 03       		.uleb128 0x3
+ 1201 001b 0E       		.uleb128 0xe
+ 1202 001c 00       		.byte	0
+ 1203 001d 00       		.byte	0
+ 1204 001e 03       		.uleb128 0x3
+ 1205 001f 16       		.uleb128 0x16
+ 1206 0020 00       		.byte	0
+ 1207 0021 03       		.uleb128 0x3
+ 1208 0022 0E       		.uleb128 0xe
+ 1209 0023 3A       		.uleb128 0x3a
+ 1210 0024 0B       		.uleb128 0xb
+ 1211 0025 3B       		.uleb128 0x3b
+ 1212 0026 0B       		.uleb128 0xb
+ 1213 0027 49       		.uleb128 0x49
+ 1214 0028 13       		.uleb128 0x13
+ 1215 0029 00       		.byte	0
+ 1216 002a 00       		.byte	0
+ 1217 002b 04       		.uleb128 0x4
+ 1218 002c 24       		.uleb128 0x24
+ 1219 002d 00       		.byte	0
+ 1220 002e 0B       		.uleb128 0xb
+ 1221 002f 0B       		.uleb128 0xb
+ 1222 0030 3E       		.uleb128 0x3e
+ 1223 0031 0B       		.uleb128 0xb
+ 1224 0032 03       		.uleb128 0x3
+ 1225 0033 08       		.uleb128 0x8
+ 1226 0034 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 26
+
+
+ 1227 0035 00       		.byte	0
+ 1228 0036 05       		.uleb128 0x5
+ 1229 0037 16       		.uleb128 0x16
+ 1230 0038 00       		.byte	0
+ 1231 0039 03       		.uleb128 0x3
+ 1232 003a 0E       		.uleb128 0xe
+ 1233 003b 3A       		.uleb128 0x3a
+ 1234 003c 0B       		.uleb128 0xb
+ 1235 003d 3B       		.uleb128 0x3b
+ 1236 003e 05       		.uleb128 0x5
+ 1237 003f 49       		.uleb128 0x49
+ 1238 0040 13       		.uleb128 0x13
+ 1239 0041 00       		.byte	0
+ 1240 0042 00       		.byte	0
+ 1241 0043 06       		.uleb128 0x6
+ 1242 0044 0F       		.uleb128 0xf
+ 1243 0045 00       		.byte	0
+ 1244 0046 0B       		.uleb128 0xb
+ 1245 0047 0B       		.uleb128 0xb
+ 1246 0048 49       		.uleb128 0x49
+ 1247 0049 13       		.uleb128 0x13
+ 1248 004a 00       		.byte	0
+ 1249 004b 00       		.byte	0
+ 1250 004c 07       		.uleb128 0x7
+ 1251 004d 15       		.uleb128 0x15
+ 1252 004e 00       		.byte	0
+ 1253 004f 27       		.uleb128 0x27
+ 1254 0050 19       		.uleb128 0x19
+ 1255 0051 00       		.byte	0
+ 1256 0052 00       		.byte	0
+ 1257 0053 08       		.uleb128 0x8
+ 1258 0054 04       		.uleb128 0x4
+ 1259 0055 01       		.byte	0x1
+ 1260 0056 0B       		.uleb128 0xb
+ 1261 0057 0B       		.uleb128 0xb
+ 1262 0058 3A       		.uleb128 0x3a
+ 1263 0059 0B       		.uleb128 0xb
+ 1264 005a 3B       		.uleb128 0x3b
+ 1265 005b 0B       		.uleb128 0xb
+ 1266 005c 01       		.uleb128 0x1
+ 1267 005d 13       		.uleb128 0x13
+ 1268 005e 00       		.byte	0
+ 1269 005f 00       		.byte	0
+ 1270 0060 09       		.uleb128 0x9
+ 1271 0061 28       		.uleb128 0x28
+ 1272 0062 00       		.byte	0
+ 1273 0063 03       		.uleb128 0x3
+ 1274 0064 0E       		.uleb128 0xe
+ 1275 0065 1C       		.uleb128 0x1c
+ 1276 0066 0D       		.uleb128 0xd
+ 1277 0067 00       		.byte	0
+ 1278 0068 00       		.byte	0
+ 1279 0069 0A       		.uleb128 0xa
+ 1280 006a 04       		.uleb128 0x4
+ 1281 006b 01       		.byte	0x1
+ 1282 006c 03       		.uleb128 0x3
+ 1283 006d 0E       		.uleb128 0xe
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 27
+
+
+ 1284 006e 0B       		.uleb128 0xb
+ 1285 006f 0B       		.uleb128 0xb
+ 1286 0070 3A       		.uleb128 0x3a
+ 1287 0071 0B       		.uleb128 0xb
+ 1288 0072 3B       		.uleb128 0x3b
+ 1289 0073 0B       		.uleb128 0xb
+ 1290 0074 01       		.uleb128 0x1
+ 1291 0075 13       		.uleb128 0x13
+ 1292 0076 00       		.byte	0
+ 1293 0077 00       		.byte	0
+ 1294 0078 0B       		.uleb128 0xb
+ 1295 0079 28       		.uleb128 0x28
+ 1296 007a 00       		.byte	0
+ 1297 007b 03       		.uleb128 0x3
+ 1298 007c 08       		.uleb128 0x8
+ 1299 007d 1C       		.uleb128 0x1c
+ 1300 007e 0D       		.uleb128 0xd
+ 1301 007f 00       		.byte	0
+ 1302 0080 00       		.byte	0
+ 1303 0081 0C       		.uleb128 0xc
+ 1304 0082 2E       		.uleb128 0x2e
+ 1305 0083 01       		.byte	0x1
+ 1306 0084 3F       		.uleb128 0x3f
+ 1307 0085 19       		.uleb128 0x19
+ 1308 0086 03       		.uleb128 0x3
+ 1309 0087 0E       		.uleb128 0xe
+ 1310 0088 3A       		.uleb128 0x3a
+ 1311 0089 0B       		.uleb128 0xb
+ 1312 008a 3B       		.uleb128 0x3b
+ 1313 008b 0B       		.uleb128 0xb
+ 1314 008c 27       		.uleb128 0x27
+ 1315 008d 19       		.uleb128 0x19
+ 1316 008e 11       		.uleb128 0x11
+ 1317 008f 01       		.uleb128 0x1
+ 1318 0090 12       		.uleb128 0x12
+ 1319 0091 06       		.uleb128 0x6
+ 1320 0092 40       		.uleb128 0x40
+ 1321 0093 18       		.uleb128 0x18
+ 1322 0094 9742     		.uleb128 0x2117
+ 1323 0096 19       		.uleb128 0x19
+ 1324 0097 01       		.uleb128 0x1
+ 1325 0098 13       		.uleb128 0x13
+ 1326 0099 00       		.byte	0
+ 1327 009a 00       		.byte	0
+ 1328 009b 0D       		.uleb128 0xd
+ 1329 009c 898201   		.uleb128 0x4109
+ 1330 009f 01       		.byte	0x1
+ 1331 00a0 11       		.uleb128 0x11
+ 1332 00a1 01       		.uleb128 0x1
+ 1333 00a2 31       		.uleb128 0x31
+ 1334 00a3 13       		.uleb128 0x13
+ 1335 00a4 01       		.uleb128 0x1
+ 1336 00a5 13       		.uleb128 0x13
+ 1337 00a6 00       		.byte	0
+ 1338 00a7 00       		.byte	0
+ 1339 00a8 0E       		.uleb128 0xe
+ 1340 00a9 8A8201   		.uleb128 0x410a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 28
+
+
+ 1341 00ac 00       		.byte	0
+ 1342 00ad 02       		.uleb128 0x2
+ 1343 00ae 18       		.uleb128 0x18
+ 1344 00af 9142     		.uleb128 0x2111
+ 1345 00b1 18       		.uleb128 0x18
+ 1346 00b2 00       		.byte	0
+ 1347 00b3 00       		.byte	0
+ 1348 00b4 0F       		.uleb128 0xf
+ 1349 00b5 898201   		.uleb128 0x4109
+ 1350 00b8 01       		.byte	0x1
+ 1351 00b9 11       		.uleb128 0x11
+ 1352 00ba 01       		.uleb128 0x1
+ 1353 00bb 31       		.uleb128 0x31
+ 1354 00bc 13       		.uleb128 0x13
+ 1355 00bd 00       		.byte	0
+ 1356 00be 00       		.byte	0
+ 1357 00bf 10       		.uleb128 0x10
+ 1358 00c0 2E       		.uleb128 0x2e
+ 1359 00c1 01       		.byte	0x1
+ 1360 00c2 3F       		.uleb128 0x3f
+ 1361 00c3 19       		.uleb128 0x19
+ 1362 00c4 03       		.uleb128 0x3
+ 1363 00c5 0E       		.uleb128 0xe
+ 1364 00c6 3A       		.uleb128 0x3a
+ 1365 00c7 0B       		.uleb128 0xb
+ 1366 00c8 3B       		.uleb128 0x3b
+ 1367 00c9 0B       		.uleb128 0xb
+ 1368 00ca 11       		.uleb128 0x11
+ 1369 00cb 01       		.uleb128 0x1
+ 1370 00cc 12       		.uleb128 0x12
+ 1371 00cd 06       		.uleb128 0x6
+ 1372 00ce 40       		.uleb128 0x40
+ 1373 00cf 18       		.uleb128 0x18
+ 1374 00d0 9642     		.uleb128 0x2116
+ 1375 00d2 19       		.uleb128 0x19
+ 1376 00d3 01       		.uleb128 0x1
+ 1377 00d4 13       		.uleb128 0x13
+ 1378 00d5 00       		.byte	0
+ 1379 00d6 00       		.byte	0
+ 1380 00d7 11       		.uleb128 0x11
+ 1381 00d8 34       		.uleb128 0x34
+ 1382 00d9 00       		.byte	0
+ 1383 00da 03       		.uleb128 0x3
+ 1384 00db 08       		.uleb128 0x8
+ 1385 00dc 3A       		.uleb128 0x3a
+ 1386 00dd 0B       		.uleb128 0xb
+ 1387 00de 3B       		.uleb128 0x3b
+ 1388 00df 0B       		.uleb128 0xb
+ 1389 00e0 49       		.uleb128 0x49
+ 1390 00e1 13       		.uleb128 0x13
+ 1391 00e2 02       		.uleb128 0x2
+ 1392 00e3 17       		.uleb128 0x17
+ 1393 00e4 00       		.byte	0
+ 1394 00e5 00       		.byte	0
+ 1395 00e6 12       		.uleb128 0x12
+ 1396 00e7 898201   		.uleb128 0x4109
+ 1397 00ea 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 29
+
+
+ 1398 00eb 11       		.uleb128 0x11
+ 1399 00ec 01       		.uleb128 0x1
+ 1400 00ed 31       		.uleb128 0x31
+ 1401 00ee 13       		.uleb128 0x13
+ 1402 00ef 00       		.byte	0
+ 1403 00f0 00       		.byte	0
+ 1404 00f1 13       		.uleb128 0x13
+ 1405 00f2 2E       		.uleb128 0x2e
+ 1406 00f3 01       		.byte	0x1
+ 1407 00f4 3F       		.uleb128 0x3f
+ 1408 00f5 19       		.uleb128 0x19
+ 1409 00f6 03       		.uleb128 0x3
+ 1410 00f7 0E       		.uleb128 0xe
+ 1411 00f8 3A       		.uleb128 0x3a
+ 1412 00f9 0B       		.uleb128 0xb
+ 1413 00fa 3B       		.uleb128 0x3b
+ 1414 00fb 0B       		.uleb128 0xb
+ 1415 00fc 49       		.uleb128 0x49
+ 1416 00fd 13       		.uleb128 0x13
+ 1417 00fe 11       		.uleb128 0x11
+ 1418 00ff 01       		.uleb128 0x1
+ 1419 0100 12       		.uleb128 0x12
+ 1420 0101 06       		.uleb128 0x6
+ 1421 0102 40       		.uleb128 0x40
+ 1422 0103 18       		.uleb128 0x18
+ 1423 0104 9742     		.uleb128 0x2117
+ 1424 0106 19       		.uleb128 0x19
+ 1425 0107 01       		.uleb128 0x1
+ 1426 0108 13       		.uleb128 0x13
+ 1427 0109 00       		.byte	0
+ 1428 010a 00       		.byte	0
+ 1429 010b 14       		.uleb128 0x14
+ 1430 010c 34       		.uleb128 0x34
+ 1431 010d 00       		.byte	0
+ 1432 010e 03       		.uleb128 0x3
+ 1433 010f 0E       		.uleb128 0xe
+ 1434 0110 3A       		.uleb128 0x3a
+ 1435 0111 0B       		.uleb128 0xb
+ 1436 0112 3B       		.uleb128 0x3b
+ 1437 0113 0B       		.uleb128 0xb
+ 1438 0114 49       		.uleb128 0x49
+ 1439 0115 13       		.uleb128 0x13
+ 1440 0116 02       		.uleb128 0x2
+ 1441 0117 18       		.uleb128 0x18
+ 1442 0118 00       		.byte	0
+ 1443 0119 00       		.byte	0
+ 1444 011a 15       		.uleb128 0x15
+ 1445 011b 2E       		.uleb128 0x2e
+ 1446 011c 01       		.byte	0x1
+ 1447 011d 3F       		.uleb128 0x3f
+ 1448 011e 19       		.uleb128 0x19
+ 1449 011f 03       		.uleb128 0x3
+ 1450 0120 0E       		.uleb128 0xe
+ 1451 0121 3A       		.uleb128 0x3a
+ 1452 0122 0B       		.uleb128 0xb
+ 1453 0123 3B       		.uleb128 0x3b
+ 1454 0124 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 30
+
+
+ 1455 0125 11       		.uleb128 0x11
+ 1456 0126 01       		.uleb128 0x1
+ 1457 0127 12       		.uleb128 0x12
+ 1458 0128 06       		.uleb128 0x6
+ 1459 0129 40       		.uleb128 0x40
+ 1460 012a 18       		.uleb128 0x18
+ 1461 012b 9742     		.uleb128 0x2117
+ 1462 012d 19       		.uleb128 0x19
+ 1463 012e 01       		.uleb128 0x1
+ 1464 012f 13       		.uleb128 0x13
+ 1465 0130 00       		.byte	0
+ 1466 0131 00       		.byte	0
+ 1467 0132 16       		.uleb128 0x16
+ 1468 0133 2E       		.uleb128 0x2e
+ 1469 0134 00       		.byte	0
+ 1470 0135 3F       		.uleb128 0x3f
+ 1471 0136 19       		.uleb128 0x19
+ 1472 0137 03       		.uleb128 0x3
+ 1473 0138 0E       		.uleb128 0xe
+ 1474 0139 3A       		.uleb128 0x3a
+ 1475 013a 0B       		.uleb128 0xb
+ 1476 013b 3B       		.uleb128 0x3b
+ 1477 013c 0B       		.uleb128 0xb
+ 1478 013d 11       		.uleb128 0x11
+ 1479 013e 01       		.uleb128 0x1
+ 1480 013f 12       		.uleb128 0x12
+ 1481 0140 06       		.uleb128 0x6
+ 1482 0141 40       		.uleb128 0x40
+ 1483 0142 18       		.uleb128 0x18
+ 1484 0143 9742     		.uleb128 0x2117
+ 1485 0145 19       		.uleb128 0x19
+ 1486 0146 00       		.byte	0
+ 1487 0147 00       		.byte	0
+ 1488 0148 17       		.uleb128 0x17
+ 1489 0149 34       		.uleb128 0x34
+ 1490 014a 00       		.byte	0
+ 1491 014b 03       		.uleb128 0x3
+ 1492 014c 0E       		.uleb128 0xe
+ 1493 014d 3A       		.uleb128 0x3a
+ 1494 014e 0B       		.uleb128 0xb
+ 1495 014f 3B       		.uleb128 0x3b
+ 1496 0150 0B       		.uleb128 0xb
+ 1497 0151 49       		.uleb128 0x49
+ 1498 0152 13       		.uleb128 0x13
+ 1499 0153 3F       		.uleb128 0x3f
+ 1500 0154 19       		.uleb128 0x19
+ 1501 0155 02       		.uleb128 0x2
+ 1502 0156 18       		.uleb128 0x18
+ 1503 0157 00       		.byte	0
+ 1504 0158 00       		.byte	0
+ 1505 0159 18       		.uleb128 0x18
+ 1506 015a 2E       		.uleb128 0x2e
+ 1507 015b 01       		.byte	0x1
+ 1508 015c 3F       		.uleb128 0x3f
+ 1509 015d 19       		.uleb128 0x19
+ 1510 015e 03       		.uleb128 0x3
+ 1511 015f 0E       		.uleb128 0xe
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 31
+
+
+ 1512 0160 3A       		.uleb128 0x3a
+ 1513 0161 0B       		.uleb128 0xb
+ 1514 0162 3B       		.uleb128 0x3b
+ 1515 0163 0B       		.uleb128 0xb
+ 1516 0164 27       		.uleb128 0x27
+ 1517 0165 19       		.uleb128 0x19
+ 1518 0166 3C       		.uleb128 0x3c
+ 1519 0167 19       		.uleb128 0x19
+ 1520 0168 01       		.uleb128 0x1
+ 1521 0169 13       		.uleb128 0x13
+ 1522 016a 00       		.byte	0
+ 1523 016b 00       		.byte	0
+ 1524 016c 19       		.uleb128 0x19
+ 1525 016d 05       		.uleb128 0x5
+ 1526 016e 00       		.byte	0
+ 1527 016f 49       		.uleb128 0x49
+ 1528 0170 13       		.uleb128 0x13
+ 1529 0171 00       		.byte	0
+ 1530 0172 00       		.byte	0
+ 1531 0173 1A       		.uleb128 0x1a
+ 1532 0174 2E       		.uleb128 0x2e
+ 1533 0175 01       		.byte	0x1
+ 1534 0176 3F       		.uleb128 0x3f
+ 1535 0177 19       		.uleb128 0x19
+ 1536 0178 03       		.uleb128 0x3
+ 1537 0179 0E       		.uleb128 0xe
+ 1538 017a 3A       		.uleb128 0x3a
+ 1539 017b 0B       		.uleb128 0xb
+ 1540 017c 3B       		.uleb128 0x3b
+ 1541 017d 05       		.uleb128 0x5
+ 1542 017e 27       		.uleb128 0x27
+ 1543 017f 19       		.uleb128 0x19
+ 1544 0180 3C       		.uleb128 0x3c
+ 1545 0181 19       		.uleb128 0x19
+ 1546 0182 01       		.uleb128 0x1
+ 1547 0183 13       		.uleb128 0x13
+ 1548 0184 00       		.byte	0
+ 1549 0185 00       		.byte	0
+ 1550 0186 1B       		.uleb128 0x1b
+ 1551 0187 2E       		.uleb128 0x2e
+ 1552 0188 00       		.byte	0
+ 1553 0189 3F       		.uleb128 0x3f
+ 1554 018a 19       		.uleb128 0x19
+ 1555 018b 03       		.uleb128 0x3
+ 1556 018c 0E       		.uleb128 0xe
+ 1557 018d 3A       		.uleb128 0x3a
+ 1558 018e 0B       		.uleb128 0xb
+ 1559 018f 3B       		.uleb128 0x3b
+ 1560 0190 0B       		.uleb128 0xb
+ 1561 0191 27       		.uleb128 0x27
+ 1562 0192 19       		.uleb128 0x19
+ 1563 0193 49       		.uleb128 0x49
+ 1564 0194 13       		.uleb128 0x13
+ 1565 0195 3C       		.uleb128 0x3c
+ 1566 0196 19       		.uleb128 0x19
+ 1567 0197 00       		.byte	0
+ 1568 0198 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 32
+
+
+ 1569 0199 1C       		.uleb128 0x1c
+ 1570 019a 2E       		.uleb128 0x2e
+ 1571 019b 00       		.byte	0
+ 1572 019c 3F       		.uleb128 0x3f
+ 1573 019d 19       		.uleb128 0x19
+ 1574 019e 03       		.uleb128 0x3
+ 1575 019f 0E       		.uleb128 0xe
+ 1576 01a0 3A       		.uleb128 0x3a
+ 1577 01a1 0B       		.uleb128 0xb
+ 1578 01a2 3B       		.uleb128 0x3b
+ 1579 01a3 05       		.uleb128 0x5
+ 1580 01a4 27       		.uleb128 0x27
+ 1581 01a5 19       		.uleb128 0x19
+ 1582 01a6 3C       		.uleb128 0x3c
+ 1583 01a7 19       		.uleb128 0x19
+ 1584 01a8 00       		.byte	0
+ 1585 01a9 00       		.byte	0
+ 1586 01aa 1D       		.uleb128 0x1d
+ 1587 01ab 2E       		.uleb128 0x2e
+ 1588 01ac 01       		.byte	0x1
+ 1589 01ad 3F       		.uleb128 0x3f
+ 1590 01ae 19       		.uleb128 0x19
+ 1591 01af 03       		.uleb128 0x3
+ 1592 01b0 0E       		.uleb128 0xe
+ 1593 01b1 3A       		.uleb128 0x3a
+ 1594 01b2 0B       		.uleb128 0xb
+ 1595 01b3 3B       		.uleb128 0x3b
+ 1596 01b4 0B       		.uleb128 0xb
+ 1597 01b5 49       		.uleb128 0x49
+ 1598 01b6 13       		.uleb128 0x13
+ 1599 01b7 3C       		.uleb128 0x3c
+ 1600 01b8 19       		.uleb128 0x19
+ 1601 01b9 01       		.uleb128 0x1
+ 1602 01ba 13       		.uleb128 0x13
+ 1603 01bb 00       		.byte	0
+ 1604 01bc 00       		.byte	0
+ 1605 01bd 1E       		.uleb128 0x1e
+ 1606 01be 18       		.uleb128 0x18
+ 1607 01bf 00       		.byte	0
+ 1608 01c0 00       		.byte	0
+ 1609 01c1 00       		.byte	0
+ 1610 01c2 1F       		.uleb128 0x1f
+ 1611 01c3 2E       		.uleb128 0x2e
+ 1612 01c4 01       		.byte	0x1
+ 1613 01c5 3F       		.uleb128 0x3f
+ 1614 01c6 19       		.uleb128 0x19
+ 1615 01c7 03       		.uleb128 0x3
+ 1616 01c8 0E       		.uleb128 0xe
+ 1617 01c9 3A       		.uleb128 0x3a
+ 1618 01ca 0B       		.uleb128 0xb
+ 1619 01cb 3B       		.uleb128 0x3b
+ 1620 01cc 0B       		.uleb128 0xb
+ 1621 01cd 27       		.uleb128 0x27
+ 1622 01ce 19       		.uleb128 0x19
+ 1623 01cf 3C       		.uleb128 0x3c
+ 1624 01d0 19       		.uleb128 0x19
+ 1625 01d1 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 33
+
+
+ 1626 01d2 00       		.byte	0
+ 1627 01d3 00       		.byte	0
+ 1628              		.section	.debug_loc,"",%progbits
+ 1629              	.Ldebug_loc0:
+ 1630              	.LLST0:
+ 1631 0000 08000000 		.4byte	.LVL4
+ 1632 0004 0A000000 		.4byte	.LVL5
+ 1633 0008 0C00     		.2byte	0xc
+ 1634 000a 70       		.byte	0x70
+ 1635 000b 00       		.sleb128 0
+ 1636 000c 08       		.byte	0x8
+ 1637 000d 3C       		.byte	0x3c
+ 1638 000e 14       		.byte	0x14
+ 1639 000f 14       		.byte	0x14
+ 1640 0010 1B       		.byte	0x1b
+ 1641 0011 1E       		.byte	0x1e
+ 1642 0012 1C       		.byte	0x1c
+ 1643 0013 23       		.byte	0x23
+ 1644 0014 1E       		.uleb128 0x1e
+ 1645 0015 9F       		.byte	0x9f
+ 1646 0016 0A000000 		.4byte	.LVL5
+ 1647 001a 26000000 		.4byte	.LVL10
+ 1648 001e 0C00     		.2byte	0xc
+ 1649 0020 74       		.byte	0x74
+ 1650 0021 00       		.sleb128 0
+ 1651 0022 08       		.byte	0x8
+ 1652 0023 3C       		.byte	0x3c
+ 1653 0024 14       		.byte	0x14
+ 1654 0025 14       		.byte	0x14
+ 1655 0026 1B       		.byte	0x1b
+ 1656 0027 1E       		.byte	0x1e
+ 1657 0028 1C       		.byte	0x1c
+ 1658 0029 23       		.byte	0x23
+ 1659 002a 1E       		.uleb128 0x1e
+ 1660 002b 9F       		.byte	0x9f
+ 1661 002c 00000000 		.4byte	0
+ 1662 0030 00000000 		.4byte	0
+ 1663              		.section	.debug_aranges,"",%progbits
+ 1664 0000 44000000 		.4byte	0x44
+ 1665 0004 0200     		.2byte	0x2
+ 1666 0006 00000000 		.4byte	.Ldebug_info0
+ 1667 000a 04       		.byte	0x4
+ 1668 000b 00       		.byte	0
+ 1669 000c 0000     		.2byte	0
+ 1670 000e 0000     		.2byte	0
+ 1671 0010 00000000 		.4byte	.LFB63
+ 1672 0014 24000000 		.4byte	.LFE63-.LFB63
+ 1673 0018 00000000 		.4byte	.LFB65
+ 1674 001c 28000000 		.4byte	.LFE65-.LFB65
+ 1675 0020 00000000 		.4byte	.LFB66
+ 1676 0024 60000000 		.4byte	.LFE66-.LFB66
+ 1677 0028 00000000 		.4byte	.LFB67
+ 1678 002c 50000000 		.4byte	.LFE67-.LFB67
+ 1679 0030 00000000 		.4byte	.LFB64
+ 1680 0034 C8000000 		.4byte	.LFE64-.LFB64
+ 1681 0038 00000000 		.4byte	.LFB68
+ 1682 003c 0C000000 		.4byte	.LFE68-.LFB68
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 34
+
+
+ 1683 0040 00000000 		.4byte	0
+ 1684 0044 00000000 		.4byte	0
+ 1685              		.section	.debug_ranges,"",%progbits
+ 1686              	.Ldebug_ranges0:
+ 1687 0000 00000000 		.4byte	.LFB63
+ 1688 0004 24000000 		.4byte	.LFE63
+ 1689 0008 00000000 		.4byte	.LFB65
+ 1690 000c 28000000 		.4byte	.LFE65
+ 1691 0010 00000000 		.4byte	.LFB66
+ 1692 0014 60000000 		.4byte	.LFE66
+ 1693 0018 00000000 		.4byte	.LFB67
+ 1694 001c 50000000 		.4byte	.LFE67
+ 1695 0020 00000000 		.4byte	.LFB64
+ 1696 0024 C8000000 		.4byte	.LFE64
+ 1697 0028 00000000 		.4byte	.LFB68
+ 1698 002c 0C000000 		.4byte	.LFE68
+ 1699 0030 00000000 		.4byte	0
+ 1700 0034 00000000 		.4byte	0
+ 1701              		.section	.debug_line,"",%progbits
+ 1702              	.Ldebug_line0:
+ 1703 0000 1F030000 		.section	.debug_str,"MS",%progbits,1
+ 1703      02000202 
+ 1703      00000201 
+ 1703      FB0E0D00 
+ 1703      01010101 
+ 1704              	.LASF79:
+ 1705 0000 52495349 		.ascii	"RISING_EDGE\000"
+ 1705      4E475F45 
+ 1705      44474500 
+ 1706              	.LASF28:
+ 1707 000c 4359424C 		.ascii	"CYBLE_EVT_GAP_PASSKEY_ENTRY_REQUEST\000"
+ 1707      455F4556 
+ 1707      545F4741 
+ 1707      505F5041 
+ 1707      53534B45 
+ 1708              	.LASF94:
+ 1709 0030 50696E5F 		.ascii	"Pin_testMode_Write\000"
+ 1709      74657374 
+ 1709      4D6F6465 
+ 1709      5F577269 
+ 1709      746500
+ 1710              	.LASF39:
+ 1711 0043 4359424C 		.ascii	"CYBLE_EVT_GATTC_ERROR_RSP\000"
+ 1711      455F4556 
+ 1711      545F4741 
+ 1711      5454435F 
+ 1711      4552524F 
+ 1712              	.LASF100:
+ 1713 005d 536B6965 		.ascii	"SkierOnWay\000"
+ 1713      724F6E57 
+ 1713      617900
+ 1714              	.LASF104:
+ 1715 0068 54696D65 		.ascii	"TimerTestMode_Start\000"
+ 1715      72546573 
+ 1715      744D6F64 
+ 1715      655F5374 
+ 1715      61727400 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 35
+
+
+ 1716              	.LASF55:
+ 1717 007c 4359424C 		.ascii	"CYBLE_EVT_GATTS_EXEC_WRITE_REQ\000"
+ 1717      455F4556 
+ 1717      545F4741 
+ 1717      5454535F 
+ 1717      45584543 
+ 1718              	.LASF90:
+ 1719 009b 616C6C6F 		.ascii	"allowNextTestSkier\000"
+ 1719      774E6578 
+ 1719      74546573 
+ 1719      74536B69 
+ 1719      657200
+ 1720              	.LASF31:
+ 1721 00ae 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_FAILED\000"
+ 1721      455F4556 
+ 1721      545F4741 
+ 1721      505F4155 
+ 1721      54485F46 
+ 1722              	.LASF41:
+ 1723 00c8 4359424C 		.ascii	"CYBLE_EVT_GATT_DISCONNECT_IND\000"
+ 1723      455F4556 
+ 1723      545F4741 
+ 1723      54545F44 
+ 1723      4953434F 
+ 1724              	.LASF19:
+ 1725 00e6 73697A65 		.ascii	"sizetype\000"
+ 1725      74797065 
+ 1725      00
+ 1726              	.LASF9:
+ 1727 00ef 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1727      206C6F6E 
+ 1727      6720756E 
+ 1727      7369676E 
+ 1727      65642069 
+ 1728              	.LASF35:
+ 1729 0106 4359424C 		.ascii	"CYBLE_EVT_GAP_ENCRYPT_CHANGE\000"
+ 1729      455F4556 
+ 1729      545F4741 
+ 1729      505F454E 
+ 1729      43525950 
+ 1730              	.LASF6:
+ 1731 0123 5F5F7569 		.ascii	"__uint32_t\000"
+ 1731      6E743332 
+ 1731      5F7400
+ 1732              	.LASF105:
+ 1733 012e 54696D65 		.ascii	"TimerTestMode_Stop\000"
+ 1733      72546573 
+ 1733      744D6F64 
+ 1733      655F5374 
+ 1733      6F7000
+ 1734              	.LASF24:
+ 1735 0141 4359424C 		.ascii	"CYBLE_EVT_HCI_STATUS\000"
+ 1735      455F4556 
+ 1735      545F4843 
+ 1735      495F5354 
+ 1735      41545553 
+ 1736              	.LASF45:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 36
+
+
+ 1737 0156 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BY_TYPE_RSP\000"
+ 1737      455F4556 
+ 1737      545F4741 
+ 1737      5454435F 
+ 1737      52454144 
+ 1738              	.LASF57:
+ 1739 0177 4359424C 		.ascii	"CYBLE_EVT_GATTC_HANDLE_VALUE_NTF\000"
+ 1739      455F4556 
+ 1739      545F4741 
+ 1739      5454435F 
+ 1739      48414E44 
+ 1740              	.LASF42:
+ 1741 0198 4359424C 		.ascii	"CYBLE_EVT_GATTS_XCNHG_MTU_REQ\000"
+ 1741      455F4556 
+ 1741      545F4741 
+ 1741      5454535F 
+ 1741      58434E48 
+ 1742              	.LASF93:
+ 1743 01b6 6E657477 		.ascii	"networkState\000"
+ 1743      6F726B53 
+ 1743      74617465 
+ 1743      00
+ 1744              	.LASF11:
+ 1745 01c3 75696E74 		.ascii	"uint8_t\000"
+ 1745      385F7400 
+ 1746              	.LASF38:
+ 1747 01cb 4359424C 		.ascii	"CYBLE_EVT_GAP_KEYINFO_EXCHNGE_CMPLT\000"
+ 1747      455F4556 
+ 1747      545F4741 
+ 1747      505F4B45 
+ 1747      59494E46 
+ 1748              	.LASF50:
+ 1749 01ef 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_MULTI_RSP\000"
+ 1749      455F4556 
+ 1749      545F4741 
+ 1749      5454435F 
+ 1749      52454144 
+ 1750              	.LASF98:
+ 1751 020e 72616E64 		.ascii	"rand\000"
+ 1751      00
+ 1752              	.LASF59:
+ 1753 0213 4359424C 		.ascii	"CYBLE_EVT_GATTS_HANDLE_VALUE_CNF\000"
+ 1753      455F4556 
+ 1753      545F4741 
+ 1753      5454535F 
+ 1753      48414E44 
+ 1754              	.LASF20:
+ 1755 0234 4359424C 		.ascii	"CYBLE_EVT_HOST_INVALID\000"
+ 1755      455F4556 
+ 1755      545F484F 
+ 1755      53545F49 
+ 1755      4E56414C 
+ 1756              	.LASF12:
+ 1757 024b 75696E74 		.ascii	"uint32_t\000"
+ 1757      33325F74 
+ 1757      00
+ 1758              	.LASF21:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 37
+
+
+ 1759 0254 4359424C 		.ascii	"CYBLE_EVT_STACK_ON\000"
+ 1759      455F4556 
+ 1759      545F5354 
+ 1759      41434B5F 
+ 1759      4F4E00
+ 1760              	.LASF96:
+ 1761 0267 54696D65 		.ascii	"TimerTestMode_WriteCounter\000"
+ 1761      72546573 
+ 1761      744D6F64 
+ 1761      655F5772 
+ 1761      69746543 
+ 1762              	.LASF69:
+ 1763 0282 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DISCONN_CNF\000"
+ 1763      455F4556 
+ 1763      545F4C32 
+ 1763      4341505F 
+ 1763      43424643 
+ 1764              	.LASF91:
+ 1765 02a3 73746174 		.ascii	"statusTestMode\000"
+ 1765      75735465 
+ 1765      73744D6F 
+ 1765      646500
+ 1766              	.LASF15:
+ 1767 02b2 666C6F61 		.ascii	"float\000"
+ 1767      7400
+ 1768              	.LASF30:
+ 1769 02b8 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_COMPLETE\000"
+ 1769      455F4556 
+ 1769      545F4741 
+ 1769      505F4155 
+ 1769      54485F43 
+ 1770              	.LASF52:
+ 1771 02d4 4359424C 		.ascii	"CYBLE_EVT_GATTC_WRITE_RSP\000"
+ 1771      455F4556 
+ 1771      545F4741 
+ 1771      5454435F 
+ 1771      57524954 
+ 1772              	.LASF8:
+ 1773 02ee 6C6F6E67 		.ascii	"long long int\000"
+ 1773      206C6F6E 
+ 1773      6720696E 
+ 1773      7400
+ 1774              	.LASF18:
+ 1775 02fc 63796973 		.ascii	"cyisraddress\000"
+ 1775      72616464 
+ 1775      72657373 
+ 1775      00
+ 1776              	.LASF89:
+ 1777 0309 656E6162 		.ascii	"enableTestMode\000"
+ 1777      6C655465 
+ 1777      73744D6F 
+ 1777      646500
+ 1778              	.LASF4:
+ 1779 0318 6C6F6E67 		.ascii	"long int\000"
+ 1779      20696E74 
+ 1779      00
+ 1780              	.LASF58:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 38
+
+
+ 1781 0321 4359424C 		.ascii	"CYBLE_EVT_GATTC_HANDLE_VALUE_IND\000"
+ 1781      455F4556 
+ 1781      545F4741 
+ 1781      5454435F 
+ 1781      48414E44 
+ 1782              	.LASF33:
+ 1783 0342 4359424C 		.ascii	"CYBLE_EVT_GAP_DEVICE_CONNECTED\000"
+ 1783      455F4556 
+ 1783      545F4741 
+ 1783      505F4445 
+ 1783      56494345 
+ 1784              	.LASF2:
+ 1785 0361 73686F72 		.ascii	"short int\000"
+ 1785      7420696E 
+ 1785      7400
+ 1786              	.LASF78:
+ 1787 036b 48494748 		.ascii	"HIGH_LEVEL\000"
+ 1787      5F4C4556 
+ 1787      454C00
+ 1788              	.LASF95:
+ 1789 0376 54696D65 		.ascii	"TimerTestMode_ClearInterrupt\000"
+ 1789      72546573 
+ 1789      744D6F64 
+ 1789      655F436C 
+ 1789      65617249 
+ 1790              	.LASF25:
+ 1791 0393 4359424C 		.ascii	"CYBLE_EVT_STACK_BUSY_STATUS\000"
+ 1791      455F4556 
+ 1791      545F5354 
+ 1791      41434B5F 
+ 1791      42555359 
+ 1792              	.LASF29:
+ 1793 03af 4359424C 		.ascii	"CYBLE_EVT_GAP_PASSKEY_DISPLAY_REQUEST\000"
+ 1793      455F4556 
+ 1793      545F4741 
+ 1793      505F5041 
+ 1793      53534B45 
+ 1794              	.LASF67:
+ 1795 03d5 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_CONN_CNF\000"
+ 1795      455F4556 
+ 1795      545F4C32 
+ 1795      4341505F 
+ 1795      43424643 
+ 1796              	.LASF81:
+ 1797 03f3 4C4F575F 		.ascii	"LOW_LEVEL\000"
+ 1797      4C455645 
+ 1797      4C00
+ 1798              	.LASF13:
+ 1799 03fd 75696E74 		.ascii	"uint8\000"
+ 1799      3800
+ 1800              	.LASF103:
+ 1801 0403 44697370 		.ascii	"DisplayTestMode\000"
+ 1801      6C617954 
+ 1801      6573744D 
+ 1801      6F646500 
+ 1802              	.LASF63:
+ 1803 0413 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CONN_PARAM_UPDATE_REQ\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 39
+
+
+ 1803      455F4556 
+ 1803      545F4C32 
+ 1803      4341505F 
+ 1803      434F4E4E 
+ 1804              	.LASF1:
+ 1805 0439 756E7369 		.ascii	"unsigned char\000"
+ 1805      676E6564 
+ 1805      20636861 
+ 1805      7200
+ 1806              	.LASF106:
+ 1807 0447 474E5520 		.ascii	"GNU C 4.9.3 20150303 (release) [ARM/embedded-4_9-br"
+ 1807      4320342E 
+ 1807      392E3320 
+ 1807      32303135 
+ 1807      30333033 
+ 1808 047a 616E6368 		.ascii	"anch revision 221220] -mcpu=cortex-m0 -mthumb -g -O"
+ 1808      20726576 
+ 1808      6973696F 
+ 1808      6E203232 
+ 1808      31323230 
+ 1809 04ad 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 1809      66756E63 
+ 1809      74696F6E 
+ 1809      2D736563 
+ 1809      74696F6E 
+ 1810              	.LASF54:
+ 1811 04d5 4359424C 		.ascii	"CYBLE_EVT_GATTS_PREP_WRITE_REQ\000"
+ 1811      455F4556 
+ 1811      545F4741 
+ 1811      5454535F 
+ 1811      50524550 
+ 1812              	.LASF75:
+ 1813 04f4 4359424C 		.ascii	"CYBLE_EVT_LE_PING_AUTH_TIMEOUT\000"
+ 1813      455F4556 
+ 1813      545F4C45 
+ 1813      5F50494E 
+ 1813      475F4155 
+ 1814              	.LASF84:
+ 1815 0513 52656164 		.ascii	"ReadSwitchState\000"
+ 1815      53776974 
+ 1815      63685374 
+ 1815      61746500 
+ 1816              	.LASF99:
+ 1817 0523 53575F52 		.ascii	"SW_RunTestMode_Read\000"
+ 1817      756E5465 
+ 1817      73744D6F 
+ 1817      64655F52 
+ 1817      65616400 
+ 1818              	.LASF108:
+ 1819 0537 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\vesion 2\\fw\\fin"
+ 1819      79707265 
+ 1819      73735C73 
+ 1819      79737465 
+ 1819      6D2D7374 
+ 1820 0565 6973685C 		.ascii	"ish\\sandbox\\v11_flag_machine\\fin_v11.cydsn\000"
+ 1820      73616E64 
+ 1820      626F785C 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 40
+
+
+ 1820      7631315F 
+ 1820      666C6167 
+ 1821              	.LASF46:
+ 1822 0590 4359424C 		.ascii	"CYBLE_EVT_GATTC_FIND_INFO_RSP\000"
+ 1822      455F4556 
+ 1822      545F4741 
+ 1822      5454435F 
+ 1822      46494E44 
+ 1823              	.LASF0:
+ 1824 05ae 7369676E 		.ascii	"signed char\000"
+ 1824      65642063 
+ 1824      68617200 
+ 1825              	.LASF51:
+ 1826 05ba 4359424C 		.ascii	"CYBLE_EVT_GATTS_WRITE_REQ\000"
+ 1826      455F4556 
+ 1826      545F4741 
+ 1826      5454535F 
+ 1826      57524954 
+ 1827              	.LASF47:
+ 1828 05d4 4359424C 		.ascii	"CYBLE_EVT_GATTC_FIND_BY_TYPE_VALUE_RSP\000"
+ 1828      455F4556 
+ 1828      545F4741 
+ 1828      5454435F 
+ 1828      46494E44 
+ 1829              	.LASF82:
+ 1830 05fb 66756E63 		.ascii	"funcReturnValue\000"
+ 1830      52657475 
+ 1830      726E5661 
+ 1830      6C756500 
+ 1831              	.LASF83:
+ 1832 060b 74657374 		.ascii	"testModeHandler\000"
+ 1832      4D6F6465 
+ 1832      48616E64 
+ 1832      6C657200 
+ 1833              	.LASF10:
+ 1834 061b 756E7369 		.ascii	"unsigned int\000"
+ 1834      676E6564 
+ 1834      20696E74 
+ 1834      00
+ 1835              	.LASF40:
+ 1836 0628 4359424C 		.ascii	"CYBLE_EVT_GATT_CONNECT_IND\000"
+ 1836      455F4556 
+ 1836      545F4741 
+ 1836      54545F43 
+ 1836      4F4E4E45 
+ 1837              	.LASF7:
+ 1838 0643 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1838      20756E73 
+ 1838      69676E65 
+ 1838      6420696E 
+ 1838      7400
+ 1839              	.LASF27:
+ 1840 0655 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_REQ\000"
+ 1840      455F4556 
+ 1840      545F4741 
+ 1840      505F4155 
+ 1840      54485F52 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 41
+
+
+ 1841              	.LASF68:
+ 1842 066c 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DISCONN_IND\000"
+ 1842      455F4556 
+ 1842      545F4C32 
+ 1842      4341505F 
+ 1842      43424643 
+ 1843              	.LASF101:
+ 1844 068d 4E657477 		.ascii	"NetworkSendTestModeStatus\000"
+ 1844      6F726B53 
+ 1844      656E6454 
+ 1844      6573744D 
+ 1844      6F646553 
+ 1845              	.LASF87:
+ 1846 06a7 54657374 		.ascii	"TestMode_UpdateNewRandomTime\000"
+ 1846      4D6F6465 
+ 1846      5F557064 
+ 1846      6174654E 
+ 1846      65775261 
+ 1847              	.LASF48:
+ 1848 06c4 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_RSP\000"
+ 1848      455F4556 
+ 1848      545F4741 
+ 1848      5454435F 
+ 1848      52454144 
+ 1849              	.LASF97:
+ 1850 06dd 54696D65 		.ascii	"TimerTestMode_WriteCompare\000"
+ 1850      72546573 
+ 1850      744D6F64 
+ 1850      655F5772 
+ 1850      69746543 
+ 1851              	.LASF109:
+ 1852 06f8 73746174 		.ascii	"status\000"
+ 1852      757300
+ 1853              	.LASF36:
+ 1854 06ff 4359424C 		.ascii	"CYBLE_EVT_GAP_CONNECTION_UPDATE_COMPLETE\000"
+ 1854      455F4556 
+ 1854      545F4741 
+ 1854      505F434F 
+ 1854      4E4E4543 
+ 1855              	.LASF17:
+ 1856 0728 63686172 		.ascii	"char\000"
+ 1856      00
+ 1857              	.LASF80:
+ 1858 072d 46414C4C 		.ascii	"FALLING_EDGE\000"
+ 1858      494E475F 
+ 1858      45444745 
+ 1858      00
+ 1859              	.LASF102:
+ 1860 073a 4E657477 		.ascii	"NetworkReadTestModeStatus\000"
+ 1860      6F726B52 
+ 1860      65616454 
+ 1860      6573744D 
+ 1860      6F646553 
+ 1861              	.LASF86:
+ 1862 0754 52656164 		.ascii	"ReadNetworkState\000"
+ 1862      4E657477 
+ 1862      6F726B53 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 42
+
+
+ 1862      74617465 
+ 1862      00
+ 1863              	.LASF65:
+ 1864 0765 4359424C 		.ascii	"CYBLE_EVT_L2CAP_COMMAND_REJ\000"
+ 1864      455F4556 
+ 1864      545F4C32 
+ 1864      4341505F 
+ 1864      434F4D4D 
+ 1865              	.LASF3:
+ 1866 0781 73686F72 		.ascii	"short unsigned int\000"
+ 1866      7420756E 
+ 1866      7369676E 
+ 1866      65642069 
+ 1866      6E7400
+ 1867              	.LASF111:
+ 1868 0794 496E745F 		.ascii	"Int_timerTestMode_StartEx\000"
+ 1868      74696D65 
+ 1868      72546573 
+ 1868      744D6F64 
+ 1868      655F5374 
+ 1869              	.LASF107:
+ 1870 07ae 6C69625F 		.ascii	"lib_testMode\\testMode.c\000"
+ 1870      74657374 
+ 1870      4D6F6465 
+ 1870      5C746573 
+ 1870      744D6F64 
+ 1871              	.LASF110:
+ 1872 07c6 416C6C6F 		.ascii	"AllowNextTestSkier\000"
+ 1872      774E6578 
+ 1872      74546573 
+ 1872      74536B69 
+ 1872      657200
+ 1873              	.LASF49:
+ 1874 07d9 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BLOB_RSP\000"
+ 1874      455F4556 
+ 1874      545F4741 
+ 1874      5454435F 
+ 1874      52454144 
+ 1875              	.LASF56:
+ 1876 07f7 4359424C 		.ascii	"CYBLE_EVT_GATTC_EXEC_WRITE_RSP\000"
+ 1876      455F4556 
+ 1876      545F4741 
+ 1876      5454435F 
+ 1876      45584543 
+ 1877              	.LASF14:
+ 1878 0816 75696E74 		.ascii	"uint32\000"
+ 1878      333200
+ 1879              	.LASF74:
+ 1880 081d 4359424C 		.ascii	"CYBLE_EVT_PENDING_FLASH_WRITE\000"
+ 1880      455F4556 
+ 1880      545F5045 
+ 1880      4E44494E 
+ 1880      475F464C 
+ 1881              	.LASF71:
+ 1882 083b 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_RX_CREDIT_IND\000"
+ 1882      455F4556 
+ 1882      545F4C32 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 43
+
+
+ 1882      4341505F 
+ 1882      43424643 
+ 1883              	.LASF16:
+ 1884 085e 646F7562 		.ascii	"double\000"
+ 1884      6C6500
+ 1885              	.LASF92:
+ 1886 0865 73776974 		.ascii	"switchState\000"
+ 1886      63685374 
+ 1886      61746500 
+ 1887              	.LASF72:
+ 1888 0871 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_TX_CREDIT_IND\000"
+ 1888      455F4556 
+ 1888      545F4C32 
+ 1888      4341505F 
+ 1888      43424643 
+ 1889              	.LASF66:
+ 1890 0894 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_CONN_IND\000"
+ 1890      455F4556 
+ 1890      545F4C32 
+ 1890      4341505F 
+ 1890      43424643 
+ 1891              	.LASF32:
+ 1892 08b2 4359424C 		.ascii	"CYBLE_EVT_GAPP_ADVERTISEMENT_START_STOP\000"
+ 1892      455F4556 
+ 1892      545F4741 
+ 1892      50505F41 
+ 1892      44564552 
+ 1893              	.LASF23:
+ 1894 08da 4359424C 		.ascii	"CYBLE_EVT_HARDWARE_ERROR\000"
+ 1894      455F4556 
+ 1894      545F4841 
+ 1894      52445741 
+ 1894      52455F45 
+ 1895              	.LASF70:
+ 1896 08f3 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DATA_READ\000"
+ 1896      455F4556 
+ 1896      545F4C32 
+ 1896      4341505F 
+ 1896      43424643 
+ 1897              	.LASF64:
+ 1898 0912 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CONN_PARAM_UPDATE_RSP\000"
+ 1898      455F4556 
+ 1898      545F4C32 
+ 1898      4341505F 
+ 1898      434F4E4E 
+ 1899              	.LASF77:
+ 1900 0938 53544F50 		.ascii	"STOPPED\000"
+ 1900      50454400 
+ 1901              	.LASF26:
+ 1902 0940 4359424C 		.ascii	"CYBLE_EVT_GAPC_SCAN_PROGRESS_RESULT\000"
+ 1902      455F4556 
+ 1902      545F4741 
+ 1902      50435F53 
+ 1902      43414E5F 
+ 1903              	.LASF22:
+ 1904 0964 4359424C 		.ascii	"CYBLE_EVT_TIMEOUT\000"
+ 1904      455F4556 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 44
+
+
+ 1904      545F5449 
+ 1904      4D454F55 
+ 1904      5400
+ 1905              	.LASF85:
+ 1906 0976 746D7043 		.ascii	"tmpCounter\000"
+ 1906      6F756E74 
+ 1906      657200
+ 1907              	.LASF44:
+ 1908 0981 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BY_GROUP_TYPE_RSP\000"
+ 1908      455F4556 
+ 1908      545F4741 
+ 1908      5454435F 
+ 1908      52454144 
+ 1909              	.LASF53:
+ 1910 09a8 4359424C 		.ascii	"CYBLE_EVT_GATTS_WRITE_CMD_REQ\000"
+ 1910      455F4556 
+ 1910      545F4741 
+ 1910      5454535F 
+ 1910      57524954 
+ 1911              	.LASF43:
+ 1912 09c6 4359424C 		.ascii	"CYBLE_EVT_GATTC_XCHNG_MTU_RSP\000"
+ 1912      455F4556 
+ 1912      545F4741 
+ 1912      5454435F 
+ 1912      5843484E 
+ 1913              	.LASF73:
+ 1914 09e4 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DATA_WRITE_IND\000"
+ 1914      455F4556 
+ 1914      545F4C32 
+ 1914      4341505F 
+ 1914      43424643 
+ 1915              	.LASF37:
+ 1916 0a08 4359424C 		.ascii	"CYBLE_EVT_GAPC_SCAN_START_STOP\000"
+ 1916      455F4556 
+ 1916      545F4741 
+ 1916      50435F53 
+ 1916      43414E5F 
+ 1917              	.LASF76:
+ 1918 0a27 4359424C 		.ascii	"CYBLE_EVT_MAX\000"
+ 1918      455F4556 
+ 1918      545F4D41 
+ 1918      5800
+ 1919              	.LASF62:
+ 1920 0a35 4359424C 		.ascii	"CYBLE_EVT_GATTS_READ_CHAR_VAL_ACCESS_REQ\000"
+ 1920      455F4556 
+ 1920      545F4741 
+ 1920      5454535F 
+ 1920      52454144 
+ 1921              	.LASF61:
+ 1922 0a5e 4359424C 		.ascii	"CYBLE_EVT_GATTC_STOP_CMD_COMPLETE\000"
+ 1922      455F4556 
+ 1922      545F4741 
+ 1922      5454435F 
+ 1922      53544F50 
+ 1923              	.LASF88:
+ 1924 0a80 54657374 		.ascii	"TestMode\000"
+ 1924      4D6F6465 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc6EUBLu.s 			page 45
+
+
+ 1924      00
+ 1925              	.LASF34:
+ 1926 0a89 4359424C 		.ascii	"CYBLE_EVT_GAP_DEVICE_DISCONNECTED\000"
+ 1926      455F4556 
+ 1926      545F4741 
+ 1926      505F4445 
+ 1926      56494345 
+ 1927              	.LASF60:
+ 1928 0aab 4359424C 		.ascii	"CYBLE_EVT_GATTS_DATA_SIGNED_CMD_REQ\000"
+ 1928      455F4556 
+ 1928      545F4741 
+ 1928      5454535F 
+ 1928      44415441 
+ 1929              	.LASF5:
+ 1930 0acf 5F5F7569 		.ascii	"__uint8_t\000"
+ 1930      6E74385F 
+ 1930      7400
+ 1931              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.9.3 20150303 (release) [ARM/embedded-4_9-br
