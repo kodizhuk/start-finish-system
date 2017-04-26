@@ -257,9 +257,17 @@ void Action5(void)
     unixTime = BLE_getUnixTime();
     if(oldUnixTime != unixTime)
     {
+        /*atomic block*/
+        uint32 interruptState;
+        interruptState = CyEnterCriticalSection(); 
+        
         /*set unix time in RTC DS1307*/
         DS1307_SetUnixTime(unixTime);
         RTC_SetUnixTime(unixTime);
+        
+        CyExitCriticalSection(interruptState);
+        /*atomic block*/
+        
         oldUnixTime = unixTime;
         
         SetRebootFlag();      
