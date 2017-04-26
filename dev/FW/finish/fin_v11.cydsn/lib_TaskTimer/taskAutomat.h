@@ -3,10 +3,10 @@
     
     #include <project.h>
   
-    #define ACTION1_TIMEOUT          5
-    #define ACTION2_TIMEOUT          5
-    #define ACTION3_TIMEOUT          5
-    #define ACTION4_TIMEOUT          1
+    #define ACTION1_TIMEOUT          5      //ms
+    #define ACTION2_TIMEOUT          5      //ms
+    #define ACTION3_TIMEOUT          5      //ms
+    #define ACTION4_TIMEOUT          1      //ms
     #define ACTION5_TIMEOUT          1    //ble, do not move
     
     enum {ACTION1=0, ACTION2, ACTION3, ACTION4, ACTION5};

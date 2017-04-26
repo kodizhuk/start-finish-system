@@ -139,13 +139,6 @@ void SetTaskTimer(uint8_t newNumber, uint16_t newTime)
 void Action1(void)
 {
     flag[ACTION1] = 0;
-    SendData();  
-    SetTaskTimer(ACTION1,ACTION1_TIMEOUT);
-}
-
-void Action2(void)
-{
-    flag[ACTION2] = 0;
     
     /*write result skier on log 
     (if there is no memory card that is a record in fifo)*/    
@@ -184,8 +177,8 @@ void Action2(void)
             }
         }
         
+        /*write data to SD card*/
         result = WriteSkierResult(&tmpStruct);
-        
         if(result != FR_OK)
         {
             LogStart();
@@ -194,11 +187,17 @@ void Action2(void)
         else
         {
             writeFlag = WRITE_NO_ERROR; 
-        }   
-        
-        
+        }      
     }
-    SetTaskTimer(ACTION2, ACTION2_TIMEOUT);
+    SetTaskTimer(ACTION1, ACTION1_TIMEOUT);
+    
+}
+
+void Action2(void)
+{   
+    flag[ACTION2] = 0;
+    SendData();  
+    SetTaskTimer(ACTION2,ACTION2_TIMEOUT);
 }
 
 void Action3(void)
@@ -246,6 +245,8 @@ void Action4(void)
 
 void Action5(void)
 {
+    /*update time*/    
+    
     static uint32_t oldUnixTime;
     uint32_t unixTime;
     
