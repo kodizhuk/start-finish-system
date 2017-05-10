@@ -22,9 +22,9 @@
 
 #include <stdio.h>
 #include "lib_Network/svt.h"
-#include "lib_RTC/RTC_WDT.h"
+#include "..\..\common\lib\lib_RTC/RTC_WDT.h"
 #include "lib_Network/ntp.h"
-#include "lib_Display/display.h"
+#include "..\..\common\lib\lib_Display/display.h"
 
 #define MIN_DELAYMS 150
 

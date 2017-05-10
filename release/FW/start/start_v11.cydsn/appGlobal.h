@@ -10,6 +10,8 @@
 #include "lib_testMode\testMode.h"
 #include "lib_TaskTimer\taskAutomat.h"
 
+#define START_MODULE
+
 #define NO_ERROR    1
 #define ERROR       0
 

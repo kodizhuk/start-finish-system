@@ -1,15 +1,18 @@
-
+#ifndef _APP_GLOBAL_H
+    #define _APP_GLOBAL_H
+#define START_MODULE
 #include <project.h>
 /*user lib*/
-#include "lib_RTC\RTC_WDT.h"
-#include "lib_LED\LED.h"
-#include "lib_Display\display.h"
+#include "..\..\common\lib\lib_RTC\RTC_WDT.h"
+#include "..\..\common\lib\lib_LED\LED.h"
+#include "..\..\common\lib\lib_Display\display.h"
 #include "lib_Network\network.h"
-#include "lib_Gate\gate.h"
-#include "lib_Batt\batt.h"
-#include "lib_testMode\testMode.h"
-#include "lib_TaskTimer\taskAutomat.h"
+#include "..\..\common\lib\lib_Gate\gate.h"
+#include "..\..\common\lib\lib_Batt\batt.h"
+#include "..\..\common\lib\lib_testMode\testMode.h"
+#include "..\..\common\lib\lib_TaskTimer\taskAutomat.h"
 
+   
 #define NO_ERROR    1
 #define ERROR       0
 
@@ -31,3 +34,4 @@ void Delay(uint32_t delayMs);
 
 
 /* [] END OF FILE */
+#endif

@@ -1,6 +1,6 @@
 
 #include "lib_Network/network.h"
-#include <lib_BLE/bluetooth.h>
+#include "..\..\common\lib\lib_BLE\bluetooth.h"
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 
@@ -17,11 +17,11 @@
     #include <pinDebugNtp.h>
 #endif
 
-#include "lib_Network/svt.h"
-#include "lib_DB/database.h"
-#include "lib_RTC/RTC_WDT.h"
-#include "lib_Network/ntp.h"
-#include "lib_Display/display.h"
+#include "lib_Network\svt.h"
+#include "..\..\common\lib\lib_DB\database.h"
+#include "..\..\common\lib\lib_RTC/RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "..\..\common\lib\lib_Display\display.h"
 
 
 /*size buffer*/
@@ -276,7 +276,7 @@ void SendData(void)
         outData.writeStatus = WRITE_OK;
         inData.readStatus = NO_READ;
         
-        CyDelay(50);
+         CyDelay(50);
     }
 }
 

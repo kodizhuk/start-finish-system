@@ -68,7 +68,7 @@ void  SystemInit(void)
     Display("System init...");
     DisplaBacklightOn();
     
-    RTC_WDT_Init(); 
+    RTC_WDT_Init();
     InitNetwork();
     GateInit();
     BattADC_Init();
