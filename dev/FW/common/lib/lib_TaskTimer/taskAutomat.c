@@ -262,7 +262,8 @@ void Action3(void)
     /*printindicator network*/
     if(NetworkStatus() == NETWORK_CONNECT)
     {
-        DisplayIndicatorNetwork(CONNECT);
+        //DisplayIndicatorNetwork(CONNECT);
+        DisplayNetworkQuality(NetworkQuality());
         BLE_sendNetworkStatus(STATUS_OK);
     }
     else

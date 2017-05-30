@@ -40,11 +40,11 @@ uint32_t IsRebootStartFlag(void);
 void     SetRebootFlag(void);
 void     ClearRebootFlag(void);
 
+/*send/receive data*/
 void     SendData(void);
-uint32_t ReceiveData(void);
 uint8_t NetworkReadTestModeStatus();
 void NetworkSendTestModeStatus(uint8_t testMode);
-
+uint8_t NetworkQuality(void);
 
 /*NTP protocol*/
 uint32_t NTPsync(void);

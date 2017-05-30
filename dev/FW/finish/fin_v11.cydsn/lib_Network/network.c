@@ -82,12 +82,10 @@ FinishData outData ;
 StartData inData;
 uint8_t rebootFlag ;
 
-/*------TEST---------*/
 uint8_t networkFlagEndReceivePacket;        //indicator end receive packet
 uint8_t networkFlagReadyForReceive;         //indicator ready for receive next packet
 struct Resp recvData;
 static uint8_t networkNumTruCounter;
-/*------TEST---------*/
 
 uint16_t numAttemps,noConnect, networkStatus;
 uint32_t unixTime[4];
@@ -100,6 +98,8 @@ uint8_t onNtpSync = 0;
 /*timer time sync*/
 uint32_t oldUnixTime;
 
+/*network qualyty*/
+uint8_t buffNetworkQualyty;      
 
 uint32_t SendRealTimeToStart(void);
 void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint16_t ID);
@@ -206,6 +206,9 @@ void CustomInterruptHandler(void)
                         networkStatus = NETWORK_CONNECT;
                         networkNumTruCounter = 0;
                         
+                        /*network quality*/
+                        buffNetworkQualyty = (buffNetworkQualyty << 1)|1;
+                        
                         /*write data*/
                         inData.newSkier = (recvData.Data3 & 0xFF00) >> 8;
                         inData.unixStartTime = recvData.Data1;
@@ -239,6 +242,11 @@ void CustomInterruptHandler(void)
                         networkStatus = NETWORK_CONNECT;
                         noConnect = 0;
                         //CyDelay(50);
+                    }
+                    else
+                    {
+                        /*network quality*/
+                        buffNetworkQualyty = (buffNetworkQualyty << 1);
                     }
                 }
             }
@@ -399,6 +407,30 @@ void NetworkSendTestModeStatus(uint8_t testMode)
     }
 }
 
+/*******************************************************************************
+* Function Name: NetworkQuality
+********************************************************************************
+*
+* Summary:
+*   return network quality 
+*   return value 0..5
+*******************************************************************************/
+#ifdef	START_MODULE
+#endif
+#ifdef	FINISH_MODULE
+uint8_t NetworkQuality(void)
+{
+    uint8_t i;
+    uint8_t quality = 0;
+        
+    for(i=0; i<5; i++)
+    {
+        quality += (buffNetworkQualyty & (1<<i))>>i;
+    }
+    
+    return quality;
+}
+#endif
 
 /*******************************************************************************
 * Function Name: NTPsync

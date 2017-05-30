@@ -12,6 +12,7 @@ void DisplayStart(void);
 void Display(char *message);
 void DisplayIndicatorSD(SDindicator indicator);
 void DisplayIndicatorNetwork(NetworkIndicator indicator);
+void DisplayNetworkQuality(uint8_t quality);
 void DisplayRealTime(void);
 void DisplayLoading(uint32_t numLoad);
 void DisplayBattVoltage(float voltage);

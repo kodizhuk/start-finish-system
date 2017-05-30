@@ -15,6 +15,9 @@
 
 #define MAX_LEN_DISPLAY     11
 
+/*network quality*/
+#define NUM_STICK_NETWORK_QUALITY   4
+
 extern unsigned char SmallFont[];
 extern unsigned char TinyFont[];
 extern unsigned char BigNumbers[];
@@ -128,6 +131,53 @@ void DisplayIndicatorNetwork(NetworkIndicator indicator)
         clrVLine(5,3,35);
     }
     update();
+}
+
+/*******************************************************************************
+* Function name: DisplayNetworkQuality
+********************************************************************************
+*
+* Summary:
+*   print quality network
+*
+* Parametrs:
+*   quality - quality network 0..5
+*******************************************************************************/
+void DisplayNetworkQuality(uint8_t quality)
+{
+    clrVLine(1,3,35);
+    clrVLine(2,3,35);
+    clrVLine(3,3,35);
+    clrVLine(4,3,35);
+    clrVLine(5,3,35);
+    
+    if(quality > 1)
+    {
+        drawVLine(1,31,7);
+        drawVLine(2,31,7);
+        drawVLine(3,31,7);
+    }
+    if(quality > 2)
+    {
+        drawVLine(1,22,7);
+        drawVLine(2,22,7);
+        drawVLine(3,22,7);
+    }
+    if(quality > 3)
+    {
+        drawVLine(1,13,7);
+        drawVLine(2,13,7);
+        drawVLine(3,13,7);
+        drawVLine(4,13,7);
+    }
+    if(quality > 4)
+    {
+        drawVLine(1,4,7);
+        drawVLine(2,4,7);
+        drawVLine(3,4,7);
+        drawVLine(4,4,7);
+    }
+    update(); 
 }
 
 /*******************************************************************************
