@@ -111,12 +111,16 @@ void FuncTake(uint32_t sec1, uint16_t ms1, uint32_t sec2, uint16_t ms2, int32_t 
 
 void CallBackNetworkCounter(void)
 {
+    if(networkNumTruCounter > 0)
+        buffNetworkQualyty = (buffNetworkQualyty << 1);
+        
     if(++networkNumTruCounter == NETWORK_TIMEOUT_WDT)
     {
         networkStatus = NETWORK_DISCONNECT;
         outData.writeStatus = NO_WRITE;
         networkNumTruCounter = 0;
-    } 
+    }
+    
 }
 
 /*******************************************************************************
@@ -243,11 +247,6 @@ void CustomInterruptHandler(void)
                         noConnect = 0;
                         //CyDelay(50);
                     }
-                    else
-                    {
-                        /*network quality*/
-                        buffNetworkQualyty = (buffNetworkQualyty << 1);
-                    }
                 }
             }
         }
@@ -274,7 +273,7 @@ void SendData(void)
         
         /*pack data*/
         sprintf(sendData,"%02X:%016X%02X%02X%02X%02X", outData.testMode, 0u, outData.ready, outData.reboot, \
-                                                        outData.countSkiers, 0u);    
+                                                        outData.countSkiers, buffNetworkQualyty);    
         PackData(sendBuffer, (uint8_t *)sendData, outData.IDpacket);
         UART_XB_UartPutString(sendBuffer);
         UART_XB_UartPutChar('0');
@@ -415,9 +414,6 @@ void NetworkSendTestModeStatus(uint8_t testMode)
 *   return network quality 
 *   return value 0..5
 *******************************************************************************/
-#ifdef	START_MODULE
-#endif
-#ifdef	FINISH_MODULE
 uint8_t NetworkQuality(void)
 {
     uint8_t i;
@@ -430,7 +426,6 @@ uint8_t NetworkQuality(void)
     
     return quality;
 }
-#endif
 
 /*******************************************************************************
 * Function Name: NTPsync

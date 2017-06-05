@@ -5,6 +5,7 @@
 #include "appGlobal.h"
 #ifdef FINISH_MODULE
 #include <SDinsert.h>
+ #include <stdio.h>
 #include "..\..\common\lib\lib_DB\logResult.h"
 #include "..\..\common\lib\lib_BLE\bluetooth.h"
 #include "..\..\common\lib\lib_DS1307\DS1307.h"
@@ -155,14 +156,15 @@ void Action3(void)
     flag[ACTION3] = 0;
     
     /*indicator network*/
-    if(NetworkStatus() == NETWORK_CONN)
-    {
-        DisplayIndicatorNetwork(CONNECT);
-    }
-    else
-    {
-        DisplayIndicatorNetwork(DISCONNECT);
-    }
+    DisplayNetworkQuality(NetworkQuality());
+//    if(NetworkStatus() == NETWORK_CONN)
+//    {
+//        DisplayIndicatorNetwork(CONNECT);
+//    }
+//    else
+//    {
+//        DisplayIndicatorNetwork(DISCONNECT);
+//    }
     SetTaskTimer(ACTION3, ACTION3_TIMEOUT);
 }
 
@@ -260,15 +262,15 @@ void Action3(void)
     }
     
     /*printindicator network*/
+    DisplayNetworkQuality(NetworkQuality());
     if(NetworkStatus() == NETWORK_CONNECT)
     {
-        //DisplayIndicatorNetwork(CONNECT);
-        DisplayNetworkQuality(NetworkQuality());
+        //DisplayIndicatorNetwork(CONNECT);        
         BLE_sendNetworkStatus(STATUS_OK);
     }
     else
     {
-        DisplayIndicatorNetwork(DISCONNECT);
+        //DisplayIndicatorNetwork(DISCONNECT);
         BLE_sendNetworkStatus(STATUS_ERROR);
     }
     

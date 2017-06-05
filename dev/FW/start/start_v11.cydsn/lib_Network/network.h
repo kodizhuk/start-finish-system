@@ -39,6 +39,7 @@ void     ClearRebootFlag(void);
 
 uint8_t NetworkReadTestModeStatus();
 void NetworkSendTestModeStatus(uint8_t testMode);
+uint8_t NetworkQuality(void);
 
 
 void     SendData(void);
