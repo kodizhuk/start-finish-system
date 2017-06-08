@@ -72,6 +72,7 @@ void  SystemInit(void)
     InitNetwork();
     GateInit();
     BattADC_Init();
+    ButtInit();
     
     TaskTimerInit();    
     SetTaskTimer(ACTION1, ACTION1_TIMEOUT); //network

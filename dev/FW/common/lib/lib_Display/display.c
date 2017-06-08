@@ -340,4 +340,37 @@ void DisplaBacklightOff(void)
 {
     LCD_BL_Write(0);
 }
+
+/*******************************************************************************
+* Function name: DisplaBacklightOn/DisplaBacklightOff
+********************************************************************************
+*
+* Summary:
+*   display number id skier
+*
+*******************************************************************************/
+void DisplayIDskier(uint8_t number)
+{
+    setFont(MediumNumbers);
+    if(number <10)
+    {
+        printNumI(number,27,14,1,' ');
+        setFont(SmallFont);
+        print("  ",40,14);
+        print("  ",40,22);
+        print("  ",50,14);
+        print("  ",50,22);
+    }else if(number < 100)
+    {
+        printNumI(number,27,14,1,' ');
+        setFont(SmallFont);
+        print("  ",50,14);
+        print("  ",50,22);
+    }
+    else
+    {
+        printNumI(number,27,14,1,' ');
+    }
+    update();
+}
 /* [] END OF FILE */

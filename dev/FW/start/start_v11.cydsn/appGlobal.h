@@ -11,6 +11,7 @@
 #include "..\..\common\lib\lib_Batt\batt.h"
 #include "..\..\common\lib\lib_testMode\testMode.h"
 #include "..\..\common\lib\lib_TaskTimer\taskAutomat.h"
+#include "..\..\common\lib\lib_Buttons\Buttons.h"
 
    
 #define NO_ERROR    1

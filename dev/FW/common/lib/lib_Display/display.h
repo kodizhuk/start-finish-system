@@ -21,6 +21,7 @@ void DisplayLastSkierTime(uint32_t sec, uint16_t milisec);
 void DisplayTestMode(uint8_t state);
 void DisplaBacklightOn(void);
 void DisplaBacklightOff(void);
+void DisplayIDskier(uint8_t number);
 
 
 #endif

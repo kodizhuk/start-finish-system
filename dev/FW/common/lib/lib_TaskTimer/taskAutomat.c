@@ -2,6 +2,7 @@
 #include "lib_Network\network.h"
 #include "..\..\common\lib\lib_Display\display.h"
 #include "..\..\common\lib\lib_Batt\batt.h"
+#include "..\..\common\lib\lib_Buttons\Buttons.h"
 #include "appGlobal.h"
 #ifdef FINISH_MODULE
 #include <SDinsert.h>
@@ -148,6 +149,10 @@ void Action2(void)
     flag[ACTION2] = 0;
     DisplayRealTime();
     DisplayBattVoltage(ReadBattVoltage());
+    
+    ButtCheck();
+    DisplayIDskier(ReadIdSkier());
+    
     SetTaskTimer(ACTION2, ACTION2_TIMEOUT);
 }
 
@@ -165,6 +170,7 @@ void Action3(void)
 //    {
 //        DisplayIndicatorNetwork(DISCONNECT);
 //    }
+    
     SetTaskTimer(ACTION3, ACTION3_TIMEOUT);
 }
 
