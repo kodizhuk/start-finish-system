@@ -1,4 +1,4 @@
-#include "lib_Batt\batt.h"
+#include "..\..\common\lib\lib_Batt\batt.h"
 #include "ADC.h"
 
 float voltage;

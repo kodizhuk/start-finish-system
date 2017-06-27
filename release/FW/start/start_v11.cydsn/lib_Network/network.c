@@ -22,9 +22,9 @@
 
 #include <stdio.h>
 #include "lib_Network/svt.h"
-#include "lib_RTC/RTC_WDT.h"
+#include "..\..\common\lib\lib_RTC/RTC_WDT.h"
 #include "lib_Network/ntp.h"
-#include "lib_Display/display.h"
+#include "..\..\common\lib\lib_Display/display.h"
 
 #define MIN_DELAYMS 150
 
@@ -41,7 +41,7 @@
 #define DATA_SHIFT  32
 
 #define TIMEOUT_FIN_READY   3
-#define NETWORK_TIMEOUT_WDT 10
+#define NETWORK_TIMEOUT_WDT 3
 
 /*for NTP protocol*/
 #define NUM_TRY_SYNC        14
@@ -114,7 +114,9 @@ typedef enum {ROUGH_SET_TIME, SYNC_TIME, SET_DIFF_TIME}stageSync;
 uint8_t ntpFlagEndReceivePacket;        //indicator end receive packet
 uint8_t ntpFlagReadyForReceive;         //indicator ready for receive next packet
 NTPResp recvDataNTP;                    //struct for data to ntpd receive data
-/*end */
+
+/*network qualyty*/
+uint8_t buffNetworkQualyty;
 
 #ifdef DEBUG_INFO
     char uartBuff[50];
@@ -131,6 +133,9 @@ void CustomInterruptHandler(void);
 
 void CallBackNetworkCounter(void)
 {
+    if(networkNumTruCounter > 0)
+        buffNetworkQualyty = (buffNetworkQualyty << 1);
+        
     if(++networkNumTruCounter == NETWORK_TIMEOUT_WDT)
     {
         networkStatus = NETWORK_DISCONN;
@@ -223,7 +228,9 @@ void CustomInterruptHandler(void)
                     networkStatus = NETWORK_CONN;
                     networkNumTruCounter = 0;                
                     
-                    
+                    /*network quality*/
+                    buffNetworkQualyty = (buffNetworkQualyty << 1)|1;
+                        
                     /*write data*/
                     inData.countSkiers = (recvData.Data3 & 0x00FF) << 8;
                     //inData.unixStartTime = recvData.Data1;
@@ -404,7 +411,26 @@ void NetworkSendTestModeStatus(uint8_t testMode)
     }
 }
 
-
+/*******************************************************************************
+* Function Name: NetworkQuality
+********************************************************************************
+*
+* Summary:
+*   return network quality 
+*   return value 0..5
+*******************************************************************************/
+uint8_t NetworkQuality(void)
+{
+    uint8_t i;
+    uint8_t quality = 0;
+        
+    for(i=0; i<5; i++)
+    {
+        quality += (buffNetworkQualyty & (1<<i))>>i;
+    }
+    
+    return quality;
+}
 
 
 /*******************************************************************************

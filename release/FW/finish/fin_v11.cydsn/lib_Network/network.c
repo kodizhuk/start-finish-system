@@ -1,6 +1,6 @@
 
 #include "lib_Network/network.h"
-#include <lib_BLE/bluetooth.h>
+#include "..\..\common\lib\lib_BLE\bluetooth.h"
 #include <UART_XB.h>
 #include <UART_XB_SPI_UART.h>
 
@@ -17,11 +17,11 @@
     #include <pinDebugNtp.h>
 #endif
 
-#include "lib_Network/svt.h"
-#include "lib_DB/database.h"
-#include "lib_RTC/RTC_WDT.h"
-#include "lib_Network/ntp.h"
-#include "lib_Display/display.h"
+#include "lib_Network\svt.h"
+#include "..\..\common\lib\lib_DB\database.h"
+#include "..\..\common\lib\lib_RTC/RTC_WDT.h"
+#include "lib_Network\ntp.h"
+#include "..\..\common\lib\lib_Display\display.h"
 
 
 /*size buffer*/
@@ -82,12 +82,10 @@ FinishData outData ;
 StartData inData;
 uint8_t rebootFlag ;
 
-/*------TEST---------*/
 uint8_t networkFlagEndReceivePacket;        //indicator end receive packet
 uint8_t networkFlagReadyForReceive;         //indicator ready for receive next packet
 struct Resp recvData;
 static uint8_t networkNumTruCounter;
-/*------TEST---------*/
 
 uint16_t numAttemps,noConnect, networkStatus;
 uint32_t unixTime[4];
@@ -100,6 +98,8 @@ uint8_t onNtpSync = 0;
 /*timer time sync*/
 uint32_t oldUnixTime;
 
+/*network qualyty*/
+uint8_t buffNetworkQualyty;      
 
 uint32_t SendRealTimeToStart(void);
 void NTPsendTime(uint32_t unixTime1,uint16_t millis1, uint16_t ID);
@@ -111,12 +111,16 @@ void FuncTake(uint32_t sec1, uint16_t ms1, uint32_t sec2, uint16_t ms2, int32_t 
 
 void CallBackNetworkCounter(void)
 {
+    if(networkNumTruCounter > 0)
+        buffNetworkQualyty = (buffNetworkQualyty << 1);
+        
     if(++networkNumTruCounter == NETWORK_TIMEOUT_WDT)
     {
         networkStatus = NETWORK_DISCONNECT;
         outData.writeStatus = NO_WRITE;
         networkNumTruCounter = 0;
-    } 
+    }
+    
 }
 
 /*******************************************************************************
@@ -206,6 +210,9 @@ void CustomInterruptHandler(void)
                         networkStatus = NETWORK_CONNECT;
                         networkNumTruCounter = 0;
                         
+                        /*network quality*/
+                        buffNetworkQualyty = (buffNetworkQualyty << 1)|1;
+                        
                         /*write data*/
                         inData.newSkier = (recvData.Data3 & 0xFF00) >> 8;
                         inData.unixStartTime = recvData.Data1;
@@ -266,7 +273,7 @@ void SendData(void)
         
         /*pack data*/
         sprintf(sendData,"%02X:%016X%02X%02X%02X%02X", outData.testMode, 0u, outData.ready, outData.reboot, \
-                                                        outData.countSkiers, 0u);    
+                                                        outData.countSkiers, buffNetworkQualyty);    
         PackData(sendBuffer, (uint8_t *)sendData, outData.IDpacket);
         UART_XB_UartPutString(sendBuffer);
         UART_XB_UartPutChar('0');
@@ -276,7 +283,7 @@ void SendData(void)
         outData.writeStatus = WRITE_OK;
         inData.readStatus = NO_READ;
         
-        CyDelay(50);
+         CyDelay(50);
     }
 }
 
@@ -399,6 +406,26 @@ void NetworkSendTestModeStatus(uint8_t testMode)
     }
 }
 
+/*******************************************************************************
+* Function Name: NetworkQuality
+********************************************************************************
+*
+* Summary:
+*   return network quality 
+*   return value 0..5
+*******************************************************************************/
+uint8_t NetworkQuality(void)
+{
+    uint8_t i;
+    uint8_t quality = 0;
+        
+    for(i=0; i<5; i++)
+    {
+        quality += (buffNetworkQualyty & (1<<i))>>i;
+    }
+    
+    return quality;
+}
 
 /*******************************************************************************
 * Function Name: NTPsync

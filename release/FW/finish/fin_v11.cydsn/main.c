@@ -252,7 +252,8 @@ uint32_t CheckGate(void)
     if(result == GATE_OPEN)
     {
         Display("Skier Finished");
-        CyDelay(TIMEOUT_USER_READ_INFO);
+        //CyDelay(TIMEOUT_USER_READ_INFO);
+        //CyDelay(2000);
     }
     else
     {
@@ -268,7 +269,6 @@ void SaveResult(void)
     uint64_t finUnixTime;
     uint32_t finRecentMs;
     
-    SendFinStatus(FIN_READY);
     LedBlink(FREQ_INIT_BLINK);
     Display(" Save data");
     ////CyDelay(TIMEOUT_USER_READ_INFO);
