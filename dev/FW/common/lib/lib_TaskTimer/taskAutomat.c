@@ -2,7 +2,7 @@
 #include "lib_Network\network.h"
 #include "..\..\common\lib\lib_Display\display.h"
 #include "..\..\common\lib\lib_Batt\batt.h"
-#include "..\..\common\lib\lib_Buttons\Buttons.h"
+#include "..\..\common\lib\lib_IDskier\IDskier.h"
 #include "appGlobal.h"
 #ifdef FINISH_MODULE
 #include <SDinsert.h>

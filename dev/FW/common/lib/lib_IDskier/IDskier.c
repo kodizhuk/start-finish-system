@@ -1,5 +1,5 @@
 #include "project.h"
-#include "..\..\common\lib\lib_Buttons\buttons.h"
+#include "..\..\common\lib\lib_IDskier\IDskier.h"
 #include "..\..\common\lib\lib_Display\Display.h"
 
 #define NUM_STEP_SCROLL 5

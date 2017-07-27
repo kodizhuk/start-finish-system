@@ -1,0 +1,1155 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"gate.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.comm	currentState,1,1
+  20              		.bss
+  21              		.align	2
+  22              	result:
+  23 0000 00000000 		.space	4
+  24 0004 00000000 		.align	3
+  25              	savedUnixTime:
+  26 0008 00000000 		.space	8
+  26      00000000 
+  27              		.align	2
+  28              	savedRecentMs:
+  29 0010 00000000 		.space	4
+  30              		.align	2
+  31              	gateOpen:
+  32 0014 00000000 		.space	4
+  33              		.section	.text.GATE_INTERRUPT,"ax",%progbits
+  34              		.align	2
+  35              		.global	GATE_INTERRUPT
+  36              		.code	16
+  37              		.thumb_func
+  38              		.type	GATE_INTERRUPT, %function
+  39              	GATE_INTERRUPT:
+  40              	.LFB63:
+  41              		.file 1 "..\\..\\common\\lib\\lib_Gate\\gate.c"
+   1:..\..\common\lib\lib_Gate/gate.c **** #include "..\..\common\lib\lib_Gate\gate.h"
+   2:..\..\common\lib\lib_Gate/gate.c **** #include <GatePin.h>
+   3:..\..\common\lib\lib_Gate/gate.c **** #include <GATE_INT.h>
+   4:..\..\common\lib\lib_Gate/gate.c **** #include "..\..\common\lib\lib_RTC\RTC_WDT.h"
+   5:..\..\common\lib\lib_Gate/gate.c **** #include "appGlobal.h"
+   6:..\..\common\lib\lib_Gate/gate.c **** 
+   7:..\..\common\lib\lib_Gate/gate.c **** static uint64_t savedUnixTime;
+   8:..\..\common\lib\lib_Gate/gate.c **** static uint32_t savedRecentMs;
+   9:..\..\common\lib\lib_Gate/gate.c **** static uint32_t gateOpen ;
+  10:..\..\common\lib\lib_Gate/gate.c **** 
+  11:..\..\common\lib\lib_Gate/gate.c **** 
+  12:..\..\common\lib\lib_Gate/gate.c **** /*gate interrupt*/
+  13:..\..\common\lib\lib_Gate/gate.c **** CY_ISR(GATE_INTERRUPT)
+  14:..\..\common\lib\lib_Gate/gate.c **** {   
+  42              		.loc 1 14 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 2
+
+
+  43              		.cfi_startproc
+  44              		@ args = 0, pretend = 0, frame = 0
+  45              		@ frame_needed = 1, uses_anonymous_args = 0
+  46 0000 B0B5     		push	{r4, r5, r7, lr}
+  47              		.cfi_def_cfa_offset 16
+  48              		.cfi_offset 4, -16
+  49              		.cfi_offset 5, -12
+  50              		.cfi_offset 7, -8
+  51              		.cfi_offset 14, -4
+  52 0002 00AF     		add	r7, sp, #0
+  53              		.cfi_def_cfa_register 7
+  15:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
+  54              		.loc 1 15 0
+  55 0004 FFF7FEFF 		bl	GATE_INT_Disable
+  16:..\..\common\lib\lib_Gate/gate.c ****     
+  17:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_OPEN;    
+  56              		.loc 1 17 0
+  57 0008 094B     		ldr	r3, .L2
+  58 000a 0122     		movs	r2, #1
+  59 000c 1A60     		str	r2, [r3]
+  18:..\..\common\lib\lib_Gate/gate.c **** 
+  19:..\..\common\lib\lib_Gate/gate.c ****     savedUnixTime = RTCGetUnixTime();
+  60              		.loc 1 19 0
+  61 000e FFF7FEFF 		bl	RTCGetUnixTime
+  62 0012 0300     		movs	r3, r0
+  63 0014 0C00     		movs	r4, r1
+  64 0016 074A     		ldr	r2, .L2+4
+  65 0018 1360     		str	r3, [r2]
+  66 001a 5460     		str	r4, [r2, #4]
+  20:..\..\common\lib\lib_Gate/gate.c ****     savedRecentMs = RTCgetRecentMs();
+  67              		.loc 1 20 0
+  68 001c FFF7FEFF 		bl	RTCgetRecentMs
+  69 0020 0200     		movs	r2, r0
+  70 0022 054B     		ldr	r3, .L2+8
+  71 0024 1A60     		str	r2, [r3]
+  21:..\..\common\lib\lib_Gate/gate.c ****     
+  22:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  23:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();   
+  72              		.loc 1 23 0
+  73 0026 FFF7FEFF 		bl	GATE_INT_ClearPending
+  24:..\..\common\lib\lib_Gate/gate.c **** }
+  74              		.loc 1 24 0
+  75 002a C046     		nop
+  76 002c BD46     		mov	sp, r7
+  77              		@ sp needed
+  78 002e B0BD     		pop	{r4, r5, r7, pc}
+  79              	.L3:
+  80              		.align	2
+  81              	.L2:
+  82 0030 14000000 		.word	gateOpen
+  83 0034 08000000 		.word	savedUnixTime
+  84 0038 10000000 		.word	savedRecentMs
+  85              		.cfi_endproc
+  86              	.LFE63:
+  87              		.size	GATE_INTERRUPT, .-GATE_INTERRUPT
+  88              		.section	.text.GateInit,"ax",%progbits
+  89              		.align	2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 3
+
+
+  90              		.global	GateInit
+  91              		.code	16
+  92              		.thumb_func
+  93              		.type	GateInit, %function
+  94              	GateInit:
+  95              	.LFB64:
+  25:..\..\common\lib\lib_Gate/gate.c **** 
+  26:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  27:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateInit
+  28:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  29:..\..\common\lib\lib_Gate/gate.c **** *
+  30:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  31:..\..\common\lib\lib_Gate/gate.c **** *   inittilisation the gate pin
+  32:..\..\common\lib\lib_Gate/gate.c **** *   disable interrupt from gate
+  33:..\..\common\lib\lib_Gate/gate.c **** *
+  34:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  35:..\..\common\lib\lib_Gate/gate.c **** void GateInit(void)
+  36:..\..\common\lib\lib_Gate/gate.c **** {
+  96              		.loc 1 36 0
+  97              		.cfi_startproc
+  98              		@ args = 0, pretend = 0, frame = 0
+  99              		@ frame_needed = 1, uses_anonymous_args = 0
+ 100 0000 80B5     		push	{r7, lr}
+ 101              		.cfi_def_cfa_offset 8
+ 102              		.cfi_offset 7, -8
+ 103              		.cfi_offset 14, -4
+ 104 0002 00AF     		add	r7, sp, #0
+ 105              		.cfi_def_cfa_register 7
+  37:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  38:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 106              		.loc 1 38 0
+ 107 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
+  39:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_StartEx(GATE_INTERRUPT); 
+ 108              		.loc 1 39 0
+ 109 0008 054B     		ldr	r3, .L5
+ 110 000a 1800     		movs	r0, r3
+ 111 000c FFF7FEFF 		bl	GATE_INT_StartEx
+  40:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
+ 112              		.loc 1 40 0
+ 113 0010 FFF7FEFF 		bl	GATE_INT_Disable
+  41:..\..\common\lib\lib_Gate/gate.c ****     
+  42:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;     
+ 114              		.loc 1 42 0
+ 115 0014 034B     		ldr	r3, .L5+4
+ 116 0016 0022     		movs	r2, #0
+ 117 0018 1A60     		str	r2, [r3]
+  43:..\..\common\lib\lib_Gate/gate.c **** }
+ 118              		.loc 1 43 0
+ 119 001a C046     		nop
+ 120 001c BD46     		mov	sp, r7
+ 121              		@ sp needed
+ 122 001e 80BD     		pop	{r7, pc}
+ 123              	.L6:
+ 124              		.align	2
+ 125              	.L5:
+ 126 0020 00000000 		.word	GATE_INTERRUPT
+ 127 0024 14000000 		.word	gateOpen
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 4
+
+
+ 128              		.cfi_endproc
+ 129              	.LFE64:
+ 130              		.size	GateInit, .-GateInit
+ 131              		.section	.text.GateIsOpen,"ax",%progbits
+ 132              		.align	2
+ 133              		.global	GateIsOpen
+ 134              		.code	16
+ 135              		.thumb_func
+ 136              		.type	GateIsOpen, %function
+ 137              	GateIsOpen:
+ 138              	.LFB65:
+  44:..\..\common\lib\lib_Gate/gate.c **** 
+  45:..\..\common\lib\lib_Gate/gate.c **** 
+  46:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  47:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateOpen
+  48:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  49:..\..\common\lib\lib_Gate/gate.c **** *
+  50:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  51:..\..\common\lib\lib_Gate/gate.c **** *  verification or gate closed
+  52:..\..\common\lib\lib_Gate/gate.c **** *
+  53:..\..\common\lib\lib_Gate/gate.c **** * Return:
+  54:..\..\common\lib\lib_Gate/gate.c **** *  GATE_CLOSE or GATE_OPEN
+  55:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  56:..\..\common\lib\lib_Gate/gate.c **** uint32_t GateIsOpen(void)
+  57:..\..\common\lib\lib_Gate/gate.c **** {   
+ 139              		.loc 1 57 0
+ 140              		.cfi_startproc
+ 141              		@ args = 0, pretend = 0, frame = 8
+ 142              		@ frame_needed = 1, uses_anonymous_args = 0
+ 143 0000 80B5     		push	{r7, lr}
+ 144              		.cfi_def_cfa_offset 8
+ 145              		.cfi_offset 7, -8
+ 146              		.cfi_offset 14, -4
+ 147 0002 82B0     		sub	sp, sp, #8
+ 148              		.cfi_def_cfa_offset 16
+ 149 0004 00AF     		add	r7, sp, #0
+ 150              		.cfi_def_cfa_register 7
+  58:..\..\common\lib\lib_Gate/gate.c ****     uint32_t result;
+  59:..\..\common\lib\lib_Gate/gate.c ****     
+  60:..\..\common\lib\lib_Gate/gate.c ****     result = gateOpen;
+ 151              		.loc 1 60 0
+ 152 0006 054B     		ldr	r3, .L9
+ 153 0008 1B68     		ldr	r3, [r3]
+ 154 000a 7B60     		str	r3, [r7, #4]
+  61:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
+ 155              		.loc 1 61 0
+ 156 000c 034B     		ldr	r3, .L9
+ 157 000e 0022     		movs	r2, #0
+ 158 0010 1A60     		str	r2, [r3]
+  62:..\..\common\lib\lib_Gate/gate.c ****     
+  63:..\..\common\lib\lib_Gate/gate.c ****     return result;
+ 159              		.loc 1 63 0
+ 160 0012 7B68     		ldr	r3, [r7, #4]
+  64:..\..\common\lib\lib_Gate/gate.c **** }
+ 161              		.loc 1 64 0
+ 162 0014 1800     		movs	r0, r3
+ 163 0016 BD46     		mov	sp, r7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 5
+
+
+ 164 0018 02B0     		add	sp, sp, #8
+ 165              		@ sp needed
+ 166 001a 80BD     		pop	{r7, pc}
+ 167              	.L10:
+ 168              		.align	2
+ 169              	.L9:
+ 170 001c 14000000 		.word	gateOpen
+ 171              		.cfi_endproc
+ 172              	.LFE65:
+ 173              		.size	GateIsOpen, .-GateIsOpen
+ 174              		.section	.text.AllowNextSkier,"ax",%progbits
+ 175              		.align	2
+ 176              		.global	AllowNextSkier
+ 177              		.code	16
+ 178              		.thumb_func
+ 179              		.type	AllowNextSkier, %function
+ 180              	AllowNextSkier:
+ 181              	.LFB66:
+  65:..\..\common\lib\lib_Gate/gate.c **** 
+  66:..\..\common\lib\lib_Gate/gate.c **** 
+  67:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  68:..\..\common\lib\lib_Gate/gate.c **** * Function Name: AllowNextSkier
+  69:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  70:..\..\common\lib\lib_Gate/gate.c **** *
+  71:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  72:..\..\common\lib\lib_Gate/gate.c **** *   allow the new skier on way(enable gate interrupt)
+  73:..\..\common\lib\lib_Gate/gate.c **** *
+  74:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  75:..\..\common\lib\lib_Gate/gate.c **** void AllowNextSkier(void)
+  76:..\..\common\lib\lib_Gate/gate.c **** {
+ 182              		.loc 1 76 0
+ 183              		.cfi_startproc
+ 184              		@ args = 0, pretend = 0, frame = 0
+ 185              		@ frame_needed = 1, uses_anonymous_args = 0
+ 186 0000 80B5     		push	{r7, lr}
+ 187              		.cfi_def_cfa_offset 8
+ 188              		.cfi_offset 7, -8
+ 189              		.cfi_offset 14, -4
+ 190 0002 00AF     		add	r7, sp, #0
+ 191              		.cfi_def_cfa_register 7
+  77:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  78:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 192              		.loc 1 78 0
+ 193 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
+  79:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Enable();
+ 194              		.loc 1 79 0
+ 195 0008 FFF7FEFF 		bl	GATE_INT_Enable
+  80:..\..\common\lib\lib_Gate/gate.c **** }
+ 196              		.loc 1 80 0
+ 197 000c C046     		nop
+ 198 000e BD46     		mov	sp, r7
+ 199              		@ sp needed
+ 200 0010 80BD     		pop	{r7, pc}
+ 201              		.cfi_endproc
+ 202              	.LFE66:
+ 203              		.size	AllowNextSkier, .-AllowNextSkier
+ 204 0012 C046     		.section	.text.DisAllowNextSkier,"ax",%progbits
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 6
+
+
+ 205              		.align	2
+ 206              		.global	DisAllowNextSkier
+ 207              		.code	16
+ 208              		.thumb_func
+ 209              		.type	DisAllowNextSkier, %function
+ 210              	DisAllowNextSkier:
+ 211              	.LFB67:
+  81:..\..\common\lib\lib_Gate/gate.c **** 
+  82:..\..\common\lib\lib_Gate/gate.c **** void DisAllowNextSkier(void)
+  83:..\..\common\lib\lib_Gate/gate.c **** {
+ 212              		.loc 1 83 0
+ 213              		.cfi_startproc
+ 214              		@ args = 0, pretend = 0, frame = 0
+ 215              		@ frame_needed = 1, uses_anonymous_args = 0
+ 216 0000 80B5     		push	{r7, lr}
+ 217              		.cfi_def_cfa_offset 8
+ 218              		.cfi_offset 7, -8
+ 219              		.cfi_offset 14, -4
+ 220 0002 00AF     		add	r7, sp, #0
+ 221              		.cfi_def_cfa_register 7
+  84:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
+ 222              		.loc 1 84 0
+ 223 0004 054B     		ldr	r3, .L13
+ 224 0006 0022     		movs	r2, #0
+ 225 0008 1A60     		str	r2, [r3]
+  85:..\..\common\lib\lib_Gate/gate.c ****      
+  86:..\..\common\lib\lib_Gate/gate.c ****     GatePin_ClearInterrupt();
+ 226              		.loc 1 86 0
+ 227 000a FFF7FEFF 		bl	GatePin_ClearInterrupt
+  87:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 228              		.loc 1 87 0
+ 229 000e FFF7FEFF 		bl	GATE_INT_ClearPending
+  88:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();   
+ 230              		.loc 1 88 0
+ 231 0012 FFF7FEFF 		bl	GATE_INT_Disable
+  89:..\..\common\lib\lib_Gate/gate.c **** }
+ 232              		.loc 1 89 0
+ 233 0016 C046     		nop
+ 234 0018 BD46     		mov	sp, r7
+ 235              		@ sp needed
+ 236 001a 80BD     		pop	{r7, pc}
+ 237              	.L14:
+ 238              		.align	2
+ 239              	.L13:
+ 240 001c 14000000 		.word	gateOpen
+ 241              		.cfi_endproc
+ 242              	.LFE67:
+ 243              		.size	DisAllowNextSkier, .-DisAllowNextSkier
+ 244              		.section	.text.GetStartTime,"ax",%progbits
+ 245              		.align	2
+ 246              		.global	GetStartTime
+ 247              		.code	16
+ 248              		.thumb_func
+ 249              		.type	GetStartTime, %function
+ 250              	GetStartTime:
+ 251              	.LFB68:
+  90:..\..\common\lib\lib_Gate/gate.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 7
+
+
+  91:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  92:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GetFinTime
+  93:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  94:..\..\common\lib\lib_Gate/gate.c **** *
+  95:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  96:..\..\common\lib\lib_Gate/gate.c **** *   reading recorded in the interruption time finish skier
+  97:..\..\common\lib\lib_Gate/gate.c **** * Parametrs:
+  98:..\..\common\lib\lib_Gate/gate.c **** *   *unixTime - pointer from unix time skier
+  99:..\..\common\lib\lib_Gate/gate.c **** *   *recentMs - pointer from miliseconds time
+ 100:..\..\common\lib\lib_Gate/gate.c **** *
+ 101:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+ 102:..\..\common\lib\lib_Gate/gate.c **** #ifdef START_MODULE
+ 103:..\..\common\lib\lib_Gate/gate.c **** void GetStartTime(uint64_t *unixTime,  uint32_t *recentMs)
+ 104:..\..\common\lib\lib_Gate/gate.c **** {
+ 252              		.loc 1 104 0
+ 253              		.cfi_startproc
+ 254              		@ args = 0, pretend = 0, frame = 8
+ 255              		@ frame_needed = 1, uses_anonymous_args = 0
+ 256 0000 90B5     		push	{r4, r7, lr}
+ 257              		.cfi_def_cfa_offset 12
+ 258              		.cfi_offset 4, -12
+ 259              		.cfi_offset 7, -8
+ 260              		.cfi_offset 14, -4
+ 261 0002 83B0     		sub	sp, sp, #12
+ 262              		.cfi_def_cfa_offset 24
+ 263 0004 00AF     		add	r7, sp, #0
+ 264              		.cfi_def_cfa_register 7
+ 265 0006 7860     		str	r0, [r7, #4]
+ 266 0008 3960     		str	r1, [r7]
+ 105:..\..\common\lib\lib_Gate/gate.c ****     *unixTime = savedUnixTime;
+ 267              		.loc 1 105 0
+ 268 000a 074B     		ldr	r3, .L16
+ 269 000c 5C68     		ldr	r4, [r3, #4]
+ 270 000e 1B68     		ldr	r3, [r3]
+ 271 0010 7A68     		ldr	r2, [r7, #4]
+ 272 0012 1360     		str	r3, [r2]
+ 273 0014 5460     		str	r4, [r2, #4]
+ 106:..\..\common\lib\lib_Gate/gate.c ****     *recentMs = savedRecentMs;
+ 274              		.loc 1 106 0
+ 275 0016 054B     		ldr	r3, .L16+4
+ 276 0018 1A68     		ldr	r2, [r3]
+ 277 001a 3B68     		ldr	r3, [r7]
+ 278 001c 1A60     		str	r2, [r3]
+ 107:..\..\common\lib\lib_Gate/gate.c **** }
+ 279              		.loc 1 107 0
+ 280 001e C046     		nop
+ 281 0020 BD46     		mov	sp, r7
+ 282 0022 03B0     		add	sp, sp, #12
+ 283              		@ sp needed
+ 284 0024 90BD     		pop	{r4, r7, pc}
+ 285              	.L17:
+ 286 0026 C046     		.align	2
+ 287              	.L16:
+ 288 0028 08000000 		.word	savedUnixTime
+ 289 002c 10000000 		.word	savedRecentMs
+ 290              		.cfi_endproc
+ 291              	.LFE68:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 8
+
+
+ 292              		.size	GetStartTime, .-GetStartTime
+ 293              		.text
+ 294              	.Letext0:
+ 295              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 296              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 297              		.file 4 "./appGlobal.h"
+ 298              		.section	.debug_info,"",%progbits
+ 299              	.Ldebug_info0:
+ 300 0000 E6010000 		.4byte	0x1e6
+ 301 0004 0400     		.2byte	0x4
+ 302 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 303 000a 04       		.byte	0x4
+ 304 000b 01       		.uleb128 0x1
+ 305 000c 1E010000 		.4byte	.LASF33
+ 306 0010 0C       		.byte	0xc
+ 307 0011 38000000 		.4byte	.LASF34
+ 308 0015 E2000000 		.4byte	.LASF35
+ 309 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 310 001d 00000000 		.4byte	0
+ 311 0021 00000000 		.4byte	.Ldebug_line0
+ 312 0025 02       		.uleb128 0x2
+ 313 0026 01       		.byte	0x1
+ 314 0027 06       		.byte	0x6
+ 315 0028 86000000 		.4byte	.LASF0
+ 316 002c 02       		.uleb128 0x2
+ 317 002d 01       		.byte	0x1
+ 318 002e 08       		.byte	0x8
+ 319 002f 92000000 		.4byte	.LASF1
+ 320 0033 02       		.uleb128 0x2
+ 321 0034 02       		.byte	0x2
+ 322 0035 05       		.byte	0x5
+ 323 0036 43020000 		.4byte	.LASF2
+ 324 003a 02       		.uleb128 0x2
+ 325 003b 02       		.byte	0x2
+ 326 003c 07       		.byte	0x7
+ 327 003d CF000000 		.4byte	.LASF3
+ 328 0041 02       		.uleb128 0x2
+ 329 0042 04       		.byte	0x4
+ 330 0043 05       		.byte	0x5
+ 331 0044 61020000 		.4byte	.LASF4
+ 332 0048 03       		.uleb128 0x3
+ 333 0049 DA010000 		.4byte	.LASF7
+ 334 004d 02       		.byte	0x2
+ 335 004e 41       		.byte	0x41
+ 336 004f 53000000 		.4byte	0x53
+ 337 0053 02       		.uleb128 0x2
+ 338 0054 04       		.byte	0x4
+ 339 0055 07       		.byte	0x7
+ 340 0056 AF000000 		.4byte	.LASF5
+ 341 005a 02       		.uleb128 0x2
+ 342 005b 08       		.byte	0x8
+ 343 005c 05       		.byte	0x5
+ 344 005d 30020000 		.4byte	.LASF6
+ 345 0061 03       		.uleb128 0x3
+ 346 0062 4D020000 		.4byte	.LASF8
+ 347 0066 02       		.byte	0x2
+ 348 0067 5B       		.byte	0x5b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 9
+
+
+ 349 0068 6C000000 		.4byte	0x6c
+ 350 006c 02       		.uleb128 0x2
+ 351 006d 08       		.byte	0x8
+ 352 006e 07       		.byte	0x7
+ 353 006f 00020000 		.4byte	.LASF9
+ 354 0073 04       		.uleb128 0x4
+ 355 0074 04       		.byte	0x4
+ 356 0075 05       		.byte	0x5
+ 357 0076 696E7400 		.ascii	"int\000"
+ 358 007a 02       		.uleb128 0x2
+ 359 007b 04       		.byte	0x4
+ 360 007c 07       		.byte	0x7
+ 361 007d F3010000 		.4byte	.LASF10
+ 362 0081 03       		.uleb128 0x3
+ 363 0082 58020000 		.4byte	.LASF11
+ 364 0086 03       		.byte	0x3
+ 365 0087 30       		.byte	0x30
+ 366 0088 48000000 		.4byte	0x48
+ 367 008c 03       		.uleb128 0x3
+ 368 008d 6D000000 		.4byte	.LASF12
+ 369 0091 03       		.byte	0x3
+ 370 0092 3C       		.byte	0x3c
+ 371 0093 61000000 		.4byte	0x61
+ 372 0097 02       		.uleb128 0x2
+ 373 0098 04       		.byte	0x4
+ 374 0099 04       		.byte	0x4
+ 375 009a 80000000 		.4byte	.LASF13
+ 376 009e 02       		.uleb128 0x2
+ 377 009f 08       		.byte	0x8
+ 378 00a0 04       		.byte	0x4
+ 379 00a1 B7010000 		.4byte	.LASF14
+ 380 00a5 02       		.uleb128 0x2
+ 381 00a6 01       		.byte	0x1
+ 382 00a7 08       		.byte	0x8
+ 383 00a8 3E020000 		.4byte	.LASF15
+ 384 00ac 02       		.uleb128 0x2
+ 385 00ad 08       		.byte	0x8
+ 386 00ae 04       		.byte	0x4
+ 387 00af 6A020000 		.4byte	.LASF16
+ 388 00b3 02       		.uleb128 0x2
+ 389 00b4 04       		.byte	0x4
+ 390 00b5 07       		.byte	0x7
+ 391 00b6 27020000 		.4byte	.LASF17
+ 392 00ba 05       		.uleb128 0x5
+ 393 00bb 01       		.byte	0x1
+ 394 00bc 2C000000 		.4byte	0x2c
+ 395 00c0 04       		.byte	0x4
+ 396 00c1 18       		.byte	0x18
+ 397 00c2 DF000000 		.4byte	0xdf
+ 398 00c6 06       		.uleb128 0x6
+ 399 00c7 D0010000 		.4byte	.LASF18
+ 400 00cb 00       		.byte	0
+ 401 00cc 06       		.uleb128 0x6
+ 402 00cd 00000000 		.4byte	.LASF19
+ 403 00d1 01       		.byte	0x1
+ 404 00d2 06       		.uleb128 0x6
+ 405 00d3 AC010000 		.4byte	.LASF20
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 10
+
+
+ 406 00d7 02       		.byte	0x2
+ 407 00d8 06       		.uleb128 0x6
+ 408 00d9 7F020000 		.4byte	.LASF21
+ 409 00dd 03       		.byte	0x3
+ 410 00de 00       		.byte	0
+ 411 00df 03       		.uleb128 0x3
+ 412 00e0 76000000 		.4byte	.LASF22
+ 413 00e4 04       		.byte	0x4
+ 414 00e5 18       		.byte	0x18
+ 415 00e6 BA000000 		.4byte	0xba
+ 416 00ea 07       		.uleb128 0x7
+ 417 00eb A0000000 		.4byte	.LASF23
+ 418 00ef 01       		.byte	0x1
+ 419 00f0 0D       		.byte	0xd
+ 420 00f1 00000000 		.4byte	.LFB63
+ 421 00f5 3C000000 		.4byte	.LFE63-.LFB63
+ 422 00f9 01       		.uleb128 0x1
+ 423 00fa 9C       		.byte	0x9c
+ 424 00fb 07       		.uleb128 0x7
+ 425 00fc 76020000 		.4byte	.LASF24
+ 426 0100 01       		.byte	0x1
+ 427 0101 23       		.byte	0x23
+ 428 0102 00000000 		.4byte	.LFB64
+ 429 0106 28000000 		.4byte	.LFE64-.LFB64
+ 430 010a 01       		.uleb128 0x1
+ 431 010b 9C       		.byte	0x9c
+ 432 010c 08       		.uleb128 0x8
+ 433 010d 59000000 		.4byte	.LASF36
+ 434 0111 01       		.byte	0x1
+ 435 0112 38       		.byte	0x38
+ 436 0113 81000000 		.4byte	0x81
+ 437 0117 00000000 		.4byte	.LFB65
+ 438 011b 20000000 		.4byte	.LFE65-.LFB65
+ 439 011f 01       		.uleb128 0x1
+ 440 0120 9C       		.byte	0x9c
+ 441 0121 34010000 		.4byte	0x134
+ 442 0125 09       		.uleb128 0x9
+ 443 0126 17020000 		.4byte	.LASF29
+ 444 012a 01       		.byte	0x1
+ 445 012b 3A       		.byte	0x3a
+ 446 012c 81000000 		.4byte	0x81
+ 447 0130 02       		.uleb128 0x2
+ 448 0131 91       		.byte	0x91
+ 449 0132 74       		.sleb128 -12
+ 450 0133 00       		.byte	0
+ 451 0134 07       		.uleb128 0x7
+ 452 0135 29000000 		.4byte	.LASF25
+ 453 0139 01       		.byte	0x1
+ 454 013a 4B       		.byte	0x4b
+ 455 013b 00000000 		.4byte	.LFB66
+ 456 013f 12000000 		.4byte	.LFE66-.LFB66
+ 457 0143 01       		.uleb128 0x1
+ 458 0144 9C       		.byte	0x9c
+ 459 0145 07       		.uleb128 0x7
+ 460 0146 BE010000 		.4byte	.LASF26
+ 461 014a 01       		.byte	0x1
+ 462 014b 52       		.byte	0x52
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 11
+
+
+ 463 014c 00000000 		.4byte	.LFB67
+ 464 0150 20000000 		.4byte	.LFE67-.LFB67
+ 465 0154 01       		.uleb128 0x1
+ 466 0155 9C       		.byte	0x9c
+ 467 0156 0A       		.uleb128 0xa
+ 468 0157 1C000000 		.4byte	.LASF37
+ 469 015b 01       		.byte	0x1
+ 470 015c 67       		.byte	0x67
+ 471 015d 00000000 		.4byte	.LFB68
+ 472 0161 30000000 		.4byte	.LFE68-.LFB68
+ 473 0165 01       		.uleb128 0x1
+ 474 0166 9C       		.byte	0x9c
+ 475 0167 88010000 		.4byte	0x188
+ 476 016b 0B       		.uleb128 0xb
+ 477 016c 64000000 		.4byte	.LASF27
+ 478 0170 01       		.byte	0x1
+ 479 0171 67       		.byte	0x67
+ 480 0172 88010000 		.4byte	0x188
+ 481 0176 02       		.uleb128 0x2
+ 482 0177 91       		.byte	0x91
+ 483 0178 6C       		.sleb128 -20
+ 484 0179 0B       		.uleb128 0xb
+ 485 017a 8B020000 		.4byte	.LASF28
+ 486 017e 01       		.byte	0x1
+ 487 017f 67       		.byte	0x67
+ 488 0180 8E010000 		.4byte	0x18e
+ 489 0184 02       		.uleb128 0x2
+ 490 0185 91       		.byte	0x91
+ 491 0186 68       		.sleb128 -24
+ 492 0187 00       		.byte	0
+ 493 0188 0C       		.uleb128 0xc
+ 494 0189 04       		.byte	0x4
+ 495 018a 8C000000 		.4byte	0x8c
+ 496 018e 0C       		.uleb128 0xc
+ 497 018f 04       		.byte	0x4
+ 498 0190 81000000 		.4byte	0x81
+ 499 0194 09       		.uleb128 0x9
+ 500 0195 17020000 		.4byte	.LASF29
+ 501 0199 04       		.byte	0x4
+ 502 019a 1B       		.byte	0x1b
+ 503 019b 81000000 		.4byte	0x81
+ 504 019f 05       		.uleb128 0x5
+ 505 01a0 03       		.byte	0x3
+ 506 01a1 00000000 		.4byte	result
+ 507 01a5 09       		.uleb128 0x9
+ 508 01a6 E5010000 		.4byte	.LASF30
+ 509 01aa 01       		.byte	0x1
+ 510 01ab 07       		.byte	0x7
+ 511 01ac 8C000000 		.4byte	0x8c
+ 512 01b0 05       		.uleb128 0x5
+ 513 01b1 03       		.byte	0x3
+ 514 01b2 08000000 		.4byte	savedUnixTime
+ 515 01b6 09       		.uleb128 0x9
+ 516 01b7 C1000000 		.4byte	.LASF31
+ 517 01bb 01       		.byte	0x1
+ 518 01bc 08       		.byte	0x8
+ 519 01bd 81000000 		.4byte	0x81
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 12
+
+
+ 520 01c1 05       		.uleb128 0x5
+ 521 01c2 03       		.byte	0x3
+ 522 01c3 10000000 		.4byte	savedRecentMs
+ 523 01c7 09       		.uleb128 0x9
+ 524 01c8 1E020000 		.4byte	.LASF32
+ 525 01cc 01       		.byte	0x1
+ 526 01cd 09       		.byte	0x9
+ 527 01ce 81000000 		.4byte	0x81
+ 528 01d2 05       		.uleb128 0x5
+ 529 01d3 03       		.byte	0x3
+ 530 01d4 14000000 		.4byte	gateOpen
+ 531 01d8 0D       		.uleb128 0xd
+ 532 01d9 0F000000 		.4byte	.LASF38
+ 533 01dd 04       		.byte	0x4
+ 534 01de 19       		.byte	0x19
+ 535 01df DF000000 		.4byte	0xdf
+ 536 01e3 05       		.uleb128 0x5
+ 537 01e4 03       		.byte	0x3
+ 538 01e5 00000000 		.4byte	currentState
+ 539 01e9 00       		.byte	0
+ 540              		.section	.debug_abbrev,"",%progbits
+ 541              	.Ldebug_abbrev0:
+ 542 0000 01       		.uleb128 0x1
+ 543 0001 11       		.uleb128 0x11
+ 544 0002 01       		.byte	0x1
+ 545 0003 25       		.uleb128 0x25
+ 546 0004 0E       		.uleb128 0xe
+ 547 0005 13       		.uleb128 0x13
+ 548 0006 0B       		.uleb128 0xb
+ 549 0007 03       		.uleb128 0x3
+ 550 0008 0E       		.uleb128 0xe
+ 551 0009 1B       		.uleb128 0x1b
+ 552 000a 0E       		.uleb128 0xe
+ 553 000b 55       		.uleb128 0x55
+ 554 000c 17       		.uleb128 0x17
+ 555 000d 11       		.uleb128 0x11
+ 556 000e 01       		.uleb128 0x1
+ 557 000f 10       		.uleb128 0x10
+ 558 0010 17       		.uleb128 0x17
+ 559 0011 00       		.byte	0
+ 560 0012 00       		.byte	0
+ 561 0013 02       		.uleb128 0x2
+ 562 0014 24       		.uleb128 0x24
+ 563 0015 00       		.byte	0
+ 564 0016 0B       		.uleb128 0xb
+ 565 0017 0B       		.uleb128 0xb
+ 566 0018 3E       		.uleb128 0x3e
+ 567 0019 0B       		.uleb128 0xb
+ 568 001a 03       		.uleb128 0x3
+ 569 001b 0E       		.uleb128 0xe
+ 570 001c 00       		.byte	0
+ 571 001d 00       		.byte	0
+ 572 001e 03       		.uleb128 0x3
+ 573 001f 16       		.uleb128 0x16
+ 574 0020 00       		.byte	0
+ 575 0021 03       		.uleb128 0x3
+ 576 0022 0E       		.uleb128 0xe
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 13
+
+
+ 577 0023 3A       		.uleb128 0x3a
+ 578 0024 0B       		.uleb128 0xb
+ 579 0025 3B       		.uleb128 0x3b
+ 580 0026 0B       		.uleb128 0xb
+ 581 0027 49       		.uleb128 0x49
+ 582 0028 13       		.uleb128 0x13
+ 583 0029 00       		.byte	0
+ 584 002a 00       		.byte	0
+ 585 002b 04       		.uleb128 0x4
+ 586 002c 24       		.uleb128 0x24
+ 587 002d 00       		.byte	0
+ 588 002e 0B       		.uleb128 0xb
+ 589 002f 0B       		.uleb128 0xb
+ 590 0030 3E       		.uleb128 0x3e
+ 591 0031 0B       		.uleb128 0xb
+ 592 0032 03       		.uleb128 0x3
+ 593 0033 08       		.uleb128 0x8
+ 594 0034 00       		.byte	0
+ 595 0035 00       		.byte	0
+ 596 0036 05       		.uleb128 0x5
+ 597 0037 04       		.uleb128 0x4
+ 598 0038 01       		.byte	0x1
+ 599 0039 0B       		.uleb128 0xb
+ 600 003a 0B       		.uleb128 0xb
+ 601 003b 49       		.uleb128 0x49
+ 602 003c 13       		.uleb128 0x13
+ 603 003d 3A       		.uleb128 0x3a
+ 604 003e 0B       		.uleb128 0xb
+ 605 003f 3B       		.uleb128 0x3b
+ 606 0040 0B       		.uleb128 0xb
+ 607 0041 01       		.uleb128 0x1
+ 608 0042 13       		.uleb128 0x13
+ 609 0043 00       		.byte	0
+ 610 0044 00       		.byte	0
+ 611 0045 06       		.uleb128 0x6
+ 612 0046 28       		.uleb128 0x28
+ 613 0047 00       		.byte	0
+ 614 0048 03       		.uleb128 0x3
+ 615 0049 0E       		.uleb128 0xe
+ 616 004a 1C       		.uleb128 0x1c
+ 617 004b 0B       		.uleb128 0xb
+ 618 004c 00       		.byte	0
+ 619 004d 00       		.byte	0
+ 620 004e 07       		.uleb128 0x7
+ 621 004f 2E       		.uleb128 0x2e
+ 622 0050 00       		.byte	0
+ 623 0051 3F       		.uleb128 0x3f
+ 624 0052 19       		.uleb128 0x19
+ 625 0053 03       		.uleb128 0x3
+ 626 0054 0E       		.uleb128 0xe
+ 627 0055 3A       		.uleb128 0x3a
+ 628 0056 0B       		.uleb128 0xb
+ 629 0057 3B       		.uleb128 0x3b
+ 630 0058 0B       		.uleb128 0xb
+ 631 0059 27       		.uleb128 0x27
+ 632 005a 19       		.uleb128 0x19
+ 633 005b 11       		.uleb128 0x11
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 14
+
+
+ 634 005c 01       		.uleb128 0x1
+ 635 005d 12       		.uleb128 0x12
+ 636 005e 06       		.uleb128 0x6
+ 637 005f 40       		.uleb128 0x40
+ 638 0060 18       		.uleb128 0x18
+ 639 0061 9642     		.uleb128 0x2116
+ 640 0063 19       		.uleb128 0x19
+ 641 0064 00       		.byte	0
+ 642 0065 00       		.byte	0
+ 643 0066 08       		.uleb128 0x8
+ 644 0067 2E       		.uleb128 0x2e
+ 645 0068 01       		.byte	0x1
+ 646 0069 3F       		.uleb128 0x3f
+ 647 006a 19       		.uleb128 0x19
+ 648 006b 03       		.uleb128 0x3
+ 649 006c 0E       		.uleb128 0xe
+ 650 006d 3A       		.uleb128 0x3a
+ 651 006e 0B       		.uleb128 0xb
+ 652 006f 3B       		.uleb128 0x3b
+ 653 0070 0B       		.uleb128 0xb
+ 654 0071 27       		.uleb128 0x27
+ 655 0072 19       		.uleb128 0x19
+ 656 0073 49       		.uleb128 0x49
+ 657 0074 13       		.uleb128 0x13
+ 658 0075 11       		.uleb128 0x11
+ 659 0076 01       		.uleb128 0x1
+ 660 0077 12       		.uleb128 0x12
+ 661 0078 06       		.uleb128 0x6
+ 662 0079 40       		.uleb128 0x40
+ 663 007a 18       		.uleb128 0x18
+ 664 007b 9742     		.uleb128 0x2117
+ 665 007d 19       		.uleb128 0x19
+ 666 007e 01       		.uleb128 0x1
+ 667 007f 13       		.uleb128 0x13
+ 668 0080 00       		.byte	0
+ 669 0081 00       		.byte	0
+ 670 0082 09       		.uleb128 0x9
+ 671 0083 34       		.uleb128 0x34
+ 672 0084 00       		.byte	0
+ 673 0085 03       		.uleb128 0x3
+ 674 0086 0E       		.uleb128 0xe
+ 675 0087 3A       		.uleb128 0x3a
+ 676 0088 0B       		.uleb128 0xb
+ 677 0089 3B       		.uleb128 0x3b
+ 678 008a 0B       		.uleb128 0xb
+ 679 008b 49       		.uleb128 0x49
+ 680 008c 13       		.uleb128 0x13
+ 681 008d 02       		.uleb128 0x2
+ 682 008e 18       		.uleb128 0x18
+ 683 008f 00       		.byte	0
+ 684 0090 00       		.byte	0
+ 685 0091 0A       		.uleb128 0xa
+ 686 0092 2E       		.uleb128 0x2e
+ 687 0093 01       		.byte	0x1
+ 688 0094 3F       		.uleb128 0x3f
+ 689 0095 19       		.uleb128 0x19
+ 690 0096 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 15
+
+
+ 691 0097 0E       		.uleb128 0xe
+ 692 0098 3A       		.uleb128 0x3a
+ 693 0099 0B       		.uleb128 0xb
+ 694 009a 3B       		.uleb128 0x3b
+ 695 009b 0B       		.uleb128 0xb
+ 696 009c 27       		.uleb128 0x27
+ 697 009d 19       		.uleb128 0x19
+ 698 009e 11       		.uleb128 0x11
+ 699 009f 01       		.uleb128 0x1
+ 700 00a0 12       		.uleb128 0x12
+ 701 00a1 06       		.uleb128 0x6
+ 702 00a2 40       		.uleb128 0x40
+ 703 00a3 18       		.uleb128 0x18
+ 704 00a4 9742     		.uleb128 0x2117
+ 705 00a6 19       		.uleb128 0x19
+ 706 00a7 01       		.uleb128 0x1
+ 707 00a8 13       		.uleb128 0x13
+ 708 00a9 00       		.byte	0
+ 709 00aa 00       		.byte	0
+ 710 00ab 0B       		.uleb128 0xb
+ 711 00ac 05       		.uleb128 0x5
+ 712 00ad 00       		.byte	0
+ 713 00ae 03       		.uleb128 0x3
+ 714 00af 0E       		.uleb128 0xe
+ 715 00b0 3A       		.uleb128 0x3a
+ 716 00b1 0B       		.uleb128 0xb
+ 717 00b2 3B       		.uleb128 0x3b
+ 718 00b3 0B       		.uleb128 0xb
+ 719 00b4 49       		.uleb128 0x49
+ 720 00b5 13       		.uleb128 0x13
+ 721 00b6 02       		.uleb128 0x2
+ 722 00b7 18       		.uleb128 0x18
+ 723 00b8 00       		.byte	0
+ 724 00b9 00       		.byte	0
+ 725 00ba 0C       		.uleb128 0xc
+ 726 00bb 0F       		.uleb128 0xf
+ 727 00bc 00       		.byte	0
+ 728 00bd 0B       		.uleb128 0xb
+ 729 00be 0B       		.uleb128 0xb
+ 730 00bf 49       		.uleb128 0x49
+ 731 00c0 13       		.uleb128 0x13
+ 732 00c1 00       		.byte	0
+ 733 00c2 00       		.byte	0
+ 734 00c3 0D       		.uleb128 0xd
+ 735 00c4 34       		.uleb128 0x34
+ 736 00c5 00       		.byte	0
+ 737 00c6 03       		.uleb128 0x3
+ 738 00c7 0E       		.uleb128 0xe
+ 739 00c8 3A       		.uleb128 0x3a
+ 740 00c9 0B       		.uleb128 0xb
+ 741 00ca 3B       		.uleb128 0x3b
+ 742 00cb 0B       		.uleb128 0xb
+ 743 00cc 49       		.uleb128 0x49
+ 744 00cd 13       		.uleb128 0x13
+ 745 00ce 3F       		.uleb128 0x3f
+ 746 00cf 19       		.uleb128 0x19
+ 747 00d0 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 16
+
+
+ 748 00d1 18       		.uleb128 0x18
+ 749 00d2 00       		.byte	0
+ 750 00d3 00       		.byte	0
+ 751 00d4 00       		.byte	0
+ 752              		.section	.debug_aranges,"",%progbits
+ 753 0000 44000000 		.4byte	0x44
+ 754 0004 0200     		.2byte	0x2
+ 755 0006 00000000 		.4byte	.Ldebug_info0
+ 756 000a 04       		.byte	0x4
+ 757 000b 00       		.byte	0
+ 758 000c 0000     		.2byte	0
+ 759 000e 0000     		.2byte	0
+ 760 0010 00000000 		.4byte	.LFB63
+ 761 0014 3C000000 		.4byte	.LFE63-.LFB63
+ 762 0018 00000000 		.4byte	.LFB64
+ 763 001c 28000000 		.4byte	.LFE64-.LFB64
+ 764 0020 00000000 		.4byte	.LFB65
+ 765 0024 20000000 		.4byte	.LFE65-.LFB65
+ 766 0028 00000000 		.4byte	.LFB66
+ 767 002c 12000000 		.4byte	.LFE66-.LFB66
+ 768 0030 00000000 		.4byte	.LFB67
+ 769 0034 20000000 		.4byte	.LFE67-.LFB67
+ 770 0038 00000000 		.4byte	.LFB68
+ 771 003c 30000000 		.4byte	.LFE68-.LFB68
+ 772 0040 00000000 		.4byte	0
+ 773 0044 00000000 		.4byte	0
+ 774              		.section	.debug_ranges,"",%progbits
+ 775              	.Ldebug_ranges0:
+ 776 0000 00000000 		.4byte	.LFB63
+ 777 0004 3C000000 		.4byte	.LFE63
+ 778 0008 00000000 		.4byte	.LFB64
+ 779 000c 28000000 		.4byte	.LFE64
+ 780 0010 00000000 		.4byte	.LFB65
+ 781 0014 20000000 		.4byte	.LFE65
+ 782 0018 00000000 		.4byte	.LFB66
+ 783 001c 12000000 		.4byte	.LFE66
+ 784 0020 00000000 		.4byte	.LFB67
+ 785 0024 20000000 		.4byte	.LFE67
+ 786 0028 00000000 		.4byte	.LFB68
+ 787 002c 30000000 		.4byte	.LFE68
+ 788 0030 00000000 		.4byte	0
+ 789 0034 00000000 		.4byte	0
+ 790              		.section	.debug_line,"",%progbits
+ 791              	.Ldebug_line0:
+ 792 0000 C2010000 		.section	.debug_str,"MS",%progbits,1
+ 792      02004501 
+ 792      00000201 
+ 792      FB0E0D00 
+ 792      01010101 
+ 793              	.LASF19:
+ 794 0000 4745545F 		.ascii	"GET_FIN_STATUS\000"
+ 794      46494E5F 
+ 794      53544154 
+ 794      555300
+ 795              	.LASF38:
+ 796 000f 63757272 		.ascii	"currentState\000"
+ 796      656E7453 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 17
+
+
+ 796      74617465 
+ 796      00
+ 797              	.LASF37:
+ 798 001c 47657453 		.ascii	"GetStartTime\000"
+ 798      74617274 
+ 798      54696D65 
+ 798      00
+ 799              	.LASF25:
+ 800 0029 416C6C6F 		.ascii	"AllowNextSkier\000"
+ 800      774E6578 
+ 800      74536B69 
+ 800      657200
+ 801              	.LASF34:
+ 802 0038 2E2E5C2E 		.ascii	"..\\..\\common\\lib\\lib_Gate\\gate.c\000"
+ 802      2E5C636F 
+ 802      6D6D6F6E 
+ 802      5C6C6962 
+ 802      5C6C6962 
+ 803              	.LASF36:
+ 804 0059 47617465 		.ascii	"GateIsOpen\000"
+ 804      49734F70 
+ 804      656E00
+ 805              	.LASF27:
+ 806 0064 756E6978 		.ascii	"unixTime\000"
+ 806      54696D65 
+ 806      00
+ 807              	.LASF12:
+ 808 006d 75696E74 		.ascii	"uint64_t\000"
+ 808      36345F74 
+ 808      00
+ 809              	.LASF22:
+ 810 0076 53746174 		.ascii	"StateType\000"
+ 810      65547970 
+ 810      6500
+ 811              	.LASF13:
+ 812 0080 666C6F61 		.ascii	"float\000"
+ 812      7400
+ 813              	.LASF0:
+ 814 0086 7369676E 		.ascii	"signed char\000"
+ 814      65642063 
+ 814      68617200 
+ 815              	.LASF1:
+ 816 0092 756E7369 		.ascii	"unsigned char\000"
+ 816      676E6564 
+ 816      20636861 
+ 816      7200
+ 817              	.LASF23:
+ 818 00a0 47415445 		.ascii	"GATE_INTERRUPT\000"
+ 818      5F494E54 
+ 818      45525255 
+ 818      505400
+ 819              	.LASF5:
+ 820 00af 6C6F6E67 		.ascii	"long unsigned int\000"
+ 820      20756E73 
+ 820      69676E65 
+ 820      6420696E 
+ 820      7400
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 18
+
+
+ 821              	.LASF31:
+ 822 00c1 73617665 		.ascii	"savedRecentMs\000"
+ 822      64526563 
+ 822      656E744D 
+ 822      7300
+ 823              	.LASF3:
+ 824 00cf 73686F72 		.ascii	"short unsigned int\000"
+ 824      7420756E 
+ 824      7369676E 
+ 824      65642069 
+ 824      6E7400
+ 825              	.LASF35:
+ 826 00e2 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\start\\s"
+ 826      79707265 
+ 826      73735C73 
+ 826      79737465 
+ 826      6D2D7374 
+ 827 010f 74617274 		.ascii	"tart_v11.cydsn\000"
+ 827      5F763131 
+ 827      2E637964 
+ 827      736E00
+ 828              	.LASF33:
+ 829 011e 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 829      43313120 
+ 829      352E342E 
+ 829      31203230 
+ 829      31363036 
+ 830 0151 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 830      20726576 
+ 830      6973696F 
+ 830      6E203233 
+ 830      37373135 
+ 831 0184 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 831      66756E63 
+ 831      74696F6E 
+ 831      2D736563 
+ 831      74696F6E 
+ 832              	.LASF20:
+ 833 01ac 43484543 		.ascii	"CHECK_GATE\000"
+ 833      4B5F4741 
+ 833      544500
+ 834              	.LASF14:
+ 835 01b7 646F7562 		.ascii	"double\000"
+ 835      6C6500
+ 836              	.LASF26:
+ 837 01be 44697341 		.ascii	"DisAllowNextSkier\000"
+ 837      6C6C6F77 
+ 837      4E657874 
+ 837      536B6965 
+ 837      7200
+ 838              	.LASF18:
+ 839 01d0 54494D45 		.ascii	"TIME_SYNC\000"
+ 839      5F53594E 
+ 839      4300
+ 840              	.LASF7:
+ 841 01da 5F5F7569 		.ascii	"__uint32_t\000"
+ 841      6E743332 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 19
+
+
+ 841      5F7400
+ 842              	.LASF30:
+ 843 01e5 73617665 		.ascii	"savedUnixTime\000"
+ 843      64556E69 
+ 843      7854696D 
+ 843      6500
+ 844              	.LASF10:
+ 845 01f3 756E7369 		.ascii	"unsigned int\000"
+ 845      676E6564 
+ 845      20696E74 
+ 845      00
+ 846              	.LASF9:
+ 847 0200 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 847      206C6F6E 
+ 847      6720756E 
+ 847      7369676E 
+ 847      65642069 
+ 848              	.LASF29:
+ 849 0217 72657375 		.ascii	"result\000"
+ 849      6C7400
+ 850              	.LASF32:
+ 851 021e 67617465 		.ascii	"gateOpen\000"
+ 851      4F70656E 
+ 851      00
+ 852              	.LASF17:
+ 853 0227 73697A65 		.ascii	"sizetype\000"
+ 853      74797065 
+ 853      00
+ 854              	.LASF6:
+ 855 0230 6C6F6E67 		.ascii	"long long int\000"
+ 855      206C6F6E 
+ 855      6720696E 
+ 855      7400
+ 856              	.LASF15:
+ 857 023e 63686172 		.ascii	"char\000"
+ 857      00
+ 858              	.LASF2:
+ 859 0243 73686F72 		.ascii	"short int\000"
+ 859      7420696E 
+ 859      7400
+ 860              	.LASF8:
+ 861 024d 5F5F7569 		.ascii	"__uint64_t\000"
+ 861      6E743634 
+ 861      5F7400
+ 862              	.LASF11:
+ 863 0258 75696E74 		.ascii	"uint32_t\000"
+ 863      33325F74 
+ 863      00
+ 864              	.LASF4:
+ 865 0261 6C6F6E67 		.ascii	"long int\000"
+ 865      20696E74 
+ 865      00
+ 866              	.LASF16:
+ 867 026a 6C6F6E67 		.ascii	"long double\000"
+ 867      20646F75 
+ 867      626C6500 
+ 868              	.LASF24:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc2vVHup.s 			page 20
+
+
+ 869 0276 47617465 		.ascii	"GateInit\000"
+ 869      496E6974 
+ 869      00
+ 870              	.LASF21:
+ 871 027f 53415645 		.ascii	"SAVE_RESULT\000"
+ 871      5F524553 
+ 871      554C5400 
+ 872              	.LASF28:
+ 873 028b 72656365 		.ascii	"recentMs\000"
+ 873      6E744D73 
+ 873      00
+ 874              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
