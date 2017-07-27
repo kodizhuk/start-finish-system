@@ -163,6 +163,7 @@ uint32_t CheckGate(void)
         Display("Skier Started");
         SetLedsState(LED_ENABLE, LED_DISABLE);
         Delay(TIMEOUT_USER_READ_INFO);
+        IncrementIDskier();
     }
     else
     {

@@ -6,5 +6,6 @@
     void ButtInit(void);
     void ButtCheck(void);
     uint8_t ReadIdSkier(void);
+    void IncrementIDskier(void);
     
 #endif
