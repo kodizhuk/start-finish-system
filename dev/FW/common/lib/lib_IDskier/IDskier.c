@@ -4,7 +4,7 @@
 
 #define NUM_STEP_SCROLL 5
 
-uint8_t idNumSkier = 0;
+uint8_t idNumSkier = 1;
 
 uint8_t btnUpClick = 0;
 uint8_t btnDownClick = 0;
@@ -65,6 +65,8 @@ void ButtCheck(void)
     if((btnUpClick == 1) || (BtnUp_Read() == 0))
     {
         idNumSkier+=stepScroll;
+        if(idNumSkier==0)
+            idNumSkier++;
         btnUpClick = 0;  
     }
     if(BtnUp_Read() == 1)
@@ -77,6 +79,8 @@ void ButtCheck(void)
     if((btnDownClick == 1) || (BtnDown_Read() == 0))
     {
         idNumSkier-=stepScroll;
+        if(idNumSkier == 0)
+            idNumSkier--;
         btnDownClick = 0;  
     }
     if(BtnDown_Read() == 1)
@@ -119,5 +123,7 @@ uint8_t ReadIdSkier(void)
 *******************************************************************************/
 void IncrementIDskier(void)
 {
-    idNumSkier++;   
+    idNumSkier++;  
+    if(idNumSkier==0)
+        idNumSkier++;
 }
