@@ -35,7 +35,16 @@ struct elementBuff *currentElementEnd;
 
 fifoTimeSkier fifo;     //if no SD card
 
-
+/*******************************************************************************
+* Function Name: DataBaseStart
+********************************************************************************
+*
+* Summary:
+*  init log from write to SD card
+*
+* Return:
+*   result - DB_NO_ERROR or DB_ERROR
+*******************************************************************************/
 uint32_t DataBaseStart(void)
 {
     uint8_t result; 
@@ -51,7 +60,15 @@ uint32_t DataBaseStart(void)
     return result;
 }
 
-void InitBuff()
+/*******************************************************************************
+* Function Name: InitBuff
+********************************************************************************
+*
+* Summary:
+*  init ring buffer from write started skier
+*
+*******************************************************************************/
+void InitBuff(void)
 {
     uint8_t i;
     
@@ -115,7 +132,17 @@ void WriteStartTime(uint8_t id, uint64_t unixTime, uint16_t mills)
     putSkiOnWay(id, unixTime, mills);
 }
 
-
+/*******************************************************************************
+* Function Name: WriteFinishTime
+********************************************************************************
+*
+* Summary:
+*  write finish time in tmp buffer and put in fifo
+*
+* Parametrs:
+*   unixTime - skier finished time, seconds
+*   mills - skier finished time, miliseconds
+*******************************************************************************/
 void WriteFinishTime(uint64_t unixTime, uint16_t mills)
 {   
     getSkiFromWay(&skierDB.idSkier, &skierDB.unixStartSkier, &skierDB.millsStartSkier);
@@ -133,12 +160,31 @@ void WriteFinishTime(uint64_t unixTime, uint16_t mills)
     FifoPush(skierDB);
 }
 
+/*******************************************************************************
+* Function Name: SkierOnWay
+********************************************************************************
+*
+* Summary:
+*  skier on way
+*
+* Return:
+*   num skier on way
+*******************************************************************************/
 uint32_t SkierOnWay()
 {
     return currentSizeBuff;
 }
 
-
+/*******************************************************************************
+* Function Name: LastSecTimeOnWay
+********************************************************************************
+*
+* Summary:
+*  last time skier, sec
+*
+* Return:
+*   time second on way
+*******************************************************************************/
 uint32_t LastSecTimeOnWay()
 {
     uint32_t tmpData;
@@ -148,6 +194,16 @@ uint32_t LastSecTimeOnWay()
     return tmpData;
 }
 
+/*******************************************************************************
+* Function Name: LastMillsTimeOnWay
+********************************************************************************
+*
+* Summary:
+*  last time skier, milliseconds
+*
+* Return:
+*   time milliseconds on way
+*******************************************************************************/
 uint32_t LastMillsTimeOnWay()
 {
     uint32_t tmpData;
