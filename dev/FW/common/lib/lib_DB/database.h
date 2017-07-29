@@ -13,6 +13,7 @@
     
 typedef struct 
 {
+    uint8_t  idSkier;
     uint64_t unixStartSkier;
     uint16_t millsStartSkier;
     uint64_t unixFinishSkier;
@@ -26,7 +27,7 @@ typedef struct
 uint32_t DataBaseStart(void);       //init log to SD card
 void InitBuff(void);                    //init fifo
 
-void WriteStartTime(uint64_t unixTime, uint16_t mills);
+void WriteStartTime(uint8_t id, uint64_t unixTime, uint16_t mills);
 void WriteFinishTime(uint64_t unixTime, uint16_t mills);
 
 uint32_t SkierOnWay(void);

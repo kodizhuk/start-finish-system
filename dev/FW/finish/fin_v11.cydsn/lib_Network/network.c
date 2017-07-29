@@ -223,7 +223,7 @@ void CustomInterruptHandler(void)
                         /*if new skier on track*/
                         if(inData.newSkier == NEW_SKIER_IN_TARCK )
                         {
-                            WriteStartTime(inData.unixStartTime, inData.startMsTime);
+                            WriteStartTime(5,inData.unixStartTime, inData.startMsTime);
                             BLE_sendOneSkierTimeStart(inData.unixStartTime, 
                                                         inData.startMsTime,
                                                         GetIDskierStarted(),

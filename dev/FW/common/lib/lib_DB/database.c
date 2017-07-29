@@ -3,11 +3,12 @@
 
 #define BUFFER_SIZE         MAX_SKIERS_ON_WAY
 
-void putSkiOnWay(uint64_t unixTime, uint16_t mills);
-void getSkiFromWay(uint64_t *unixTime, uint16_t *mills);
+void putSkiOnWay(uint8_t id, uint64_t unixTime, uint16_t mills);
+void getSkiFromWay(uint8_t *id, uint64_t *unixTime, uint16_t *mills);
 
 struct elementBuff
 {
+    uint8_t idSkier;
     uint64_t unixStartSkier;
     uint16_t millsStartSkier;
     struct elementBuff* nextSki;
@@ -75,8 +76,9 @@ void InitBuff()
 *  save start time skier
 *
 *******************************************************************************/
-void putSkiOnWay(uint64_t unixTime, uint16_t mills)
+void putSkiOnWay(uint8_t id, uint64_t unixTime, uint16_t mills)
 {
+    currentElementStart->idSkier = id;
     currentElementStart->millsStartSkier = mills;
     currentElementStart->unixStartSkier = unixTime;
     currentElementStart = currentElementStart->nextSki;
@@ -91,8 +93,9 @@ void putSkiOnWay(uint64_t unixTime, uint16_t mills)
 *  get start time skier
 *
 *******************************************************************************/
-void getSkiFromWay(uint64_t *unixTime, uint16_t *mills)
+void getSkiFromWay(uint8_t *id,uint64_t *unixTime, uint16_t *mills)
 {
+    *id = currentElementEnd->idSkier;
     *mills = currentElementEnd->millsStartSkier;
     *unixTime = currentElementEnd->unixStartSkier;
     currentElementStart = currentElementEnd->nextSki;
@@ -107,15 +110,15 @@ void getSkiFromWay(uint64_t *unixTime, uint16_t *mills)
 *  save start time skier
 *
 *******************************************************************************/
-void WriteStartTime(uint64_t unixTime, uint16_t mills)
+void WriteStartTime(uint8_t id, uint64_t unixTime, uint16_t mills)
 {
-    putSkiOnWay(unixTime, mills);
+    putSkiOnWay(id, unixTime, mills);
 }
 
 
 void WriteFinishTime(uint64_t unixTime, uint16_t mills)
 {   
-    getSkiFromWay(&skierDB.unixStartSkier, &skierDB.millsStartSkier);
+    getSkiFromWay(&skierDB.idSkier, &skierDB.unixStartSkier, &skierDB.millsStartSkier);
     skierDB.millsFinishSkier = mills;
     skierDB.unixFinishSkier = unixTime;
     
