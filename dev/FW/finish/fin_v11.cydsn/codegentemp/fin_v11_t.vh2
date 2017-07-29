@@ -1,6 +1,6 @@
 -- Project:   D:\Cypress\system-start-finish\dev\FW\finish\fin_v11.cydsn\fin_v11.cyprj
--- Generated: 05/10/2017 21:09:46
--- PSoC Creator  4.0
+-- Generated: 07/27/2017 23:33:59
+-- PSoC Creator  4.1
 
 ENTITY fin_v11 IS
     PORT(
@@ -96,6 +96,7 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
     SIGNAL Net_622 : bit;
     SIGNAL Net_623_ff8 : bit;
     ATTRIBUTE global_signal OF Net_623_ff8 : SIGNAL IS true;
+    SIGNAL Net_625 : bit;
     SIGNAL Pin_testMode(0)__PA : bit;
     SIGNAL RST(0)__PA : bit;
     SIGNAL SD_CS(0)__PA : bit;
@@ -156,7 +157,6 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
     SIGNAL \\\UART_XB:tx(0)\\__PA\ : bit;
     SIGNAL \UART_XB:tx_wire\ : bit;
     SIGNAL \ble:Net_15\ : bit;
-    SIGNAL \ble:Net_63\ : bit;
     SIGNAL \pwm:PWMUDB:cmp1_less\ : bit;
     SIGNAL \pwm:PWMUDB:control_0\ : bit;
     SIGNAL \pwm:PWMUDB:control_1\ : bit;
@@ -243,12 +243,12 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
     ATTRIBUTE Location OF \pwm:PWMUDB:status_2\ : LABEL IS "U(0,0)";
     ATTRIBUTE Location OF \I2C:SCB_IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(10)]";
     ATTRIBUTE Location OF \I2C:SCB\ : LABEL IS "F(SCB,1)";
-    ATTRIBUTE Location OF \Timer_LED:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,1)";
-    ATTRIBUTE Location OF Int_Timer_Led : LABEL IS "[IntrContainer=(0)][IntrId=(18)]";
+    ATTRIBUTE Location OF \Timer_LED:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,0)";
+    ATTRIBUTE Location OF Int_Timer_Led : LABEL IS "[IntrContainer=(0)][IntrId=(17)]";
     ATTRIBUTE Location OF \UART_XB:SCB_IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(9)]";
     ATTRIBUTE Location OF \UART_XB:SCB\ : LABEL IS "F(SCB,0)";
-    ATTRIBUTE Location OF \TimerTestMode:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,2)";
-    ATTRIBUTE Location OF Int_timerTestMode : LABEL IS "[IntrContainer=(0)][IntrId=(19)]";
+    ATTRIBUTE Location OF \TimerTestMode:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,1)";
+    ATTRIBUTE Location OF Int_timerTestMode : LABEL IS "[IntrContainer=(0)][IntrId=(18)]";
     ATTRIBUTE Location OF GATE_INT : LABEL IS "[IntrContainer=(0)][IntrId=(1)]";
     ATTRIBUTE Location OF \ble:cy_m0s8_ble\ : LABEL IS "F(BLE,0)";
     ATTRIBUTE Location OF \ble:bless_isr\ : LABEL IS "[IntrContainer=(0)][IntrId=(12)]";
@@ -260,8 +260,8 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
     ATTRIBUTE Location OF \pwm:PWMUDB:sP8:pwmdp:u0\ : LABEL IS "U(0,0)";
     ATTRIBUTE Location OF \ADC:IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(15)]";
     ATTRIBUTE Location OF \ADC:cy_psoc4_sar\ : LABEL IS "F(SARADC,0)";
-    ATTRIBUTE Location OF \Timer:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,0)";
-    ATTRIBUTE Location OF isr_timer : LABEL IS "[IntrContainer=(0)][IntrId=(17)]";
+    ATTRIBUTE Location OF \Timer:cy_m0s8_tcpwm_1\ : LABEL IS "F(TCPWM,2)";
+    ATTRIBUTE Location OF isr_timer : LABEL IS "[IntrContainer=(0)][IntrId=(19)]";
     ATTRIBUTE lib_model OF \pwm:PWMUDB:runmode_enable\ : LABEL IS "macrocell4";
     ATTRIBUTE Location OF \pwm:PWMUDB:runmode_enable\ : LABEL IS "U(0,0)";
     ATTRIBUTE lib_model OF \pwm:PWMUDB:prevCompare1\ : LABEL IS "macrocell5";
@@ -542,10 +542,10 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
         PORT (
             clock : IN std_ulogic;
             interrupt : OUT std_ulogic;
-            cts : IN std_ulogic;
-            rts : OUT std_ulogic;
-            rx : IN std_ulogic;
-            tx : OUT std_ulogic;
+            uart_cts : IN std_ulogic;
+            uart_rts : OUT std_ulogic;
+            uart_rx : IN std_ulogic;
+            uart_tx : OUT std_ulogic;
             mosi_m : OUT std_ulogic;
             miso_m : IN std_ulogic;
             select_m_0 : OUT std_ulogic;
@@ -557,10 +557,10 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
             miso_s : OUT std_ulogic;
             select_s : IN std_ulogic;
             sclk_s : IN std_ulogic;
-            scl : IN std_ulogic;
-            sda : IN std_ulogic;
-            rx_req : OUT std_ulogic;
-            tx_req : OUT std_ulogic);
+            i2c_scl : IN std_ulogic;
+            i2c_sda : IN std_ulogic;
+            tr_rx_req : OUT std_ulogic;
+            tr_tx_req : OUT std_ulogic);
     END COMPONENT;
     COMPONENT m0s8tcpwmcell
         PORT (
@@ -573,8 +573,8 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
             tr_underflow : OUT std_ulogic;
             tr_overflow : OUT std_ulogic;
             tr_compare_match : OUT std_ulogic;
-            line_out : OUT std_ulogic;
-            line_out_compl : OUT std_ulogic;
+            line : OUT std_ulogic;
+            line_compl : OUT std_ulogic;
             interrupt : OUT std_ulogic);
     END COMPONENT;
     COMPONENT macrocell
@@ -665,7 +665,7 @@ ARCHITECTURE __DEFAULT__ OF fin_v11 IS
             cfg_average : IN std_ulogic;
             cfg_resolution : IN std_ulogic;
             cfg_differential : IN std_ulogic;
-            trigger : IN std_ulogic;
+            tr_sar_in : IN std_ulogic;
             data_hilo_sel : IN std_ulogic;
             swctrl_0 : IN std_ulogic;
             swctrl_1 : IN std_ulogic;
@@ -730,10 +730,10 @@ BEGIN
             dsi_in_0 => ClockBlock_Routed1,
             ff_div_6 => \ADC:Net_1845_ff6\,
             ff_div_1 => \UART_XB:Net_847_ff2\,
-            ff_div_7 => Net_623_ff8,
+            ff_div_7 => Net_53_ff9,
             ff_div_2 => \I2C:Net_847_ff1\,
-            ff_div_8 => Net_53_ff9,
-            ff_div_9 => Net_593_ff7,
+            ff_div_8 => Net_593_ff7,
+            ff_div_9 => Net_623_ff8,
             udb_div_0 => dclk_to_genclk);
 
     \I2C:sda\:logicalport
@@ -2047,13 +2047,13 @@ BEGIN
             port_alias_group => "",
             port_alias_required => 0,
             sio_group_cnt => 0,
-            sio_hifreq => "",
+            sio_hifreq => "00000000",
             sio_hyst => "1",
             sio_ibuf => "00000000",
             sio_info => "00",
             sio_obuf => "00000000",
             sio_refsel => "00000000",
-            sio_vohsel => "",
+            sio_vohsel => "00000000",
             sio_vtrip => "00000000",
             slew_rate => "0",
             spanning => 0,
@@ -2768,10 +2768,10 @@ BEGIN
         PORT MAP(
             clock => \I2C:Net_847_ff1\,
             interrupt => Net_143,
-            rx => open,
-            tx => \I2C:tx_wire\,
-            cts => open,
-            rts => \I2C:rts_wire\,
+            uart_rx => open,
+            uart_tx => \I2C:tx_wire\,
+            uart_cts => open,
+            uart_rts => \I2C:rts_wire\,
             mosi_m => \I2C:mosi_m_wire\,
             miso_m => open,
             select_m_3 => \I2C:select_m_wire_3\,
@@ -2783,10 +2783,10 @@ BEGIN
             miso_s => \I2C:miso_s_wire\,
             select_s => open,
             sclk_s => open,
-            scl => \I2C:scl_wire\,
-            sda => \I2C:sda_wire\,
-            tx_req => Net_146,
-            rx_req => Net_145);
+            i2c_scl => \I2C:scl_wire\,
+            i2c_sda => \I2C:sda_wire\,
+            tr_tx_req => Net_146,
+            tr_rx_req => Net_145);
 
     \Timer_LED:cy_m0s8_tcpwm_1\:m0s8tcpwmcell
         GENERIC MAP(
@@ -2801,8 +2801,8 @@ BEGIN
             tr_underflow => Net_49,
             tr_overflow => Net_48,
             tr_compare_match => Net_50,
-            line_out => Net_51,
-            line_out_compl => Net_52,
+            line => Net_51,
+            line_compl => Net_52,
             interrupt => Net_47);
 
     Int_Timer_Led:interrupt
@@ -2828,10 +2828,10 @@ BEGIN
         PORT MAP(
             clock => \UART_XB:Net_847_ff2\,
             interrupt => Net_124,
-            rx => \UART_XB:rx_wire\,
-            tx => \UART_XB:tx_wire\,
-            cts => open,
-            rts => \UART_XB:rts_wire\,
+            uart_rx => \UART_XB:rx_wire\,
+            uart_tx => \UART_XB:tx_wire\,
+            uart_cts => open,
+            uart_rts => \UART_XB:rts_wire\,
             mosi_m => \UART_XB:mosi_m_wire\,
             miso_m => open,
             select_m_3 => \UART_XB:select_m_wire_3\,
@@ -2843,8 +2843,8 @@ BEGIN
             miso_s => \UART_XB:miso_s_wire\,
             select_s => open,
             sclk_s => open,
-            tx_req => Net_127,
-            rx_req => Net_126);
+            tr_tx_req => Net_127,
+            tr_rx_req => Net_126);
 
     \TimerTestMode:cy_m0s8_tcpwm_1\:m0s8tcpwmcell
         GENERIC MAP(
@@ -2859,8 +2859,8 @@ BEGIN
             tr_underflow => Net_589,
             tr_overflow => Net_588,
             tr_compare_match => Net_590,
-            line_out => Net_591,
-            line_out_compl => Net_592,
+            line => Net_591,
+            line_compl => Net_592,
             interrupt => Net_587);
 
     Int_timerTestMode:interrupt
@@ -2884,7 +2884,7 @@ BEGIN
             cy_registers => "")
         PORT MAP(
             interrupt => \ble:Net_15\,
-            rfctrl_extpa_en => \ble:Net_63\);
+            rfctrl_extpa_en => Net_625);
 
     \ble:bless_isr\:interrupt
         GENERIC MAP(
@@ -3008,7 +3008,7 @@ BEGIN
             cfg_average => open,
             cfg_resolution => open,
             cfg_differential => open,
-            trigger => open,
+            tr_sar_in => open,
             data_hilo_sel => open);
 
     \Timer:cy_m0s8_tcpwm_1\:m0s8tcpwmcell
@@ -3024,8 +3024,8 @@ BEGIN
             tr_underflow => Net_616,
             tr_overflow => Net_615,
             tr_compare_match => Net_617,
-            line_out => Net_618,
-            line_out_compl => Net_619,
+            line => Net_618,
+            line_compl => Net_619,
             interrupt => Net_622);
 
     isr_timer:interrupt

@@ -1,0 +1,2899 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"database.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.DataBaseStart,"ax",%progbits
+  20              		.align	1
+  21              		.global	DataBaseStart
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	DataBaseStart, %function
+  25              	DataBaseStart:
+  26              	.LFB2:
+  27              		.file 1 "..\\..\\common\\lib\\lib_DB\\database.c"
+   1:..\..\common\lib\lib_DB/database.c **** 
+   2:..\..\common\lib\lib_DB/database.c **** #include "..\..\common\lib\lib_DB\database.h"
+   3:..\..\common\lib\lib_DB/database.c **** 
+   4:..\..\common\lib\lib_DB/database.c **** #define BUFFER_SIZE         MAX_SKIERS_ON_WAY
+   5:..\..\common\lib\lib_DB/database.c **** 
+   6:..\..\common\lib\lib_DB/database.c **** void putSkiOnWay(uint64_t unixTime, uint16_t mills);
+   7:..\..\common\lib\lib_DB/database.c **** void getSkiFromWay(uint64_t *unixTime, uint16_t *mills);
+   8:..\..\common\lib\lib_DB/database.c **** 
+   9:..\..\common\lib\lib_DB/database.c **** struct elementBuff
+  10:..\..\common\lib\lib_DB/database.c **** {
+  11:..\..\common\lib\lib_DB/database.c ****     uint64_t unixStartSkier;
+  12:..\..\common\lib\lib_DB/database.c ****     uint16_t millsStartSkier;
+  13:..\..\common\lib\lib_DB/database.c ****     struct elementBuff* nextSki;
+  14:..\..\common\lib\lib_DB/database.c **** } bufferSkiersOnWay[BUFFER_SIZE];
+  15:..\..\common\lib\lib_DB/database.c **** 
+  16:..\..\common\lib\lib_DB/database.c **** typedef struct
+  17:..\..\common\lib\lib_DB/database.c **** {
+  18:..\..\common\lib\lib_DB/database.c ****     uint16_t    size;
+  19:..\..\common\lib\lib_DB/database.c ****     uint16_t    firstElement;                                
+  20:..\..\common\lib\lib_DB/database.c ****     uint16_t    lastElement; 
+  21:..\..\common\lib\lib_DB/database.c ****     
+  22:..\..\common\lib\lib_DB/database.c ****     uint16_t totalSize;
+  23:..\..\common\lib\lib_DB/database.c ****     /*buffer*/
+  24:..\..\common\lib\lib_DB/database.c ****     skierDB_El buffer[MAX_FIFO_SIZE]; 
+  25:..\..\common\lib\lib_DB/database.c ****     /*last output element*/
+  26:..\..\common\lib\lib_DB/database.c ****     skierDB_El last;
+  27:..\..\common\lib\lib_DB/database.c **** }fifoTimeSkier;
+  28:..\..\common\lib\lib_DB/database.c **** 
+  29:..\..\common\lib\lib_DB/database.c **** skierDB_El skierDB;
+  30:..\..\common\lib\lib_DB/database.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 2
+
+
+  31:..\..\common\lib\lib_DB/database.c **** uint32_t currentSizeBuff;
+  32:..\..\common\lib\lib_DB/database.c **** struct elementBuff *currentElementStart;
+  33:..\..\common\lib\lib_DB/database.c **** struct elementBuff *currentElementEnd;
+  34:..\..\common\lib\lib_DB/database.c **** 
+  35:..\..\common\lib\lib_DB/database.c **** fifoTimeSkier fifo;     //if no SD card
+  36:..\..\common\lib\lib_DB/database.c **** 
+  37:..\..\common\lib\lib_DB/database.c **** 
+  38:..\..\common\lib\lib_DB/database.c **** uint32_t DataBaseStart(void)
+  39:..\..\common\lib\lib_DB/database.c **** {
+  28              		.loc 1 39 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 10B5     		push	{r4, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  40:..\..\common\lib\lib_DB/database.c ****     uint8_t result; 
+  41:..\..\common\lib\lib_DB/database.c ****     
+  42:..\..\common\lib\lib_DB/database.c ****     result = LogStart();
+  36              		.loc 1 42 0
+  37 0002 FFF7FEFF 		bl	LogStart
+  38              	.LVL0:
+  43:..\..\common\lib\lib_DB/database.c ****     if(result == FR_OK)
+  44:..\..\common\lib\lib_DB/database.c ****     {
+  45:..\..\common\lib\lib_DB/database.c ****         result = DB_NO_ERROR;
+  46:..\..\common\lib\lib_DB/database.c ****     }else
+  47:..\..\common\lib\lib_DB/database.c ****     {
+  48:..\..\common\lib\lib_DB/database.c ****         result = DB_ERROR;
+  49:..\..\common\lib\lib_DB/database.c ****     }
+  50:..\..\common\lib\lib_DB/database.c ****     return result;
+  39              		.loc 1 50 0
+  40 0006 C0B2     		uxtb	r0, r0
+  41 0008 4342     		rsbs	r3, r0, #0
+  42 000a 5841     		adcs	r0, r0, r3
+  43              	.LVL1:
+  51:..\..\common\lib\lib_DB/database.c **** }
+  44              		.loc 1 51 0
+  45              		@ sp needed
+  46 000c 10BD     		pop	{r4, pc}
+  47              		.cfi_endproc
+  48              	.LFE2:
+  49              		.size	DataBaseStart, .-DataBaseStart
+  50              		.section	.text.InitBuff,"ax",%progbits
+  51              		.align	1
+  52              		.global	InitBuff
+  53              		.code	16
+  54              		.thumb_func
+  55              		.type	InitBuff, %function
+  56              	InitBuff:
+  57              	.LFB3:
+  52:..\..\common\lib\lib_DB/database.c **** 
+  53:..\..\common\lib\lib_DB/database.c **** void InitBuff()
+  54:..\..\common\lib\lib_DB/database.c **** {
+  58              		.loc 1 54 0
+  59              		.cfi_startproc
+  60              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 3
+
+
+  61              		@ frame_needed = 0, uses_anonymous_args = 0
+  62              		@ link register save eliminated.
+  55:..\..\common\lib\lib_DB/database.c ****     uint8_t i;
+  56:..\..\common\lib\lib_DB/database.c ****     
+  57:..\..\common\lib\lib_DB/database.c ****     /*init fifo*/
+  58:..\..\common\lib\lib_DB/database.c ****     fifo.totalSize = MAX_FIFO_SIZE;
+  63              		.loc 1 58 0
+  64 0000 0C22     		movs	r2, #12
+  65 0002 074B     		ldr	r3, .L3
+  59:..\..\common\lib\lib_DB/database.c ****     
+  60:..\..\common\lib\lib_DB/database.c ****     for( i = 0; i< BUFFER_SIZE - 1; i++)
+  61:..\..\common\lib\lib_DB/database.c ****     {
+  62:..\..\common\lib\lib_DB/database.c ****         bufferSkiersOnWay[i].nextSki = &bufferSkiersOnWay[i+1];
+  63:..\..\common\lib\lib_DB/database.c ****     }
+  64:..\..\common\lib\lib_DB/database.c ****     bufferSkiersOnWay[BUFFER_SIZE - 1].nextSki = &bufferSkiersOnWay[0];
+  65:..\..\common\lib\lib_DB/database.c ****     
+  66:..\..\common\lib\lib_DB/database.c ****     currentElementStart = &bufferSkiersOnWay[0];
+  67:..\..\common\lib\lib_DB/database.c ****     currentElementEnd = &bufferSkiersOnWay[0];
+  68:..\..\common\lib\lib_DB/database.c **** }
+  66              		.loc 1 68 0
+  67              		@ sp needed
+  58:..\..\common\lib\lib_DB/database.c ****     
+  68              		.loc 1 58 0
+  69 0004 DA80     		strh	r2, [r3, #6]
+  70              	.LVL2:
+  62:..\..\common\lib\lib_DB/database.c ****     }
+  71              		.loc 1 62 0
+  72 0006 074B     		ldr	r3, .L3+4
+  73 0008 074A     		ldr	r2, .L3+8
+  64:..\..\common\lib\lib_DB/database.c ****     
+  74              		.loc 1 64 0
+  75 000a DB63     		str	r3, [r3, #60]
+  62:..\..\common\lib\lib_DB/database.c ****     }
+  76              		.loc 1 62 0
+  77 000c DA60     		str	r2, [r3, #12]
+  78              	.LVL3:
+  79 000e 074A     		ldr	r2, .L3+12
+  80 0010 DA61     		str	r2, [r3, #28]
+  81              	.LVL4:
+  82 0012 074A     		ldr	r2, .L3+16
+  83 0014 DA62     		str	r2, [r3, #44]
+  84              	.LVL5:
+  66:..\..\common\lib\lib_DB/database.c ****     currentElementEnd = &bufferSkiersOnWay[0];
+  85              		.loc 1 66 0
+  86 0016 074A     		ldr	r2, .L3+20
+  87 0018 1360     		str	r3, [r2]
+  67:..\..\common\lib\lib_DB/database.c **** }
+  88              		.loc 1 67 0
+  89 001a 074A     		ldr	r2, .L3+24
+  90 001c 1360     		str	r3, [r2]
+  91              		.loc 1 68 0
+  92 001e 7047     		bx	lr
+  93              	.L4:
+  94              		.align	2
+  95              	.L3:
+  96 0020 00000000 		.word	fifo
+  97 0024 00000000 		.word	bufferSkiersOnWay
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 4
+
+
+  98 0028 10000000 		.word	bufferSkiersOnWay+16
+  99 002c 20000000 		.word	bufferSkiersOnWay+32
+ 100 0030 30000000 		.word	bufferSkiersOnWay+48
+ 101 0034 00000000 		.word	currentElementStart
+ 102 0038 00000000 		.word	currentElementEnd
+ 103              		.cfi_endproc
+ 104              	.LFE3:
+ 105              		.size	InitBuff, .-InitBuff
+ 106              		.section	.text.putSkiOnWay,"ax",%progbits
+ 107              		.align	1
+ 108              		.global	putSkiOnWay
+ 109              		.code	16
+ 110              		.thumb_func
+ 111              		.type	putSkiOnWay, %function
+ 112              	putSkiOnWay:
+ 113              	.LFB4:
+  69:..\..\common\lib\lib_DB/database.c **** 
+  70:..\..\common\lib\lib_DB/database.c **** /*******************************************************************************
+  71:..\..\common\lib\lib_DB/database.c **** * Function Name: putSkiOnWay
+  72:..\..\common\lib\lib_DB/database.c **** ********************************************************************************
+  73:..\..\common\lib\lib_DB/database.c **** *
+  74:..\..\common\lib\lib_DB/database.c **** * Summary:
+  75:..\..\common\lib\lib_DB/database.c **** *  save start time skier
+  76:..\..\common\lib\lib_DB/database.c **** *
+  77:..\..\common\lib\lib_DB/database.c **** *******************************************************************************/
+  78:..\..\common\lib\lib_DB/database.c **** void putSkiOnWay(uint64_t unixTime, uint16_t mills)
+  79:..\..\common\lib\lib_DB/database.c **** {
+ 114              		.loc 1 79 0
+ 115              		.cfi_startproc
+ 116              		@ args = 0, pretend = 0, frame = 0
+ 117              		@ frame_needed = 0, uses_anonymous_args = 0
+ 118              	.LVL6:
+ 119 0000 30B5     		push	{r4, r5, lr}
+ 120              		.cfi_def_cfa_offset 12
+ 121              		.cfi_offset 4, -12
+ 122              		.cfi_offset 5, -8
+ 123              		.cfi_offset 14, -4
+ 124              		.loc 1 79 0
+ 125 0002 0D00     		movs	r5, r1
+ 126 0004 0400     		movs	r4, r0
+  80:..\..\common\lib\lib_DB/database.c ****     currentElementStart->millsStartSkier = mills;
+ 127              		.loc 1 80 0
+ 128 0006 0649     		ldr	r1, .L6
+  81:..\..\common\lib\lib_DB/database.c ****     currentElementStart->unixStartSkier = unixTime;
+  82:..\..\common\lib\lib_DB/database.c ****     currentElementStart = currentElementStart->nextSki;
+  83:..\..\common\lib\lib_DB/database.c ****     currentSizeBuff++;
+  84:..\..\common\lib\lib_DB/database.c **** }
+ 129              		.loc 1 84 0
+ 130              		@ sp needed
+  80:..\..\common\lib\lib_DB/database.c ****     currentElementStart->millsStartSkier = mills;
+ 131              		.loc 1 80 0
+ 132 0008 0B68     		ldr	r3, [r1]
+  81:..\..\common\lib\lib_DB/database.c ****     currentElementStart->unixStartSkier = unixTime;
+ 133              		.loc 1 81 0
+ 134 000a 1C60     		str	r4, [r3]
+ 135 000c 5D60     		str	r5, [r3, #4]
+  80:..\..\common\lib\lib_DB/database.c ****     currentElementStart->millsStartSkier = mills;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 5
+
+
+ 136              		.loc 1 80 0
+ 137 000e 1A81     		strh	r2, [r3, #8]
+  82:..\..\common\lib\lib_DB/database.c ****     currentSizeBuff++;
+ 138              		.loc 1 82 0
+ 139 0010 DB68     		ldr	r3, [r3, #12]
+  83:..\..\common\lib\lib_DB/database.c **** }
+ 140              		.loc 1 83 0
+ 141 0012 044A     		ldr	r2, .L6+4
+ 142              	.LVL7:
+  82:..\..\common\lib\lib_DB/database.c ****     currentSizeBuff++;
+ 143              		.loc 1 82 0
+ 144 0014 0B60     		str	r3, [r1]
+ 145              	.LVL8:
+  83:..\..\common\lib\lib_DB/database.c **** }
+ 146              		.loc 1 83 0
+ 147 0016 1368     		ldr	r3, [r2]
+ 148 0018 0133     		adds	r3, r3, #1
+ 149 001a 1360     		str	r3, [r2]
+ 150              		.loc 1 84 0
+ 151 001c 30BD     		pop	{r4, r5, pc}
+ 152              	.L7:
+ 153 001e C046     		.align	2
+ 154              	.L6:
+ 155 0020 00000000 		.word	currentElementStart
+ 156 0024 00000000 		.word	currentSizeBuff
+ 157              		.cfi_endproc
+ 158              	.LFE4:
+ 159              		.size	putSkiOnWay, .-putSkiOnWay
+ 160              		.section	.text.getSkiFromWay,"ax",%progbits
+ 161              		.align	1
+ 162              		.global	getSkiFromWay
+ 163              		.code	16
+ 164              		.thumb_func
+ 165              		.type	getSkiFromWay, %function
+ 166              	getSkiFromWay:
+ 167              	.LFB5:
+  85:..\..\common\lib\lib_DB/database.c **** 
+  86:..\..\common\lib\lib_DB/database.c **** /*******************************************************************************
+  87:..\..\common\lib\lib_DB/database.c **** * Function Name: getSkiFromWay
+  88:..\..\common\lib\lib_DB/database.c **** ********************************************************************************
+  89:..\..\common\lib\lib_DB/database.c **** *
+  90:..\..\common\lib\lib_DB/database.c **** * Summary:
+  91:..\..\common\lib\lib_DB/database.c **** *  get start time skier
+  92:..\..\common\lib\lib_DB/database.c **** *
+  93:..\..\common\lib\lib_DB/database.c **** *******************************************************************************/
+  94:..\..\common\lib\lib_DB/database.c **** void getSkiFromWay(uint64_t *unixTime, uint16_t *mills)
+  95:..\..\common\lib\lib_DB/database.c **** {
+ 168              		.loc 1 95 0
+ 169              		.cfi_startproc
+ 170              		@ args = 0, pretend = 0, frame = 0
+ 171              		@ frame_needed = 0, uses_anonymous_args = 0
+ 172              		@ link register save eliminated.
+ 173              	.LVL9:
+  96:..\..\common\lib\lib_DB/database.c ****     *mills = currentElementEnd->millsStartSkier;
+ 174              		.loc 1 96 0
+ 175 0000 074B     		ldr	r3, .L9
+  97:..\..\common\lib\lib_DB/database.c ****     *unixTime = currentElementEnd->unixStartSkier;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 6
+
+
+  98:..\..\common\lib\lib_DB/database.c ****     currentElementStart = currentElementEnd->nextSki;
+  99:..\..\common\lib\lib_DB/database.c ****     currentSizeBuff--;
+ 100:..\..\common\lib\lib_DB/database.c **** }
+ 176              		.loc 1 100 0
+ 177              		@ sp needed
+  96:..\..\common\lib\lib_DB/database.c ****     *mills = currentElementEnd->millsStartSkier;
+ 178              		.loc 1 96 0
+ 179 0002 1B68     		ldr	r3, [r3]
+ 180 0004 1A89     		ldrh	r2, [r3, #8]
+ 181 0006 0A80     		strh	r2, [r1]
+  97:..\..\common\lib\lib_DB/database.c ****     *unixTime = currentElementEnd->unixStartSkier;
+ 182              		.loc 1 97 0
+ 183 0008 1968     		ldr	r1, [r3]
+ 184 000a 5A68     		ldr	r2, [r3, #4]
+ 185              	.LVL10:
+ 186 000c 0160     		str	r1, [r0]
+ 187 000e 4260     		str	r2, [r0, #4]
+  98:..\..\common\lib\lib_DB/database.c ****     currentSizeBuff--;
+ 188              		.loc 1 98 0
+ 189 0010 DA68     		ldr	r2, [r3, #12]
+ 190 0012 044B     		ldr	r3, .L9+4
+ 191 0014 1A60     		str	r2, [r3]
+  99:..\..\common\lib\lib_DB/database.c **** }
+ 192              		.loc 1 99 0
+ 193 0016 044A     		ldr	r2, .L9+8
+ 194 0018 1368     		ldr	r3, [r2]
+ 195 001a 013B     		subs	r3, r3, #1
+ 196 001c 1360     		str	r3, [r2]
+ 197              		.loc 1 100 0
+ 198 001e 7047     		bx	lr
+ 199              	.L10:
+ 200              		.align	2
+ 201              	.L9:
+ 202 0020 00000000 		.word	currentElementEnd
+ 203 0024 00000000 		.word	currentElementStart
+ 204 0028 00000000 		.word	currentSizeBuff
+ 205              		.cfi_endproc
+ 206              	.LFE5:
+ 207              		.size	getSkiFromWay, .-getSkiFromWay
+ 208              		.section	.text.WriteStartTime,"ax",%progbits
+ 209              		.align	1
+ 210              		.global	WriteStartTime
+ 211              		.code	16
+ 212              		.thumb_func
+ 213              		.type	WriteStartTime, %function
+ 214              	WriteStartTime:
+ 215              	.LFB6:
+ 101:..\..\common\lib\lib_DB/database.c **** 
+ 102:..\..\common\lib\lib_DB/database.c **** /*******************************************************************************
+ 103:..\..\common\lib\lib_DB/database.c **** * Function Name: WriteStartTime
+ 104:..\..\common\lib\lib_DB/database.c **** ********************************************************************************
+ 105:..\..\common\lib\lib_DB/database.c **** *
+ 106:..\..\common\lib\lib_DB/database.c **** * Summary:
+ 107:..\..\common\lib\lib_DB/database.c **** *  save start time skier
+ 108:..\..\common\lib\lib_DB/database.c **** *
+ 109:..\..\common\lib\lib_DB/database.c **** *******************************************************************************/
+ 110:..\..\common\lib\lib_DB/database.c **** void WriteStartTime(uint64_t unixTime, uint16_t mills)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 7
+
+
+ 111:..\..\common\lib\lib_DB/database.c **** {
+ 216              		.loc 1 111 0
+ 217              		.cfi_startproc
+ 218              		@ args = 0, pretend = 0, frame = 0
+ 219              		@ frame_needed = 0, uses_anonymous_args = 0
+ 220              	.LVL11:
+ 221 0000 10B5     		push	{r4, lr}
+ 222              		.cfi_def_cfa_offset 8
+ 223              		.cfi_offset 4, -8
+ 224              		.cfi_offset 14, -4
+ 112:..\..\common\lib\lib_DB/database.c ****     putSkiOnWay(unixTime, mills);
+ 225              		.loc 1 112 0
+ 226 0002 FFF7FEFF 		bl	putSkiOnWay
+ 227              	.LVL12:
+ 113:..\..\common\lib\lib_DB/database.c **** }
+ 228              		.loc 1 113 0
+ 229              		@ sp needed
+ 230 0006 10BD     		pop	{r4, pc}
+ 231              		.cfi_endproc
+ 232              	.LFE6:
+ 233              		.size	WriteStartTime, .-WriteStartTime
+ 234              		.section	.text.SkierOnWay,"ax",%progbits
+ 235              		.align	1
+ 236              		.global	SkierOnWay
+ 237              		.code	16
+ 238              		.thumb_func
+ 239              		.type	SkierOnWay, %function
+ 240              	SkierOnWay:
+ 241              	.LFB8:
+ 114:..\..\common\lib\lib_DB/database.c **** 
+ 115:..\..\common\lib\lib_DB/database.c **** 
+ 116:..\..\common\lib\lib_DB/database.c **** void WriteFinishTime(uint64_t unixTime, uint16_t mills)
+ 117:..\..\common\lib\lib_DB/database.c **** {   
+ 118:..\..\common\lib\lib_DB/database.c ****     getSkiFromWay(&skierDB.unixStartSkier, &skierDB.millsStartSkier);
+ 119:..\..\common\lib\lib_DB/database.c ****     skierDB.millsFinishSkier = mills;
+ 120:..\..\common\lib\lib_DB/database.c ****     skierDB.unixFinishSkier = unixTime;
+ 121:..\..\common\lib\lib_DB/database.c ****     
+ 122:..\..\common\lib\lib_DB/database.c ****     /*calculate time on way*/
+ 123:..\..\common\lib\lib_DB/database.c ****     skierDB.secondsWay =  skierDB.unixFinishSkier - skierDB.unixStartSkier;  
+ 124:..\..\common\lib\lib_DB/database.c ****     skierDB.millsWay =  skierDB.millsFinishSkier - skierDB.millsStartSkier;  
+ 125:..\..\common\lib\lib_DB/database.c ****     if (skierDB.millsWay > 1000u)
+ 126:..\..\common\lib\lib_DB/database.c ****     {
+ 127:..\..\common\lib\lib_DB/database.c ****         skierDB.secondsWay--;
+ 128:..\..\common\lib\lib_DB/database.c ****         skierDB.millsWay = 0 - skierDB.millsWay;
+ 129:..\..\common\lib\lib_DB/database.c ****     }
+ 130:..\..\common\lib\lib_DB/database.c ****     FifoPush(skierDB);
+ 131:..\..\common\lib\lib_DB/database.c **** }
+ 132:..\..\common\lib\lib_DB/database.c **** 
+ 133:..\..\common\lib\lib_DB/database.c **** uint32_t SkierOnWay()
+ 134:..\..\common\lib\lib_DB/database.c **** {
+ 242              		.loc 1 134 0
+ 243              		.cfi_startproc
+ 244              		@ args = 0, pretend = 0, frame = 0
+ 245              		@ frame_needed = 0, uses_anonymous_args = 0
+ 246              		@ link register save eliminated.
+ 135:..\..\common\lib\lib_DB/database.c ****     return currentSizeBuff;
+ 247              		.loc 1 135 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 8
+
+
+ 248 0000 014B     		ldr	r3, .L13
+ 136:..\..\common\lib\lib_DB/database.c **** }
+ 249              		.loc 1 136 0
+ 250              		@ sp needed
+ 135:..\..\common\lib\lib_DB/database.c ****     return currentSizeBuff;
+ 251              		.loc 1 135 0
+ 252 0002 1868     		ldr	r0, [r3]
+ 253              		.loc 1 136 0
+ 254 0004 7047     		bx	lr
+ 255              	.L14:
+ 256 0006 C046     		.align	2
+ 257              	.L13:
+ 258 0008 00000000 		.word	currentSizeBuff
+ 259              		.cfi_endproc
+ 260              	.LFE8:
+ 261              		.size	SkierOnWay, .-SkierOnWay
+ 262              		.section	.text.LastSecTimeOnWay,"ax",%progbits
+ 263              		.align	1
+ 264              		.global	LastSecTimeOnWay
+ 265              		.code	16
+ 266              		.thumb_func
+ 267              		.type	LastSecTimeOnWay, %function
+ 268              	LastSecTimeOnWay:
+ 269              	.LFB9:
+ 137:..\..\common\lib\lib_DB/database.c **** 
+ 138:..\..\common\lib\lib_DB/database.c **** 
+ 139:..\..\common\lib\lib_DB/database.c **** uint32_t LastSecTimeOnWay()
+ 140:..\..\common\lib\lib_DB/database.c **** {
+ 270              		.loc 1 140 0
+ 271              		.cfi_startproc
+ 272              		@ args = 0, pretend = 0, frame = 0
+ 273              		@ frame_needed = 0, uses_anonymous_args = 0
+ 274              		@ link register save eliminated.
+ 275              	.LVL13:
+ 141:..\..\common\lib\lib_DB/database.c ****     uint32_t tmpData;
+ 142:..\..\common\lib\lib_DB/database.c ****     
+ 143:..\..\common\lib\lib_DB/database.c ****     tmpData = skierDB.secondsWay;
+ 276              		.loc 1 143 0
+ 277 0000 014B     		ldr	r3, .L16
+ 144:..\..\common\lib\lib_DB/database.c **** 
+ 145:..\..\common\lib\lib_DB/database.c ****     return tmpData;
+ 146:..\..\common\lib\lib_DB/database.c **** }
+ 278              		.loc 1 146 0
+ 279              		@ sp needed
+ 145:..\..\common\lib\lib_DB/database.c **** }
+ 280              		.loc 1 145 0
+ 281 0002 186A     		ldr	r0, [r3, #32]
+ 282              		.loc 1 146 0
+ 283 0004 7047     		bx	lr
+ 284              	.L17:
+ 285 0006 C046     		.align	2
+ 286              	.L16:
+ 287 0008 00000000 		.word	skierDB
+ 288              		.cfi_endproc
+ 289              	.LFE9:
+ 290              		.size	LastSecTimeOnWay, .-LastSecTimeOnWay
+ 291              		.section	.text.LastMillsTimeOnWay,"ax",%progbits
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 9
+
+
+ 292              		.align	1
+ 293              		.global	LastMillsTimeOnWay
+ 294              		.code	16
+ 295              		.thumb_func
+ 296              		.type	LastMillsTimeOnWay, %function
+ 297              	LastMillsTimeOnWay:
+ 298              	.LFB10:
+ 147:..\..\common\lib\lib_DB/database.c **** 
+ 148:..\..\common\lib\lib_DB/database.c **** uint32_t LastMillsTimeOnWay()
+ 149:..\..\common\lib\lib_DB/database.c **** {
+ 299              		.loc 1 149 0
+ 300              		.cfi_startproc
+ 301              		@ args = 0, pretend = 0, frame = 0
+ 302              		@ frame_needed = 0, uses_anonymous_args = 0
+ 303              		@ link register save eliminated.
+ 304              	.LVL14:
+ 150:..\..\common\lib\lib_DB/database.c ****     uint32_t tmpData;
+ 151:..\..\common\lib\lib_DB/database.c **** 
+ 152:..\..\common\lib\lib_DB/database.c ****     tmpData = skierDB.millsWay;
+ 305              		.loc 1 152 0
+ 306 0000 014B     		ldr	r3, .L19
+ 153:..\..\common\lib\lib_DB/database.c **** 
+ 154:..\..\common\lib\lib_DB/database.c ****     return tmpData;
+ 155:..\..\common\lib\lib_DB/database.c **** }
+ 307              		.loc 1 155 0
+ 308              		@ sp needed
+ 154:..\..\common\lib\lib_DB/database.c **** }
+ 309              		.loc 1 154 0
+ 310 0002 188D     		ldrh	r0, [r3, #40]
+ 311              		.loc 1 155 0
+ 312 0004 7047     		bx	lr
+ 313              	.L20:
+ 314 0006 C046     		.align	2
+ 315              	.L19:
+ 316 0008 00000000 		.word	skierDB
+ 317              		.cfi_endproc
+ 318              	.LFE10:
+ 319              		.size	LastMillsTimeOnWay, .-LastMillsTimeOnWay
+ 320              		.section	.text.FifoGetSize,"ax",%progbits
+ 321              		.align	1
+ 322              		.global	FifoGetSize
+ 323              		.code	16
+ 324              		.thumb_func
+ 325              		.type	FifoGetSize, %function
+ 326              	FifoGetSize:
+ 327              	.LFB11:
+ 156:..\..\common\lib\lib_DB/database.c **** 
+ 157:..\..\common\lib\lib_DB/database.c **** 
+ 158:..\..\common\lib\lib_DB/database.c **** /*FIFO*/
+ 159:..\..\common\lib\lib_DB/database.c **** uint16_t FifoGetSize(void)
+ 160:..\..\common\lib\lib_DB/database.c **** {
+ 328              		.loc 1 160 0
+ 329              		.cfi_startproc
+ 330              		@ args = 0, pretend = 0, frame = 0
+ 331              		@ frame_needed = 0, uses_anonymous_args = 0
+ 332              		@ link register save eliminated.
+ 161:..\..\common\lib\lib_DB/database.c ****     return fifo.size;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 10
+
+
+ 333              		.loc 1 161 0
+ 334 0000 014B     		ldr	r3, .L22
+ 162:..\..\common\lib\lib_DB/database.c **** }
+ 335              		.loc 1 162 0
+ 336              		@ sp needed
+ 161:..\..\common\lib\lib_DB/database.c ****     return fifo.size;
+ 337              		.loc 1 161 0
+ 338 0002 1888     		ldrh	r0, [r3]
+ 339              		.loc 1 162 0
+ 340 0004 7047     		bx	lr
+ 341              	.L23:
+ 342 0006 C046     		.align	2
+ 343              	.L22:
+ 344 0008 00000000 		.word	fifo
+ 345              		.cfi_endproc
+ 346              	.LFE11:
+ 347              		.size	FifoGetSize, .-FifoGetSize
+ 348              		.section	.text.FifoPush,"ax",%progbits
+ 349              		.align	1
+ 350              		.global	FifoPush
+ 351              		.code	16
+ 352              		.thumb_func
+ 353              		.type	FifoPush, %function
+ 354              	FifoPush:
+ 355              	.LFB12:
+ 163:..\..\common\lib\lib_DB/database.c **** 
+ 164:..\..\common\lib\lib_DB/database.c **** void FifoPush(skierDB_El data)
+ 165:..\..\common\lib\lib_DB/database.c **** {
+ 356              		.loc 1 165 0
+ 357              		.cfi_startproc
+ 358              		@ args = 48, pretend = 16, frame = 0
+ 359              		@ frame_needed = 0, uses_anonymous_args = 0
+ 360 0000 84B0     		sub	sp, sp, #16
+ 361              		.cfi_def_cfa_offset 16
+ 362 0002 70B5     		push	{r4, r5, r6, lr}
+ 363              		.cfi_def_cfa_offset 32
+ 364              		.cfi_offset 4, -32
+ 365              		.cfi_offset 5, -28
+ 366              		.cfi_offset 6, -24
+ 367              		.cfi_offset 14, -20
+ 166:..\..\common\lib\lib_DB/database.c ****     if (fifo.size<fifo.totalSize)           
+ 368              		.loc 1 166 0
+ 369 0004 0E4C     		ldr	r4, .L29
+ 165:..\..\common\lib\lib_DB/database.c ****     if (fifo.size<fifo.totalSize)           
+ 370              		.loc 1 165 0
+ 371 0006 0793     		str	r3, [sp, #28]
+ 372 0008 0490     		str	r0, [sp, #16]
+ 373 000a 0591     		str	r1, [sp, #20]
+ 374 000c 0692     		str	r2, [sp, #24]
+ 375              		.loc 1 166 0
+ 376 000e 2388     		ldrh	r3, [r4]
+ 377 0010 E688     		ldrh	r6, [r4, #6]
+ 378 0012 B342     		cmp	r3, r6
+ 379 0014 10D2     		bcs	.L24
+ 167:..\..\common\lib\lib_DB/database.c ****     {                                                  
+ 168:..\..\common\lib\lib_DB/database.c ****         ++fifo.size;                               
+ 169:..\..\common\lib\lib_DB/database.c ****                                                        
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 11
+
+
+ 170:..\..\common\lib\lib_DB/database.c ****         fifo.buffer[fifo.lastElement++] = data;  
+ 380              		.loc 1 170 0
+ 381 0016 3022     		movs	r2, #48
+ 382 0018 A088     		ldrh	r0, [r4, #4]
+ 168:..\..\common\lib\lib_DB/database.c ****                                                        
+ 383              		.loc 1 168 0
+ 384 001a 0133     		adds	r3, r3, #1
+ 385              		.loc 1 170 0
+ 386 001c 451C     		adds	r5, r0, #1
+ 387 001e 5043     		muls	r0, r2
+ 388 0020 2018     		adds	r0, r4, r0
+ 389 0022 ADB2     		uxth	r5, r5
+ 390 0024 0830     		adds	r0, r0, #8
+ 391 0026 04A9     		add	r1, sp, #16
+ 168:..\..\common\lib\lib_DB/database.c ****                                                        
+ 392              		.loc 1 168 0
+ 393 0028 2380     		strh	r3, [r4]
+ 394              		.loc 1 170 0
+ 395 002a A580     		strh	r5, [r4, #4]
+ 396 002c FFF7FEFF 		bl	memcpy
+ 397              	.LVL15:
+ 171:..\..\common\lib\lib_DB/database.c ****                                                        
+ 172:..\..\common\lib\lib_DB/database.c ****         if (fifo.lastElement == fifo.totalSize) 
+ 398              		.loc 1 172 0
+ 399 0030 AE42     		cmp	r6, r5
+ 400 0032 01D1     		bne	.L24
+ 173:..\..\common\lib\lib_DB/database.c ****             fifo.lastElement = 0;
+ 401              		.loc 1 173 0
+ 402 0034 0023     		movs	r3, #0
+ 403 0036 A380     		strh	r3, [r4, #4]
+ 404              	.L24:
+ 174:..\..\common\lib\lib_DB/database.c ****     }  
+ 175:..\..\common\lib\lib_DB/database.c **** }
+ 405              		.loc 1 175 0
+ 406              		@ sp needed
+ 407 0038 70BC     		pop	{r4, r5, r6}
+ 408 003a 08BC     		pop	{r3}
+ 409 003c 04B0     		add	sp, sp, #16
+ 410 003e 1847     		bx	r3
+ 411              	.L30:
+ 412              		.align	2
+ 413              	.L29:
+ 414 0040 00000000 		.word	fifo
+ 415              		.cfi_endproc
+ 416              	.LFE12:
+ 417              		.size	FifoPush, .-FifoPush
+ 418              		.section	.text.WriteFinishTime,"ax",%progbits
+ 419              		.align	1
+ 420              		.global	WriteFinishTime
+ 421              		.code	16
+ 422              		.thumb_func
+ 423              		.type	WriteFinishTime, %function
+ 424              	WriteFinishTime:
+ 425              	.LFB7:
+ 117:..\..\common\lib\lib_DB/database.c ****     getSkiFromWay(&skierDB.unixStartSkier, &skierDB.millsStartSkier);
+ 426              		.loc 1 117 0
+ 427              		.cfi_startproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 12
+
+
+ 428              		@ args = 0, pretend = 0, frame = 0
+ 429              		@ frame_needed = 0, uses_anonymous_args = 0
+ 430              	.LVL16:
+ 431 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 432              		.cfi_def_cfa_offset 20
+ 433              		.cfi_offset 4, -20
+ 434              		.cfi_offset 5, -16
+ 435              		.cfi_offset 6, -12
+ 436              		.cfi_offset 7, -8
+ 437              		.cfi_offset 14, -4
+ 438 0002 0600     		movs	r6, r0
+ 439 0004 0F00     		movs	r7, r1
+ 440 0006 1500     		movs	r5, r2
+ 118:..\..\common\lib\lib_DB/database.c ****     skierDB.millsFinishSkier = mills;
+ 441              		.loc 1 118 0
+ 442 0008 154C     		ldr	r4, .L33
+ 117:..\..\common\lib\lib_DB/database.c ****     getSkiFromWay(&skierDB.unixStartSkier, &skierDB.millsStartSkier);
+ 443              		.loc 1 117 0
+ 444 000a 89B0     		sub	sp, sp, #36
+ 445              		.cfi_def_cfa_offset 56
+ 118:..\..\common\lib\lib_DB/database.c ****     skierDB.millsFinishSkier = mills;
+ 446              		.loc 1 118 0
+ 447 000c 1549     		ldr	r1, .L33+4
+ 448 000e 2000     		movs	r0, r4
+ 449              	.LVL17:
+ 450 0010 FFF7FEFF 		bl	getSkiFromWay
+ 451              	.LVL18:
+ 123:..\..\common\lib\lib_DB/database.c ****     skierDB.millsWay =  skierDB.millsFinishSkier - skierDB.millsStartSkier;  
+ 452              		.loc 1 123 0
+ 453 0014 2268     		ldr	r2, [r4]
+ 454 0016 6368     		ldr	r3, [r4, #4]
+ 120:..\..\common\lib\lib_DB/database.c ****     
+ 455              		.loc 1 120 0
+ 456 0018 2661     		str	r6, [r4, #16]
+ 457 001a 6761     		str	r7, [r4, #20]
+ 123:..\..\common\lib\lib_DB/database.c ****     skierDB.millsWay =  skierDB.millsFinishSkier - skierDB.millsStartSkier;  
+ 458              		.loc 1 123 0
+ 459 001c B61A     		subs	r6, r6, r2
+ 460 001e 9F41     		sbcs	r7, r7, r3
+ 124:..\..\common\lib\lib_DB/database.c ****     if (skierDB.millsWay > 1000u)
+ 461              		.loc 1 124 0
+ 462 0020 2389     		ldrh	r3, [r4, #8]
+ 119:..\..\common\lib\lib_DB/database.c ****     skierDB.unixFinishSkier = unixTime;
+ 463              		.loc 1 119 0
+ 464 0022 2583     		strh	r5, [r4, #24]
+ 124:..\..\common\lib\lib_DB/database.c ****     if (skierDB.millsWay > 1000u)
+ 465              		.loc 1 124 0
+ 466 0024 ED1A     		subs	r5, r5, r3
+ 125:..\..\common\lib\lib_DB/database.c ****     {
+ 467              		.loc 1 125 0
+ 468 0026 FA23     		movs	r3, #250
+ 124:..\..\common\lib\lib_DB/database.c ****     if (skierDB.millsWay > 1000u)
+ 469              		.loc 1 124 0
+ 470 0028 ADB2     		uxth	r5, r5
+ 123:..\..\common\lib\lib_DB/database.c ****     skierDB.millsWay =  skierDB.millsFinishSkier - skierDB.millsStartSkier;  
+ 471              		.loc 1 123 0
+ 472 002a 2662     		str	r6, [r4, #32]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 13
+
+
+ 473 002c 6762     		str	r7, [r4, #36]
+ 124:..\..\common\lib\lib_DB/database.c ****     if (skierDB.millsWay > 1000u)
+ 474              		.loc 1 124 0
+ 475 002e 2585     		strh	r5, [r4, #40]
+ 125:..\..\common\lib\lib_DB/database.c ****     {
+ 476              		.loc 1 125 0
+ 477 0030 9B00     		lsls	r3, r3, #2
+ 478 0032 9D42     		cmp	r5, r3
+ 479 0034 08D9     		bls	.L32
+ 127:..\..\common\lib\lib_DB/database.c ****         skierDB.millsWay = 0 - skierDB.millsWay;
+ 480              		.loc 1 127 0
+ 481 0036 0122     		movs	r2, #1
+ 482 0038 5242     		rsbs	r2, r2, #0
+ 483 003a D317     		asrs	r3, r2, #31
+ 484 003c B618     		adds	r6, r6, r2
+ 485 003e 5F41     		adcs	r7, r7, r3
+ 486 0040 2662     		str	r6, [r4, #32]
+ 487 0042 6762     		str	r7, [r4, #36]
+ 128:..\..\common\lib\lib_DB/database.c ****     }
+ 488              		.loc 1 128 0
+ 489 0044 6D42     		rsbs	r5, r5, #0
+ 490 0046 2585     		strh	r5, [r4, #40]
+ 491              	.L32:
+ 130:..\..\common\lib\lib_DB/database.c **** }
+ 492              		.loc 1 130 0
+ 493 0048 2100     		movs	r1, r4
+ 494 004a 2022     		movs	r2, #32
+ 495 004c 1031     		adds	r1, r1, #16
+ 496 004e 6846     		mov	r0, sp
+ 497 0050 FFF7FEFF 		bl	memcpy
+ 498              	.LVL19:
+ 499 0054 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 500 0056 FFF7FEFF 		bl	FifoPush
+ 501              	.LVL20:
+ 131:..\..\common\lib\lib_DB/database.c **** 
+ 502              		.loc 1 131 0
+ 503 005a 09B0     		add	sp, sp, #36
+ 504              		@ sp needed
+ 505 005c F0BD     		pop	{r4, r5, r6, r7, pc}
+ 506              	.L34:
+ 507 005e C046     		.align	2
+ 508              	.L33:
+ 509 0060 00000000 		.word	skierDB
+ 510 0064 08000000 		.word	skierDB+8
+ 511              		.cfi_endproc
+ 512              	.LFE7:
+ 513              		.size	WriteFinishTime, .-WriteFinishTime
+ 514              		.section	.text.FifoGet,"ax",%progbits
+ 515              		.align	1
+ 516              		.global	FifoGet
+ 517              		.code	16
+ 518              		.thumb_func
+ 519              		.type	FifoGet, %function
+ 520              	FifoGet:
+ 521              	.LFB13:
+ 176:..\..\common\lib\lib_DB/database.c **** 
+ 177:..\..\common\lib\lib_DB/database.c **** void FifoGet(skierDB_El *data)                    
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 14
+
+
+ 178:..\..\common\lib\lib_DB/database.c **** {                                                   
+ 522              		.loc 1 178 0
+ 523              		.cfi_startproc
+ 524              		@ args = 0, pretend = 0, frame = 0
+ 525              		@ frame_needed = 0, uses_anonymous_args = 0
+ 526              	.LVL21:
+ 527 0000 70B5     		push	{r4, r5, r6, lr}
+ 528              		.cfi_def_cfa_offset 16
+ 529              		.cfi_offset 4, -16
+ 530              		.cfi_offset 5, -12
+ 531              		.cfi_offset 6, -8
+ 532              		.cfi_offset 14, -4
+ 179:..\..\common\lib\lib_DB/database.c ****     if (fifo.size != 0)                             
+ 533              		.loc 1 179 0
+ 534 0002 0B4C     		ldr	r4, .L41
+ 535 0004 2588     		ldrh	r5, [r4]
+ 536 0006 002D     		cmp	r5, #0
+ 537 0008 10D0     		beq	.L35
+ 180:..\..\common\lib\lib_DB/database.c ****     {                                                           
+ 181:..\..\common\lib\lib_DB/database.c ****         *data = fifo.buffer[fifo.firstElement++];
+ 538              		.loc 1 181 0
+ 539 000a 3022     		movs	r2, #48
+ 540 000c 6188     		ldrh	r1, [r4, #2]
+ 541 000e 4E1C     		adds	r6, r1, #1
+ 542 0010 5143     		muls	r1, r2
+ 543 0012 6118     		adds	r1, r4, r1
+ 544 0014 B6B2     		uxth	r6, r6
+ 545 0016 0831     		adds	r1, r1, #8
+ 546 0018 6680     		strh	r6, [r4, #2]
+ 547 001a FFF7FEFF 		bl	memcpy
+ 548              	.LVL22:
+ 182:..\..\common\lib\lib_DB/database.c ****                                                         
+ 183:..\..\common\lib\lib_DB/database.c ****         if (fifo.firstElement == fifo.totalSize) 
+ 549              		.loc 1 183 0
+ 550 001e E388     		ldrh	r3, [r4, #6]
+ 551 0020 B342     		cmp	r3, r6
+ 552 0022 01D1     		bne	.L37
+ 184:..\..\common\lib\lib_DB/database.c ****             fifo.firstElement = 0;  
+ 553              		.loc 1 184 0
+ 554 0024 0023     		movs	r3, #0
+ 555 0026 6380     		strh	r3, [r4, #2]
+ 556              	.L37:
+ 185:..\..\common\lib\lib_DB/database.c ****         
+ 186:..\..\common\lib\lib_DB/database.c ****         --fifo.size;                               
+ 557              		.loc 1 186 0
+ 558 0028 013D     		subs	r5, r5, #1
+ 559 002a 2580     		strh	r5, [r4]
+ 560              	.L35:
+ 187:..\..\common\lib\lib_DB/database.c ****     }                                                  
+ 188:..\..\common\lib\lib_DB/database.c **** }
+ 561              		.loc 1 188 0
+ 562              		@ sp needed
+ 563 002c 70BD     		pop	{r4, r5, r6, pc}
+ 564              	.L42:
+ 565 002e C046     		.align	2
+ 566              	.L41:
+ 567 0030 00000000 		.word	fifo
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 15
+
+
+ 568              		.cfi_endproc
+ 569              	.LFE13:
+ 570              		.size	FifoGet, .-FifoGet
+ 571              		.section	.text.FifoPushLast,"ax",%progbits
+ 572              		.align	1
+ 573              		.global	FifoPushLast
+ 574              		.code	16
+ 575              		.thumb_func
+ 576              		.type	FifoPushLast, %function
+ 577              	FifoPushLast:
+ 578              	.LFB14:
+ 189:..\..\common\lib\lib_DB/database.c **** 
+ 190:..\..\common\lib\lib_DB/database.c **** void FifoPushLast(skierDB_El data)
+ 191:..\..\common\lib\lib_DB/database.c **** {
+ 579              		.loc 1 191 0
+ 580              		.cfi_startproc
+ 581              		@ args = 48, pretend = 16, frame = 0
+ 582              		@ frame_needed = 0, uses_anonymous_args = 0
+ 583 0000 84B0     		sub	sp, sp, #16
+ 584              		.cfi_def_cfa_offset 16
+ 585 0002 10B5     		push	{r4, lr}
+ 586              		.cfi_def_cfa_offset 24
+ 587              		.cfi_offset 4, -24
+ 588              		.cfi_offset 14, -20
+ 589              		.loc 1 191 0
+ 590 0004 0593     		str	r3, [sp, #20]
+ 192:..\..\common\lib\lib_DB/database.c ****     fifo.last = data;
+ 591              		.loc 1 192 0
+ 592 0006 9223     		movs	r3, #146
+ 191:..\..\common\lib\lib_DB/database.c ****     fifo.last = data;
+ 593              		.loc 1 191 0
+ 594 0008 0290     		str	r0, [sp, #8]
+ 595              		.loc 1 192 0
+ 596 000a 0648     		ldr	r0, .L44
+ 597 000c 9B00     		lsls	r3, r3, #2
+ 191:..\..\common\lib\lib_DB/database.c ****     fifo.last = data;
+ 598              		.loc 1 191 0
+ 599 000e 0391     		str	r1, [sp, #12]
+ 600 0010 0492     		str	r2, [sp, #16]
+ 601              		.loc 1 192 0
+ 602 0012 02A9     		add	r1, sp, #8
+ 603 0014 3022     		movs	r2, #48
+ 604 0016 C018     		adds	r0, r0, r3
+ 605 0018 FFF7FEFF 		bl	memcpy
+ 606              	.LVL23:
+ 193:..\..\common\lib\lib_DB/database.c **** }
+ 607              		.loc 1 193 0
+ 608              		@ sp needed
+ 609 001c 10BC     		pop	{r4}
+ 610 001e 08BC     		pop	{r3}
+ 611 0020 04B0     		add	sp, sp, #16
+ 612 0022 1847     		bx	r3
+ 613              	.L45:
+ 614              		.align	2
+ 615              	.L44:
+ 616 0024 00000000 		.word	fifo
+ 617              		.cfi_endproc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 16
+
+
+ 618              	.LFE14:
+ 619              		.size	FifoPushLast, .-FifoPushLast
+ 620              		.section	.text.FifoGetLast,"ax",%progbits
+ 621              		.align	1
+ 622              		.global	FifoGetLast
+ 623              		.code	16
+ 624              		.thumb_func
+ 625              		.type	FifoGetLast, %function
+ 626              	FifoGetLast:
+ 627              	.LFB15:
+ 194:..\..\common\lib\lib_DB/database.c **** 
+ 195:..\..\common\lib\lib_DB/database.c **** skierDB_El FifoGetLast(void)
+ 196:..\..\common\lib\lib_DB/database.c **** {
+ 628              		.loc 1 196 0
+ 629              		.cfi_startproc
+ 630              		@ args = 0, pretend = 0, frame = 0
+ 631              		@ frame_needed = 0, uses_anonymous_args = 0
+ 632              	.LVL24:
+ 197:..\..\common\lib\lib_DB/database.c ****     return fifo.last;
+ 633              		.loc 1 197 0
+ 634 0000 9223     		movs	r3, #146
+ 196:..\..\common\lib\lib_DB/database.c ****     return fifo.last;
+ 635              		.loc 1 196 0
+ 636 0002 10B5     		push	{r4, lr}
+ 637              		.cfi_def_cfa_offset 8
+ 638              		.cfi_offset 4, -8
+ 639              		.cfi_offset 14, -4
+ 196:..\..\common\lib\lib_DB/database.c ****     return fifo.last;
+ 640              		.loc 1 196 0
+ 641 0004 0400     		movs	r4, r0
+ 642              		.loc 1 197 0
+ 643 0006 0449     		ldr	r1, .L47
+ 644 0008 9B00     		lsls	r3, r3, #2
+ 645 000a 3022     		movs	r2, #48
+ 646 000c C918     		adds	r1, r1, r3
+ 647 000e FFF7FEFF 		bl	memcpy
+ 648              	.LVL25:
+ 198:..\..\common\lib\lib_DB/database.c **** }
+ 649              		.loc 1 198 0
+ 650              		@ sp needed
+ 651 0012 2000     		movs	r0, r4
+ 652              	.LVL26:
+ 653 0014 10BD     		pop	{r4, pc}
+ 654              	.L48:
+ 655 0016 C046     		.align	2
+ 656              	.L47:
+ 657 0018 00000000 		.word	fifo
+ 658              		.cfi_endproc
+ 659              	.LFE15:
+ 660              		.size	FifoGetLast, .-FifoGetLast
+ 661              		.comm	fifo,632,8
+ 662              		.comm	currentElementEnd,4,4
+ 663              		.comm	currentElementStart,4,4
+ 664              		.comm	currentSizeBuff,4,4
+ 665              		.comm	skierDB,48,8
+ 666              		.comm	bufferSkiersOnWay,64,8
+ 667              		.text
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 17
+
+
+ 668              	.Letext0:
+ 669              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 670              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 671              		.file 4 "./..\\..\\common\\lib\\lib_DB\\database.h"
+ 672              		.file 5 "./..\\..\\common\\lib\\lib_Fat\\ff.h"
+ 673              		.file 6 "./..\\..\\common\\lib\\lib_DB\\logResult.h"
+ 674              		.section	.debug_info,"",%progbits
+ 675              	.Ldebug_info0:
+ 676 0000 02060000 		.4byte	0x602
+ 677 0004 0400     		.2byte	0x4
+ 678 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 679 000a 04       		.byte	0x4
+ 680 000b 01       		.uleb128 0x1
+ 681 000c 90020000 		.4byte	.LASF82
+ 682 0010 0C       		.byte	0xc
+ 683 0011 40030000 		.4byte	.LASF83
+ 684 0015 9D030000 		.4byte	.LASF84
+ 685 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 686 001d 00000000 		.4byte	0
+ 687 0021 00000000 		.4byte	.Ldebug_line0
+ 688 0025 02       		.uleb128 0x2
+ 689 0026 08       		.byte	0x8
+ 690 0027 07       		.byte	0x7
+ 691 0028 4C000000 		.4byte	.LASF0
+ 692 002c 02       		.uleb128 0x2
+ 693 002d 01       		.byte	0x1
+ 694 002e 06       		.byte	0x6
+ 695 002f 98000000 		.4byte	.LASF1
+ 696 0033 03       		.uleb128 0x3
+ 697 0034 42000000 		.4byte	.LASF4
+ 698 0038 02       		.byte	0x2
+ 699 0039 1D       		.byte	0x1d
+ 700 003a 3E000000 		.4byte	0x3e
+ 701 003e 02       		.uleb128 0x2
+ 702 003f 01       		.byte	0x1
+ 703 0040 08       		.byte	0x8
+ 704 0041 D8030000 		.4byte	.LASF2
+ 705 0045 02       		.uleb128 0x2
+ 706 0046 02       		.byte	0x2
+ 707 0047 05       		.byte	0x5
+ 708 0048 F2030000 		.4byte	.LASF3
+ 709 004c 03       		.uleb128 0x3
+ 710 004d 70040000 		.4byte	.LASF5
+ 711 0051 02       		.byte	0x2
+ 712 0052 2B       		.byte	0x2b
+ 713 0053 57000000 		.4byte	0x57
+ 714 0057 02       		.uleb128 0x2
+ 715 0058 02       		.byte	0x2
+ 716 0059 07       		.byte	0x7
+ 717 005a EC010000 		.4byte	.LASF6
+ 718 005e 02       		.uleb128 0x2
+ 719 005f 04       		.byte	0x4
+ 720 0060 05       		.byte	0x5
+ 721 0061 D7000000 		.4byte	.LASF7
+ 722 0065 03       		.uleb128 0x3
+ 723 0066 71010000 		.4byte	.LASF8
+ 724 006a 02       		.byte	0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 18
+
+
+ 725 006b 41       		.byte	0x41
+ 726 006c 70000000 		.4byte	0x70
+ 727 0070 02       		.uleb128 0x2
+ 728 0071 04       		.byte	0x4
+ 729 0072 07       		.byte	0x7
+ 730 0073 A9010000 		.4byte	.LASF9
+ 731 0077 02       		.uleb128 0x2
+ 732 0078 08       		.byte	0x8
+ 733 0079 05       		.byte	0x5
+ 734 007a 8A000000 		.4byte	.LASF10
+ 735 007e 03       		.uleb128 0x3
+ 736 007f 82030000 		.4byte	.LASF11
+ 737 0083 02       		.byte	0x2
+ 738 0084 5B       		.byte	0x5b
+ 739 0085 25000000 		.4byte	0x25
+ 740 0089 04       		.uleb128 0x4
+ 741 008a 04       		.byte	0x4
+ 742 008b 05       		.byte	0x5
+ 743 008c 696E7400 		.ascii	"int\000"
+ 744 0090 02       		.uleb128 0x2
+ 745 0091 04       		.byte	0x4
+ 746 0092 07       		.byte	0x7
+ 747 0093 82010000 		.4byte	.LASF12
+ 748 0097 03       		.uleb128 0x3
+ 749 0098 B9040000 		.4byte	.LASF13
+ 750 009c 03       		.byte	0x3
+ 751 009d 18       		.byte	0x18
+ 752 009e 33000000 		.4byte	0x33
+ 753 00a2 03       		.uleb128 0x3
+ 754 00a3 28010000 		.4byte	.LASF14
+ 755 00a7 03       		.byte	0x3
+ 756 00a8 24       		.byte	0x24
+ 757 00a9 4C000000 		.4byte	0x4c
+ 758 00ad 03       		.uleb128 0x3
+ 759 00ae 62040000 		.4byte	.LASF15
+ 760 00b2 03       		.byte	0x3
+ 761 00b3 30       		.byte	0x30
+ 762 00b4 65000000 		.4byte	0x65
+ 763 00b8 03       		.uleb128 0x3
+ 764 00b9 39000000 		.4byte	.LASF16
+ 765 00bd 03       		.byte	0x3
+ 766 00be 3C       		.byte	0x3c
+ 767 00bf 7E000000 		.4byte	0x7e
+ 768 00c3 02       		.uleb128 0x2
+ 769 00c4 04       		.byte	0x4
+ 770 00c5 04       		.byte	0x4
+ 771 00c6 8D030000 		.4byte	.LASF17
+ 772 00ca 02       		.uleb128 0x2
+ 773 00cb 08       		.byte	0x8
+ 774 00cc 04       		.byte	0x4
+ 775 00cd 31010000 		.4byte	.LASF18
+ 776 00d1 02       		.uleb128 0x2
+ 777 00d2 01       		.byte	0x1
+ 778 00d3 08       		.byte	0x8
+ 779 00d4 6B040000 		.4byte	.LASF19
+ 780 00d8 02       		.uleb128 0x2
+ 781 00d9 08       		.byte	0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 19
+
+
+ 782 00da 04       		.byte	0x4
+ 783 00db 72020000 		.4byte	.LASF20
+ 784 00df 02       		.uleb128 0x2
+ 785 00e0 04       		.byte	0x4
+ 786 00e1 07       		.byte	0x7
+ 787 00e2 69020000 		.4byte	.LASF21
+ 788 00e6 05       		.uleb128 0x5
+ 789 00e7 30       		.byte	0x30
+ 790 00e8 04       		.byte	0x4
+ 791 00e9 0E       		.byte	0xe
+ 792 00ea 37010000 		.4byte	0x137
+ 793 00ee 06       		.uleb128 0x6
+ 794 00ef 4B020000 		.4byte	.LASF22
+ 795 00f3 04       		.byte	0x4
+ 796 00f4 10       		.byte	0x10
+ 797 00f5 B8000000 		.4byte	0xb8
+ 798 00f9 00       		.byte	0
+ 799 00fa 06       		.uleb128 0x6
+ 800 00fb 63000000 		.4byte	.LASF23
+ 801 00ff 04       		.byte	0x4
+ 802 0100 11       		.byte	0x11
+ 803 0101 A2000000 		.4byte	0xa2
+ 804 0105 08       		.byte	0x8
+ 805 0106 06       		.uleb128 0x6
+ 806 0107 63030000 		.4byte	.LASF24
+ 807 010b 04       		.byte	0x4
+ 808 010c 12       		.byte	0x12
+ 809 010d B8000000 		.4byte	0xb8
+ 810 0111 10       		.byte	0x10
+ 811 0112 06       		.uleb128 0x6
+ 812 0113 51040000 		.4byte	.LASF25
+ 813 0117 04       		.byte	0x4
+ 814 0118 13       		.byte	0x13
+ 815 0119 A2000000 		.4byte	0xa2
+ 816 011d 18       		.byte	0x18
+ 817 011e 06       		.uleb128 0x6
+ 818 011f BB010000 		.4byte	.LASF26
+ 819 0123 04       		.byte	0x4
+ 820 0124 14       		.byte	0x14
+ 821 0125 B8000000 		.4byte	0xb8
+ 822 0129 20       		.byte	0x20
+ 823 012a 06       		.uleb128 0x6
+ 824 012b 97040000 		.4byte	.LASF27
+ 825 012f 04       		.byte	0x4
+ 826 0130 15       		.byte	0x15
+ 827 0131 A2000000 		.4byte	0xa2
+ 828 0135 28       		.byte	0x28
+ 829 0136 00       		.byte	0
+ 830 0137 03       		.uleb128 0x3
+ 831 0138 E0000000 		.4byte	.LASF28
+ 832 013c 04       		.byte	0x4
+ 833 013d 16       		.byte	0x16
+ 834 013e E6000000 		.4byte	0xe6
+ 835 0142 07       		.uleb128 0x7
+ 836 0143 01       		.byte	0x1
+ 837 0144 3E000000 		.4byte	0x3e
+ 838 0148 05       		.byte	0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 20
+
+
+ 839 0149 DC       		.byte	0xdc
+ 840 014a C7010000 		.4byte	0x1c7
+ 841 014e 08       		.uleb128 0x8
+ 842 014f 7B040000 		.4byte	.LASF29
+ 843 0153 00       		.byte	0
+ 844 0154 08       		.uleb128 0x8
+ 845 0155 17020000 		.4byte	.LASF30
+ 846 0159 01       		.byte	0x1
+ 847 015a 08       		.uleb128 0x8
+ 848 015b 0C020000 		.4byte	.LASF31
+ 849 015f 02       		.byte	0x2
+ 850 0160 08       		.uleb128 0x8
+ 851 0161 00000000 		.4byte	.LASF32
+ 852 0165 03       		.byte	0x3
+ 853 0166 08       		.uleb128 0x8
+ 854 0167 35030000 		.4byte	.LASF33
+ 855 016b 04       		.byte	0x4
+ 856 016c 08       		.uleb128 0x8
+ 857 016d C6040000 		.4byte	.LASF34
+ 858 0171 05       		.byte	0x5
+ 859 0172 08       		.uleb128 0x8
+ 860 0173 A0040000 		.4byte	.LASF35
+ 861 0177 06       		.byte	0x6
+ 862 0178 08       		.uleb128 0x8
+ 863 0179 2D040000 		.4byte	.LASF36
+ 864 017d 07       		.byte	0x7
+ 865 017e 08       		.uleb128 0x8
+ 866 017f 4B010000 		.4byte	.LASF37
+ 867 0183 08       		.byte	0x8
+ 868 0184 08       		.uleb128 0x8
+ 869 0185 C5000000 		.4byte	.LASF38
+ 870 0189 09       		.byte	0x9
+ 871 018a 08       		.uleb128 0x8
+ 872 018b 30020000 		.4byte	.LASF39
+ 873 018f 0A       		.byte	0xa
+ 874 0190 08       		.uleb128 0x8
+ 875 0191 FC030000 		.4byte	.LASF40
+ 876 0195 0B       		.byte	0xb
+ 877 0196 08       		.uleb128 0x8
+ 878 0197 73030000 		.4byte	.LASF41
+ 879 019b 0C       		.byte	0xc
+ 880 019c 08       		.uleb128 0x8
+ 881 019d 17010000 		.4byte	.LASF42
+ 882 01a1 0D       		.byte	0xd
+ 883 01a2 08       		.uleb128 0x8
+ 884 01a3 37040000 		.4byte	.LASF43
+ 885 01a7 0E       		.byte	0xe
+ 886 01a8 08       		.uleb128 0x8
+ 887 01a9 1E030000 		.4byte	.LASF44
+ 888 01ad 0F       		.byte	0xf
+ 889 01ae 08       		.uleb128 0x8
+ 890 01af 47040000 		.4byte	.LASF45
+ 891 01b3 10       		.byte	0x10
+ 892 01b4 08       		.uleb128 0x8
+ 893 01b5 38010000 		.4byte	.LASF46
+ 894 01b9 11       		.byte	0x11
+ 895 01ba 08       		.uleb128 0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 21
+
+
+ 896 01bb 73000000 		.4byte	.LASF47
+ 897 01bf 12       		.byte	0x12
+ 898 01c0 08       		.uleb128 0x8
+ 899 01c1 A4000000 		.4byte	.LASF48
+ 900 01c5 13       		.byte	0x13
+ 901 01c6 00       		.byte	0
+ 902 01c7 09       		.uleb128 0x9
+ 903 01c8 29030000 		.4byte	.LASF85
+ 904 01cc 10       		.byte	0x10
+ 905 01cd 01       		.byte	0x1
+ 906 01ce 09       		.byte	0x9
+ 907 01cf F8010000 		.4byte	0x1f8
+ 908 01d3 06       		.uleb128 0x6
+ 909 01d4 4B020000 		.4byte	.LASF22
+ 910 01d8 01       		.byte	0x1
+ 911 01d9 0B       		.byte	0xb
+ 912 01da B8000000 		.4byte	0xb8
+ 913 01de 00       		.byte	0
+ 914 01df 06       		.uleb128 0x6
+ 915 01e0 63000000 		.4byte	.LASF23
+ 916 01e4 01       		.byte	0x1
+ 917 01e5 0C       		.byte	0xc
+ 918 01e6 A2000000 		.4byte	0xa2
+ 919 01ea 08       		.byte	0x8
+ 920 01eb 06       		.uleb128 0x6
+ 921 01ec 43020000 		.4byte	.LASF49
+ 922 01f0 01       		.byte	0x1
+ 923 01f1 0D       		.byte	0xd
+ 924 01f2 F8010000 		.4byte	0x1f8
+ 925 01f6 0C       		.byte	0xc
+ 926 01f7 00       		.byte	0
+ 927 01f8 0A       		.uleb128 0xa
+ 928 01f9 04       		.byte	0x4
+ 929 01fa C7010000 		.4byte	0x1c7
+ 930 01fe 0B       		.uleb128 0xb
+ 931 01ff 7802     		.2byte	0x278
+ 932 0201 01       		.byte	0x1
+ 933 0202 10       		.byte	0x10
+ 934 0203 51020000 		.4byte	0x251
+ 935 0207 06       		.uleb128 0x6
+ 936 0208 E7010000 		.4byte	.LASF50
+ 937 020c 01       		.byte	0x1
+ 938 020d 12       		.byte	0x12
+ 939 020e A2000000 		.4byte	0xa2
+ 940 0212 00       		.byte	0
+ 941 0213 06       		.uleb128 0x6
+ 942 0214 20040000 		.4byte	.LASF51
+ 943 0218 01       		.byte	0x1
+ 944 0219 13       		.byte	0x13
+ 945 021a A2000000 		.4byte	0xa2
+ 946 021e 02       		.byte	0x2
+ 947 021f 06       		.uleb128 0x6
+ 948 0220 E8040000 		.4byte	.LASF52
+ 949 0224 01       		.byte	0x1
+ 950 0225 14       		.byte	0x14
+ 951 0226 A2000000 		.4byte	0xa2
+ 952 022a 04       		.byte	0x4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 22
+
+
+ 953 022b 06       		.uleb128 0x6
+ 954 022c 93030000 		.4byte	.LASF53
+ 955 0230 01       		.byte	0x1
+ 956 0231 16       		.byte	0x16
+ 957 0232 A2000000 		.4byte	0xa2
+ 958 0236 06       		.byte	0x6
+ 959 0237 06       		.uleb128 0x6
+ 960 0238 89040000 		.4byte	.LASF54
+ 961 023c 01       		.byte	0x1
+ 962 023d 18       		.byte	0x18
+ 963 023e 51020000 		.4byte	0x251
+ 964 0242 08       		.byte	0x8
+ 965 0243 0C       		.uleb128 0xc
+ 966 0244 07020000 		.4byte	.LASF55
+ 967 0248 01       		.byte	0x1
+ 968 0249 1A       		.byte	0x1a
+ 969 024a 37010000 		.4byte	0x137
+ 970 024e 4802     		.2byte	0x248
+ 971 0250 00       		.byte	0
+ 972 0251 0D       		.uleb128 0xd
+ 973 0252 37010000 		.4byte	0x137
+ 974 0256 61020000 		.4byte	0x261
+ 975 025a 0E       		.uleb128 0xe
+ 976 025b DF000000 		.4byte	0xdf
+ 977 025f 0B       		.byte	0xb
+ 978 0260 00       		.byte	0
+ 979 0261 03       		.uleb128 0x3
+ 980 0262 8F010000 		.4byte	.LASF56
+ 981 0266 01       		.byte	0x1
+ 982 0267 1B       		.byte	0x1b
+ 983 0268 FE010000 		.4byte	0x1fe
+ 984 026c 0F       		.uleb128 0xf
+ 985 026d D4010000 		.4byte	.LASF64
+ 986 0271 01       		.byte	0x1
+ 987 0272 26       		.byte	0x26
+ 988 0273 AD000000 		.4byte	0xad
+ 989 0277 00000000 		.4byte	.LFB2
+ 990 027b 0E000000 		.4byte	.LFE2-.LFB2
+ 991 027f 01       		.uleb128 0x1
+ 992 0280 9C       		.byte	0x9c
+ 993 0281 9E020000 		.4byte	0x29e
+ 994 0285 10       		.uleb128 0x10
+ 995 0286 E1040000 		.4byte	.LASF57
+ 996 028a 01       		.byte	0x1
+ 997 028b 28       		.byte	0x28
+ 998 028c 97000000 		.4byte	0x97
+ 999 0290 00000000 		.4byte	.LLST0
+ 1000 0294 11       		.uleb128 0x11
+ 1001 0295 06000000 		.4byte	.LVL0
+ 1002 0299 F1050000 		.4byte	0x5f1
+ 1003 029d 00       		.byte	0
+ 1004 029e 12       		.uleb128 0x12
+ 1005 029f 16000000 		.4byte	.LASF58
+ 1006 02a3 01       		.byte	0x1
+ 1007 02a4 35       		.byte	0x35
+ 1008 02a5 00000000 		.4byte	.LFB3
+ 1009 02a9 3C000000 		.4byte	.LFE3-.LFB3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 23
+
+
+ 1010 02ad 01       		.uleb128 0x1
+ 1011 02ae 9C       		.byte	0x9c
+ 1012 02af C1020000 		.4byte	0x2c1
+ 1013 02b3 13       		.uleb128 0x13
+ 1014 02b4 6900     		.ascii	"i\000"
+ 1015 02b6 01       		.byte	0x1
+ 1016 02b7 37       		.byte	0x37
+ 1017 02b8 97000000 		.4byte	0x97
+ 1018 02bc 19000000 		.4byte	.LLST1
+ 1019 02c0 00       		.byte	0
+ 1020 02c1 12       		.uleb128 0x12
+ 1021 02c2 B9000000 		.4byte	.LASF59
+ 1022 02c6 01       		.byte	0x1
+ 1023 02c7 4E       		.byte	0x4e
+ 1024 02c8 00000000 		.4byte	.LFB4
+ 1025 02cc 28000000 		.4byte	.LFE4-.LFB4
+ 1026 02d0 01       		.uleb128 0x1
+ 1027 02d1 9C       		.byte	0x9c
+ 1028 02d2 F8020000 		.4byte	0x2f8
+ 1029 02d6 14       		.uleb128 0x14
+ 1030 02d7 B0040000 		.4byte	.LASF60
+ 1031 02db 01       		.byte	0x1
+ 1032 02dc 4E       		.byte	0x4e
+ 1033 02dd B8000000 		.4byte	0xb8
+ 1034 02e1 06       		.uleb128 0x6
+ 1035 02e2 50       		.byte	0x50
+ 1036 02e3 93       		.byte	0x93
+ 1037 02e4 04       		.uleb128 0x4
+ 1038 02e5 51       		.byte	0x51
+ 1039 02e6 93       		.byte	0x93
+ 1040 02e7 04       		.uleb128 0x4
+ 1041 02e8 15       		.uleb128 0x15
+ 1042 02e9 7C010000 		.4byte	.LASF61
+ 1043 02ed 01       		.byte	0x1
+ 1044 02ee 4E       		.byte	0x4e
+ 1045 02ef A2000000 		.4byte	0xa2
+ 1046 02f3 51000000 		.4byte	.LLST2
+ 1047 02f7 00       		.byte	0
+ 1048 02f8 12       		.uleb128 0x12
+ 1049 02f9 C6010000 		.4byte	.LASF62
+ 1050 02fd 01       		.byte	0x1
+ 1051 02fe 5E       		.byte	0x5e
+ 1052 02ff 00000000 		.4byte	.LFB5
+ 1053 0303 2C000000 		.4byte	.LFE5-.LFB5
+ 1054 0307 01       		.uleb128 0x1
+ 1055 0308 9C       		.byte	0x9c
+ 1056 0309 2A030000 		.4byte	0x32a
+ 1057 030d 14       		.uleb128 0x14
+ 1058 030e B0040000 		.4byte	.LASF60
+ 1059 0312 01       		.byte	0x1
+ 1060 0313 5E       		.byte	0x5e
+ 1061 0314 2A030000 		.4byte	0x32a
+ 1062 0318 01       		.uleb128 0x1
+ 1063 0319 50       		.byte	0x50
+ 1064 031a 15       		.uleb128 0x15
+ 1065 031b 7C010000 		.4byte	.LASF61
+ 1066 031f 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 24
+
+
+ 1067 0320 5E       		.byte	0x5e
+ 1068 0321 30030000 		.4byte	0x330
+ 1069 0325 84000000 		.4byte	.LLST3
+ 1070 0329 00       		.byte	0
+ 1071 032a 0A       		.uleb128 0xa
+ 1072 032b 04       		.byte	0x4
+ 1073 032c B8000000 		.4byte	0xb8
+ 1074 0330 0A       		.uleb128 0xa
+ 1075 0331 04       		.byte	0x4
+ 1076 0332 A2000000 		.4byte	0xa2
+ 1077 0336 12       		.uleb128 0x12
+ 1078 0337 5A020000 		.4byte	.LASF63
+ 1079 033b 01       		.byte	0x1
+ 1080 033c 6E       		.byte	0x6e
+ 1081 033d 00000000 		.4byte	.LFB6
+ 1082 0341 08000000 		.4byte	.LFE6-.LFB6
+ 1083 0345 01       		.uleb128 0x1
+ 1084 0346 9C       		.byte	0x9c
+ 1085 0347 82030000 		.4byte	0x382
+ 1086 034b 15       		.uleb128 0x15
+ 1087 034c B0040000 		.4byte	.LASF60
+ 1088 0350 01       		.byte	0x1
+ 1089 0351 6E       		.byte	0x6e
+ 1090 0352 B8000000 		.4byte	0xb8
+ 1091 0356 A5000000 		.4byte	.LLST4
+ 1092 035a 15       		.uleb128 0x15
+ 1093 035b 7C010000 		.4byte	.LASF61
+ 1094 035f 01       		.byte	0x1
+ 1095 0360 6E       		.byte	0x6e
+ 1096 0361 A2000000 		.4byte	0xa2
+ 1097 0365 CD000000 		.4byte	.LLST5
+ 1098 0369 16       		.uleb128 0x16
+ 1099 036a 06000000 		.4byte	.LVL12
+ 1100 036e C1020000 		.4byte	0x2c1
+ 1101 0372 17       		.uleb128 0x17
+ 1102 0373 06       		.uleb128 0x6
+ 1103 0374 50       		.byte	0x50
+ 1104 0375 93       		.byte	0x93
+ 1105 0376 04       		.uleb128 0x4
+ 1106 0377 51       		.byte	0x51
+ 1107 0378 93       		.byte	0x93
+ 1108 0379 04       		.uleb128 0x4
+ 1109 037a 05       		.uleb128 0x5
+ 1110 037b F3       		.byte	0xf3
+ 1111 037c 03       		.uleb128 0x3
+ 1112 037d F5       		.byte	0xf5
+ 1113 037e 00       		.uleb128 0
+ 1114 037f 25       		.uleb128 0x25
+ 1115 0380 00       		.byte	0
+ 1116 0381 00       		.byte	0
+ 1117 0382 18       		.uleb128 0x18
+ 1118 0383 FC000000 		.4byte	.LASF68
+ 1119 0387 01       		.byte	0x1
+ 1120 0388 85       		.byte	0x85
+ 1121 0389 AD000000 		.4byte	0xad
+ 1122 038d 00000000 		.4byte	.LFB8
+ 1123 0391 0C000000 		.4byte	.LFE8-.LFB8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 25
+
+
+ 1124 0395 01       		.uleb128 0x1
+ 1125 0396 9C       		.byte	0x9c
+ 1126 0397 0F       		.uleb128 0xf
+ 1127 0398 EB000000 		.4byte	.LASF65
+ 1128 039c 01       		.byte	0x1
+ 1129 039d 8B       		.byte	0x8b
+ 1130 039e AD000000 		.4byte	0xad
+ 1131 03a2 00000000 		.4byte	.LFB9
+ 1132 03a6 0C000000 		.4byte	.LFE9-.LFB9
+ 1133 03aa 01       		.uleb128 0x1
+ 1134 03ab 9C       		.byte	0x9c
+ 1135 03ac C2030000 		.4byte	0x3c2
+ 1136 03b0 19       		.uleb128 0x19
+ 1137 03b1 1F000000 		.4byte	.LASF66
+ 1138 03b5 01       		.byte	0x1
+ 1139 03b6 8D       		.byte	0x8d
+ 1140 03b7 AD000000 		.4byte	0xad
+ 1141 03bb 05       		.uleb128 0x5
+ 1142 03bc 03       		.byte	0x3
+ 1143 03bd 20000000 		.4byte	skierDB+32
+ 1144 03c1 00       		.byte	0
+ 1145 03c2 0F       		.uleb128 0xf
+ 1146 03c3 0D040000 		.4byte	.LASF67
+ 1147 03c7 01       		.byte	0x1
+ 1148 03c8 94       		.byte	0x94
+ 1149 03c9 AD000000 		.4byte	0xad
+ 1150 03cd 00000000 		.4byte	.LFB10
+ 1151 03d1 0C000000 		.4byte	.LFE10-.LFB10
+ 1152 03d5 01       		.uleb128 0x1
+ 1153 03d6 9C       		.byte	0x9c
+ 1154 03d7 F4030000 		.4byte	0x3f4
+ 1155 03db 19       		.uleb128 0x19
+ 1156 03dc 1F000000 		.4byte	.LASF66
+ 1157 03e0 01       		.byte	0x1
+ 1158 03e1 96       		.byte	0x96
+ 1159 03e2 AD000000 		.4byte	0xad
+ 1160 03e6 0C       		.uleb128 0xc
+ 1161 03e7 03       		.byte	0x3
+ 1162 03e8 28000000 		.4byte	skierDB+40
+ 1163 03ec 94       		.byte	0x94
+ 1164 03ed 02       		.byte	0x2
+ 1165 03ee 0A       		.byte	0xa
+ 1166 03ef FFFF     		.2byte	0xffff
+ 1167 03f1 1A       		.byte	0x1a
+ 1168 03f2 9F       		.byte	0x9f
+ 1169 03f3 00       		.byte	0
+ 1170 03f4 18       		.uleb128 0x18
+ 1171 03f5 9D010000 		.4byte	.LASF69
+ 1172 03f9 01       		.byte	0x1
+ 1173 03fa 9F       		.byte	0x9f
+ 1174 03fb A2000000 		.4byte	0xa2
+ 1175 03ff 00000000 		.4byte	.LFB11
+ 1176 0403 0C000000 		.4byte	.LFE11-.LFB11
+ 1177 0407 01       		.uleb128 0x1
+ 1178 0408 9C       		.byte	0x9c
+ 1179 0409 12       		.uleb128 0x12
+ 1180 040a 68010000 		.4byte	.LASF70
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 26
+
+
+ 1181 040e 01       		.byte	0x1
+ 1182 040f A4       		.byte	0xa4
+ 1183 0410 00000000 		.4byte	.LFB12
+ 1184 0414 44000000 		.4byte	.LFE12-.LFB12
+ 1185 0418 01       		.uleb128 0x1
+ 1186 0419 9C       		.byte	0x9c
+ 1187 041a 43040000 		.4byte	0x443
+ 1188 041e 14       		.uleb128 0x14
+ 1189 041f E2010000 		.4byte	.LASF71
+ 1190 0423 01       		.byte	0x1
+ 1191 0424 A4       		.byte	0xa4
+ 1192 0425 37010000 		.4byte	0x137
+ 1193 0429 02       		.uleb128 0x2
+ 1194 042a 91       		.byte	0x91
+ 1195 042b 70       		.sleb128 -16
+ 1196 042c 16       		.uleb128 0x16
+ 1197 042d 30000000 		.4byte	.LVL15
+ 1198 0431 FC050000 		.4byte	0x5fc
+ 1199 0435 17       		.uleb128 0x17
+ 1200 0436 01       		.uleb128 0x1
+ 1201 0437 51       		.byte	0x51
+ 1202 0438 02       		.uleb128 0x2
+ 1203 0439 91       		.byte	0x91
+ 1204 043a 50       		.sleb128 -48
+ 1205 043b 17       		.uleb128 0x17
+ 1206 043c 01       		.uleb128 0x1
+ 1207 043d 52       		.byte	0x52
+ 1208 043e 02       		.uleb128 0x2
+ 1209 043f 08       		.byte	0x8
+ 1210 0440 30       		.byte	0x30
+ 1211 0441 00       		.byte	0
+ 1212 0442 00       		.byte	0
+ 1213 0443 12       		.uleb128 0x12
+ 1214 0444 07010000 		.4byte	.LASF72
+ 1215 0448 01       		.byte	0x1
+ 1216 0449 74       		.byte	0x74
+ 1217 044a 00000000 		.4byte	.LFB7
+ 1218 044e 68000000 		.4byte	.LFE7-.LFB7
+ 1219 0452 01       		.uleb128 0x1
+ 1220 0453 9C       		.byte	0x9c
+ 1221 0454 BD040000 		.4byte	0x4bd
+ 1222 0458 15       		.uleb128 0x15
+ 1223 0459 B0040000 		.4byte	.LASF60
+ 1224 045d 01       		.byte	0x1
+ 1225 045e 74       		.byte	0x74
+ 1226 045f B8000000 		.4byte	0xb8
+ 1227 0463 EE000000 		.4byte	.LLST6
+ 1228 0467 15       		.uleb128 0x15
+ 1229 0468 7C010000 		.4byte	.LASF61
+ 1230 046c 01       		.byte	0x1
+ 1231 046d 74       		.byte	0x74
+ 1232 046e A2000000 		.4byte	0xa2
+ 1233 0472 16010000 		.4byte	.LLST7
+ 1234 0476 1A       		.uleb128 0x1a
+ 1235 0477 14000000 		.4byte	.LVL18
+ 1236 047b F8020000 		.4byte	0x2f8
+ 1237 047f 93040000 		.4byte	0x493
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 27
+
+
+ 1238 0483 17       		.uleb128 0x17
+ 1239 0484 01       		.uleb128 0x1
+ 1240 0485 50       		.byte	0x50
+ 1241 0486 02       		.uleb128 0x2
+ 1242 0487 74       		.byte	0x74
+ 1243 0488 00       		.sleb128 0
+ 1244 0489 17       		.uleb128 0x17
+ 1245 048a 01       		.uleb128 0x1
+ 1246 048b 51       		.byte	0x51
+ 1247 048c 05       		.uleb128 0x5
+ 1248 048d 03       		.byte	0x3
+ 1249 048e 08000000 		.4byte	skierDB+8
+ 1250 0492 00       		.byte	0
+ 1251 0493 1A       		.uleb128 0x1a
+ 1252 0494 54000000 		.4byte	.LVL19
+ 1253 0498 FC050000 		.4byte	0x5fc
+ 1254 049c B3040000 		.4byte	0x4b3
+ 1255 04a0 17       		.uleb128 0x17
+ 1256 04a1 01       		.uleb128 0x1
+ 1257 04a2 50       		.byte	0x50
+ 1258 04a3 02       		.uleb128 0x2
+ 1259 04a4 7D       		.byte	0x7d
+ 1260 04a5 00       		.sleb128 0
+ 1261 04a6 17       		.uleb128 0x17
+ 1262 04a7 01       		.uleb128 0x1
+ 1263 04a8 51       		.byte	0x51
+ 1264 04a9 02       		.uleb128 0x2
+ 1265 04aa 74       		.byte	0x74
+ 1266 04ab 10       		.sleb128 16
+ 1267 04ac 17       		.uleb128 0x17
+ 1268 04ad 01       		.uleb128 0x1
+ 1269 04ae 52       		.byte	0x52
+ 1270 04af 02       		.uleb128 0x2
+ 1271 04b0 08       		.byte	0x8
+ 1272 04b1 20       		.byte	0x20
+ 1273 04b2 00       		.byte	0
+ 1274 04b3 11       		.uleb128 0x11
+ 1275 04b4 5A000000 		.4byte	.LVL20
+ 1276 04b8 09040000 		.4byte	0x409
+ 1277 04bc 00       		.byte	0
+ 1278 04bd 12       		.uleb128 0x12
+ 1279 04be FF010000 		.4byte	.LASF73
+ 1280 04c2 01       		.byte	0x1
+ 1281 04c3 B1       		.byte	0xb1
+ 1282 04c4 00000000 		.4byte	.LFB13
+ 1283 04c8 34000000 		.4byte	.LFE13-.LFB13
+ 1284 04cc 01       		.uleb128 0x1
+ 1285 04cd 9C       		.byte	0x9c
+ 1286 04ce F9040000 		.4byte	0x4f9
+ 1287 04d2 15       		.uleb128 0x15
+ 1288 04d3 E2010000 		.4byte	.LASF71
+ 1289 04d7 01       		.byte	0x1
+ 1290 04d8 B1       		.byte	0xb1
+ 1291 04d9 F9040000 		.4byte	0x4f9
+ 1292 04dd 37010000 		.4byte	.LLST8
+ 1293 04e1 16       		.uleb128 0x16
+ 1294 04e2 1E000000 		.4byte	.LVL22
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 28
+
+
+ 1295 04e6 FC050000 		.4byte	0x5fc
+ 1296 04ea 17       		.uleb128 0x17
+ 1297 04eb 01       		.uleb128 0x1
+ 1298 04ec 50       		.byte	0x50
+ 1299 04ed 03       		.uleb128 0x3
+ 1300 04ee F3       		.byte	0xf3
+ 1301 04ef 01       		.uleb128 0x1
+ 1302 04f0 50       		.byte	0x50
+ 1303 04f1 17       		.uleb128 0x17
+ 1304 04f2 01       		.uleb128 0x1
+ 1305 04f3 52       		.byte	0x52
+ 1306 04f4 02       		.uleb128 0x2
+ 1307 04f5 08       		.byte	0x8
+ 1308 04f6 30       		.byte	0x30
+ 1309 04f7 00       		.byte	0
+ 1310 04f8 00       		.byte	0
+ 1311 04f9 0A       		.uleb128 0xa
+ 1312 04fa 04       		.byte	0x4
+ 1313 04fb 37010000 		.4byte	0x137
+ 1314 04ff 12       		.uleb128 0x12
+ 1315 0500 23020000 		.4byte	.LASF74
+ 1316 0504 01       		.byte	0x1
+ 1317 0505 BE       		.byte	0xbe
+ 1318 0506 00000000 		.4byte	.LFB14
+ 1319 050a 28000000 		.4byte	.LFE14-.LFB14
+ 1320 050e 01       		.uleb128 0x1
+ 1321 050f 9C       		.byte	0x9c
+ 1322 0510 42050000 		.4byte	0x542
+ 1323 0514 14       		.uleb128 0x14
+ 1324 0515 E2010000 		.4byte	.LASF71
+ 1325 0519 01       		.byte	0x1
+ 1326 051a BE       		.byte	0xbe
+ 1327 051b 37010000 		.4byte	0x137
+ 1328 051f 02       		.uleb128 0x2
+ 1329 0520 91       		.byte	0x91
+ 1330 0521 70       		.sleb128 -16
+ 1331 0522 16       		.uleb128 0x16
+ 1332 0523 1C000000 		.4byte	.LVL23
+ 1333 0527 FC050000 		.4byte	0x5fc
+ 1334 052b 17       		.uleb128 0x17
+ 1335 052c 01       		.uleb128 0x1
+ 1336 052d 50       		.byte	0x50
+ 1337 052e 05       		.uleb128 0x5
+ 1338 052f 03       		.byte	0x3
+ 1339 0530 48020000 		.4byte	fifo+584
+ 1340 0534 17       		.uleb128 0x17
+ 1341 0535 01       		.uleb128 0x1
+ 1342 0536 51       		.byte	0x51
+ 1343 0537 02       		.uleb128 0x2
+ 1344 0538 91       		.byte	0x91
+ 1345 0539 50       		.sleb128 -48
+ 1346 053a 17       		.uleb128 0x17
+ 1347 053b 01       		.uleb128 0x1
+ 1348 053c 52       		.byte	0x52
+ 1349 053d 02       		.uleb128 0x2
+ 1350 053e 08       		.byte	0x8
+ 1351 053f 30       		.byte	0x30
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 29
+
+
+ 1352 0540 00       		.byte	0
+ 1353 0541 00       		.byte	0
+ 1354 0542 0F       		.uleb128 0xf
+ 1355 0543 E6030000 		.4byte	.LASF75
+ 1356 0547 01       		.byte	0x1
+ 1357 0548 C3       		.byte	0xc3
+ 1358 0549 37010000 		.4byte	0x137
+ 1359 054d 00000000 		.4byte	.LFB15
+ 1360 0551 1C000000 		.4byte	.LFE15-.LFB15
+ 1361 0555 01       		.uleb128 0x1
+ 1362 0556 9C       		.byte	0x9c
+ 1363 0557 7B050000 		.4byte	0x57b
+ 1364 055b 16       		.uleb128 0x16
+ 1365 055c 12000000 		.4byte	.LVL25
+ 1366 0560 FC050000 		.4byte	0x5fc
+ 1367 0564 17       		.uleb128 0x17
+ 1368 0565 01       		.uleb128 0x1
+ 1369 0566 50       		.byte	0x50
+ 1370 0567 02       		.uleb128 0x2
+ 1371 0568 74       		.byte	0x74
+ 1372 0569 00       		.sleb128 0
+ 1373 056a 17       		.uleb128 0x17
+ 1374 056b 01       		.uleb128 0x1
+ 1375 056c 51       		.byte	0x51
+ 1376 056d 05       		.uleb128 0x5
+ 1377 056e 03       		.byte	0x3
+ 1378 056f 48020000 		.4byte	fifo+584
+ 1379 0573 17       		.uleb128 0x17
+ 1380 0574 01       		.uleb128 0x1
+ 1381 0575 52       		.byte	0x52
+ 1382 0576 02       		.uleb128 0x2
+ 1383 0577 08       		.byte	0x8
+ 1384 0578 30       		.byte	0x30
+ 1385 0579 00       		.byte	0
+ 1386 057a 00       		.byte	0
+ 1387 057b 0D       		.uleb128 0xd
+ 1388 057c C7010000 		.4byte	0x1c7
+ 1389 0580 8B050000 		.4byte	0x58b
+ 1390 0584 0E       		.uleb128 0xe
+ 1391 0585 DF000000 		.4byte	0xdf
+ 1392 0589 03       		.byte	0x3
+ 1393 058a 00       		.byte	0
+ 1394 058b 1B       		.uleb128 0x1b
+ 1395 058c 7E020000 		.4byte	.LASF76
+ 1396 0590 01       		.byte	0x1
+ 1397 0591 0E       		.byte	0xe
+ 1398 0592 7B050000 		.4byte	0x57b
+ 1399 0596 05       		.uleb128 0x5
+ 1400 0597 03       		.byte	0x3
+ 1401 0598 00000000 		.4byte	bufferSkiersOnWay
+ 1402 059c 1B       		.uleb128 0x1b
+ 1403 059d 81040000 		.4byte	.LASF77
+ 1404 05a1 01       		.byte	0x1
+ 1405 05a2 1D       		.byte	0x1d
+ 1406 05a3 37010000 		.4byte	0x137
+ 1407 05a7 05       		.uleb128 0x5
+ 1408 05a8 03       		.byte	0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 30
+
+
+ 1409 05a9 00000000 		.4byte	skierDB
+ 1410 05ad 1B       		.uleb128 0x1b
+ 1411 05ae D1040000 		.4byte	.LASF78
+ 1412 05b2 01       		.byte	0x1
+ 1413 05b3 1F       		.byte	0x1f
+ 1414 05b4 AD000000 		.4byte	0xad
+ 1415 05b8 05       		.uleb128 0x5
+ 1416 05b9 03       		.byte	0x3
+ 1417 05ba 00000000 		.4byte	currentSizeBuff
+ 1418 05be 1B       		.uleb128 0x1b
+ 1419 05bf 54010000 		.4byte	.LASF79
+ 1420 05c3 01       		.byte	0x1
+ 1421 05c4 20       		.byte	0x20
+ 1422 05c5 F8010000 		.4byte	0x1f8
+ 1423 05c9 05       		.uleb128 0x5
+ 1424 05ca 03       		.byte	0x3
+ 1425 05cb 00000000 		.4byte	currentElementStart
+ 1426 05cf 1B       		.uleb128 0x1b
+ 1427 05d0 27000000 		.4byte	.LASF80
+ 1428 05d4 01       		.byte	0x1
+ 1429 05d5 21       		.byte	0x21
+ 1430 05d6 F8010000 		.4byte	0x1f8
+ 1431 05da 05       		.uleb128 0x5
+ 1432 05db 03       		.byte	0x3
+ 1433 05dc 00000000 		.4byte	currentElementEnd
+ 1434 05e0 1B       		.uleb128 0x1b
+ 1435 05e1 C1040000 		.4byte	.LASF81
+ 1436 05e5 01       		.byte	0x1
+ 1437 05e6 23       		.byte	0x23
+ 1438 05e7 61020000 		.4byte	0x261
+ 1439 05eb 05       		.uleb128 0x5
+ 1440 05ec 03       		.byte	0x3
+ 1441 05ed 00000000 		.4byte	fifo
+ 1442 05f1 1C       		.uleb128 0x1c
+ 1443 05f2 0D000000 		.4byte	.LASF86
+ 1444 05f6 0D000000 		.4byte	.LASF86
+ 1445 05fa 06       		.byte	0x6
+ 1446 05fb 09       		.byte	0x9
+ 1447 05fc 1D       		.uleb128 0x1d
+ 1448 05fd 90040000 		.4byte	.LASF87
+ 1449 0601 90040000 		.4byte	.LASF87
+ 1450 0605 00       		.byte	0
+ 1451              		.section	.debug_abbrev,"",%progbits
+ 1452              	.Ldebug_abbrev0:
+ 1453 0000 01       		.uleb128 0x1
+ 1454 0001 11       		.uleb128 0x11
+ 1455 0002 01       		.byte	0x1
+ 1456 0003 25       		.uleb128 0x25
+ 1457 0004 0E       		.uleb128 0xe
+ 1458 0005 13       		.uleb128 0x13
+ 1459 0006 0B       		.uleb128 0xb
+ 1460 0007 03       		.uleb128 0x3
+ 1461 0008 0E       		.uleb128 0xe
+ 1462 0009 1B       		.uleb128 0x1b
+ 1463 000a 0E       		.uleb128 0xe
+ 1464 000b 55       		.uleb128 0x55
+ 1465 000c 17       		.uleb128 0x17
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 31
+
+
+ 1466 000d 11       		.uleb128 0x11
+ 1467 000e 01       		.uleb128 0x1
+ 1468 000f 10       		.uleb128 0x10
+ 1469 0010 17       		.uleb128 0x17
+ 1470 0011 00       		.byte	0
+ 1471 0012 00       		.byte	0
+ 1472 0013 02       		.uleb128 0x2
+ 1473 0014 24       		.uleb128 0x24
+ 1474 0015 00       		.byte	0
+ 1475 0016 0B       		.uleb128 0xb
+ 1476 0017 0B       		.uleb128 0xb
+ 1477 0018 3E       		.uleb128 0x3e
+ 1478 0019 0B       		.uleb128 0xb
+ 1479 001a 03       		.uleb128 0x3
+ 1480 001b 0E       		.uleb128 0xe
+ 1481 001c 00       		.byte	0
+ 1482 001d 00       		.byte	0
+ 1483 001e 03       		.uleb128 0x3
+ 1484 001f 16       		.uleb128 0x16
+ 1485 0020 00       		.byte	0
+ 1486 0021 03       		.uleb128 0x3
+ 1487 0022 0E       		.uleb128 0xe
+ 1488 0023 3A       		.uleb128 0x3a
+ 1489 0024 0B       		.uleb128 0xb
+ 1490 0025 3B       		.uleb128 0x3b
+ 1491 0026 0B       		.uleb128 0xb
+ 1492 0027 49       		.uleb128 0x49
+ 1493 0028 13       		.uleb128 0x13
+ 1494 0029 00       		.byte	0
+ 1495 002a 00       		.byte	0
+ 1496 002b 04       		.uleb128 0x4
+ 1497 002c 24       		.uleb128 0x24
+ 1498 002d 00       		.byte	0
+ 1499 002e 0B       		.uleb128 0xb
+ 1500 002f 0B       		.uleb128 0xb
+ 1501 0030 3E       		.uleb128 0x3e
+ 1502 0031 0B       		.uleb128 0xb
+ 1503 0032 03       		.uleb128 0x3
+ 1504 0033 08       		.uleb128 0x8
+ 1505 0034 00       		.byte	0
+ 1506 0035 00       		.byte	0
+ 1507 0036 05       		.uleb128 0x5
+ 1508 0037 13       		.uleb128 0x13
+ 1509 0038 01       		.byte	0x1
+ 1510 0039 0B       		.uleb128 0xb
+ 1511 003a 0B       		.uleb128 0xb
+ 1512 003b 3A       		.uleb128 0x3a
+ 1513 003c 0B       		.uleb128 0xb
+ 1514 003d 3B       		.uleb128 0x3b
+ 1515 003e 0B       		.uleb128 0xb
+ 1516 003f 01       		.uleb128 0x1
+ 1517 0040 13       		.uleb128 0x13
+ 1518 0041 00       		.byte	0
+ 1519 0042 00       		.byte	0
+ 1520 0043 06       		.uleb128 0x6
+ 1521 0044 0D       		.uleb128 0xd
+ 1522 0045 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 32
+
+
+ 1523 0046 03       		.uleb128 0x3
+ 1524 0047 0E       		.uleb128 0xe
+ 1525 0048 3A       		.uleb128 0x3a
+ 1526 0049 0B       		.uleb128 0xb
+ 1527 004a 3B       		.uleb128 0x3b
+ 1528 004b 0B       		.uleb128 0xb
+ 1529 004c 49       		.uleb128 0x49
+ 1530 004d 13       		.uleb128 0x13
+ 1531 004e 38       		.uleb128 0x38
+ 1532 004f 0B       		.uleb128 0xb
+ 1533 0050 00       		.byte	0
+ 1534 0051 00       		.byte	0
+ 1535 0052 07       		.uleb128 0x7
+ 1536 0053 04       		.uleb128 0x4
+ 1537 0054 01       		.byte	0x1
+ 1538 0055 0B       		.uleb128 0xb
+ 1539 0056 0B       		.uleb128 0xb
+ 1540 0057 49       		.uleb128 0x49
+ 1541 0058 13       		.uleb128 0x13
+ 1542 0059 3A       		.uleb128 0x3a
+ 1543 005a 0B       		.uleb128 0xb
+ 1544 005b 3B       		.uleb128 0x3b
+ 1545 005c 0B       		.uleb128 0xb
+ 1546 005d 01       		.uleb128 0x1
+ 1547 005e 13       		.uleb128 0x13
+ 1548 005f 00       		.byte	0
+ 1549 0060 00       		.byte	0
+ 1550 0061 08       		.uleb128 0x8
+ 1551 0062 28       		.uleb128 0x28
+ 1552 0063 00       		.byte	0
+ 1553 0064 03       		.uleb128 0x3
+ 1554 0065 0E       		.uleb128 0xe
+ 1555 0066 1C       		.uleb128 0x1c
+ 1556 0067 0B       		.uleb128 0xb
+ 1557 0068 00       		.byte	0
+ 1558 0069 00       		.byte	0
+ 1559 006a 09       		.uleb128 0x9
+ 1560 006b 13       		.uleb128 0x13
+ 1561 006c 01       		.byte	0x1
+ 1562 006d 03       		.uleb128 0x3
+ 1563 006e 0E       		.uleb128 0xe
+ 1564 006f 0B       		.uleb128 0xb
+ 1565 0070 0B       		.uleb128 0xb
+ 1566 0071 3A       		.uleb128 0x3a
+ 1567 0072 0B       		.uleb128 0xb
+ 1568 0073 3B       		.uleb128 0x3b
+ 1569 0074 0B       		.uleb128 0xb
+ 1570 0075 01       		.uleb128 0x1
+ 1571 0076 13       		.uleb128 0x13
+ 1572 0077 00       		.byte	0
+ 1573 0078 00       		.byte	0
+ 1574 0079 0A       		.uleb128 0xa
+ 1575 007a 0F       		.uleb128 0xf
+ 1576 007b 00       		.byte	0
+ 1577 007c 0B       		.uleb128 0xb
+ 1578 007d 0B       		.uleb128 0xb
+ 1579 007e 49       		.uleb128 0x49
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 33
+
+
+ 1580 007f 13       		.uleb128 0x13
+ 1581 0080 00       		.byte	0
+ 1582 0081 00       		.byte	0
+ 1583 0082 0B       		.uleb128 0xb
+ 1584 0083 13       		.uleb128 0x13
+ 1585 0084 01       		.byte	0x1
+ 1586 0085 0B       		.uleb128 0xb
+ 1587 0086 05       		.uleb128 0x5
+ 1588 0087 3A       		.uleb128 0x3a
+ 1589 0088 0B       		.uleb128 0xb
+ 1590 0089 3B       		.uleb128 0x3b
+ 1591 008a 0B       		.uleb128 0xb
+ 1592 008b 01       		.uleb128 0x1
+ 1593 008c 13       		.uleb128 0x13
+ 1594 008d 00       		.byte	0
+ 1595 008e 00       		.byte	0
+ 1596 008f 0C       		.uleb128 0xc
+ 1597 0090 0D       		.uleb128 0xd
+ 1598 0091 00       		.byte	0
+ 1599 0092 03       		.uleb128 0x3
+ 1600 0093 0E       		.uleb128 0xe
+ 1601 0094 3A       		.uleb128 0x3a
+ 1602 0095 0B       		.uleb128 0xb
+ 1603 0096 3B       		.uleb128 0x3b
+ 1604 0097 0B       		.uleb128 0xb
+ 1605 0098 49       		.uleb128 0x49
+ 1606 0099 13       		.uleb128 0x13
+ 1607 009a 38       		.uleb128 0x38
+ 1608 009b 05       		.uleb128 0x5
+ 1609 009c 00       		.byte	0
+ 1610 009d 00       		.byte	0
+ 1611 009e 0D       		.uleb128 0xd
+ 1612 009f 01       		.uleb128 0x1
+ 1613 00a0 01       		.byte	0x1
+ 1614 00a1 49       		.uleb128 0x49
+ 1615 00a2 13       		.uleb128 0x13
+ 1616 00a3 01       		.uleb128 0x1
+ 1617 00a4 13       		.uleb128 0x13
+ 1618 00a5 00       		.byte	0
+ 1619 00a6 00       		.byte	0
+ 1620 00a7 0E       		.uleb128 0xe
+ 1621 00a8 21       		.uleb128 0x21
+ 1622 00a9 00       		.byte	0
+ 1623 00aa 49       		.uleb128 0x49
+ 1624 00ab 13       		.uleb128 0x13
+ 1625 00ac 2F       		.uleb128 0x2f
+ 1626 00ad 0B       		.uleb128 0xb
+ 1627 00ae 00       		.byte	0
+ 1628 00af 00       		.byte	0
+ 1629 00b0 0F       		.uleb128 0xf
+ 1630 00b1 2E       		.uleb128 0x2e
+ 1631 00b2 01       		.byte	0x1
+ 1632 00b3 3F       		.uleb128 0x3f
+ 1633 00b4 19       		.uleb128 0x19
+ 1634 00b5 03       		.uleb128 0x3
+ 1635 00b6 0E       		.uleb128 0xe
+ 1636 00b7 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 34
+
+
+ 1637 00b8 0B       		.uleb128 0xb
+ 1638 00b9 3B       		.uleb128 0x3b
+ 1639 00ba 0B       		.uleb128 0xb
+ 1640 00bb 27       		.uleb128 0x27
+ 1641 00bc 19       		.uleb128 0x19
+ 1642 00bd 49       		.uleb128 0x49
+ 1643 00be 13       		.uleb128 0x13
+ 1644 00bf 11       		.uleb128 0x11
+ 1645 00c0 01       		.uleb128 0x1
+ 1646 00c1 12       		.uleb128 0x12
+ 1647 00c2 06       		.uleb128 0x6
+ 1648 00c3 40       		.uleb128 0x40
+ 1649 00c4 18       		.uleb128 0x18
+ 1650 00c5 9742     		.uleb128 0x2117
+ 1651 00c7 19       		.uleb128 0x19
+ 1652 00c8 01       		.uleb128 0x1
+ 1653 00c9 13       		.uleb128 0x13
+ 1654 00ca 00       		.byte	0
+ 1655 00cb 00       		.byte	0
+ 1656 00cc 10       		.uleb128 0x10
+ 1657 00cd 34       		.uleb128 0x34
+ 1658 00ce 00       		.byte	0
+ 1659 00cf 03       		.uleb128 0x3
+ 1660 00d0 0E       		.uleb128 0xe
+ 1661 00d1 3A       		.uleb128 0x3a
+ 1662 00d2 0B       		.uleb128 0xb
+ 1663 00d3 3B       		.uleb128 0x3b
+ 1664 00d4 0B       		.uleb128 0xb
+ 1665 00d5 49       		.uleb128 0x49
+ 1666 00d6 13       		.uleb128 0x13
+ 1667 00d7 02       		.uleb128 0x2
+ 1668 00d8 17       		.uleb128 0x17
+ 1669 00d9 00       		.byte	0
+ 1670 00da 00       		.byte	0
+ 1671 00db 11       		.uleb128 0x11
+ 1672 00dc 898201   		.uleb128 0x4109
+ 1673 00df 00       		.byte	0
+ 1674 00e0 11       		.uleb128 0x11
+ 1675 00e1 01       		.uleb128 0x1
+ 1676 00e2 31       		.uleb128 0x31
+ 1677 00e3 13       		.uleb128 0x13
+ 1678 00e4 00       		.byte	0
+ 1679 00e5 00       		.byte	0
+ 1680 00e6 12       		.uleb128 0x12
+ 1681 00e7 2E       		.uleb128 0x2e
+ 1682 00e8 01       		.byte	0x1
+ 1683 00e9 3F       		.uleb128 0x3f
+ 1684 00ea 19       		.uleb128 0x19
+ 1685 00eb 03       		.uleb128 0x3
+ 1686 00ec 0E       		.uleb128 0xe
+ 1687 00ed 3A       		.uleb128 0x3a
+ 1688 00ee 0B       		.uleb128 0xb
+ 1689 00ef 3B       		.uleb128 0x3b
+ 1690 00f0 0B       		.uleb128 0xb
+ 1691 00f1 27       		.uleb128 0x27
+ 1692 00f2 19       		.uleb128 0x19
+ 1693 00f3 11       		.uleb128 0x11
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 35
+
+
+ 1694 00f4 01       		.uleb128 0x1
+ 1695 00f5 12       		.uleb128 0x12
+ 1696 00f6 06       		.uleb128 0x6
+ 1697 00f7 40       		.uleb128 0x40
+ 1698 00f8 18       		.uleb128 0x18
+ 1699 00f9 9742     		.uleb128 0x2117
+ 1700 00fb 19       		.uleb128 0x19
+ 1701 00fc 01       		.uleb128 0x1
+ 1702 00fd 13       		.uleb128 0x13
+ 1703 00fe 00       		.byte	0
+ 1704 00ff 00       		.byte	0
+ 1705 0100 13       		.uleb128 0x13
+ 1706 0101 34       		.uleb128 0x34
+ 1707 0102 00       		.byte	0
+ 1708 0103 03       		.uleb128 0x3
+ 1709 0104 08       		.uleb128 0x8
+ 1710 0105 3A       		.uleb128 0x3a
+ 1711 0106 0B       		.uleb128 0xb
+ 1712 0107 3B       		.uleb128 0x3b
+ 1713 0108 0B       		.uleb128 0xb
+ 1714 0109 49       		.uleb128 0x49
+ 1715 010a 13       		.uleb128 0x13
+ 1716 010b 02       		.uleb128 0x2
+ 1717 010c 17       		.uleb128 0x17
+ 1718 010d 00       		.byte	0
+ 1719 010e 00       		.byte	0
+ 1720 010f 14       		.uleb128 0x14
+ 1721 0110 05       		.uleb128 0x5
+ 1722 0111 00       		.byte	0
+ 1723 0112 03       		.uleb128 0x3
+ 1724 0113 0E       		.uleb128 0xe
+ 1725 0114 3A       		.uleb128 0x3a
+ 1726 0115 0B       		.uleb128 0xb
+ 1727 0116 3B       		.uleb128 0x3b
+ 1728 0117 0B       		.uleb128 0xb
+ 1729 0118 49       		.uleb128 0x49
+ 1730 0119 13       		.uleb128 0x13
+ 1731 011a 02       		.uleb128 0x2
+ 1732 011b 18       		.uleb128 0x18
+ 1733 011c 00       		.byte	0
+ 1734 011d 00       		.byte	0
+ 1735 011e 15       		.uleb128 0x15
+ 1736 011f 05       		.uleb128 0x5
+ 1737 0120 00       		.byte	0
+ 1738 0121 03       		.uleb128 0x3
+ 1739 0122 0E       		.uleb128 0xe
+ 1740 0123 3A       		.uleb128 0x3a
+ 1741 0124 0B       		.uleb128 0xb
+ 1742 0125 3B       		.uleb128 0x3b
+ 1743 0126 0B       		.uleb128 0xb
+ 1744 0127 49       		.uleb128 0x49
+ 1745 0128 13       		.uleb128 0x13
+ 1746 0129 02       		.uleb128 0x2
+ 1747 012a 17       		.uleb128 0x17
+ 1748 012b 00       		.byte	0
+ 1749 012c 00       		.byte	0
+ 1750 012d 16       		.uleb128 0x16
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 36
+
+
+ 1751 012e 898201   		.uleb128 0x4109
+ 1752 0131 01       		.byte	0x1
+ 1753 0132 11       		.uleb128 0x11
+ 1754 0133 01       		.uleb128 0x1
+ 1755 0134 31       		.uleb128 0x31
+ 1756 0135 13       		.uleb128 0x13
+ 1757 0136 00       		.byte	0
+ 1758 0137 00       		.byte	0
+ 1759 0138 17       		.uleb128 0x17
+ 1760 0139 8A8201   		.uleb128 0x410a
+ 1761 013c 00       		.byte	0
+ 1762 013d 02       		.uleb128 0x2
+ 1763 013e 18       		.uleb128 0x18
+ 1764 013f 9142     		.uleb128 0x2111
+ 1765 0141 18       		.uleb128 0x18
+ 1766 0142 00       		.byte	0
+ 1767 0143 00       		.byte	0
+ 1768 0144 18       		.uleb128 0x18
+ 1769 0145 2E       		.uleb128 0x2e
+ 1770 0146 00       		.byte	0
+ 1771 0147 3F       		.uleb128 0x3f
+ 1772 0148 19       		.uleb128 0x19
+ 1773 0149 03       		.uleb128 0x3
+ 1774 014a 0E       		.uleb128 0xe
+ 1775 014b 3A       		.uleb128 0x3a
+ 1776 014c 0B       		.uleb128 0xb
+ 1777 014d 3B       		.uleb128 0x3b
+ 1778 014e 0B       		.uleb128 0xb
+ 1779 014f 27       		.uleb128 0x27
+ 1780 0150 19       		.uleb128 0x19
+ 1781 0151 49       		.uleb128 0x49
+ 1782 0152 13       		.uleb128 0x13
+ 1783 0153 11       		.uleb128 0x11
+ 1784 0154 01       		.uleb128 0x1
+ 1785 0155 12       		.uleb128 0x12
+ 1786 0156 06       		.uleb128 0x6
+ 1787 0157 40       		.uleb128 0x40
+ 1788 0158 18       		.uleb128 0x18
+ 1789 0159 9742     		.uleb128 0x2117
+ 1790 015b 19       		.uleb128 0x19
+ 1791 015c 00       		.byte	0
+ 1792 015d 00       		.byte	0
+ 1793 015e 19       		.uleb128 0x19
+ 1794 015f 34       		.uleb128 0x34
+ 1795 0160 00       		.byte	0
+ 1796 0161 03       		.uleb128 0x3
+ 1797 0162 0E       		.uleb128 0xe
+ 1798 0163 3A       		.uleb128 0x3a
+ 1799 0164 0B       		.uleb128 0xb
+ 1800 0165 3B       		.uleb128 0x3b
+ 1801 0166 0B       		.uleb128 0xb
+ 1802 0167 49       		.uleb128 0x49
+ 1803 0168 13       		.uleb128 0x13
+ 1804 0169 02       		.uleb128 0x2
+ 1805 016a 18       		.uleb128 0x18
+ 1806 016b 00       		.byte	0
+ 1807 016c 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 37
+
+
+ 1808 016d 1A       		.uleb128 0x1a
+ 1809 016e 898201   		.uleb128 0x4109
+ 1810 0171 01       		.byte	0x1
+ 1811 0172 11       		.uleb128 0x11
+ 1812 0173 01       		.uleb128 0x1
+ 1813 0174 31       		.uleb128 0x31
+ 1814 0175 13       		.uleb128 0x13
+ 1815 0176 01       		.uleb128 0x1
+ 1816 0177 13       		.uleb128 0x13
+ 1817 0178 00       		.byte	0
+ 1818 0179 00       		.byte	0
+ 1819 017a 1B       		.uleb128 0x1b
+ 1820 017b 34       		.uleb128 0x34
+ 1821 017c 00       		.byte	0
+ 1822 017d 03       		.uleb128 0x3
+ 1823 017e 0E       		.uleb128 0xe
+ 1824 017f 3A       		.uleb128 0x3a
+ 1825 0180 0B       		.uleb128 0xb
+ 1826 0181 3B       		.uleb128 0x3b
+ 1827 0182 0B       		.uleb128 0xb
+ 1828 0183 49       		.uleb128 0x49
+ 1829 0184 13       		.uleb128 0x13
+ 1830 0185 3F       		.uleb128 0x3f
+ 1831 0186 19       		.uleb128 0x19
+ 1832 0187 02       		.uleb128 0x2
+ 1833 0188 18       		.uleb128 0x18
+ 1834 0189 00       		.byte	0
+ 1835 018a 00       		.byte	0
+ 1836 018b 1C       		.uleb128 0x1c
+ 1837 018c 2E       		.uleb128 0x2e
+ 1838 018d 00       		.byte	0
+ 1839 018e 3F       		.uleb128 0x3f
+ 1840 018f 19       		.uleb128 0x19
+ 1841 0190 3C       		.uleb128 0x3c
+ 1842 0191 19       		.uleb128 0x19
+ 1843 0192 6E       		.uleb128 0x6e
+ 1844 0193 0E       		.uleb128 0xe
+ 1845 0194 03       		.uleb128 0x3
+ 1846 0195 0E       		.uleb128 0xe
+ 1847 0196 3A       		.uleb128 0x3a
+ 1848 0197 0B       		.uleb128 0xb
+ 1849 0198 3B       		.uleb128 0x3b
+ 1850 0199 0B       		.uleb128 0xb
+ 1851 019a 00       		.byte	0
+ 1852 019b 00       		.byte	0
+ 1853 019c 1D       		.uleb128 0x1d
+ 1854 019d 2E       		.uleb128 0x2e
+ 1855 019e 00       		.byte	0
+ 1856 019f 3F       		.uleb128 0x3f
+ 1857 01a0 19       		.uleb128 0x19
+ 1858 01a1 3C       		.uleb128 0x3c
+ 1859 01a2 19       		.uleb128 0x19
+ 1860 01a3 6E       		.uleb128 0x6e
+ 1861 01a4 0E       		.uleb128 0xe
+ 1862 01a5 03       		.uleb128 0x3
+ 1863 01a6 0E       		.uleb128 0xe
+ 1864 01a7 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 38
+
+
+ 1865 01a8 00       		.byte	0
+ 1866 01a9 00       		.byte	0
+ 1867              		.section	.debug_loc,"",%progbits
+ 1868              	.Ldebug_loc0:
+ 1869              	.LLST0:
+ 1870 0000 06000000 		.4byte	.LVL0
+ 1871 0004 0C000000 		.4byte	.LVL1
+ 1872 0008 0700     		.2byte	0x7
+ 1873 000a 70       		.byte	0x70
+ 1874 000b 00       		.sleb128 0
+ 1875 000c 48       		.byte	0x48
+ 1876 000d 24       		.byte	0x24
+ 1877 000e 30       		.byte	0x30
+ 1878 000f 29       		.byte	0x29
+ 1879 0010 9F       		.byte	0x9f
+ 1880 0011 00000000 		.4byte	0
+ 1881 0015 00000000 		.4byte	0
+ 1882              	.LLST1:
+ 1883 0019 06000000 		.4byte	.LVL2
+ 1884 001d 0E000000 		.4byte	.LVL3
+ 1885 0021 0200     		.2byte	0x2
+ 1886 0023 30       		.byte	0x30
+ 1887 0024 9F       		.byte	0x9f
+ 1888 0025 0E000000 		.4byte	.LVL3
+ 1889 0029 12000000 		.4byte	.LVL4
+ 1890 002d 0200     		.2byte	0x2
+ 1891 002f 31       		.byte	0x31
+ 1892 0030 9F       		.byte	0x9f
+ 1893 0031 12000000 		.4byte	.LVL4
+ 1894 0035 16000000 		.4byte	.LVL5
+ 1895 0039 0200     		.2byte	0x2
+ 1896 003b 32       		.byte	0x32
+ 1897 003c 9F       		.byte	0x9f
+ 1898 003d 16000000 		.4byte	.LVL5
+ 1899 0041 3C000000 		.4byte	.LFE3
+ 1900 0045 0200     		.2byte	0x2
+ 1901 0047 33       		.byte	0x33
+ 1902 0048 9F       		.byte	0x9f
+ 1903 0049 00000000 		.4byte	0
+ 1904 004d 00000000 		.4byte	0
+ 1905              	.LLST2:
+ 1906 0051 00000000 		.4byte	.LVL6
+ 1907 0055 14000000 		.4byte	.LVL7
+ 1908 0059 0100     		.2byte	0x1
+ 1909 005b 52       		.byte	0x52
+ 1910 005c 14000000 		.4byte	.LVL7
+ 1911 0060 16000000 		.4byte	.LVL8
+ 1912 0064 0800     		.2byte	0x8
+ 1913 0066 03       		.byte	0x3
+ 1914 0067 00000000 		.4byte	currentElementStart
+ 1915 006b 06       		.byte	0x6
+ 1916 006c 23       		.byte	0x23
+ 1917 006d 08       		.uleb128 0x8
+ 1918 006e 16000000 		.4byte	.LVL8
+ 1919 0072 28000000 		.4byte	.LFE4
+ 1920 0076 0400     		.2byte	0x4
+ 1921 0078 F3       		.byte	0xf3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 39
+
+
+ 1922 0079 01       		.uleb128 0x1
+ 1923 007a 52       		.byte	0x52
+ 1924 007b 9F       		.byte	0x9f
+ 1925 007c 00000000 		.4byte	0
+ 1926 0080 00000000 		.4byte	0
+ 1927              	.LLST3:
+ 1928 0084 00000000 		.4byte	.LVL9
+ 1929 0088 0C000000 		.4byte	.LVL10
+ 1930 008c 0100     		.2byte	0x1
+ 1931 008e 51       		.byte	0x51
+ 1932 008f 0C000000 		.4byte	.LVL10
+ 1933 0093 2C000000 		.4byte	.LFE5
+ 1934 0097 0400     		.2byte	0x4
+ 1935 0099 F3       		.byte	0xf3
+ 1936 009a 01       		.uleb128 0x1
+ 1937 009b 51       		.byte	0x51
+ 1938 009c 9F       		.byte	0x9f
+ 1939 009d 00000000 		.4byte	0
+ 1940 00a1 00000000 		.4byte	0
+ 1941              	.LLST4:
+ 1942 00a5 00000000 		.4byte	.LVL11
+ 1943 00a9 05000000 		.4byte	.LVL12-1
+ 1944 00ad 0600     		.2byte	0x6
+ 1945 00af 50       		.byte	0x50
+ 1946 00b0 93       		.byte	0x93
+ 1947 00b1 04       		.uleb128 0x4
+ 1948 00b2 51       		.byte	0x51
+ 1949 00b3 93       		.byte	0x93
+ 1950 00b4 04       		.uleb128 0x4
+ 1951 00b5 05000000 		.4byte	.LVL12-1
+ 1952 00b9 08000000 		.4byte	.LFE6
+ 1953 00bd 0600     		.2byte	0x6
+ 1954 00bf F3       		.byte	0xf3
+ 1955 00c0 03       		.uleb128 0x3
+ 1956 00c1 F5       		.byte	0xf5
+ 1957 00c2 00       		.uleb128 0
+ 1958 00c3 25       		.uleb128 0x25
+ 1959 00c4 9F       		.byte	0x9f
+ 1960 00c5 00000000 		.4byte	0
+ 1961 00c9 00000000 		.4byte	0
+ 1962              	.LLST5:
+ 1963 00cd 00000000 		.4byte	.LVL11
+ 1964 00d1 05000000 		.4byte	.LVL12-1
+ 1965 00d5 0100     		.2byte	0x1
+ 1966 00d7 52       		.byte	0x52
+ 1967 00d8 05000000 		.4byte	.LVL12-1
+ 1968 00dc 08000000 		.4byte	.LFE6
+ 1969 00e0 0400     		.2byte	0x4
+ 1970 00e2 F3       		.byte	0xf3
+ 1971 00e3 01       		.uleb128 0x1
+ 1972 00e4 52       		.byte	0x52
+ 1973 00e5 9F       		.byte	0x9f
+ 1974 00e6 00000000 		.4byte	0
+ 1975 00ea 00000000 		.4byte	0
+ 1976              	.LLST6:
+ 1977 00ee 00000000 		.4byte	.LVL16
+ 1978 00f2 10000000 		.4byte	.LVL17
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 40
+
+
+ 1979 00f6 0600     		.2byte	0x6
+ 1980 00f8 50       		.byte	0x50
+ 1981 00f9 93       		.byte	0x93
+ 1982 00fa 04       		.uleb128 0x4
+ 1983 00fb 51       		.byte	0x51
+ 1984 00fc 93       		.byte	0x93
+ 1985 00fd 04       		.uleb128 0x4
+ 1986 00fe 10000000 		.4byte	.LVL17
+ 1987 0102 68000000 		.4byte	.LFE7
+ 1988 0106 0600     		.2byte	0x6
+ 1989 0108 F3       		.byte	0xf3
+ 1990 0109 03       		.uleb128 0x3
+ 1991 010a F5       		.byte	0xf5
+ 1992 010b 00       		.uleb128 0
+ 1993 010c 25       		.uleb128 0x25
+ 1994 010d 9F       		.byte	0x9f
+ 1995 010e 00000000 		.4byte	0
+ 1996 0112 00000000 		.4byte	0
+ 1997              	.LLST7:
+ 1998 0116 00000000 		.4byte	.LVL16
+ 1999 011a 13000000 		.4byte	.LVL18-1
+ 2000 011e 0100     		.2byte	0x1
+ 2001 0120 52       		.byte	0x52
+ 2002 0121 13000000 		.4byte	.LVL18-1
+ 2003 0125 68000000 		.4byte	.LFE7
+ 2004 0129 0400     		.2byte	0x4
+ 2005 012b F3       		.byte	0xf3
+ 2006 012c 01       		.uleb128 0x1
+ 2007 012d 52       		.byte	0x52
+ 2008 012e 9F       		.byte	0x9f
+ 2009 012f 00000000 		.4byte	0
+ 2010 0133 00000000 		.4byte	0
+ 2011              	.LLST8:
+ 2012 0137 00000000 		.4byte	.LVL21
+ 2013 013b 1D000000 		.4byte	.LVL22-1
+ 2014 013f 0100     		.2byte	0x1
+ 2015 0141 50       		.byte	0x50
+ 2016 0142 1D000000 		.4byte	.LVL22-1
+ 2017 0146 34000000 		.4byte	.LFE13
+ 2018 014a 0400     		.2byte	0x4
+ 2019 014c F3       		.byte	0xf3
+ 2020 014d 01       		.uleb128 0x1
+ 2021 014e 50       		.byte	0x50
+ 2022 014f 9F       		.byte	0x9f
+ 2023 0150 00000000 		.4byte	0
+ 2024 0154 00000000 		.4byte	0
+ 2025              		.section	.debug_aranges,"",%progbits
+ 2026 0000 84000000 		.4byte	0x84
+ 2027 0004 0200     		.2byte	0x2
+ 2028 0006 00000000 		.4byte	.Ldebug_info0
+ 2029 000a 04       		.byte	0x4
+ 2030 000b 00       		.byte	0
+ 2031 000c 0000     		.2byte	0
+ 2032 000e 0000     		.2byte	0
+ 2033 0010 00000000 		.4byte	.LFB2
+ 2034 0014 0E000000 		.4byte	.LFE2-.LFB2
+ 2035 0018 00000000 		.4byte	.LFB3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 41
+
+
+ 2036 001c 3C000000 		.4byte	.LFE3-.LFB3
+ 2037 0020 00000000 		.4byte	.LFB4
+ 2038 0024 28000000 		.4byte	.LFE4-.LFB4
+ 2039 0028 00000000 		.4byte	.LFB5
+ 2040 002c 2C000000 		.4byte	.LFE5-.LFB5
+ 2041 0030 00000000 		.4byte	.LFB6
+ 2042 0034 08000000 		.4byte	.LFE6-.LFB6
+ 2043 0038 00000000 		.4byte	.LFB8
+ 2044 003c 0C000000 		.4byte	.LFE8-.LFB8
+ 2045 0040 00000000 		.4byte	.LFB9
+ 2046 0044 0C000000 		.4byte	.LFE9-.LFB9
+ 2047 0048 00000000 		.4byte	.LFB10
+ 2048 004c 0C000000 		.4byte	.LFE10-.LFB10
+ 2049 0050 00000000 		.4byte	.LFB11
+ 2050 0054 0C000000 		.4byte	.LFE11-.LFB11
+ 2051 0058 00000000 		.4byte	.LFB12
+ 2052 005c 44000000 		.4byte	.LFE12-.LFB12
+ 2053 0060 00000000 		.4byte	.LFB7
+ 2054 0064 68000000 		.4byte	.LFE7-.LFB7
+ 2055 0068 00000000 		.4byte	.LFB13
+ 2056 006c 34000000 		.4byte	.LFE13-.LFB13
+ 2057 0070 00000000 		.4byte	.LFB14
+ 2058 0074 28000000 		.4byte	.LFE14-.LFB14
+ 2059 0078 00000000 		.4byte	.LFB15
+ 2060 007c 1C000000 		.4byte	.LFE15-.LFB15
+ 2061 0080 00000000 		.4byte	0
+ 2062 0084 00000000 		.4byte	0
+ 2063              		.section	.debug_ranges,"",%progbits
+ 2064              	.Ldebug_ranges0:
+ 2065 0000 00000000 		.4byte	.LFB2
+ 2066 0004 0E000000 		.4byte	.LFE2
+ 2067 0008 00000000 		.4byte	.LFB3
+ 2068 000c 3C000000 		.4byte	.LFE3
+ 2069 0010 00000000 		.4byte	.LFB4
+ 2070 0014 28000000 		.4byte	.LFE4
+ 2071 0018 00000000 		.4byte	.LFB5
+ 2072 001c 2C000000 		.4byte	.LFE5
+ 2073 0020 00000000 		.4byte	.LFB6
+ 2074 0024 08000000 		.4byte	.LFE6
+ 2075 0028 00000000 		.4byte	.LFB8
+ 2076 002c 0C000000 		.4byte	.LFE8
+ 2077 0030 00000000 		.4byte	.LFB9
+ 2078 0034 0C000000 		.4byte	.LFE9
+ 2079 0038 00000000 		.4byte	.LFB10
+ 2080 003c 0C000000 		.4byte	.LFE10
+ 2081 0040 00000000 		.4byte	.LFB11
+ 2082 0044 0C000000 		.4byte	.LFE11
+ 2083 0048 00000000 		.4byte	.LFB12
+ 2084 004c 44000000 		.4byte	.LFE12
+ 2085 0050 00000000 		.4byte	.LFB7
+ 2086 0054 68000000 		.4byte	.LFE7
+ 2087 0058 00000000 		.4byte	.LFB13
+ 2088 005c 34000000 		.4byte	.LFE13
+ 2089 0060 00000000 		.4byte	.LFB14
+ 2090 0064 28000000 		.4byte	.LFE14
+ 2091 0068 00000000 		.4byte	.LFB15
+ 2092 006c 1C000000 		.4byte	.LFE15
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 42
+
+
+ 2093 0070 00000000 		.4byte	0
+ 2094 0074 00000000 		.4byte	0
+ 2095              		.section	.debug_line,"",%progbits
+ 2096              	.Ldebug_line0:
+ 2097 0000 D7020000 		.section	.debug_str,"MS",%progbits,1
+ 2097      02009001 
+ 2097      00000201 
+ 2097      FB0E0D00 
+ 2097      01010101 
+ 2098              	.LASF32:
+ 2099 0000 46525F4E 		.ascii	"FR_NOT_READY\000"
+ 2099      4F545F52 
+ 2099      45414459 
+ 2099      00
+ 2100              	.LASF86:
+ 2101 000d 4C6F6753 		.ascii	"LogStart\000"
+ 2101      74617274 
+ 2101      00
+ 2102              	.LASF58:
+ 2103 0016 496E6974 		.ascii	"InitBuff\000"
+ 2103      42756666 
+ 2103      00
+ 2104              	.LASF66:
+ 2105 001f 746D7044 		.ascii	"tmpData\000"
+ 2105      61746100 
+ 2106              	.LASF80:
+ 2107 0027 63757272 		.ascii	"currentElementEnd\000"
+ 2107      656E7445 
+ 2107      6C656D65 
+ 2107      6E74456E 
+ 2107      6400
+ 2108              	.LASF16:
+ 2109 0039 75696E74 		.ascii	"uint64_t\000"
+ 2109      36345F74 
+ 2109      00
+ 2110              	.LASF4:
+ 2111 0042 5F5F7569 		.ascii	"__uint8_t\000"
+ 2111      6E74385F 
+ 2111      7400
+ 2112              	.LASF0:
+ 2113 004c 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2113      206C6F6E 
+ 2113      6720756E 
+ 2113      7369676E 
+ 2113      65642069 
+ 2114              	.LASF23:
+ 2115 0063 6D696C6C 		.ascii	"millsStartSkier\000"
+ 2115      73537461 
+ 2115      7274536B 
+ 2115      69657200 
+ 2116              	.LASF47:
+ 2117 0073 46525F54 		.ascii	"FR_TOO_MANY_OPEN_FILES\000"
+ 2117      4F4F5F4D 
+ 2117      414E595F 
+ 2117      4F50454E 
+ 2117      5F46494C 
+ 2118              	.LASF10:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 43
+
+
+ 2119 008a 6C6F6E67 		.ascii	"long long int\000"
+ 2119      206C6F6E 
+ 2119      6720696E 
+ 2119      7400
+ 2120              	.LASF1:
+ 2121 0098 7369676E 		.ascii	"signed char\000"
+ 2121      65642063 
+ 2121      68617200 
+ 2122              	.LASF48:
+ 2123 00a4 46525F49 		.ascii	"FR_INVALID_PARAMETER\000"
+ 2123      4E56414C 
+ 2123      49445F50 
+ 2123      4152414D 
+ 2123      45544552 
+ 2124              	.LASF59:
+ 2125 00b9 70757453 		.ascii	"putSkiOnWay\000"
+ 2125      6B694F6E 
+ 2125      57617900 
+ 2126              	.LASF38:
+ 2127 00c5 46525F49 		.ascii	"FR_INVALID_OBJECT\000"
+ 2127      4E56414C 
+ 2127      49445F4F 
+ 2127      424A4543 
+ 2127      5400
+ 2128              	.LASF7:
+ 2129 00d7 6C6F6E67 		.ascii	"long int\000"
+ 2129      20696E74 
+ 2129      00
+ 2130              	.LASF28:
+ 2131 00e0 736B6965 		.ascii	"skierDB_El\000"
+ 2131      7244425F 
+ 2131      456C00
+ 2132              	.LASF65:
+ 2133 00eb 4C617374 		.ascii	"LastSecTimeOnWay\000"
+ 2133      53656354 
+ 2133      696D654F 
+ 2133      6E576179 
+ 2133      00
+ 2134              	.LASF68:
+ 2135 00fc 536B6965 		.ascii	"SkierOnWay\000"
+ 2135      724F6E57 
+ 2135      617900
+ 2136              	.LASF72:
+ 2137 0107 57726974 		.ascii	"WriteFinishTime\000"
+ 2137      6546696E 
+ 2137      69736854 
+ 2137      696D6500 
+ 2138              	.LASF42:
+ 2139 0117 46525F4E 		.ascii	"FR_NO_FILESYSTEM\000"
+ 2139      4F5F4649 
+ 2139      4C455359 
+ 2139      5354454D 
+ 2139      00
+ 2140              	.LASF14:
+ 2141 0128 75696E74 		.ascii	"uint16_t\000"
+ 2141      31365F74 
+ 2141      00
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 44
+
+
+ 2142              	.LASF18:
+ 2143 0131 646F7562 		.ascii	"double\000"
+ 2143      6C6500
+ 2144              	.LASF46:
+ 2145 0138 46525F4E 		.ascii	"FR_NOT_ENOUGH_CORE\000"
+ 2145      4F545F45 
+ 2145      4E4F5547 
+ 2145      485F434F 
+ 2145      524500
+ 2146              	.LASF37:
+ 2147 014b 46525F45 		.ascii	"FR_EXIST\000"
+ 2147      58495354 
+ 2147      00
+ 2148              	.LASF79:
+ 2149 0154 63757272 		.ascii	"currentElementStart\000"
+ 2149      656E7445 
+ 2149      6C656D65 
+ 2149      6E745374 
+ 2149      61727400 
+ 2150              	.LASF70:
+ 2151 0168 4669666F 		.ascii	"FifoPush\000"
+ 2151      50757368 
+ 2151      00
+ 2152              	.LASF8:
+ 2153 0171 5F5F7569 		.ascii	"__uint32_t\000"
+ 2153      6E743332 
+ 2153      5F7400
+ 2154              	.LASF61:
+ 2155 017c 6D696C6C 		.ascii	"mills\000"
+ 2155      7300
+ 2156              	.LASF12:
+ 2157 0182 756E7369 		.ascii	"unsigned int\000"
+ 2157      676E6564 
+ 2157      20696E74 
+ 2157      00
+ 2158              	.LASF56:
+ 2159 018f 6669666F 		.ascii	"fifoTimeSkier\000"
+ 2159      54696D65 
+ 2159      536B6965 
+ 2159      7200
+ 2160              	.LASF69:
+ 2161 019d 4669666F 		.ascii	"FifoGetSize\000"
+ 2161      47657453 
+ 2161      697A6500 
+ 2162              	.LASF9:
+ 2163 01a9 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2163      20756E73 
+ 2163      69676E65 
+ 2163      6420696E 
+ 2163      7400
+ 2164              	.LASF26:
+ 2165 01bb 7365636F 		.ascii	"secondsWay\000"
+ 2165      6E647357 
+ 2165      617900
+ 2166              	.LASF62:
+ 2167 01c6 67657453 		.ascii	"getSkiFromWay\000"
+ 2167      6B694672 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 45
+
+
+ 2167      6F6D5761 
+ 2167      7900
+ 2168              	.LASF64:
+ 2169 01d4 44617461 		.ascii	"DataBaseStart\000"
+ 2169      42617365 
+ 2169      53746172 
+ 2169      7400
+ 2170              	.LASF71:
+ 2171 01e2 64617461 		.ascii	"data\000"
+ 2171      00
+ 2172              	.LASF50:
+ 2173 01e7 73697A65 		.ascii	"size\000"
+ 2173      00
+ 2174              	.LASF6:
+ 2175 01ec 73686F72 		.ascii	"short unsigned int\000"
+ 2175      7420756E 
+ 2175      7369676E 
+ 2175      65642069 
+ 2175      6E7400
+ 2176              	.LASF73:
+ 2177 01ff 4669666F 		.ascii	"FifoGet\000"
+ 2177      47657400 
+ 2178              	.LASF55:
+ 2179 0207 6C617374 		.ascii	"last\000"
+ 2179      00
+ 2180              	.LASF31:
+ 2181 020c 46525F49 		.ascii	"FR_INT_ERR\000"
+ 2181      4E545F45 
+ 2181      525200
+ 2182              	.LASF30:
+ 2183 0217 46525F44 		.ascii	"FR_DISK_ERR\000"
+ 2183      49534B5F 
+ 2183      45525200 
+ 2184              	.LASF74:
+ 2185 0223 4669666F 		.ascii	"FifoPushLast\000"
+ 2185      50757368 
+ 2185      4C617374 
+ 2185      00
+ 2186              	.LASF39:
+ 2187 0230 46525F57 		.ascii	"FR_WRITE_PROTECTED\000"
+ 2187      52495445 
+ 2187      5F50524F 
+ 2187      54454354 
+ 2187      454400
+ 2188              	.LASF49:
+ 2189 0243 6E657874 		.ascii	"nextSki\000"
+ 2189      536B6900 
+ 2190              	.LASF22:
+ 2191 024b 756E6978 		.ascii	"unixStartSkier\000"
+ 2191      53746172 
+ 2191      74536B69 
+ 2191      657200
+ 2192              	.LASF63:
+ 2193 025a 57726974 		.ascii	"WriteStartTime\000"
+ 2193      65537461 
+ 2193      72745469 
+ 2193      6D6500
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 46
+
+
+ 2194              	.LASF21:
+ 2195 0269 73697A65 		.ascii	"sizetype\000"
+ 2195      74797065 
+ 2195      00
+ 2196              	.LASF20:
+ 2197 0272 6C6F6E67 		.ascii	"long double\000"
+ 2197      20646F75 
+ 2197      626C6500 
+ 2198              	.LASF76:
+ 2199 027e 62756666 		.ascii	"bufferSkiersOnWay\000"
+ 2199      6572536B 
+ 2199      69657273 
+ 2199      4F6E5761 
+ 2199      7900
+ 2200              	.LASF82:
+ 2201 0290 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2201      43313120 
+ 2201      352E342E 
+ 2201      31203230 
+ 2201      31363036 
+ 2202 02c3 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 2202      20726576 
+ 2202      6973696F 
+ 2202      6E203233 
+ 2202      37373135 
+ 2203 02f6 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 2203      66756E63 
+ 2203      74696F6E 
+ 2203      2D736563 
+ 2203      74696F6E 
+ 2204              	.LASF44:
+ 2205 031e 46525F54 		.ascii	"FR_TIMEOUT\000"
+ 2205      494D454F 
+ 2205      555400
+ 2206              	.LASF85:
+ 2207 0329 656C656D 		.ascii	"elementBuff\000"
+ 2207      656E7442 
+ 2207      75666600 
+ 2208              	.LASF33:
+ 2209 0335 46525F4E 		.ascii	"FR_NO_FILE\000"
+ 2209      4F5F4649 
+ 2209      4C4500
+ 2210              	.LASF83:
+ 2211 0340 2E2E5C2E 		.ascii	"..\\..\\common\\lib\\lib_DB\\database.c\000"
+ 2211      2E5C636F 
+ 2211      6D6D6F6E 
+ 2211      5C6C6962 
+ 2211      5C6C6962 
+ 2212              	.LASF24:
+ 2213 0363 756E6978 		.ascii	"unixFinishSkier\000"
+ 2213      46696E69 
+ 2213      7368536B 
+ 2213      69657200 
+ 2214              	.LASF41:
+ 2215 0373 46525F4E 		.ascii	"FR_NOT_ENABLED\000"
+ 2215      4F545F45 
+ 2215      4E41424C 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 47
+
+
+ 2215      454400
+ 2216              	.LASF11:
+ 2217 0382 5F5F7569 		.ascii	"__uint64_t\000"
+ 2217      6E743634 
+ 2217      5F7400
+ 2218              	.LASF17:
+ 2219 038d 666C6F61 		.ascii	"float\000"
+ 2219      7400
+ 2220              	.LASF53:
+ 2221 0393 746F7461 		.ascii	"totalSize\000"
+ 2221      6C53697A 
+ 2221      6500
+ 2222              	.LASF84:
+ 2223 039d 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\finish\\"
+ 2223      79707265 
+ 2223      73735C73 
+ 2223      79737465 
+ 2223      6D2D7374 
+ 2224 03ca 66696E5F 		.ascii	"fin_v11.cydsn\000"
+ 2224      7631312E 
+ 2224      63796473 
+ 2224      6E00
+ 2225              	.LASF2:
+ 2226 03d8 756E7369 		.ascii	"unsigned char\000"
+ 2226      676E6564 
+ 2226      20636861 
+ 2226      7200
+ 2227              	.LASF75:
+ 2228 03e6 4669666F 		.ascii	"FifoGetLast\000"
+ 2228      4765744C 
+ 2228      61737400 
+ 2229              	.LASF3:
+ 2230 03f2 73686F72 		.ascii	"short int\000"
+ 2230      7420696E 
+ 2230      7400
+ 2231              	.LASF40:
+ 2232 03fc 46525F49 		.ascii	"FR_INVALID_DRIVE\000"
+ 2232      4E56414C 
+ 2232      49445F44 
+ 2232      52495645 
+ 2232      00
+ 2233              	.LASF67:
+ 2234 040d 4C617374 		.ascii	"LastMillsTimeOnWay\000"
+ 2234      4D696C6C 
+ 2234      7354696D 
+ 2234      654F6E57 
+ 2234      617900
+ 2235              	.LASF51:
+ 2236 0420 66697273 		.ascii	"firstElement\000"
+ 2236      74456C65 
+ 2236      6D656E74 
+ 2236      00
+ 2237              	.LASF36:
+ 2238 042d 46525F44 		.ascii	"FR_DENIED\000"
+ 2238      454E4945 
+ 2238      4400
+ 2239              	.LASF43:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 48
+
+
+ 2240 0437 46525F4D 		.ascii	"FR_MKFS_ABORTED\000"
+ 2240      4B46535F 
+ 2240      41424F52 
+ 2240      54454400 
+ 2241              	.LASF45:
+ 2242 0447 46525F4C 		.ascii	"FR_LOCKED\000"
+ 2242      4F434B45 
+ 2242      4400
+ 2243              	.LASF25:
+ 2244 0451 6D696C6C 		.ascii	"millsFinishSkier\000"
+ 2244      7346696E 
+ 2244      69736853 
+ 2244      6B696572 
+ 2244      00
+ 2245              	.LASF15:
+ 2246 0462 75696E74 		.ascii	"uint32_t\000"
+ 2246      33325F74 
+ 2246      00
+ 2247              	.LASF19:
+ 2248 046b 63686172 		.ascii	"char\000"
+ 2248      00
+ 2249              	.LASF5:
+ 2250 0470 5F5F7569 		.ascii	"__uint16_t\000"
+ 2250      6E743136 
+ 2250      5F7400
+ 2251              	.LASF29:
+ 2252 047b 46525F4F 		.ascii	"FR_OK\000"
+ 2252      4B00
+ 2253              	.LASF77:
+ 2254 0481 736B6965 		.ascii	"skierDB\000"
+ 2254      72444200 
+ 2255              	.LASF54:
+ 2256 0489 62756666 		.ascii	"buffer\000"
+ 2256      657200
+ 2257              	.LASF87:
+ 2258 0490 6D656D63 		.ascii	"memcpy\000"
+ 2258      707900
+ 2259              	.LASF27:
+ 2260 0497 6D696C6C 		.ascii	"millsWay\000"
+ 2260      73576179 
+ 2260      00
+ 2261              	.LASF35:
+ 2262 04a0 46525F49 		.ascii	"FR_INVALID_NAME\000"
+ 2262      4E56414C 
+ 2262      49445F4E 
+ 2262      414D4500 
+ 2263              	.LASF60:
+ 2264 04b0 756E6978 		.ascii	"unixTime\000"
+ 2264      54696D65 
+ 2264      00
+ 2265              	.LASF13:
+ 2266 04b9 75696E74 		.ascii	"uint8_t\000"
+ 2266      385F7400 
+ 2267              	.LASF81:
+ 2268 04c1 6669666F 		.ascii	"fifo\000"
+ 2268      00
+ 2269              	.LASF34:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc8RA1Zj.s 			page 49
+
+
+ 2270 04c6 46525F4E 		.ascii	"FR_NO_PATH\000"
+ 2270      4F5F5041 
+ 2270      544800
+ 2271              	.LASF78:
+ 2272 04d1 63757272 		.ascii	"currentSizeBuff\000"
+ 2272      656E7453 
+ 2272      697A6542 
+ 2272      75666600 
+ 2273              	.LASF57:
+ 2274 04e1 72657375 		.ascii	"result\000"
+ 2274      6C7400
+ 2275              	.LASF52:
+ 2276 04e8 6C617374 		.ascii	"lastElement\000"
+ 2276      456C656D 
+ 2276      656E7400 
+ 2277              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

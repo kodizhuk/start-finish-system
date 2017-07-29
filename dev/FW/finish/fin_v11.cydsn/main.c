@@ -1,6 +1,7 @@
 
 #include "appGlobal.h"
 
+static uint8_t result;
 
 int main()
 {    
@@ -123,7 +124,7 @@ uint32_t InitRTC(void)
 
 uint32_t TimeSynchronize(void)
 {
-    uint32_t result;
+    uint32_t result = TIME_SYNC_ERR;
     
     LedBlink(FREQ_INIT_BLINK);
     
@@ -167,7 +168,8 @@ uint32_t CheckReady(void)
     uint32_t result;   
  
     /*sise FIFO*/
-    if ((FifoGetSize() >= MAX_SKIERS_ON_BUF/*main_db_buffer) */)&& (FifoGetSize() <= MAX_FIFO_SIZE)/*reserv, max_fifo rec*/)
+    if ((FifoGetSize() >= MAX_SKIERS_ON_BUF/*main_db_buffer) */)&&
+    (FifoGetSize() <= MAX_FIFO_SIZE)/*reserv, max_fifo rec*/)
     {
         /*skier finish successful*/
         Display("Err SD Card!");
@@ -195,7 +197,6 @@ uint32_t CheckReady(void)
     else if(SkierOnWay() >= MAX_SKIERS_ON_WAY/*MAX_COUNT, TRACK_OVERFLOW*/)
     {
         /*max skier on way*/
-     
         Display(" Max skier");
         SendFinStatus(FIN_NO_READY);
         ////CyDelay(TIMEOUT_USER_READ_INFO);
@@ -276,8 +277,6 @@ void SaveResult(void)
     /*write time in fifo*/
     GetFinTime(&finUnixTime, &finRecentMs);
     WriteFinishTime(finUnixTime,finRecentMs);
-    
-    FifoPushLastFinished();
     
     /*print time result last skier finished*/
     DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/

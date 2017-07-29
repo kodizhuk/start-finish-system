@@ -30,7 +30,6 @@
 typedef enum {TIME_SYNC = 0, READY, CHECK_GATE, SAVE_RESULT} StateType; 
 StateType currentState;
 
-static uint32_t result;
 
 void SystemInit(void);
 uint32_t InitRTC(void);

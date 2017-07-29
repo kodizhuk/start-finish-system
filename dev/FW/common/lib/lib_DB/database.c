@@ -1,8 +1,10 @@
 
 #include "..\..\common\lib\lib_DB\database.h"
 
-#define BUFFER_SIZE         MAX_SKIERS_ON_WAY + 4u
-#define MAX_SKIERS_ON_DB    20u
+#define BUFFER_SIZE         MAX_SKIERS_ON_WAY
+
+void putSkiOnWay(uint64_t unixTime, uint16_t mills);
+void getSkiFromWay(uint64_t *unixTime, uint16_t *mills);
 
 struct elementBuff
 {
@@ -24,17 +26,13 @@ typedef struct
     skierDB_El last;
 }fifoTimeSkier;
 
-skierDB_El skierDB[MAX_SKIERS_ON_DB];
-skierDB_El bufferFifo[MAX_SKIERS_ON_BUF];
+skierDB_El skierDB;
 
 uint32_t currentSizeBuff;
 struct elementBuff *currentElementStart;
-struct elementBuff *currentElementFinish;
+struct elementBuff *currentElementEnd;
 
-uint16_t skiersStarted;
-uint16_t skiersFinished;
-
-fifoTimeSkier fifo;
+fifoTimeSkier fifo;     //if no SD card
 
 
 uint32_t DataBaseStart(void)
@@ -64,27 +62,51 @@ void InitBuff()
         bufferSkiersOnWay[i].nextSki = &bufferSkiersOnWay[i+1];
     }
     bufferSkiersOnWay[BUFFER_SIZE - 1].nextSki = &bufferSkiersOnWay[0];
+    
     currentElementStart = &bufferSkiersOnWay[0];
-    currentElementFinish = &bufferSkiersOnWay[0];
+    currentElementEnd = &bufferSkiersOnWay[0];
 }
 
+/*******************************************************************************
+* Function Name: putSkiOnWay
+********************************************************************************
+*
+* Summary:
+*  save start time skier
+*
+*******************************************************************************/
 void putSkiOnWay(uint64_t unixTime, uint16_t mills)
 {
-    currentElementFinish->millsStartSkier = mills;
-    currentElementFinish->unixStartSkier = unixTime;
-    currentElementFinish = currentElementFinish->nextSki;
+    currentElementStart->millsStartSkier = mills;
+    currentElementStart->unixStartSkier = unixTime;
+    currentElementStart = currentElementStart->nextSki;
     currentSizeBuff++;
 }
 
+/*******************************************************************************
+* Function Name: getSkiFromWay
+********************************************************************************
+*
+* Summary:
+*  get start time skier
+*
+*******************************************************************************/
 void getSkiFromWay(uint64_t *unixTime, uint16_t *mills)
 {
-    *mills = currentElementStart->millsStartSkier;
-    *unixTime = currentElementStart->unixStartSkier;
-    currentElementStart = currentElementStart->nextSki;
+    *mills = currentElementEnd->millsStartSkier;
+    *unixTime = currentElementEnd->unixStartSkier;
+    currentElementStart = currentElementEnd->nextSki;
     currentSizeBuff--;
 }
 
-
+/*******************************************************************************
+* Function Name: WriteStartTime
+********************************************************************************
+*
+* Summary:
+*  save start time skier
+*
+*******************************************************************************/
 void WriteStartTime(uint64_t unixTime, uint16_t mills)
 {
     putSkiOnWay(unixTime, mills);
@@ -93,15 +115,19 @@ void WriteStartTime(uint64_t unixTime, uint16_t mills)
 
 void WriteFinishTime(uint64_t unixTime, uint16_t mills)
 {   
-    if (skiersFinished == MAX_SKIERS_ON_DB)
+    getSkiFromWay(&skierDB.unixStartSkier, &skierDB.millsStartSkier);
+    skierDB.millsFinishSkier = mills;
+    skierDB.unixFinishSkier = unixTime;
+    
+    /*calculate time on way*/
+    skierDB.secondsWay =  skierDB.unixFinishSkier - skierDB.unixStartSkier;  
+    skierDB.millsWay =  skierDB.millsFinishSkier - skierDB.millsStartSkier;  
+    if (skierDB.millsWay > 1000u)
     {
-        skiersFinished = 0;
+        skierDB.secondsWay--;
+        skierDB.millsWay = 0 - skierDB.millsWay;
     }
-    getSkiFromWay(&skierDB[skiersFinished].unixStartSkier, &skierDB[skiersFinished].millsStartSkier);
-    skierDB[skiersFinished].millsFinishSkier = mills;
-    skierDB[skiersFinished].unixFinishSkier = unixTime;
-    TimeOnWay(skiersFinished);
-    skiersFinished++;
+    FifoPush(skierDB);
 }
 
 uint32_t SkierOnWay()
@@ -109,29 +135,12 @@ uint32_t SkierOnWay()
     return currentSizeBuff;
 }
 
-uint32_t TimeOnWay(uint32_t Number)
-{
-    skierDB[Number].secondsWay =  skierDB[Number].unixFinishSkier - skierDB[Number].unixStartSkier;  
-    skierDB[Number].millsWay =  skierDB[Number].millsFinishSkier - skierDB[Number].millsStartSkier;  
-    if (skierDB[Number].millsWay > 1000u)
-    {
-        skierDB[Number].secondsWay--;
-        skierDB[Number].millsWay = 0 - skierDB[Number].millsWay;
-    }
-    return 1u;
-}
 
 uint32_t LastSecTimeOnWay()
 {
     uint32_t tmpData;
-    if (skiersFinished == 0)
-    {
-        tmpData = skierDB[MAX_SKIERS_ON_DB - 1].secondsWay;
-    }
-    else
-    {
-        tmpData = skierDB[skiersFinished - 1].secondsWay;
-    }
+    
+    tmpData = skierDB.secondsWay;
 
     return tmpData;
 }
@@ -139,14 +148,9 @@ uint32_t LastSecTimeOnWay()
 uint32_t LastMillsTimeOnWay()
 {
     uint32_t tmpData;
-    if (skiersFinished == 0)
-    {
-        tmpData = skierDB[MAX_SKIERS_ON_DB - 1].millsWay;
-    }
-    else
-    {
-        tmpData = skierDB[skiersFinished-1].millsWay;
-    }
+
+    tmpData = skierDB.millsWay;
+
     return tmpData;
 }
 
@@ -191,18 +195,6 @@ void FifoPushLast(skierDB_El data)
 skierDB_El FifoGetLast(void)
 {
     return fifo.last;
-}
-
-void FifoPushLastFinished()
-{
-    if (skiersFinished == 0)
-    {
-        FifoPush(skierDB[MAX_SKIERS_ON_DB - 1]);
-    }
-    else
-    {
-        FifoPush(skierDB[skiersFinished-1]);    
-    }
 }
 
 /* [] END OF FILE */

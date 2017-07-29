@@ -1,0 +1,2876 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"ntp.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.NtpDecodeByte,"ax",%progbits
+  20              		.align	1
+  21              		.global	NtpDecodeByte
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	NtpDecodeByte, %function
+  25              	NtpDecodeByte:
+  26              	.LFB2:
+  27              		.file 1 "lib_Network\\ntp.c"
+   1:lib_Network/ntp.c **** #include "ntp.h"
+   2:lib_Network/ntp.c **** 
+   3:lib_Network/ntp.c **** enum NTP_STATES 
+   4:lib_Network/ntp.c **** {
+   5:lib_Network/ntp.c **** 	NTP_WAIT_STX,
+   6:lib_Network/ntp.c **** 	NTP_READ_ID,
+   7:lib_Network/ntp.c **** 	NTP_READ_FR1,
+   8:lib_Network/ntp.c **** 	NTP_READ_DA1,
+   9:lib_Network/ntp.c **** 	NTP_READ_DM1,	
+  10:lib_Network/ntp.c **** 	NTP_READ_DA2,
+  11:lib_Network/ntp.c **** 	NTP_READ_DM2,
+  12:lib_Network/ntp.c **** 	NTP_READ_FR2,
+  13:lib_Network/ntp.c **** 	NTP_READ_CHS,
+  14:lib_Network/ntp.c **** 	NTP_READ_ETX
+  15:lib_Network/ntp.c **** };
+  16:lib_Network/ntp.c **** 
+  17:lib_Network/ntp.c **** #define NTP_LEN_ID  4
+  18:lib_Network/ntp.c **** #define NTP_LEN_DA1 8
+  19:lib_Network/ntp.c **** #define NTP_LEN_DM1 3
+  20:lib_Network/ntp.c **** #define NTP_LEN_DA2 8
+  21:lib_Network/ntp.c **** #define NTP_LEN_DM2 3
+  22:lib_Network/ntp.c **** #define NTP_LEN_CHS 8
+  23:lib_Network/ntp.c **** 
+  24:lib_Network/ntp.c **** #define HALF_BYTE 4
+  25:lib_Network/ntp.c **** 
+  26:lib_Network/ntp.c **** #define NTP_STX '<'
+  27:lib_Network/ntp.c **** #define NTP_ETX '>'
+  28:lib_Network/ntp.c **** #define NTP_FR1 '!'
+  29:lib_Network/ntp.c **** #define NTP_FR2 '@'
+  30:lib_Network/ntp.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 2
+
+
+  31:lib_Network/ntp.c **** uint8_t NtpLenD1, NtpLenMsD1, NtpLenD2, NtpLenMsD2, NtpLenId, NtpLenChS;
+  32:lib_Network/ntp.c **** 
+  33:lib_Network/ntp.c **** uint8_t NtpDecodeByte(uint8_t Inp);
+  34:lib_Network/ntp.c **** uint8_t NtpCheckSymb(uint8_t Inp);
+  35:lib_Network/ntp.c **** void 	NtpResetPacket(NtpResp *Data);
+  36:lib_Network/ntp.c **** 
+  37:lib_Network/ntp.c **** uint8_t NTP_STATE = 0;
+  38:lib_Network/ntp.c **** 
+  39:lib_Network/ntp.c **** uint8_t NtpUnpackData(NtpResp *Data, uint8_t InByte)
+  40:lib_Network/ntp.c **** {
+  41:lib_Network/ntp.c **** 	uint8_t RecvB = InByte;
+  42:lib_Network/ntp.c **** 	uint32_t ERR_CODE = 0;
+  43:lib_Network/ntp.c **** 	InByte = NtpDecodeByte(InByte);
+  44:lib_Network/ntp.c **** 
+  45:lib_Network/ntp.c **** 	//printf("State: %X -- %d\n", InByte, NTP_STATE);
+  46:lib_Network/ntp.c **** 	switch(NTP_STATE){
+  47:lib_Network/ntp.c **** 		case NTP_WAIT_STX: 
+  48:lib_Network/ntp.c **** 		{
+  49:lib_Network/ntp.c **** 			NtpResetPacket(Data);
+  50:lib_Network/ntp.c **** 			NtpLenId = 0;
+  51:lib_Network/ntp.c **** 			NtpLenChS = 0;
+  52:lib_Network/ntp.c **** 			NtpLenD1 = 0;
+  53:lib_Network/ntp.c ****             NtpLenMsD1 = 0;
+  54:lib_Network/ntp.c ****             NtpLenMsD2 = 0;
+  55:lib_Network/ntp.c **** 			NtpLenD2 = 0;
+  56:lib_Network/ntp.c **** 			if (InByte == NTP_STX)
+  57:lib_Network/ntp.c **** 			{
+  58:lib_Network/ntp.c **** 				NTP_STATE = NTP_READ_ID;
+  59:lib_Network/ntp.c **** 			}
+  60:lib_Network/ntp.c **** 			else 
+  61:lib_Network/ntp.c **** 			{
+  62:lib_Network/ntp.c **** 				//ERR_CODE = WAIT_FOR_PCKT;
+  63:lib_Network/ntp.c **** 			}
+  64:lib_Network/ntp.c **** 			break;
+  65:lib_Network/ntp.c **** 		}
+  66:lib_Network/ntp.c **** 		
+  67:lib_Network/ntp.c **** 		case NTP_READ_ID:
+  68:lib_Network/ntp.c **** 		{
+  69:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+  70:lib_Network/ntp.c **** 			{
+  71:lib_Network/ntp.c **** 				Data->Id |= InByte;
+  72:lib_Network/ntp.c **** 				NtpLenId++;
+  73:lib_Network/ntp.c **** 				if (NtpLenId == NTP_LEN_ID)
+  74:lib_Network/ntp.c **** 				{
+  75:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_FR1;
+  76:lib_Network/ntp.c **** 				}
+  77:lib_Network/ntp.c **** 				else
+  78:lib_Network/ntp.c **** 				{
+  79:lib_Network/ntp.c **** 					Data->Id = Data->Id << HALF_BYTE;
+  80:lib_Network/ntp.c **** 				}
+  81:lib_Network/ntp.c **** 			}
+  82:lib_Network/ntp.c **** 			else{
+  83:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+  84:lib_Network/ntp.c **** 				ERR_CODE = NTP_BAD_ID;
+  85:lib_Network/ntp.c **** 			}
+  86:lib_Network/ntp.c **** 			break;
+  87:lib_Network/ntp.c **** 		}
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 3
+
+
+  88:lib_Network/ntp.c **** 		
+  89:lib_Network/ntp.c **** 		case NTP_READ_FR1:
+  90:lib_Network/ntp.c **** 		{
+  91:lib_Network/ntp.c **** 			if (InByte == NTP_FR1)
+  92:lib_Network/ntp.c **** 			{
+  93:lib_Network/ntp.c **** 				NTP_STATE = NTP_READ_DA1;
+  94:lib_Network/ntp.c **** 			}
+  95:lib_Network/ntp.c **** 			else
+  96:lib_Network/ntp.c **** 			{
+  97:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+  98:lib_Network/ntp.c **** 				ERR_CODE = NTP_NO_FR1;
+  99:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 100:lib_Network/ntp.c **** 			}
+ 101:lib_Network/ntp.c **** 			break;
+ 102:lib_Network/ntp.c **** 		}
+ 103:lib_Network/ntp.c **** 		case NTP_READ_DA1:
+ 104:lib_Network/ntp.c **** 		{
+ 105:lib_Network/ntp.c **** 
+ 106:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+ 107:lib_Network/ntp.c **** 			{
+ 108:lib_Network/ntp.c **** 				Data->Data1 |= InByte;
+ 109:lib_Network/ntp.c **** 				NtpLenD1++;
+ 110:lib_Network/ntp.c **** 				if (NtpLenD1 == NTP_LEN_DA1)
+ 111:lib_Network/ntp.c **** 				{
+ 112:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_DM1;
+ 113:lib_Network/ntp.c **** 				}
+ 114:lib_Network/ntp.c **** 				else
+ 115:lib_Network/ntp.c **** 				{
+ 116:lib_Network/ntp.c **** 					Data->Data1 = Data->Data1 << HALF_BYTE;
+ 117:lib_Network/ntp.c **** 				}
+ 118:lib_Network/ntp.c **** 			}
+ 119:lib_Network/ntp.c **** 			else{
+ 120:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 121:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DA1;
+ 122:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 123:lib_Network/ntp.c **** 			}
+ 124:lib_Network/ntp.c **** 			break;
+ 125:lib_Network/ntp.c **** 		}
+ 126:lib_Network/ntp.c **** 		case NTP_READ_DM1:
+ 127:lib_Network/ntp.c **** 		{
+ 128:lib_Network/ntp.c **** 
+ 129:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+ 130:lib_Network/ntp.c **** 			{
+ 131:lib_Network/ntp.c **** 				Data->DataMs1 |= InByte;
+ 132:lib_Network/ntp.c **** 				NtpLenMsD1++;
+ 133:lib_Network/ntp.c **** 				if (NtpLenMsD1 == NTP_LEN_DM1)
+ 134:lib_Network/ntp.c **** 				{
+ 135:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_DA2;
+ 136:lib_Network/ntp.c **** 				}
+ 137:lib_Network/ntp.c **** 				else
+ 138:lib_Network/ntp.c **** 				{
+ 139:lib_Network/ntp.c **** 					Data->DataMs1 = Data->DataMs1 << HALF_BYTE;
+ 140:lib_Network/ntp.c **** 				}
+ 141:lib_Network/ntp.c **** 			}
+ 142:lib_Network/ntp.c **** 			else{
+ 143:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 144:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DM1;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 4
+
+
+ 145:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 146:lib_Network/ntp.c **** 			}
+ 147:lib_Network/ntp.c **** 			break;
+ 148:lib_Network/ntp.c **** 		}
+ 149:lib_Network/ntp.c **** 		case NTP_READ_DA2:
+ 150:lib_Network/ntp.c **** 		{			
+ 151:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+ 152:lib_Network/ntp.c **** 			{
+ 153:lib_Network/ntp.c **** 				//printf("DATA2: %X -- %X\n", InByte, Data->Data2);
+ 154:lib_Network/ntp.c **** 				Data->Data2 |= InByte;
+ 155:lib_Network/ntp.c **** 				NtpLenD2++;
+ 156:lib_Network/ntp.c **** 				if (NtpLenD2 == NTP_LEN_DA2)
+ 157:lib_Network/ntp.c **** 				{
+ 158:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_DM2;
+ 159:lib_Network/ntp.c **** 				}
+ 160:lib_Network/ntp.c **** 				else
+ 161:lib_Network/ntp.c **** 				{
+ 162:lib_Network/ntp.c **** 					Data->Data2 = Data->Data2 << HALF_BYTE;
+ 163:lib_Network/ntp.c **** 				}
+ 164:lib_Network/ntp.c **** 			}
+ 165:lib_Network/ntp.c **** 			else{
+ 166:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 167:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DA2;
+ 168:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 169:lib_Network/ntp.c **** 			}
+ 170:lib_Network/ntp.c **** 			break;
+ 171:lib_Network/ntp.c **** 		}
+ 172:lib_Network/ntp.c **** 		case NTP_READ_DM2:
+ 173:lib_Network/ntp.c **** 		{
+ 174:lib_Network/ntp.c **** 
+ 175:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+ 176:lib_Network/ntp.c **** 			{
+ 177:lib_Network/ntp.c **** 				Data->DataMs2 |= InByte;
+ 178:lib_Network/ntp.c **** 				NtpLenMsD2++;
+ 179:lib_Network/ntp.c **** 				if (NtpLenMsD2 == NTP_LEN_DM2)
+ 180:lib_Network/ntp.c **** 				{
+ 181:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_FR2;
+ 182:lib_Network/ntp.c **** 				}
+ 183:lib_Network/ntp.c **** 				else
+ 184:lib_Network/ntp.c **** 				{
+ 185:lib_Network/ntp.c **** 					Data->DataMs2 = Data->DataMs2 << HALF_BYTE;
+ 186:lib_Network/ntp.c **** 				}
+ 187:lib_Network/ntp.c **** 			}
+ 188:lib_Network/ntp.c **** 			else{
+ 189:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 190:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DM2;
+ 191:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 192:lib_Network/ntp.c **** 			}
+ 193:lib_Network/ntp.c **** 			break;
+ 194:lib_Network/ntp.c **** 		}
+ 195:lib_Network/ntp.c **** 		case NTP_READ_FR2:
+ 196:lib_Network/ntp.c **** 		{
+ 197:lib_Network/ntp.c **** 			if (InByte == NTP_FR2)
+ 198:lib_Network/ntp.c **** 			{
+ 199:lib_Network/ntp.c **** 				NTP_STATE = NTP_READ_CHS;
+ 200:lib_Network/ntp.c **** 			}
+ 201:lib_Network/ntp.c **** 			else
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 5
+
+
+ 202:lib_Network/ntp.c **** 			{
+ 203:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 204:lib_Network/ntp.c **** 				ERR_CODE = NTP_NO_FR2;
+ 205:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 206:lib_Network/ntp.c **** 			}
+ 207:lib_Network/ntp.c **** 			break;
+ 208:lib_Network/ntp.c **** 		}
+ 209:lib_Network/ntp.c **** 
+ 210:lib_Network/ntp.c **** 		case NTP_READ_CHS:
+ 211:lib_Network/ntp.c **** 		{
+ 212:lib_Network/ntp.c **** 			if(NtpCheckSymb(InByte))
+ 213:lib_Network/ntp.c **** 			{
+ 214:lib_Network/ntp.c **** 				Data->CheckSum |= InByte;
+ 215:lib_Network/ntp.c **** 				NtpLenChS++;
+ 216:lib_Network/ntp.c **** 				if (NtpLenChS == NTP_LEN_CHS)
+ 217:lib_Network/ntp.c **** 				{
+ 218:lib_Network/ntp.c **** 					NTP_STATE = NTP_READ_ETX;
+ 219:lib_Network/ntp.c **** 				}
+ 220:lib_Network/ntp.c **** 				else
+ 221:lib_Network/ntp.c **** 				{
+ 222:lib_Network/ntp.c **** 					Data->CheckSum = Data->CheckSum << HALF_BYTE;
+ 223:lib_Network/ntp.c **** 				}
+ 224:lib_Network/ntp.c **** 			}
+ 225:lib_Network/ntp.c **** 			else
+ 226:lib_Network/ntp.c **** 			{
+ 227:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 228:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_CKECKSUM;
+ 229:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 230:lib_Network/ntp.c **** 			}
+ 231:lib_Network/ntp.c **** 			break;
+ 232:lib_Network/ntp.c **** 		}
+ 233:lib_Network/ntp.c **** 		case NTP_READ_ETX:
+ 234:lib_Network/ntp.c **** 		{
+ 235:lib_Network/ntp.c **** 			if (InByte == NTP_ETX)
+ 236:lib_Network/ntp.c **** 			{
+ 237:lib_Network/ntp.c **** 				Data->EndPacket = 1;
+ 238:lib_Network/ntp.c **** 				ERR_CODE = NTP_PARSED_OK;
+ 239:lib_Network/ntp.c **** 
+ 240:lib_Network/ntp.c **** 			}
+ 241:lib_Network/ntp.c **** 			else{
+ 242:lib_Network/ntp.c **** 				ERR_CODE = NTP_NO_ETX;
+ 243:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 244:lib_Network/ntp.c **** 			}
+ 245:lib_Network/ntp.c **** 			NTP_STATE = NTP_WAIT_STX;
+ 246:lib_Network/ntp.c **** 			break;
+ 247:lib_Network/ntp.c **** 		}
+ 248:lib_Network/ntp.c **** 	}
+ 249:lib_Network/ntp.c **** 	
+ 250:lib_Network/ntp.c **** 	/*if (Data->EndPacket)
+ 251:lib_Network/ntp.c **** 	{
+ 252:lib_Network/ntp.c **** 		char tempbuff[40];
+ 253:lib_Network/ntp.c **** 		sprintf(tempbuff, "%04X:%08X_%03X %08X_%03X@%08X", Data->Id, Data->Data1, Data->DataMs1, Data->Da
+ 254:lib_Network/ntp.c **** 		printf("ID + Data1: %s\n", tempbuff);
+ 255:lib_Network/ntp.c **** 	}*/
+ 256:lib_Network/ntp.c **** 	
+ 257:lib_Network/ntp.c **** 	return ERR_CODE;
+ 258:lib_Network/ntp.c **** 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 6
+
+
+ 259:lib_Network/ntp.c **** }
+ 260:lib_Network/ntp.c **** 
+ 261:lib_Network/ntp.c **** uint8_t NtpDecodeByte(uint8_t Inp)
+ 262:lib_Network/ntp.c **** {
+  28              		.loc 1 262 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  33              	.LVL0:
+ 263:lib_Network/ntp.c **** 	if ((Inp >= 'A') && (Inp <= 'F'))
+  34              		.loc 1 263 0
+  35 0000 0300     		movs	r3, r0
+  36 0002 413B     		subs	r3, r3, #65
+  37 0004 052B     		cmp	r3, #5
+  38 0006 02D8     		bhi	.L2
+ 264:lib_Network/ntp.c **** 	{
+ 265:lib_Network/ntp.c **** 		Inp -= 0x37;
+  39              		.loc 1 265 0
+  40 0008 3738     		subs	r0, r0, #55
+  41              	.LVL1:
+  42 000a C0B2     		uxtb	r0, r0
+  43              	.LVL2:
+  44 000c 05E0     		b	.L3
+  45              	.L2:
+ 266:lib_Network/ntp.c **** 	}
+ 267:lib_Network/ntp.c **** 	else if ((Inp >= '0') && (Inp <= '9')){
+  46              		.loc 1 267 0
+  47 000e 0300     		movs	r3, r0
+  48 0010 303B     		subs	r3, r3, #48
+  49 0012 DBB2     		uxtb	r3, r3
+  50 0014 092B     		cmp	r3, #9
+  51 0016 00D8     		bhi	.L3
+  52 0018 1800     		movs	r0, r3
+  53              	.LVL3:
+  54              	.L3:
+ 268:lib_Network/ntp.c **** 		Inp -= 0x30;
+ 269:lib_Network/ntp.c **** 	}
+ 270:lib_Network/ntp.c **** 	return Inp;
+ 271:lib_Network/ntp.c **** }
+  55              		.loc 1 271 0
+  56              		@ sp needed
+  57 001a 7047     		bx	lr
+  58              		.cfi_endproc
+  59              	.LFE2:
+  60              		.size	NtpDecodeByte, .-NtpDecodeByte
+  61              		.section	.text.NtpCheckSymb,"ax",%progbits
+  62              		.align	1
+  63              		.global	NtpCheckSymb
+  64              		.code	16
+  65              		.thumb_func
+  66              		.type	NtpCheckSymb, %function
+  67              	NtpCheckSymb:
+  68              	.LFB3:
+ 272:lib_Network/ntp.c **** 
+ 273:lib_Network/ntp.c **** uint8_t NtpCheckSymb(uint8_t Inp)
+ 274:lib_Network/ntp.c **** {
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 7
+
+
+  69              		.loc 1 274 0
+  70              		.cfi_startproc
+  71              		@ args = 0, pretend = 0, frame = 0
+  72              		@ frame_needed = 0, uses_anonymous_args = 0
+  73              		@ link register save eliminated.
+  74              	.LVL4:
+ 275:lib_Network/ntp.c **** 	uint8_t Val = 1;
+ 276:lib_Network/ntp.c **** 
+ 277:lib_Network/ntp.c **** 	if ((Inp > 0xF) || (Inp < 0x0))
+ 278:lib_Network/ntp.c **** 	{
+ 279:lib_Network/ntp.c **** 		Val = 0;
+ 280:lib_Network/ntp.c **** 	}
+ 281:lib_Network/ntp.c **** 	return Val;
+  75              		.loc 1 281 0
+  76 0000 0F22     		movs	r2, #15
+  77 0002 0023     		movs	r3, #0
+  78 0004 8242     		cmp	r2, r0
+  79 0006 5B41     		adcs	r3, r3, r3
+ 282:lib_Network/ntp.c **** }
+  80              		.loc 1 282 0
+  81              		@ sp needed
+ 281:lib_Network/ntp.c **** }
+  82              		.loc 1 281 0
+  83 0008 D8B2     		uxtb	r0, r3
+  84              	.LVL5:
+  85              		.loc 1 282 0
+  86 000a 7047     		bx	lr
+  87              		.cfi_endproc
+  88              	.LFE3:
+  89              		.size	NtpCheckSymb, .-NtpCheckSymb
+  90              		.section	.text.NtpResetPacket,"ax",%progbits
+  91              		.align	1
+  92              		.global	NtpResetPacket
+  93              		.code	16
+  94              		.thumb_func
+  95              		.type	NtpResetPacket, %function
+  96              	NtpResetPacket:
+  97              	.LFB4:
+ 283:lib_Network/ntp.c **** 
+ 284:lib_Network/ntp.c **** void NtpResetPacket(NtpResp *Data)
+ 285:lib_Network/ntp.c **** {
+  98              		.loc 1 285 0
+  99              		.cfi_startproc
+ 100              		@ args = 0, pretend = 0, frame = 0
+ 101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102              		@ link register save eliminated.
+ 103              	.LVL6:
+ 286:lib_Network/ntp.c **** 	Data->Id = 0;
+ 104              		.loc 1 286 0
+ 105 0000 0023     		movs	r3, #0
+ 287:lib_Network/ntp.c **** 	Data->Data1 = 0;
+ 288:lib_Network/ntp.c ****     Data->DataMs1 = 0;
+ 289:lib_Network/ntp.c **** 	Data->Data2 = 0;
+ 290:lib_Network/ntp.c **** 	Data->DataMs2 = 0;
+ 291:lib_Network/ntp.c ****     Data->CheckSum = 0;
+ 292:lib_Network/ntp.c **** 	Data->EndPacket = 0;
+ 293:lib_Network/ntp.c **** }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 8
+
+
+ 106              		.loc 1 293 0
+ 107              		@ sp needed
+ 286:lib_Network/ntp.c **** 	Data->Id = 0;
+ 108              		.loc 1 286 0
+ 109 0002 0380     		strh	r3, [r0]
+ 287:lib_Network/ntp.c **** 	Data->Data1 = 0;
+ 110              		.loc 1 287 0
+ 111 0004 4360     		str	r3, [r0, #4]
+ 288:lib_Network/ntp.c **** 	Data->Data2 = 0;
+ 112              		.loc 1 288 0
+ 113 0006 0381     		strh	r3, [r0, #8]
+ 289:lib_Network/ntp.c **** 	Data->DataMs2 = 0;
+ 114              		.loc 1 289 0
+ 115 0008 C360     		str	r3, [r0, #12]
+ 290:lib_Network/ntp.c ****     Data->CheckSum = 0;
+ 116              		.loc 1 290 0
+ 117 000a 4381     		strh	r3, [r0, #10]
+ 291:lib_Network/ntp.c **** 	Data->EndPacket = 0;
+ 118              		.loc 1 291 0
+ 119 000c 0361     		str	r3, [r0, #16]
+ 292:lib_Network/ntp.c **** }
+ 120              		.loc 1 292 0
+ 121 000e 0375     		strb	r3, [r0, #20]
+ 122              		.loc 1 293 0
+ 123 0010 7047     		bx	lr
+ 124              		.cfi_endproc
+ 125              	.LFE4:
+ 126              		.size	NtpResetPacket, .-NtpResetPacket
+ 127              		.section	.text.NtpUnpackData,"ax",%progbits
+ 128              		.align	1
+ 129              		.global	NtpUnpackData
+ 130              		.code	16
+ 131              		.thumb_func
+ 132              		.type	NtpUnpackData, %function
+ 133              	NtpUnpackData:
+ 134              	.LFB1:
+  40:lib_Network/ntp.c **** 	uint8_t RecvB = InByte;
+ 135              		.loc 1 40 0
+ 136              		.cfi_startproc
+ 137              		@ args = 0, pretend = 0, frame = 0
+ 138              		@ frame_needed = 0, uses_anonymous_args = 0
+ 139              	.LVL7:
+ 140 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 141              		.cfi_def_cfa_offset 24
+ 142              		.cfi_offset 3, -24
+ 143              		.cfi_offset 4, -20
+ 144              		.cfi_offset 5, -16
+ 145              		.cfi_offset 6, -12
+ 146              		.cfi_offset 7, -8
+ 147              		.cfi_offset 14, -4
+  40:lib_Network/ntp.c **** 	uint8_t RecvB = InByte;
+ 148              		.loc 1 40 0
+ 149 0002 0400     		movs	r4, r0
+  43:lib_Network/ntp.c **** 
+ 150              		.loc 1 43 0
+ 151 0004 0800     		movs	r0, r1
+ 152              	.LVL8:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 9
+
+
+ 153 0006 FFF7FEFF 		bl	NtpDecodeByte
+ 154              	.LVL9:
+  46:lib_Network/ntp.c **** 		case NTP_WAIT_STX: 
+ 155              		.loc 1 46 0
+ 156 000a 6E4D     		ldr	r5, .L73
+  43:lib_Network/ntp.c **** 
+ 157              		.loc 1 43 0
+ 158 000c 0600     		movs	r6, r0
+ 159              	.LVL10:
+  46:lib_Network/ntp.c **** 		case NTP_WAIT_STX: 
+ 160              		.loc 1 46 0
+ 161 000e 2878     		ldrb	r0, [r5]
+  42:lib_Network/ntp.c **** 	InByte = NtpDecodeByte(InByte);
+ 162              		.loc 1 42 0
+ 163 0010 0023     		movs	r3, #0
+  46:lib_Network/ntp.c **** 		case NTP_WAIT_STX: 
+ 164              		.loc 1 46 0
+ 165 0012 0928     		cmp	r0, #9
+ 166 0014 00D9     		bls	.LCB104
+ 167 0016 D2E0     		b	.L8	@long jump
+ 168              	.LCB104:
+ 169 0018 1F00     		movs	r7, r3
+ 170 001a FFF7FEFF 		bl	__gnu_thumb1_case_uqi
+ 171              	.L10:
+ 172 001e 05       		.byte	(.L9-.L10)/2
+ 173 001f 1A       		.byte	(.L11-.L10)/2
+ 174 0020 1D       		.byte	(.L12-.L10)/2
+ 175 0021 27       		.byte	(.L13-.L10)/2
+ 176 0022 30       		.byte	(.L14-.L10)/2
+ 177 0023 39       		.byte	(.L15-.L10)/2
+ 178 0024 42       		.byte	(.L16-.L10)/2
+ 179 0025 4B       		.byte	(.L17-.L10)/2
+ 180 0026 58       		.byte	(.L18-.L10)/2
+ 181 0027 5B       		.byte	(.L19-.L10)/2
+ 182              		.p2align 1
+ 183              	.L9:
+  49:lib_Network/ntp.c **** 			NtpLenId = 0;
+ 184              		.loc 1 49 0
+ 185 0028 2000     		movs	r0, r4
+ 186 002a FFF7FEFF 		bl	NtpResetPacket
+ 187              	.LVL11:
+  50:lib_Network/ntp.c **** 			NtpLenChS = 0;
+ 188              		.loc 1 50 0
+ 189 002e 664B     		ldr	r3, .L73+4
+  58:lib_Network/ntp.c **** 			}
+ 190              		.loc 1 58 0
+ 191 0030 0122     		movs	r2, #1
+  50:lib_Network/ntp.c **** 			NtpLenChS = 0;
+ 192              		.loc 1 50 0
+ 193 0032 1F70     		strb	r7, [r3]
+  51:lib_Network/ntp.c **** 			NtpLenD1 = 0;
+ 194              		.loc 1 51 0
+ 195 0034 654B     		ldr	r3, .L73+8
+ 196 0036 1F70     		strb	r7, [r3]
+  52:lib_Network/ntp.c ****             NtpLenMsD1 = 0;
+ 197              		.loc 1 52 0
+ 198 0038 654B     		ldr	r3, .L73+12
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 10
+
+
+ 199 003a 1F70     		strb	r7, [r3]
+  53:lib_Network/ntp.c ****             NtpLenMsD2 = 0;
+ 200              		.loc 1 53 0
+ 201 003c 654B     		ldr	r3, .L73+16
+ 202 003e 1F70     		strb	r7, [r3]
+  54:lib_Network/ntp.c **** 			NtpLenD2 = 0;
+ 203              		.loc 1 54 0
+ 204 0040 654B     		ldr	r3, .L73+20
+ 205 0042 1F70     		strb	r7, [r3]
+  55:lib_Network/ntp.c **** 			if (InByte == NTP_STX)
+ 206              		.loc 1 55 0
+ 207 0044 654B     		ldr	r3, .L73+24
+ 208 0046 1F70     		strb	r7, [r3]
+  42:lib_Network/ntp.c **** 	InByte = NtpDecodeByte(InByte);
+ 209              		.loc 1 42 0
+ 210 0048 0023     		movs	r3, #0
+  56:lib_Network/ntp.c **** 			{
+ 211              		.loc 1 56 0
+ 212 004a 3C2E     		cmp	r6, #60
+ 213 004c 00D0     		beq	.LCB130
+ 214 004e B6E0     		b	.L8	@long jump
+ 215              	.LCB130:
+ 216 0050 4BE0     		b	.L65
+ 217              	.L11:
+ 218              	.LVL12:
+ 219              	.LBB14:
+ 220              	.LBB15:
+ 277:lib_Network/ntp.c **** 	{
+ 221              		.loc 1 277 0
+ 222 0052 0F2E     		cmp	r6, #15
+ 223 0054 6CD8     		bhi	.L20
+ 224 0056 4AE0     		b	.L67
+ 225              	.LVL13:
+ 226              	.L12:
+ 227 0058 0027     		movs	r7, #0
+ 228              	.LBE15:
+ 229              	.LBE14:
+  93:lib_Network/ntp.c **** 			}
+ 230              		.loc 1 93 0
+ 231 005a 0323     		movs	r3, #3
+  91:lib_Network/ntp.c **** 			{
+ 232              		.loc 1 91 0
+ 233 005c 212E     		cmp	r6, #33
+ 234 005e 2DD0     		beq	.L63
+  97:lib_Network/ntp.c **** 				ERR_CODE = NTP_NO_FR1;
+ 235              		.loc 1 97 0
+ 236 0060 2000     		movs	r0, r4
+ 237 0062 FFF7FEFF 		bl	NtpResetPacket
+ 238              	.LVL14:
+  99:lib_Network/ntp.c **** 			}
+ 239              		.loc 1 99 0
+ 240 0066 2F70     		strb	r7, [r5]
+  98:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 241              		.loc 1 98 0
+ 242 0068 0223     		movs	r3, #2
+ 243 006a A8E0     		b	.L8
+ 244              	.LVL15:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 11
+
+
+ 245              	.L13:
+ 246              	.LBB16:
+ 247              	.LBB17:
+ 277:lib_Network/ntp.c **** 	{
+ 248              		.loc 1 277 0
+ 249 006c 0F2E     		cmp	r6, #15
+ 250 006e 4ED9     		bls	.L68
+ 251              	.LVL16:
+ 252              	.LBE17:
+ 253              	.LBE16:
+ 120:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DA1;
+ 254              		.loc 1 120 0
+ 255 0070 2000     		movs	r0, r4
+ 256 0072 FFF7FEFF 		bl	NtpResetPacket
+ 257              	.LVL17:
+ 122:lib_Network/ntp.c **** 			}
+ 258              		.loc 1 122 0
+ 259 0076 0023     		movs	r3, #0
+ 260 0078 2B70     		strb	r3, [r5]
+ 121:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 261              		.loc 1 121 0
+ 262 007a 0333     		adds	r3, r3, #3
+ 263 007c 9FE0     		b	.L8
+ 264              	.LVL18:
+ 265              	.L14:
+ 266              	.LBB18:
+ 267              	.LBB19:
+ 277:lib_Network/ntp.c **** 	{
+ 268              		.loc 1 277 0
+ 269 007e 0F2E     		cmp	r6, #15
+ 270 0080 59D9     		bls	.L69
+ 271              	.LVL19:
+ 272              	.LBE19:
+ 273              	.LBE18:
+ 143:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DM1;
+ 274              		.loc 1 143 0
+ 275 0082 2000     		movs	r0, r4
+ 276 0084 FFF7FEFF 		bl	NtpResetPacket
+ 277              	.LVL20:
+ 145:lib_Network/ntp.c **** 			}
+ 278              		.loc 1 145 0
+ 279 0088 0023     		movs	r3, #0
+ 280 008a 2B70     		strb	r3, [r5]
+ 144:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 281              		.loc 1 144 0
+ 282 008c 0433     		adds	r3, r3, #4
+ 283 008e 96E0     		b	.L8
+ 284              	.LVL21:
+ 285              	.L15:
+ 286              	.LBB20:
+ 287              	.LBB21:
+ 277:lib_Network/ntp.c **** 	{
+ 288              		.loc 1 277 0
+ 289 0090 0F2E     		cmp	r6, #15
+ 290 0092 60D9     		bls	.L70
+ 291              	.LVL22:
+ 292              	.LBE21:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 12
+
+
+ 293              	.LBE20:
+ 166:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DA2;
+ 294              		.loc 1 166 0
+ 295 0094 2000     		movs	r0, r4
+ 296 0096 FFF7FEFF 		bl	NtpResetPacket
+ 297              	.LVL23:
+ 168:lib_Network/ntp.c **** 			}
+ 298              		.loc 1 168 0
+ 299 009a 0023     		movs	r3, #0
+ 300 009c 2B70     		strb	r3, [r5]
+ 167:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 301              		.loc 1 167 0
+ 302 009e 0533     		adds	r3, r3, #5
+ 303 00a0 8DE0     		b	.L8
+ 304              	.LVL24:
+ 305              	.L16:
+ 306              	.LBB22:
+ 307              	.LBB23:
+ 277:lib_Network/ntp.c **** 	{
+ 308              		.loc 1 277 0
+ 309 00a2 0F2E     		cmp	r6, #15
+ 310 00a4 66D9     		bls	.L71
+ 311              	.LVL25:
+ 312              	.LBE23:
+ 313              	.LBE22:
+ 189:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_DM2;
+ 314              		.loc 1 189 0
+ 315 00a6 2000     		movs	r0, r4
+ 316 00a8 FFF7FEFF 		bl	NtpResetPacket
+ 317              	.LVL26:
+ 191:lib_Network/ntp.c **** 			}
+ 318              		.loc 1 191 0
+ 319 00ac 0023     		movs	r3, #0
+ 320 00ae 2B70     		strb	r3, [r5]
+ 190:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 321              		.loc 1 190 0
+ 322 00b0 0633     		adds	r3, r3, #6
+ 323 00b2 84E0     		b	.L8
+ 324              	.LVL27:
+ 325              	.L17:
+ 326 00b4 0027     		movs	r7, #0
+ 197:lib_Network/ntp.c **** 			{
+ 327              		.loc 1 197 0
+ 328 00b6 402E     		cmp	r6, #64
+ 329 00b8 03D1     		bne	.L31
+ 199:lib_Network/ntp.c **** 			}
+ 330              		.loc 1 199 0
+ 331 00ba 0823     		movs	r3, #8
+ 332              	.L63:
+ 333 00bc 2B70     		strb	r3, [r5]
+  42:lib_Network/ntp.c **** 	InByte = NtpDecodeByte(InByte);
+ 334              		.loc 1 42 0
+ 335 00be 3B00     		movs	r3, r7
+ 336 00c0 7DE0     		b	.L8
+ 337              	.L31:
+ 203:lib_Network/ntp.c **** 				ERR_CODE = NTP_NO_FR2;
+ 338              		.loc 1 203 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 13
+
+
+ 339 00c2 2000     		movs	r0, r4
+ 340 00c4 FFF7FEFF 		bl	NtpResetPacket
+ 341              	.LVL28:
+ 205:lib_Network/ntp.c **** 			}
+ 342              		.loc 1 205 0
+ 343 00c8 2F70     		strb	r7, [r5]
+ 204:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 344              		.loc 1 204 0
+ 345 00ca 0723     		movs	r3, #7
+ 346 00cc 77E0     		b	.L8
+ 347              	.LVL29:
+ 348              	.L18:
+ 349              	.LBB24:
+ 350              	.LBB25:
+ 277:lib_Network/ntp.c **** 	{
+ 351              		.loc 1 277 0
+ 352 00ce 0F2E     		cmp	r6, #15
+ 353 00d0 6FD8     		bhi	.L32
+ 354 00d2 5FE0     		b	.L72
+ 355              	.LVL30:
+ 356              	.L19:
+ 357              	.LBE25:
+ 358              	.LBE24:
+ 235:lib_Network/ntp.c **** 			{
+ 359              		.loc 1 235 0
+ 360 00d4 3E2E     		cmp	r6, #62
+ 361 00d6 03D1     		bne	.L34
+ 237:lib_Network/ntp.c **** 				ERR_CODE = NTP_PARSED_OK;
+ 362              		.loc 1 237 0
+ 363 00d8 0123     		movs	r3, #1
+ 364 00da 2375     		strb	r3, [r4, #20]
+ 238:lib_Network/ntp.c **** 
+ 365              		.loc 1 238 0
+ 366 00dc 0023     		movs	r3, #0
+ 367 00de 03E0     		b	.L35
+ 368              	.L34:
+ 369              	.LVL31:
+ 243:lib_Network/ntp.c **** 			}
+ 370              		.loc 1 243 0
+ 371 00e0 2000     		movs	r0, r4
+ 372 00e2 FFF7FEFF 		bl	NtpResetPacket
+ 373              	.LVL32:
+ 242:lib_Network/ntp.c **** 				NtpResetPacket(Data);
+ 374              		.loc 1 242 0
+ 375 00e6 0923     		movs	r3, #9
+ 376              	.LVL33:
+ 377              	.L35:
+ 245:lib_Network/ntp.c **** 			break;
+ 378              		.loc 1 245 0
+ 379 00e8 0022     		movs	r2, #0
+ 380              	.LVL34:
+ 381              	.L65:
+ 382 00ea 2A70     		strb	r2, [r5]
+ 246:lib_Network/ntp.c **** 		}
+ 383              		.loc 1 246 0
+ 384 00ec 67E0     		b	.L8
+ 385              	.LVL35:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 14
+
+
+ 386              	.L67:
+  71:lib_Network/ntp.c **** 				NtpLenId++;
+ 387              		.loc 1 71 0
+ 388 00ee 2388     		ldrh	r3, [r4]
+  72:lib_Network/ntp.c **** 				if (NtpLenId == NTP_LEN_ID)
+ 389              		.loc 1 72 0
+ 390 00f0 354A     		ldr	r2, .L73+4
+  71:lib_Network/ntp.c **** 				NtpLenId++;
+ 391              		.loc 1 71 0
+ 392 00f2 1E43     		orrs	r6, r3
+ 393              	.LVL36:
+ 394 00f4 B6B2     		uxth	r6, r6
+ 395 00f6 2680     		strh	r6, [r4]
+  72:lib_Network/ntp.c **** 				if (NtpLenId == NTP_LEN_ID)
+ 396              		.loc 1 72 0
+ 397 00f8 1378     		ldrb	r3, [r2]
+ 398 00fa 0133     		adds	r3, r3, #1
+ 399 00fc DBB2     		uxtb	r3, r3
+ 400 00fe 1370     		strb	r3, [r2]
+  73:lib_Network/ntp.c **** 				{
+ 401              		.loc 1 73 0
+ 402 0100 042B     		cmp	r3, #4
+ 403 0102 01D1     		bne	.L57
+  75:lib_Network/ntp.c **** 				}
+ 404              		.loc 1 75 0
+ 405 0104 0223     		movs	r3, #2
+ 406 0106 0DE0     		b	.L66
+ 407              	.L57:
+  79:lib_Network/ntp.c **** 				}
+ 408              		.loc 1 79 0
+ 409 0108 3601     		lsls	r6, r6, #4
+ 410 010a 2680     		strh	r6, [r4]
+ 411 010c 0EE0     		b	.L64
+ 412              	.LVL37:
+ 413              	.L68:
+ 108:lib_Network/ntp.c **** 				NtpLenD1++;
+ 414              		.loc 1 108 0
+ 415 010e 6368     		ldr	r3, [r4, #4]
+ 109:lib_Network/ntp.c **** 				if (NtpLenD1 == NTP_LEN_DA1)
+ 416              		.loc 1 109 0
+ 417 0110 2F4A     		ldr	r2, .L73+12
+ 108:lib_Network/ntp.c **** 				NtpLenD1++;
+ 418              		.loc 1 108 0
+ 419 0112 1E43     		orrs	r6, r3
+ 420              	.LVL38:
+ 109:lib_Network/ntp.c **** 				if (NtpLenD1 == NTP_LEN_DA1)
+ 421              		.loc 1 109 0
+ 422 0114 1378     		ldrb	r3, [r2]
+ 108:lib_Network/ntp.c **** 				NtpLenD1++;
+ 423              		.loc 1 108 0
+ 424 0116 6660     		str	r6, [r4, #4]
+ 109:lib_Network/ntp.c **** 				if (NtpLenD1 == NTP_LEN_DA1)
+ 425              		.loc 1 109 0
+ 426 0118 0133     		adds	r3, r3, #1
+ 427 011a DBB2     		uxtb	r3, r3
+ 428 011c 1370     		strb	r3, [r2]
+ 110:lib_Network/ntp.c **** 				{
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 15
+
+
+ 429              		.loc 1 110 0
+ 430 011e 082B     		cmp	r3, #8
+ 431 0120 02D1     		bne	.L58
+ 112:lib_Network/ntp.c **** 				}
+ 432              		.loc 1 112 0
+ 433 0122 0423     		movs	r3, #4
+ 434              	.L66:
+ 218:lib_Network/ntp.c **** 				}
+ 435              		.loc 1 218 0
+ 436 0124 2B70     		strb	r3, [r5]
+ 437 0126 01E0     		b	.L64
+ 438              	.L58:
+ 116:lib_Network/ntp.c **** 				}
+ 439              		.loc 1 116 0
+ 440 0128 3601     		lsls	r6, r6, #4
+ 441 012a 6660     		str	r6, [r4, #4]
+ 442              	.L64:
+  42:lib_Network/ntp.c **** 	InByte = NtpDecodeByte(InByte);
+ 443              		.loc 1 42 0
+ 444 012c 0023     		movs	r3, #0
+ 445 012e 46E0     		b	.L8
+ 446              	.LVL39:
+ 447              	.L20:
+  83:lib_Network/ntp.c **** 				ERR_CODE = NTP_BAD_ID;
+ 448              		.loc 1 83 0
+ 449 0130 2B70     		strb	r3, [r5]
+ 450              	.LVL40:
+  84:lib_Network/ntp.c **** 			}
+ 451              		.loc 1 84 0
+ 452 0132 0123     		movs	r3, #1
+ 453 0134 43E0     		b	.L8
+ 454              	.LVL41:
+ 455              	.L69:
+ 131:lib_Network/ntp.c **** 				NtpLenMsD1++;
+ 456              		.loc 1 131 0
+ 457 0136 2389     		ldrh	r3, [r4, #8]
+ 132:lib_Network/ntp.c **** 				if (NtpLenMsD1 == NTP_LEN_DM1)
+ 458              		.loc 1 132 0
+ 459 0138 264A     		ldr	r2, .L73+16
+ 131:lib_Network/ntp.c **** 				NtpLenMsD1++;
+ 460              		.loc 1 131 0
+ 461 013a 1E43     		orrs	r6, r3
+ 462              	.LVL42:
+ 132:lib_Network/ntp.c **** 				if (NtpLenMsD1 == NTP_LEN_DM1)
+ 463              		.loc 1 132 0
+ 464 013c 1378     		ldrb	r3, [r2]
+ 131:lib_Network/ntp.c **** 				NtpLenMsD1++;
+ 465              		.loc 1 131 0
+ 466 013e B6B2     		uxth	r6, r6
+ 132:lib_Network/ntp.c **** 				if (NtpLenMsD1 == NTP_LEN_DM1)
+ 467              		.loc 1 132 0
+ 468 0140 0133     		adds	r3, r3, #1
+ 469 0142 DBB2     		uxtb	r3, r3
+ 131:lib_Network/ntp.c **** 				NtpLenMsD1++;
+ 470              		.loc 1 131 0
+ 471 0144 2681     		strh	r6, [r4, #8]
+ 132:lib_Network/ntp.c **** 				if (NtpLenMsD1 == NTP_LEN_DM1)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 16
+
+
+ 472              		.loc 1 132 0
+ 473 0146 1370     		strb	r3, [r2]
+ 133:lib_Network/ntp.c **** 				{
+ 474              		.loc 1 133 0
+ 475 0148 032B     		cmp	r3, #3
+ 476 014a 01D1     		bne	.L59
+ 135:lib_Network/ntp.c **** 				}
+ 477              		.loc 1 135 0
+ 478 014c 0523     		movs	r3, #5
+ 479 014e E9E7     		b	.L66
+ 480              	.L59:
+ 139:lib_Network/ntp.c **** 				}
+ 481              		.loc 1 139 0
+ 482 0150 3601     		lsls	r6, r6, #4
+ 483 0152 2681     		strh	r6, [r4, #8]
+ 484 0154 EAE7     		b	.L64
+ 485              	.LVL43:
+ 486              	.L70:
+ 154:lib_Network/ntp.c **** 				NtpLenD2++;
+ 487              		.loc 1 154 0
+ 488 0156 E368     		ldr	r3, [r4, #12]
+ 155:lib_Network/ntp.c **** 				if (NtpLenD2 == NTP_LEN_DA2)
+ 489              		.loc 1 155 0
+ 490 0158 204A     		ldr	r2, .L73+24
+ 154:lib_Network/ntp.c **** 				NtpLenD2++;
+ 491              		.loc 1 154 0
+ 492 015a 1E43     		orrs	r6, r3
+ 493              	.LVL44:
+ 155:lib_Network/ntp.c **** 				if (NtpLenD2 == NTP_LEN_DA2)
+ 494              		.loc 1 155 0
+ 495 015c 1378     		ldrb	r3, [r2]
+ 154:lib_Network/ntp.c **** 				NtpLenD2++;
+ 496              		.loc 1 154 0
+ 497 015e E660     		str	r6, [r4, #12]
+ 155:lib_Network/ntp.c **** 				if (NtpLenD2 == NTP_LEN_DA2)
+ 498              		.loc 1 155 0
+ 499 0160 0133     		adds	r3, r3, #1
+ 500 0162 DBB2     		uxtb	r3, r3
+ 501 0164 1370     		strb	r3, [r2]
+ 156:lib_Network/ntp.c **** 				{
+ 502              		.loc 1 156 0
+ 503 0166 082B     		cmp	r3, #8
+ 504 0168 01D1     		bne	.L60
+ 158:lib_Network/ntp.c **** 				}
+ 505              		.loc 1 158 0
+ 506 016a 0623     		movs	r3, #6
+ 507 016c DAE7     		b	.L66
+ 508              	.L60:
+ 162:lib_Network/ntp.c **** 				}
+ 509              		.loc 1 162 0
+ 510 016e 3601     		lsls	r6, r6, #4
+ 511 0170 E660     		str	r6, [r4, #12]
+ 512 0172 DBE7     		b	.L64
+ 513              	.LVL45:
+ 514              	.L71:
+ 177:lib_Network/ntp.c **** 				NtpLenMsD2++;
+ 515              		.loc 1 177 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 17
+
+
+ 516 0174 6389     		ldrh	r3, [r4, #10]
+ 178:lib_Network/ntp.c **** 				if (NtpLenMsD2 == NTP_LEN_DM2)
+ 517              		.loc 1 178 0
+ 518 0176 184A     		ldr	r2, .L73+20
+ 177:lib_Network/ntp.c **** 				NtpLenMsD2++;
+ 519              		.loc 1 177 0
+ 520 0178 1E43     		orrs	r6, r3
+ 521              	.LVL46:
+ 178:lib_Network/ntp.c **** 				if (NtpLenMsD2 == NTP_LEN_DM2)
+ 522              		.loc 1 178 0
+ 523 017a 1378     		ldrb	r3, [r2]
+ 177:lib_Network/ntp.c **** 				NtpLenMsD2++;
+ 524              		.loc 1 177 0
+ 525 017c B6B2     		uxth	r6, r6
+ 178:lib_Network/ntp.c **** 				if (NtpLenMsD2 == NTP_LEN_DM2)
+ 526              		.loc 1 178 0
+ 527 017e 0133     		adds	r3, r3, #1
+ 528 0180 DBB2     		uxtb	r3, r3
+ 177:lib_Network/ntp.c **** 				NtpLenMsD2++;
+ 529              		.loc 1 177 0
+ 530 0182 6681     		strh	r6, [r4, #10]
+ 178:lib_Network/ntp.c **** 				if (NtpLenMsD2 == NTP_LEN_DM2)
+ 531              		.loc 1 178 0
+ 532 0184 1370     		strb	r3, [r2]
+ 179:lib_Network/ntp.c **** 				{
+ 533              		.loc 1 179 0
+ 534 0186 032B     		cmp	r3, #3
+ 535 0188 01D1     		bne	.L61
+ 181:lib_Network/ntp.c **** 				}
+ 536              		.loc 1 181 0
+ 537 018a 0723     		movs	r3, #7
+ 538 018c CAE7     		b	.L66
+ 539              	.L61:
+ 185:lib_Network/ntp.c **** 				}
+ 540              		.loc 1 185 0
+ 541 018e 3601     		lsls	r6, r6, #4
+ 542 0190 6681     		strh	r6, [r4, #10]
+ 543 0192 CBE7     		b	.L64
+ 544              	.LVL47:
+ 545              	.L72:
+ 214:lib_Network/ntp.c **** 				NtpLenChS++;
+ 546              		.loc 1 214 0
+ 547 0194 2369     		ldr	r3, [r4, #16]
+ 215:lib_Network/ntp.c **** 				if (NtpLenChS == NTP_LEN_CHS)
+ 548              		.loc 1 215 0
+ 549 0196 0D4A     		ldr	r2, .L73+8
+ 214:lib_Network/ntp.c **** 				NtpLenChS++;
+ 550              		.loc 1 214 0
+ 551 0198 1E43     		orrs	r6, r3
+ 552              	.LVL48:
+ 215:lib_Network/ntp.c **** 				if (NtpLenChS == NTP_LEN_CHS)
+ 553              		.loc 1 215 0
+ 554 019a 1378     		ldrb	r3, [r2]
+ 214:lib_Network/ntp.c **** 				NtpLenChS++;
+ 555              		.loc 1 214 0
+ 556 019c 2661     		str	r6, [r4, #16]
+ 215:lib_Network/ntp.c **** 				if (NtpLenChS == NTP_LEN_CHS)
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 18
+
+
+ 557              		.loc 1 215 0
+ 558 019e 0133     		adds	r3, r3, #1
+ 559 01a0 DBB2     		uxtb	r3, r3
+ 560 01a2 1370     		strb	r3, [r2]
+ 216:lib_Network/ntp.c **** 				{
+ 561              		.loc 1 216 0
+ 562 01a4 082B     		cmp	r3, #8
+ 563 01a6 01D1     		bne	.L62
+ 218:lib_Network/ntp.c **** 				}
+ 564              		.loc 1 218 0
+ 565 01a8 0923     		movs	r3, #9
+ 566 01aa BBE7     		b	.L66
+ 567              	.L62:
+ 222:lib_Network/ntp.c **** 				}
+ 568              		.loc 1 222 0
+ 569 01ac 3601     		lsls	r6, r6, #4
+ 570 01ae 2661     		str	r6, [r4, #16]
+ 571 01b0 BCE7     		b	.L64
+ 572              	.LVL49:
+ 573              	.L32:
+ 227:lib_Network/ntp.c **** 				ERR_CODE = NTP_INV_CKECKSUM;
+ 574              		.loc 1 227 0
+ 575 01b2 2000     		movs	r0, r4
+ 576 01b4 FFF7FEFF 		bl	NtpResetPacket
+ 577              	.LVL50:
+ 229:lib_Network/ntp.c **** 			}
+ 578              		.loc 1 229 0
+ 579 01b8 0023     		movs	r3, #0
+ 580 01ba 2B70     		strb	r3, [r5]
+ 228:lib_Network/ntp.c **** 				NTP_STATE = NTP_WAIT_STX;
+ 581              		.loc 1 228 0
+ 582 01bc 0833     		adds	r3, r3, #8
+ 583              	.LVL51:
+ 584              	.L8:
+ 257:lib_Network/ntp.c **** 
+ 585              		.loc 1 257 0
+ 586 01be D8B2     		uxtb	r0, r3
+ 259:lib_Network/ntp.c **** 
+ 587              		.loc 1 259 0
+ 588              		@ sp needed
+ 589              	.LVL52:
+ 590 01c0 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 591              	.L74:
+ 592 01c2 C046     		.align	2
+ 593              	.L73:
+ 594 01c4 00000000 		.word	.LANCHOR0
+ 595 01c8 00000000 		.word	NtpLenId
+ 596 01cc 00000000 		.word	NtpLenChS
+ 597 01d0 00000000 		.word	NtpLenD1
+ 598 01d4 00000000 		.word	NtpLenMsD1
+ 599 01d8 00000000 		.word	NtpLenMsD2
+ 600 01dc 00000000 		.word	NtpLenD2
+ 601              		.cfi_endproc
+ 602              	.LFE1:
+ 603              		.size	NtpUnpackData, .-NtpUnpackData
+ 604              		.global	NTP_STATE
+ 605              		.comm	NtpLenChS,1,1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 19
+
+
+ 606              		.comm	NtpLenId,1,1
+ 607              		.comm	NtpLenMsD2,1,1
+ 608              		.comm	NtpLenD2,1,1
+ 609              		.comm	NtpLenMsD1,1,1
+ 610              		.comm	NtpLenD1,1,1
+ 611              		.bss
+ 612              		.set	.LANCHOR0,. + 0
+ 613              		.type	NTP_STATE, %object
+ 614              		.size	NTP_STATE, 1
+ 615              	NTP_STATE:
+ 616 0000 00       		.space	1
+ 617              		.text
+ 618              	.Letext0:
+ 619              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 620              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 621              		.file 4 "lib_Network\\ntp.h"
+ 622              		.section	.debug_info,"",%progbits
+ 623              	.Ldebug_info0:
+ 624 0000 0C050000 		.4byte	0x50c
+ 625 0004 0400     		.2byte	0x4
+ 626 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 627 000a 04       		.byte	0x4
+ 628 000b 01       		.uleb128 0x1
+ 629 000c 87010000 		.4byte	.LASF60
+ 630 0010 0C       		.byte	0xc
+ 631 0011 75010000 		.4byte	.LASF61
+ 632 0015 6E020000 		.4byte	.LASF62
+ 633 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 634 001d 00000000 		.4byte	0
+ 635 0021 00000000 		.4byte	.Ldebug_line0
+ 636 0025 02       		.uleb128 0x2
+ 637 0026 01       		.byte	0x1
+ 638 0027 06       		.byte	0x6
+ 639 0028 6E000000 		.4byte	.LASF0
+ 640 002c 03       		.uleb128 0x3
+ 641 002d 27000000 		.4byte	.LASF3
+ 642 0031 02       		.byte	0x2
+ 643 0032 1D       		.byte	0x1d
+ 644 0033 37000000 		.4byte	0x37
+ 645 0037 02       		.uleb128 0x2
+ 646 0038 01       		.byte	0x1
+ 647 0039 08       		.byte	0x8
+ 648 003a A9020000 		.4byte	.LASF1
+ 649 003e 02       		.uleb128 0x2
+ 650 003f 02       		.byte	0x2
+ 651 0040 05       		.byte	0x5
+ 652 0041 B7020000 		.4byte	.LASF2
+ 653 0045 03       		.uleb128 0x3
+ 654 0046 FA020000 		.4byte	.LASF4
+ 655 004a 02       		.byte	0x2
+ 656 004b 2B       		.byte	0x2b
+ 657 004c 50000000 		.4byte	0x50
+ 658 0050 02       		.uleb128 0x2
+ 659 0051 02       		.byte	0x2
+ 660 0052 07       		.byte	0x7
+ 661 0053 23010000 		.4byte	.LASF5
+ 662 0057 02       		.uleb128 0x2
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 20
+
+
+ 663 0058 04       		.byte	0x4
+ 664 0059 05       		.byte	0x5
+ 665 005a 94000000 		.4byte	.LASF6
+ 666 005e 03       		.uleb128 0x3
+ 667 005f BB000000 		.4byte	.LASF7
+ 668 0063 02       		.byte	0x2
+ 669 0064 41       		.byte	0x41
+ 670 0065 69000000 		.4byte	0x69
+ 671 0069 02       		.uleb128 0x2
+ 672 006a 04       		.byte	0x4
+ 673 006b 07       		.byte	0x7
+ 674 006c 11010000 		.4byte	.LASF8
+ 675 0070 02       		.uleb128 0x2
+ 676 0071 08       		.byte	0x8
+ 677 0072 05       		.byte	0x5
+ 678 0073 60000000 		.4byte	.LASF9
+ 679 0077 02       		.uleb128 0x2
+ 680 0078 08       		.byte	0x8
+ 681 0079 07       		.byte	0x7
+ 682 007a 49000000 		.4byte	.LASF10
+ 683 007e 04       		.uleb128 0x4
+ 684 007f 04       		.byte	0x4
+ 685 0080 05       		.byte	0x5
+ 686 0081 696E7400 		.ascii	"int\000"
+ 687 0085 02       		.uleb128 0x2
+ 688 0086 04       		.byte	0x4
+ 689 0087 07       		.byte	0x7
+ 690 0088 E9000000 		.4byte	.LASF11
+ 691 008c 03       		.uleb128 0x3
+ 692 008d 4B030000 		.4byte	.LASF12
+ 693 0091 03       		.byte	0x3
+ 694 0092 18       		.byte	0x18
+ 695 0093 2C000000 		.4byte	0x2c
+ 696 0097 03       		.uleb128 0x3
+ 697 0098 9D000000 		.4byte	.LASF13
+ 698 009c 03       		.byte	0x3
+ 699 009d 24       		.byte	0x24
+ 700 009e 45000000 		.4byte	0x45
+ 701 00a2 03       		.uleb128 0x3
+ 702 00a3 E4020000 		.4byte	.LASF14
+ 703 00a7 03       		.byte	0x3
+ 704 00a8 30       		.byte	0x30
+ 705 00a9 5E000000 		.4byte	0x5e
+ 706 00ad 02       		.uleb128 0x2
+ 707 00ae 08       		.byte	0x8
+ 708 00af 04       		.byte	0x4
+ 709 00b0 A6000000 		.4byte	.LASF15
+ 710 00b4 02       		.uleb128 0x2
+ 711 00b5 04       		.byte	0x4
+ 712 00b6 07       		.byte	0x7
+ 713 00b7 6C010000 		.4byte	.LASF16
+ 714 00bb 02       		.uleb128 0x2
+ 715 00bc 01       		.byte	0x1
+ 716 00bd 08       		.byte	0x8
+ 717 00be F5020000 		.4byte	.LASF17
+ 718 00c2 05       		.uleb128 0x5
+ 719 00c3 C1020000 		.4byte	.LASF35
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 21
+
+
+ 720 00c7 01       		.byte	0x1
+ 721 00c8 37000000 		.4byte	0x37
+ 722 00cc 04       		.byte	0x4
+ 723 00cd 08       		.byte	0x8
+ 724 00ce 0F010000 		.4byte	0x10f
+ 725 00d2 06       		.uleb128 0x6
+ 726 00d3 23030000 		.4byte	.LASF18
+ 727 00d7 00       		.byte	0
+ 728 00d8 06       		.uleb128 0x6
+ 729 00d9 D9020000 		.4byte	.LASF19
+ 730 00dd 01       		.byte	0x1
+ 731 00de 06       		.uleb128 0x6
+ 732 00df 64030000 		.4byte	.LASF20
+ 733 00e3 02       		.byte	0x2
+ 734 00e4 06       		.uleb128 0x6
+ 735 00e5 00000000 		.4byte	.LASF21
+ 736 00e9 03       		.byte	0x3
+ 737 00ea 06       		.uleb128 0x6
+ 738 00eb 38020000 		.4byte	.LASF22
+ 739 00ef 04       		.byte	0x4
+ 740 00f0 06       		.uleb128 0x6
+ 741 00f1 0C000000 		.4byte	.LASF23
+ 742 00f5 05       		.byte	0x5
+ 743 00f6 06       		.uleb128 0x6
+ 744 00f7 44020000 		.4byte	.LASF24
+ 745 00fb 06       		.byte	0x6
+ 746 00fc 06       		.uleb128 0x6
+ 747 00fd 6F030000 		.4byte	.LASF25
+ 748 0101 07       		.byte	0x7
+ 749 0102 06       		.uleb128 0x6
+ 750 0103 36010000 		.4byte	.LASF26
+ 751 0107 08       		.byte	0x8
+ 752 0108 06       		.uleb128 0x6
+ 753 0109 54010000 		.4byte	.LASF27
+ 754 010d 09       		.byte	0x9
+ 755 010e 00       		.byte	0
+ 756 010f 07       		.uleb128 0x7
+ 757 0110 18       		.byte	0x18
+ 758 0111 04       		.byte	0x4
+ 759 0112 18       		.byte	0x18
+ 760 0113 6B010000 		.4byte	0x16b
+ 761 0117 08       		.uleb128 0x8
+ 762 0118 496400   		.ascii	"Id\000"
+ 763 011b 04       		.byte	0x4
+ 764 011c 1A       		.byte	0x1a
+ 765 011d 97000000 		.4byte	0x97
+ 766 0121 00       		.byte	0
+ 767 0122 09       		.uleb128 0x9
+ 768 0123 18000000 		.4byte	.LASF28
+ 769 0127 04       		.byte	0x4
+ 770 0128 1B       		.byte	0x1b
+ 771 0129 A2000000 		.4byte	0xa2
+ 772 012d 04       		.byte	0x4
+ 773 012e 09       		.uleb128 0x9
+ 774 012f ED020000 		.4byte	.LASF29
+ 775 0133 04       		.byte	0x4
+ 776 0134 1C       		.byte	0x1c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 22
+
+
+ 777 0135 97000000 		.4byte	0x97
+ 778 0139 08       		.byte	0x8
+ 779 013a 09       		.uleb128 0x9
+ 780 013b 7A030000 		.4byte	.LASF30
+ 781 013f 04       		.byte	0x4
+ 782 0140 1D       		.byte	0x1d
+ 783 0141 97000000 		.4byte	0x97
+ 784 0145 0A       		.byte	0xa
+ 785 0146 09       		.uleb128 0x9
+ 786 0147 47010000 		.4byte	.LASF31
+ 787 014b 04       		.byte	0x4
+ 788 014c 1E       		.byte	0x1e
+ 789 014d A2000000 		.4byte	0xa2
+ 790 0151 0C       		.byte	0xc
+ 791 0152 09       		.uleb128 0x9
+ 792 0153 50020000 		.4byte	.LASF32
+ 793 0157 04       		.byte	0x4
+ 794 0158 1F       		.byte	0x1f
+ 795 0159 A2000000 		.4byte	0xa2
+ 796 015d 10       		.byte	0x10
+ 797 015e 09       		.uleb128 0x9
+ 798 015f 8A030000 		.4byte	.LASF33
+ 799 0163 04       		.byte	0x4
+ 800 0164 20       		.byte	0x20
+ 801 0165 8C000000 		.4byte	0x8c
+ 802 0169 14       		.byte	0x14
+ 803 016a 00       		.byte	0
+ 804 016b 03       		.uleb128 0x3
+ 805 016c 82030000 		.4byte	.LASF34
+ 806 0170 04       		.byte	0x4
+ 807 0171 21       		.byte	0x21
+ 808 0172 0F010000 		.4byte	0x10f
+ 809 0176 05       		.uleb128 0x5
+ 810 0177 05030000 		.4byte	.LASF36
+ 811 017b 01       		.byte	0x1
+ 812 017c 37000000 		.4byte	0x37
+ 813 0180 01       		.byte	0x1
+ 814 0181 03       		.byte	0x3
+ 815 0182 C3010000 		.4byte	0x1c3
+ 816 0186 06       		.uleb128 0x6
+ 817 0187 15020000 		.4byte	.LASF37
+ 818 018b 00       		.byte	0
+ 819 018c 06       		.uleb128 0x6
+ 820 018d 58030000 		.4byte	.LASF38
+ 821 0191 01       		.byte	0x1
+ 822 0192 06       		.uleb128 0x6
+ 823 0193 7A000000 		.4byte	.LASF39
+ 824 0197 02       		.byte	0x2
+ 825 0198 06       		.uleb128 0x6
+ 826 0199 C6000000 		.4byte	.LASF40
+ 827 019d 03       		.byte	0x3
+ 828 019e 06       		.uleb128 0x6
+ 829 019f 31030000 		.4byte	.LASF41
+ 830 01a3 04       		.byte	0x4
+ 831 01a4 06       		.uleb128 0x6
+ 832 01a5 D3000000 		.4byte	.LASF42
+ 833 01a9 05       		.byte	0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 23
+
+
+ 834 01aa 06       		.uleb128 0x6
+ 835 01ab 3E030000 		.4byte	.LASF43
+ 836 01af 06       		.byte	0x6
+ 837 01b0 06       		.uleb128 0x6
+ 838 01b1 87000000 		.4byte	.LASF44
+ 839 01b5 07       		.byte	0x7
+ 840 01b6 06       		.uleb128 0x6
+ 841 01b7 5F010000 		.4byte	.LASF45
+ 842 01bb 08       		.byte	0x8
+ 843 01bc 06       		.uleb128 0x6
+ 844 01bd CC020000 		.4byte	.LASF46
+ 845 01c1 09       		.byte	0x9
+ 846 01c2 00       		.byte	0
+ 847 01c3 0A       		.uleb128 0xa
+ 848 01c4 F6000000 		.4byte	.LASF63
+ 849 01c8 01       		.byte	0x1
+ 850 01c9 1101     		.2byte	0x111
+ 851 01cb 8C000000 		.4byte	0x8c
+ 852 01cf 01       		.byte	0x1
+ 853 01d0 ED010000 		.4byte	0x1ed
+ 854 01d4 0B       		.uleb128 0xb
+ 855 01d5 496E7000 		.ascii	"Inp\000"
+ 856 01d9 01       		.byte	0x1
+ 857 01da 1101     		.2byte	0x111
+ 858 01dc 8C000000 		.4byte	0x8c
+ 859 01e0 0C       		.uleb128 0xc
+ 860 01e1 56616C00 		.ascii	"Val\000"
+ 861 01e5 01       		.byte	0x1
+ 862 01e6 1301     		.2byte	0x113
+ 863 01e8 8C000000 		.4byte	0x8c
+ 864 01ec 00       		.byte	0
+ 865 01ed 0D       		.uleb128 0xd
+ 866 01ee 03010000 		.4byte	.LASF48
+ 867 01f2 01       		.byte	0x1
+ 868 01f3 0501     		.2byte	0x105
+ 869 01f5 8C000000 		.4byte	0x8c
+ 870 01f9 00000000 		.4byte	.LFB2
+ 871 01fd 1C000000 		.4byte	.LFE2-.LFB2
+ 872 0201 01       		.uleb128 0x1
+ 873 0202 9C       		.byte	0x9c
+ 874 0203 18020000 		.4byte	0x218
+ 875 0207 0E       		.uleb128 0xe
+ 876 0208 496E7000 		.ascii	"Inp\000"
+ 877 020c 01       		.byte	0x1
+ 878 020d 0501     		.2byte	0x105
+ 879 020f 8C000000 		.4byte	0x8c
+ 880 0213 00000000 		.4byte	.LLST0
+ 881 0217 00       		.byte	0
+ 882 0218 0F       		.uleb128 0xf
+ 883 0219 C3010000 		.4byte	0x1c3
+ 884 021d 00000000 		.4byte	.LFB3
+ 885 0221 0C000000 		.4byte	.LFE3-.LFB3
+ 886 0225 01       		.uleb128 0x1
+ 887 0226 9C       		.byte	0x9c
+ 888 0227 3E020000 		.4byte	0x23e
+ 889 022b 10       		.uleb128 0x10
+ 890 022c D4010000 		.4byte	0x1d4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 24
+
+
+ 891 0230 2C000000 		.4byte	.LLST1
+ 892 0234 11       		.uleb128 0x11
+ 893 0235 E0010000 		.4byte	0x1e0
+ 894 0239 4D000000 		.4byte	.LLST2
+ 895 023d 00       		.byte	0
+ 896 023e 12       		.uleb128 0x12
+ 897 023f 59020000 		.4byte	.LASF64
+ 898 0243 01       		.byte	0x1
+ 899 0244 1C01     		.2byte	0x11c
+ 900 0246 00000000 		.4byte	.LFB4
+ 901 024a 12000000 		.4byte	.LFE4-.LFB4
+ 902 024e 01       		.uleb128 0x1
+ 903 024f 9C       		.byte	0x9c
+ 904 0250 63020000 		.4byte	0x263
+ 905 0254 13       		.uleb128 0x13
+ 906 0255 53030000 		.4byte	.LASF47
+ 907 0259 01       		.byte	0x1
+ 908 025a 1C01     		.2byte	0x11c
+ 909 025c 63020000 		.4byte	0x263
+ 910 0260 01       		.uleb128 0x1
+ 911 0261 50       		.byte	0x50
+ 912 0262 00       		.byte	0
+ 913 0263 14       		.uleb128 0x14
+ 914 0264 04       		.byte	0x4
+ 915 0265 6B010000 		.4byte	0x16b
+ 916 0269 15       		.uleb128 0x15
+ 917 026a 3B000000 		.4byte	.LASF49
+ 918 026e 01       		.byte	0x1
+ 919 026f 27       		.byte	0x27
+ 920 0270 8C000000 		.4byte	0x8c
+ 921 0274 00000000 		.4byte	.LFB1
+ 922 0278 E0010000 		.4byte	.LFE1-.LFB1
+ 923 027c 01       		.uleb128 0x1
+ 924 027d 9C       		.byte	0x9c
+ 925 027e 98040000 		.4byte	0x498
+ 926 0282 16       		.uleb128 0x16
+ 927 0283 53030000 		.4byte	.LASF47
+ 928 0287 01       		.byte	0x1
+ 929 0288 27       		.byte	0x27
+ 930 0289 63020000 		.4byte	0x263
+ 931 028d 7A000000 		.4byte	.LLST3
+ 932 0291 16       		.uleb128 0x16
+ 933 0292 4D010000 		.4byte	.LASF50
+ 934 0296 01       		.byte	0x1
+ 935 0297 27       		.byte	0x27
+ 936 0298 8C000000 		.4byte	0x8c
+ 937 029c A6000000 		.4byte	.LLST4
+ 938 02a0 17       		.uleb128 0x17
+ 939 02a1 68020000 		.4byte	.LASF51
+ 940 02a5 01       		.byte	0x1
+ 941 02a6 29       		.byte	0x29
+ 942 02a7 8C000000 		.4byte	0x8c
+ 943 02ab 14010000 		.4byte	.LLST5
+ 944 02af 17       		.uleb128 0x17
+ 945 02b0 E0000000 		.4byte	.LASF52
+ 946 02b4 01       		.byte	0x1
+ 947 02b5 2A       		.byte	0x2a
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 25
+
+
+ 948 02b6 A2000000 		.4byte	0xa2
+ 949 02ba 35010000 		.4byte	.LLST6
+ 950 02be 18       		.uleb128 0x18
+ 951 02bf C3010000 		.4byte	0x1c3
+ 952 02c3 52000000 		.4byte	.LBB14
+ 953 02c7 08000000 		.4byte	.LBE14-.LBB14
+ 954 02cb 01       		.byte	0x1
+ 955 02cc 45       		.byte	0x45
+ 956 02cd EE020000 		.4byte	0x2ee
+ 957 02d1 10       		.uleb128 0x10
+ 958 02d2 D4010000 		.4byte	0x1d4
+ 959 02d6 2B020000 		.4byte	.LLST7
+ 960 02da 19       		.uleb128 0x19
+ 961 02db 52000000 		.4byte	.LBB15
+ 962 02df 08000000 		.4byte	.LBE15-.LBB15
+ 963 02e3 11       		.uleb128 0x11
+ 964 02e4 E0010000 		.4byte	0x1e0
+ 965 02e8 3E020000 		.4byte	.LLST8
+ 966 02ec 00       		.byte	0
+ 967 02ed 00       		.byte	0
+ 968 02ee 18       		.uleb128 0x18
+ 969 02ef C3010000 		.4byte	0x1c3
+ 970 02f3 6C000000 		.4byte	.LBB16
+ 971 02f7 04000000 		.4byte	.LBE16-.LBB16
+ 972 02fb 01       		.byte	0x1
+ 973 02fc 6A       		.byte	0x6a
+ 974 02fd 1E030000 		.4byte	0x31e
+ 975 0301 10       		.uleb128 0x10
+ 976 0302 D4010000 		.4byte	0x1d4
+ 977 0306 52020000 		.4byte	.LLST9
+ 978 030a 19       		.uleb128 0x19
+ 979 030b 6C000000 		.4byte	.LBB17
+ 980 030f 04000000 		.4byte	.LBE17-.LBB17
+ 981 0313 11       		.uleb128 0x11
+ 982 0314 E0010000 		.4byte	0x1e0
+ 983 0318 65020000 		.4byte	.LLST10
+ 984 031c 00       		.byte	0
+ 985 031d 00       		.byte	0
+ 986 031e 18       		.uleb128 0x18
+ 987 031f C3010000 		.4byte	0x1c3
+ 988 0323 7E000000 		.4byte	.LBB18
+ 989 0327 04000000 		.4byte	.LBE18-.LBB18
+ 990 032b 01       		.byte	0x1
+ 991 032c 81       		.byte	0x81
+ 992 032d 4E030000 		.4byte	0x34e
+ 993 0331 10       		.uleb128 0x10
+ 994 0332 D4010000 		.4byte	0x1d4
+ 995 0336 79020000 		.4byte	.LLST11
+ 996 033a 19       		.uleb128 0x19
+ 997 033b 7E000000 		.4byte	.LBB19
+ 998 033f 04000000 		.4byte	.LBE19-.LBB19
+ 999 0343 11       		.uleb128 0x11
+ 1000 0344 E0010000 		.4byte	0x1e0
+ 1001 0348 8C020000 		.4byte	.LLST12
+ 1002 034c 00       		.byte	0
+ 1003 034d 00       		.byte	0
+ 1004 034e 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 26
+
+
+ 1005 034f C3010000 		.4byte	0x1c3
+ 1006 0353 90000000 		.4byte	.LBB20
+ 1007 0357 04000000 		.4byte	.LBE20-.LBB20
+ 1008 035b 01       		.byte	0x1
+ 1009 035c 97       		.byte	0x97
+ 1010 035d 7E030000 		.4byte	0x37e
+ 1011 0361 10       		.uleb128 0x10
+ 1012 0362 D4010000 		.4byte	0x1d4
+ 1013 0366 A0020000 		.4byte	.LLST13
+ 1014 036a 19       		.uleb128 0x19
+ 1015 036b 90000000 		.4byte	.LBB21
+ 1016 036f 04000000 		.4byte	.LBE21-.LBB21
+ 1017 0373 11       		.uleb128 0x11
+ 1018 0374 E0010000 		.4byte	0x1e0
+ 1019 0378 B3020000 		.4byte	.LLST14
+ 1020 037c 00       		.byte	0
+ 1021 037d 00       		.byte	0
+ 1022 037e 18       		.uleb128 0x18
+ 1023 037f C3010000 		.4byte	0x1c3
+ 1024 0383 A2000000 		.4byte	.LBB22
+ 1025 0387 04000000 		.4byte	.LBE22-.LBB22
+ 1026 038b 01       		.byte	0x1
+ 1027 038c AF       		.byte	0xaf
+ 1028 038d AE030000 		.4byte	0x3ae
+ 1029 0391 10       		.uleb128 0x10
+ 1030 0392 D4010000 		.4byte	0x1d4
+ 1031 0396 C7020000 		.4byte	.LLST15
+ 1032 039a 19       		.uleb128 0x19
+ 1033 039b A2000000 		.4byte	.LBB23
+ 1034 039f 04000000 		.4byte	.LBE23-.LBB23
+ 1035 03a3 11       		.uleb128 0x11
+ 1036 03a4 E0010000 		.4byte	0x1e0
+ 1037 03a8 DA020000 		.4byte	.LLST16
+ 1038 03ac 00       		.byte	0
+ 1039 03ad 00       		.byte	0
+ 1040 03ae 18       		.uleb128 0x18
+ 1041 03af C3010000 		.4byte	0x1c3
+ 1042 03b3 CE000000 		.4byte	.LBB24
+ 1043 03b7 06000000 		.4byte	.LBE24-.LBB24
+ 1044 03bb 01       		.byte	0x1
+ 1045 03bc D4       		.byte	0xd4
+ 1046 03bd DE030000 		.4byte	0x3de
+ 1047 03c1 10       		.uleb128 0x10
+ 1048 03c2 D4010000 		.4byte	0x1d4
+ 1049 03c6 EE020000 		.4byte	.LLST17
+ 1050 03ca 19       		.uleb128 0x19
+ 1051 03cb CE000000 		.4byte	.LBB25
+ 1052 03cf 06000000 		.4byte	.LBE25-.LBB25
+ 1053 03d3 11       		.uleb128 0x11
+ 1054 03d4 E0010000 		.4byte	0x1e0
+ 1055 03d8 01030000 		.4byte	.LLST18
+ 1056 03dc 00       		.byte	0
+ 1057 03dd 00       		.byte	0
+ 1058 03de 1A       		.uleb128 0x1a
+ 1059 03df 0A000000 		.4byte	.LVL9
+ 1060 03e3 ED010000 		.4byte	0x1ed
+ 1061 03e7 1B       		.uleb128 0x1b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 27
+
+
+ 1062 03e8 2E000000 		.4byte	.LVL11
+ 1063 03ec 3E020000 		.4byte	0x23e
+ 1064 03f0 FB030000 		.4byte	0x3fb
+ 1065 03f4 1C       		.uleb128 0x1c
+ 1066 03f5 01       		.uleb128 0x1
+ 1067 03f6 50       		.byte	0x50
+ 1068 03f7 02       		.uleb128 0x2
+ 1069 03f8 74       		.byte	0x74
+ 1070 03f9 00       		.sleb128 0
+ 1071 03fa 00       		.byte	0
+ 1072 03fb 1B       		.uleb128 0x1b
+ 1073 03fc 66000000 		.4byte	.LVL14
+ 1074 0400 3E020000 		.4byte	0x23e
+ 1075 0404 0F040000 		.4byte	0x40f
+ 1076 0408 1C       		.uleb128 0x1c
+ 1077 0409 01       		.uleb128 0x1
+ 1078 040a 50       		.byte	0x50
+ 1079 040b 02       		.uleb128 0x2
+ 1080 040c 74       		.byte	0x74
+ 1081 040d 00       		.sleb128 0
+ 1082 040e 00       		.byte	0
+ 1083 040f 1B       		.uleb128 0x1b
+ 1084 0410 76000000 		.4byte	.LVL17
+ 1085 0414 3E020000 		.4byte	0x23e
+ 1086 0418 23040000 		.4byte	0x423
+ 1087 041c 1C       		.uleb128 0x1c
+ 1088 041d 01       		.uleb128 0x1
+ 1089 041e 50       		.byte	0x50
+ 1090 041f 02       		.uleb128 0x2
+ 1091 0420 74       		.byte	0x74
+ 1092 0421 00       		.sleb128 0
+ 1093 0422 00       		.byte	0
+ 1094 0423 1B       		.uleb128 0x1b
+ 1095 0424 88000000 		.4byte	.LVL20
+ 1096 0428 3E020000 		.4byte	0x23e
+ 1097 042c 37040000 		.4byte	0x437
+ 1098 0430 1C       		.uleb128 0x1c
+ 1099 0431 01       		.uleb128 0x1
+ 1100 0432 50       		.byte	0x50
+ 1101 0433 02       		.uleb128 0x2
+ 1102 0434 74       		.byte	0x74
+ 1103 0435 00       		.sleb128 0
+ 1104 0436 00       		.byte	0
+ 1105 0437 1B       		.uleb128 0x1b
+ 1106 0438 9A000000 		.4byte	.LVL23
+ 1107 043c 3E020000 		.4byte	0x23e
+ 1108 0440 4B040000 		.4byte	0x44b
+ 1109 0444 1C       		.uleb128 0x1c
+ 1110 0445 01       		.uleb128 0x1
+ 1111 0446 50       		.byte	0x50
+ 1112 0447 02       		.uleb128 0x2
+ 1113 0448 74       		.byte	0x74
+ 1114 0449 00       		.sleb128 0
+ 1115 044a 00       		.byte	0
+ 1116 044b 1B       		.uleb128 0x1b
+ 1117 044c AC000000 		.4byte	.LVL26
+ 1118 0450 3E020000 		.4byte	0x23e
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 28
+
+
+ 1119 0454 5F040000 		.4byte	0x45f
+ 1120 0458 1C       		.uleb128 0x1c
+ 1121 0459 01       		.uleb128 0x1
+ 1122 045a 50       		.byte	0x50
+ 1123 045b 02       		.uleb128 0x2
+ 1124 045c 74       		.byte	0x74
+ 1125 045d 00       		.sleb128 0
+ 1126 045e 00       		.byte	0
+ 1127 045f 1B       		.uleb128 0x1b
+ 1128 0460 C8000000 		.4byte	.LVL28
+ 1129 0464 3E020000 		.4byte	0x23e
+ 1130 0468 73040000 		.4byte	0x473
+ 1131 046c 1C       		.uleb128 0x1c
+ 1132 046d 01       		.uleb128 0x1
+ 1133 046e 50       		.byte	0x50
+ 1134 046f 02       		.uleb128 0x2
+ 1135 0470 74       		.byte	0x74
+ 1136 0471 00       		.sleb128 0
+ 1137 0472 00       		.byte	0
+ 1138 0473 1B       		.uleb128 0x1b
+ 1139 0474 E6000000 		.4byte	.LVL32
+ 1140 0478 3E020000 		.4byte	0x23e
+ 1141 047c 87040000 		.4byte	0x487
+ 1142 0480 1C       		.uleb128 0x1c
+ 1143 0481 01       		.uleb128 0x1
+ 1144 0482 50       		.byte	0x50
+ 1145 0483 02       		.uleb128 0x2
+ 1146 0484 74       		.byte	0x74
+ 1147 0485 00       		.sleb128 0
+ 1148 0486 00       		.byte	0
+ 1149 0487 1D       		.uleb128 0x1d
+ 1150 0488 B8010000 		.4byte	.LVL50
+ 1151 048c 3E020000 		.4byte	0x23e
+ 1152 0490 1C       		.uleb128 0x1c
+ 1153 0491 01       		.uleb128 0x1
+ 1154 0492 50       		.byte	0x50
+ 1155 0493 02       		.uleb128 0x2
+ 1156 0494 74       		.byte	0x74
+ 1157 0495 00       		.sleb128 0
+ 1158 0496 00       		.byte	0
+ 1159 0497 00       		.byte	0
+ 1160 0498 1E       		.uleb128 0x1e
+ 1161 0499 1E000000 		.4byte	.LASF53
+ 1162 049d 01       		.byte	0x1
+ 1163 049e 1F       		.byte	0x1f
+ 1164 049f 8C000000 		.4byte	0x8c
+ 1165 04a3 05       		.uleb128 0x5
+ 1166 04a4 03       		.byte	0x3
+ 1167 04a5 00000000 		.4byte	NtpLenD1
+ 1168 04a9 1E       		.uleb128 0x1e
+ 1169 04aa 22020000 		.4byte	.LASF54
+ 1170 04ae 01       		.byte	0x1
+ 1171 04af 1F       		.byte	0x1f
+ 1172 04b0 8C000000 		.4byte	0x8c
+ 1173 04b4 05       		.uleb128 0x5
+ 1174 04b5 03       		.byte	0x3
+ 1175 04b6 00000000 		.4byte	NtpLenMsD1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 29
+
+
+ 1176 04ba 1E       		.uleb128 0x1e
+ 1177 04bb B2000000 		.4byte	.LASF55
+ 1178 04bf 01       		.byte	0x1
+ 1179 04c0 1F       		.byte	0x1f
+ 1180 04c1 8C000000 		.4byte	0x8c
+ 1181 04c5 05       		.uleb128 0x5
+ 1182 04c6 03       		.byte	0x3
+ 1183 04c7 00000000 		.4byte	NtpLenD2
+ 1184 04cb 1E       		.uleb128 0x1e
+ 1185 04cc 2D020000 		.4byte	.LASF56
+ 1186 04d0 01       		.byte	0x1
+ 1187 04d1 1F       		.byte	0x1f
+ 1188 04d2 8C000000 		.4byte	0x8c
+ 1189 04d6 05       		.uleb128 0x5
+ 1190 04d7 03       		.byte	0x3
+ 1191 04d8 00000000 		.4byte	NtpLenMsD2
+ 1192 04dc 1E       		.uleb128 0x1e
+ 1193 04dd 10030000 		.4byte	.LASF57
+ 1194 04e1 01       		.byte	0x1
+ 1195 04e2 1F       		.byte	0x1f
+ 1196 04e3 8C000000 		.4byte	0x8c
+ 1197 04e7 05       		.uleb128 0x5
+ 1198 04e8 03       		.byte	0x3
+ 1199 04e9 00000000 		.4byte	NtpLenId
+ 1200 04ed 1E       		.uleb128 0x1e
+ 1201 04ee 31000000 		.4byte	.LASF58
+ 1202 04f2 01       		.byte	0x1
+ 1203 04f3 1F       		.byte	0x1f
+ 1204 04f4 8C000000 		.4byte	0x8c
+ 1205 04f8 05       		.uleb128 0x5
+ 1206 04f9 03       		.byte	0x3
+ 1207 04fa 00000000 		.4byte	NtpLenChS
+ 1208 04fe 1E       		.uleb128 0x1e
+ 1209 04ff 19030000 		.4byte	.LASF59
+ 1210 0503 01       		.byte	0x1
+ 1211 0504 25       		.byte	0x25
+ 1212 0505 8C000000 		.4byte	0x8c
+ 1213 0509 05       		.uleb128 0x5
+ 1214 050a 03       		.byte	0x3
+ 1215 050b 00000000 		.4byte	NTP_STATE
+ 1216 050f 00       		.byte	0
+ 1217              		.section	.debug_abbrev,"",%progbits
+ 1218              	.Ldebug_abbrev0:
+ 1219 0000 01       		.uleb128 0x1
+ 1220 0001 11       		.uleb128 0x11
+ 1221 0002 01       		.byte	0x1
+ 1222 0003 25       		.uleb128 0x25
+ 1223 0004 0E       		.uleb128 0xe
+ 1224 0005 13       		.uleb128 0x13
+ 1225 0006 0B       		.uleb128 0xb
+ 1226 0007 03       		.uleb128 0x3
+ 1227 0008 0E       		.uleb128 0xe
+ 1228 0009 1B       		.uleb128 0x1b
+ 1229 000a 0E       		.uleb128 0xe
+ 1230 000b 55       		.uleb128 0x55
+ 1231 000c 17       		.uleb128 0x17
+ 1232 000d 11       		.uleb128 0x11
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 30
+
+
+ 1233 000e 01       		.uleb128 0x1
+ 1234 000f 10       		.uleb128 0x10
+ 1235 0010 17       		.uleb128 0x17
+ 1236 0011 00       		.byte	0
+ 1237 0012 00       		.byte	0
+ 1238 0013 02       		.uleb128 0x2
+ 1239 0014 24       		.uleb128 0x24
+ 1240 0015 00       		.byte	0
+ 1241 0016 0B       		.uleb128 0xb
+ 1242 0017 0B       		.uleb128 0xb
+ 1243 0018 3E       		.uleb128 0x3e
+ 1244 0019 0B       		.uleb128 0xb
+ 1245 001a 03       		.uleb128 0x3
+ 1246 001b 0E       		.uleb128 0xe
+ 1247 001c 00       		.byte	0
+ 1248 001d 00       		.byte	0
+ 1249 001e 03       		.uleb128 0x3
+ 1250 001f 16       		.uleb128 0x16
+ 1251 0020 00       		.byte	0
+ 1252 0021 03       		.uleb128 0x3
+ 1253 0022 0E       		.uleb128 0xe
+ 1254 0023 3A       		.uleb128 0x3a
+ 1255 0024 0B       		.uleb128 0xb
+ 1256 0025 3B       		.uleb128 0x3b
+ 1257 0026 0B       		.uleb128 0xb
+ 1258 0027 49       		.uleb128 0x49
+ 1259 0028 13       		.uleb128 0x13
+ 1260 0029 00       		.byte	0
+ 1261 002a 00       		.byte	0
+ 1262 002b 04       		.uleb128 0x4
+ 1263 002c 24       		.uleb128 0x24
+ 1264 002d 00       		.byte	0
+ 1265 002e 0B       		.uleb128 0xb
+ 1266 002f 0B       		.uleb128 0xb
+ 1267 0030 3E       		.uleb128 0x3e
+ 1268 0031 0B       		.uleb128 0xb
+ 1269 0032 03       		.uleb128 0x3
+ 1270 0033 08       		.uleb128 0x8
+ 1271 0034 00       		.byte	0
+ 1272 0035 00       		.byte	0
+ 1273 0036 05       		.uleb128 0x5
+ 1274 0037 04       		.uleb128 0x4
+ 1275 0038 01       		.byte	0x1
+ 1276 0039 03       		.uleb128 0x3
+ 1277 003a 0E       		.uleb128 0xe
+ 1278 003b 0B       		.uleb128 0xb
+ 1279 003c 0B       		.uleb128 0xb
+ 1280 003d 49       		.uleb128 0x49
+ 1281 003e 13       		.uleb128 0x13
+ 1282 003f 3A       		.uleb128 0x3a
+ 1283 0040 0B       		.uleb128 0xb
+ 1284 0041 3B       		.uleb128 0x3b
+ 1285 0042 0B       		.uleb128 0xb
+ 1286 0043 01       		.uleb128 0x1
+ 1287 0044 13       		.uleb128 0x13
+ 1288 0045 00       		.byte	0
+ 1289 0046 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 31
+
+
+ 1290 0047 06       		.uleb128 0x6
+ 1291 0048 28       		.uleb128 0x28
+ 1292 0049 00       		.byte	0
+ 1293 004a 03       		.uleb128 0x3
+ 1294 004b 0E       		.uleb128 0xe
+ 1295 004c 1C       		.uleb128 0x1c
+ 1296 004d 0B       		.uleb128 0xb
+ 1297 004e 00       		.byte	0
+ 1298 004f 00       		.byte	0
+ 1299 0050 07       		.uleb128 0x7
+ 1300 0051 13       		.uleb128 0x13
+ 1301 0052 01       		.byte	0x1
+ 1302 0053 0B       		.uleb128 0xb
+ 1303 0054 0B       		.uleb128 0xb
+ 1304 0055 3A       		.uleb128 0x3a
+ 1305 0056 0B       		.uleb128 0xb
+ 1306 0057 3B       		.uleb128 0x3b
+ 1307 0058 0B       		.uleb128 0xb
+ 1308 0059 01       		.uleb128 0x1
+ 1309 005a 13       		.uleb128 0x13
+ 1310 005b 00       		.byte	0
+ 1311 005c 00       		.byte	0
+ 1312 005d 08       		.uleb128 0x8
+ 1313 005e 0D       		.uleb128 0xd
+ 1314 005f 00       		.byte	0
+ 1315 0060 03       		.uleb128 0x3
+ 1316 0061 08       		.uleb128 0x8
+ 1317 0062 3A       		.uleb128 0x3a
+ 1318 0063 0B       		.uleb128 0xb
+ 1319 0064 3B       		.uleb128 0x3b
+ 1320 0065 0B       		.uleb128 0xb
+ 1321 0066 49       		.uleb128 0x49
+ 1322 0067 13       		.uleb128 0x13
+ 1323 0068 38       		.uleb128 0x38
+ 1324 0069 0B       		.uleb128 0xb
+ 1325 006a 00       		.byte	0
+ 1326 006b 00       		.byte	0
+ 1327 006c 09       		.uleb128 0x9
+ 1328 006d 0D       		.uleb128 0xd
+ 1329 006e 00       		.byte	0
+ 1330 006f 03       		.uleb128 0x3
+ 1331 0070 0E       		.uleb128 0xe
+ 1332 0071 3A       		.uleb128 0x3a
+ 1333 0072 0B       		.uleb128 0xb
+ 1334 0073 3B       		.uleb128 0x3b
+ 1335 0074 0B       		.uleb128 0xb
+ 1336 0075 49       		.uleb128 0x49
+ 1337 0076 13       		.uleb128 0x13
+ 1338 0077 38       		.uleb128 0x38
+ 1339 0078 0B       		.uleb128 0xb
+ 1340 0079 00       		.byte	0
+ 1341 007a 00       		.byte	0
+ 1342 007b 0A       		.uleb128 0xa
+ 1343 007c 2E       		.uleb128 0x2e
+ 1344 007d 01       		.byte	0x1
+ 1345 007e 3F       		.uleb128 0x3f
+ 1346 007f 19       		.uleb128 0x19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 32
+
+
+ 1347 0080 03       		.uleb128 0x3
+ 1348 0081 0E       		.uleb128 0xe
+ 1349 0082 3A       		.uleb128 0x3a
+ 1350 0083 0B       		.uleb128 0xb
+ 1351 0084 3B       		.uleb128 0x3b
+ 1352 0085 05       		.uleb128 0x5
+ 1353 0086 27       		.uleb128 0x27
+ 1354 0087 19       		.uleb128 0x19
+ 1355 0088 49       		.uleb128 0x49
+ 1356 0089 13       		.uleb128 0x13
+ 1357 008a 20       		.uleb128 0x20
+ 1358 008b 0B       		.uleb128 0xb
+ 1359 008c 01       		.uleb128 0x1
+ 1360 008d 13       		.uleb128 0x13
+ 1361 008e 00       		.byte	0
+ 1362 008f 00       		.byte	0
+ 1363 0090 0B       		.uleb128 0xb
+ 1364 0091 05       		.uleb128 0x5
+ 1365 0092 00       		.byte	0
+ 1366 0093 03       		.uleb128 0x3
+ 1367 0094 08       		.uleb128 0x8
+ 1368 0095 3A       		.uleb128 0x3a
+ 1369 0096 0B       		.uleb128 0xb
+ 1370 0097 3B       		.uleb128 0x3b
+ 1371 0098 05       		.uleb128 0x5
+ 1372 0099 49       		.uleb128 0x49
+ 1373 009a 13       		.uleb128 0x13
+ 1374 009b 00       		.byte	0
+ 1375 009c 00       		.byte	0
+ 1376 009d 0C       		.uleb128 0xc
+ 1377 009e 34       		.uleb128 0x34
+ 1378 009f 00       		.byte	0
+ 1379 00a0 03       		.uleb128 0x3
+ 1380 00a1 08       		.uleb128 0x8
+ 1381 00a2 3A       		.uleb128 0x3a
+ 1382 00a3 0B       		.uleb128 0xb
+ 1383 00a4 3B       		.uleb128 0x3b
+ 1384 00a5 05       		.uleb128 0x5
+ 1385 00a6 49       		.uleb128 0x49
+ 1386 00a7 13       		.uleb128 0x13
+ 1387 00a8 00       		.byte	0
+ 1388 00a9 00       		.byte	0
+ 1389 00aa 0D       		.uleb128 0xd
+ 1390 00ab 2E       		.uleb128 0x2e
+ 1391 00ac 01       		.byte	0x1
+ 1392 00ad 3F       		.uleb128 0x3f
+ 1393 00ae 19       		.uleb128 0x19
+ 1394 00af 03       		.uleb128 0x3
+ 1395 00b0 0E       		.uleb128 0xe
+ 1396 00b1 3A       		.uleb128 0x3a
+ 1397 00b2 0B       		.uleb128 0xb
+ 1398 00b3 3B       		.uleb128 0x3b
+ 1399 00b4 05       		.uleb128 0x5
+ 1400 00b5 27       		.uleb128 0x27
+ 1401 00b6 19       		.uleb128 0x19
+ 1402 00b7 49       		.uleb128 0x49
+ 1403 00b8 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 33
+
+
+ 1404 00b9 11       		.uleb128 0x11
+ 1405 00ba 01       		.uleb128 0x1
+ 1406 00bb 12       		.uleb128 0x12
+ 1407 00bc 06       		.uleb128 0x6
+ 1408 00bd 40       		.uleb128 0x40
+ 1409 00be 18       		.uleb128 0x18
+ 1410 00bf 9742     		.uleb128 0x2117
+ 1411 00c1 19       		.uleb128 0x19
+ 1412 00c2 01       		.uleb128 0x1
+ 1413 00c3 13       		.uleb128 0x13
+ 1414 00c4 00       		.byte	0
+ 1415 00c5 00       		.byte	0
+ 1416 00c6 0E       		.uleb128 0xe
+ 1417 00c7 05       		.uleb128 0x5
+ 1418 00c8 00       		.byte	0
+ 1419 00c9 03       		.uleb128 0x3
+ 1420 00ca 08       		.uleb128 0x8
+ 1421 00cb 3A       		.uleb128 0x3a
+ 1422 00cc 0B       		.uleb128 0xb
+ 1423 00cd 3B       		.uleb128 0x3b
+ 1424 00ce 05       		.uleb128 0x5
+ 1425 00cf 49       		.uleb128 0x49
+ 1426 00d0 13       		.uleb128 0x13
+ 1427 00d1 02       		.uleb128 0x2
+ 1428 00d2 17       		.uleb128 0x17
+ 1429 00d3 00       		.byte	0
+ 1430 00d4 00       		.byte	0
+ 1431 00d5 0F       		.uleb128 0xf
+ 1432 00d6 2E       		.uleb128 0x2e
+ 1433 00d7 01       		.byte	0x1
+ 1434 00d8 31       		.uleb128 0x31
+ 1435 00d9 13       		.uleb128 0x13
+ 1436 00da 11       		.uleb128 0x11
+ 1437 00db 01       		.uleb128 0x1
+ 1438 00dc 12       		.uleb128 0x12
+ 1439 00dd 06       		.uleb128 0x6
+ 1440 00de 40       		.uleb128 0x40
+ 1441 00df 18       		.uleb128 0x18
+ 1442 00e0 9742     		.uleb128 0x2117
+ 1443 00e2 19       		.uleb128 0x19
+ 1444 00e3 01       		.uleb128 0x1
+ 1445 00e4 13       		.uleb128 0x13
+ 1446 00e5 00       		.byte	0
+ 1447 00e6 00       		.byte	0
+ 1448 00e7 10       		.uleb128 0x10
+ 1449 00e8 05       		.uleb128 0x5
+ 1450 00e9 00       		.byte	0
+ 1451 00ea 31       		.uleb128 0x31
+ 1452 00eb 13       		.uleb128 0x13
+ 1453 00ec 02       		.uleb128 0x2
+ 1454 00ed 17       		.uleb128 0x17
+ 1455 00ee 00       		.byte	0
+ 1456 00ef 00       		.byte	0
+ 1457 00f0 11       		.uleb128 0x11
+ 1458 00f1 34       		.uleb128 0x34
+ 1459 00f2 00       		.byte	0
+ 1460 00f3 31       		.uleb128 0x31
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 34
+
+
+ 1461 00f4 13       		.uleb128 0x13
+ 1462 00f5 02       		.uleb128 0x2
+ 1463 00f6 17       		.uleb128 0x17
+ 1464 00f7 00       		.byte	0
+ 1465 00f8 00       		.byte	0
+ 1466 00f9 12       		.uleb128 0x12
+ 1467 00fa 2E       		.uleb128 0x2e
+ 1468 00fb 01       		.byte	0x1
+ 1469 00fc 3F       		.uleb128 0x3f
+ 1470 00fd 19       		.uleb128 0x19
+ 1471 00fe 03       		.uleb128 0x3
+ 1472 00ff 0E       		.uleb128 0xe
+ 1473 0100 3A       		.uleb128 0x3a
+ 1474 0101 0B       		.uleb128 0xb
+ 1475 0102 3B       		.uleb128 0x3b
+ 1476 0103 05       		.uleb128 0x5
+ 1477 0104 27       		.uleb128 0x27
+ 1478 0105 19       		.uleb128 0x19
+ 1479 0106 11       		.uleb128 0x11
+ 1480 0107 01       		.uleb128 0x1
+ 1481 0108 12       		.uleb128 0x12
+ 1482 0109 06       		.uleb128 0x6
+ 1483 010a 40       		.uleb128 0x40
+ 1484 010b 18       		.uleb128 0x18
+ 1485 010c 9742     		.uleb128 0x2117
+ 1486 010e 19       		.uleb128 0x19
+ 1487 010f 01       		.uleb128 0x1
+ 1488 0110 13       		.uleb128 0x13
+ 1489 0111 00       		.byte	0
+ 1490 0112 00       		.byte	0
+ 1491 0113 13       		.uleb128 0x13
+ 1492 0114 05       		.uleb128 0x5
+ 1493 0115 00       		.byte	0
+ 1494 0116 03       		.uleb128 0x3
+ 1495 0117 0E       		.uleb128 0xe
+ 1496 0118 3A       		.uleb128 0x3a
+ 1497 0119 0B       		.uleb128 0xb
+ 1498 011a 3B       		.uleb128 0x3b
+ 1499 011b 05       		.uleb128 0x5
+ 1500 011c 49       		.uleb128 0x49
+ 1501 011d 13       		.uleb128 0x13
+ 1502 011e 02       		.uleb128 0x2
+ 1503 011f 18       		.uleb128 0x18
+ 1504 0120 00       		.byte	0
+ 1505 0121 00       		.byte	0
+ 1506 0122 14       		.uleb128 0x14
+ 1507 0123 0F       		.uleb128 0xf
+ 1508 0124 00       		.byte	0
+ 1509 0125 0B       		.uleb128 0xb
+ 1510 0126 0B       		.uleb128 0xb
+ 1511 0127 49       		.uleb128 0x49
+ 1512 0128 13       		.uleb128 0x13
+ 1513 0129 00       		.byte	0
+ 1514 012a 00       		.byte	0
+ 1515 012b 15       		.uleb128 0x15
+ 1516 012c 2E       		.uleb128 0x2e
+ 1517 012d 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 35
+
+
+ 1518 012e 3F       		.uleb128 0x3f
+ 1519 012f 19       		.uleb128 0x19
+ 1520 0130 03       		.uleb128 0x3
+ 1521 0131 0E       		.uleb128 0xe
+ 1522 0132 3A       		.uleb128 0x3a
+ 1523 0133 0B       		.uleb128 0xb
+ 1524 0134 3B       		.uleb128 0x3b
+ 1525 0135 0B       		.uleb128 0xb
+ 1526 0136 27       		.uleb128 0x27
+ 1527 0137 19       		.uleb128 0x19
+ 1528 0138 49       		.uleb128 0x49
+ 1529 0139 13       		.uleb128 0x13
+ 1530 013a 11       		.uleb128 0x11
+ 1531 013b 01       		.uleb128 0x1
+ 1532 013c 12       		.uleb128 0x12
+ 1533 013d 06       		.uleb128 0x6
+ 1534 013e 40       		.uleb128 0x40
+ 1535 013f 18       		.uleb128 0x18
+ 1536 0140 9742     		.uleb128 0x2117
+ 1537 0142 19       		.uleb128 0x19
+ 1538 0143 01       		.uleb128 0x1
+ 1539 0144 13       		.uleb128 0x13
+ 1540 0145 00       		.byte	0
+ 1541 0146 00       		.byte	0
+ 1542 0147 16       		.uleb128 0x16
+ 1543 0148 05       		.uleb128 0x5
+ 1544 0149 00       		.byte	0
+ 1545 014a 03       		.uleb128 0x3
+ 1546 014b 0E       		.uleb128 0xe
+ 1547 014c 3A       		.uleb128 0x3a
+ 1548 014d 0B       		.uleb128 0xb
+ 1549 014e 3B       		.uleb128 0x3b
+ 1550 014f 0B       		.uleb128 0xb
+ 1551 0150 49       		.uleb128 0x49
+ 1552 0151 13       		.uleb128 0x13
+ 1553 0152 02       		.uleb128 0x2
+ 1554 0153 17       		.uleb128 0x17
+ 1555 0154 00       		.byte	0
+ 1556 0155 00       		.byte	0
+ 1557 0156 17       		.uleb128 0x17
+ 1558 0157 34       		.uleb128 0x34
+ 1559 0158 00       		.byte	0
+ 1560 0159 03       		.uleb128 0x3
+ 1561 015a 0E       		.uleb128 0xe
+ 1562 015b 3A       		.uleb128 0x3a
+ 1563 015c 0B       		.uleb128 0xb
+ 1564 015d 3B       		.uleb128 0x3b
+ 1565 015e 0B       		.uleb128 0xb
+ 1566 015f 49       		.uleb128 0x49
+ 1567 0160 13       		.uleb128 0x13
+ 1568 0161 02       		.uleb128 0x2
+ 1569 0162 17       		.uleb128 0x17
+ 1570 0163 00       		.byte	0
+ 1571 0164 00       		.byte	0
+ 1572 0165 18       		.uleb128 0x18
+ 1573 0166 1D       		.uleb128 0x1d
+ 1574 0167 01       		.byte	0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 36
+
+
+ 1575 0168 31       		.uleb128 0x31
+ 1576 0169 13       		.uleb128 0x13
+ 1577 016a 11       		.uleb128 0x11
+ 1578 016b 01       		.uleb128 0x1
+ 1579 016c 12       		.uleb128 0x12
+ 1580 016d 06       		.uleb128 0x6
+ 1581 016e 58       		.uleb128 0x58
+ 1582 016f 0B       		.uleb128 0xb
+ 1583 0170 59       		.uleb128 0x59
+ 1584 0171 0B       		.uleb128 0xb
+ 1585 0172 01       		.uleb128 0x1
+ 1586 0173 13       		.uleb128 0x13
+ 1587 0174 00       		.byte	0
+ 1588 0175 00       		.byte	0
+ 1589 0176 19       		.uleb128 0x19
+ 1590 0177 0B       		.uleb128 0xb
+ 1591 0178 01       		.byte	0x1
+ 1592 0179 11       		.uleb128 0x11
+ 1593 017a 01       		.uleb128 0x1
+ 1594 017b 12       		.uleb128 0x12
+ 1595 017c 06       		.uleb128 0x6
+ 1596 017d 00       		.byte	0
+ 1597 017e 00       		.byte	0
+ 1598 017f 1A       		.uleb128 0x1a
+ 1599 0180 898201   		.uleb128 0x4109
+ 1600 0183 00       		.byte	0
+ 1601 0184 11       		.uleb128 0x11
+ 1602 0185 01       		.uleb128 0x1
+ 1603 0186 31       		.uleb128 0x31
+ 1604 0187 13       		.uleb128 0x13
+ 1605 0188 00       		.byte	0
+ 1606 0189 00       		.byte	0
+ 1607 018a 1B       		.uleb128 0x1b
+ 1608 018b 898201   		.uleb128 0x4109
+ 1609 018e 01       		.byte	0x1
+ 1610 018f 11       		.uleb128 0x11
+ 1611 0190 01       		.uleb128 0x1
+ 1612 0191 31       		.uleb128 0x31
+ 1613 0192 13       		.uleb128 0x13
+ 1614 0193 01       		.uleb128 0x1
+ 1615 0194 13       		.uleb128 0x13
+ 1616 0195 00       		.byte	0
+ 1617 0196 00       		.byte	0
+ 1618 0197 1C       		.uleb128 0x1c
+ 1619 0198 8A8201   		.uleb128 0x410a
+ 1620 019b 00       		.byte	0
+ 1621 019c 02       		.uleb128 0x2
+ 1622 019d 18       		.uleb128 0x18
+ 1623 019e 9142     		.uleb128 0x2111
+ 1624 01a0 18       		.uleb128 0x18
+ 1625 01a1 00       		.byte	0
+ 1626 01a2 00       		.byte	0
+ 1627 01a3 1D       		.uleb128 0x1d
+ 1628 01a4 898201   		.uleb128 0x4109
+ 1629 01a7 01       		.byte	0x1
+ 1630 01a8 11       		.uleb128 0x11
+ 1631 01a9 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 37
+
+
+ 1632 01aa 31       		.uleb128 0x31
+ 1633 01ab 13       		.uleb128 0x13
+ 1634 01ac 00       		.byte	0
+ 1635 01ad 00       		.byte	0
+ 1636 01ae 1E       		.uleb128 0x1e
+ 1637 01af 34       		.uleb128 0x34
+ 1638 01b0 00       		.byte	0
+ 1639 01b1 03       		.uleb128 0x3
+ 1640 01b2 0E       		.uleb128 0xe
+ 1641 01b3 3A       		.uleb128 0x3a
+ 1642 01b4 0B       		.uleb128 0xb
+ 1643 01b5 3B       		.uleb128 0x3b
+ 1644 01b6 0B       		.uleb128 0xb
+ 1645 01b7 49       		.uleb128 0x49
+ 1646 01b8 13       		.uleb128 0x13
+ 1647 01b9 3F       		.uleb128 0x3f
+ 1648 01ba 19       		.uleb128 0x19
+ 1649 01bb 02       		.uleb128 0x2
+ 1650 01bc 18       		.uleb128 0x18
+ 1651 01bd 00       		.byte	0
+ 1652 01be 00       		.byte	0
+ 1653 01bf 00       		.byte	0
+ 1654              		.section	.debug_loc,"",%progbits
+ 1655              	.Ldebug_loc0:
+ 1656              	.LLST0:
+ 1657 0000 00000000 		.4byte	.LVL0
+ 1658 0004 0A000000 		.4byte	.LVL1
+ 1659 0008 0100     		.2byte	0x1
+ 1660 000a 50       		.byte	0x50
+ 1661 000b 0A000000 		.4byte	.LVL1
+ 1662 000f 0C000000 		.4byte	.LVL2
+ 1663 0013 0400     		.2byte	0x4
+ 1664 0015 F3       		.byte	0xf3
+ 1665 0016 01       		.uleb128 0x1
+ 1666 0017 50       		.byte	0x50
+ 1667 0018 9F       		.byte	0x9f
+ 1668 0019 0C000000 		.4byte	.LVL2
+ 1669 001d 1C000000 		.4byte	.LFE2
+ 1670 0021 0100     		.2byte	0x1
+ 1671 0023 50       		.byte	0x50
+ 1672 0024 00000000 		.4byte	0
+ 1673 0028 00000000 		.4byte	0
+ 1674              	.LLST1:
+ 1675 002c 00000000 		.4byte	.LVL4
+ 1676 0030 0A000000 		.4byte	.LVL5
+ 1677 0034 0100     		.2byte	0x1
+ 1678 0036 50       		.byte	0x50
+ 1679 0037 0A000000 		.4byte	.LVL5
+ 1680 003b 0C000000 		.4byte	.LFE3
+ 1681 003f 0400     		.2byte	0x4
+ 1682 0041 F3       		.byte	0xf3
+ 1683 0042 01       		.uleb128 0x1
+ 1684 0043 50       		.byte	0x50
+ 1685 0044 9F       		.byte	0x9f
+ 1686 0045 00000000 		.4byte	0
+ 1687 0049 00000000 		.4byte	0
+ 1688              	.LLST2:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 38
+
+
+ 1689 004d 00000000 		.4byte	.LVL4
+ 1690 0051 0A000000 		.4byte	.LVL5
+ 1691 0055 0800     		.2byte	0x8
+ 1692 0057 70       		.byte	0x70
+ 1693 0058 00       		.sleb128 0
+ 1694 0059 08       		.byte	0x8
+ 1695 005a FF       		.byte	0xff
+ 1696 005b 1A       		.byte	0x1a
+ 1697 005c 3F       		.byte	0x3f
+ 1698 005d 2C       		.byte	0x2c
+ 1699 005e 9F       		.byte	0x9f
+ 1700 005f 0A000000 		.4byte	.LVL5
+ 1701 0063 0C000000 		.4byte	.LFE3
+ 1702 0067 0900     		.2byte	0x9
+ 1703 0069 F3       		.byte	0xf3
+ 1704 006a 01       		.uleb128 0x1
+ 1705 006b 50       		.byte	0x50
+ 1706 006c 08       		.byte	0x8
+ 1707 006d FF       		.byte	0xff
+ 1708 006e 1A       		.byte	0x1a
+ 1709 006f 3F       		.byte	0x3f
+ 1710 0070 2C       		.byte	0x2c
+ 1711 0071 9F       		.byte	0x9f
+ 1712 0072 00000000 		.4byte	0
+ 1713 0076 00000000 		.4byte	0
+ 1714              	.LLST3:
+ 1715 007a 00000000 		.4byte	.LVL7
+ 1716 007e 06000000 		.4byte	.LVL8
+ 1717 0082 0100     		.2byte	0x1
+ 1718 0084 50       		.byte	0x50
+ 1719 0085 06000000 		.4byte	.LVL8
+ 1720 0089 C0010000 		.4byte	.LVL52
+ 1721 008d 0100     		.2byte	0x1
+ 1722 008f 54       		.byte	0x54
+ 1723 0090 C0010000 		.4byte	.LVL52
+ 1724 0094 E0010000 		.4byte	.LFE1
+ 1725 0098 0400     		.2byte	0x4
+ 1726 009a F3       		.byte	0xf3
+ 1727 009b 01       		.uleb128 0x1
+ 1728 009c 50       		.byte	0x50
+ 1729 009d 9F       		.byte	0x9f
+ 1730 009e 00000000 		.4byte	0
+ 1731 00a2 00000000 		.4byte	0
+ 1732              	.LLST4:
+ 1733 00a6 00000000 		.4byte	.LVL7
+ 1734 00aa 09000000 		.4byte	.LVL9-1
+ 1735 00ae 0100     		.2byte	0x1
+ 1736 00b0 51       		.byte	0x51
+ 1737 00b1 09000000 		.4byte	.LVL9-1
+ 1738 00b5 0E000000 		.4byte	.LVL10
+ 1739 00b9 0400     		.2byte	0x4
+ 1740 00bb F3       		.byte	0xf3
+ 1741 00bc 01       		.uleb128 0x1
+ 1742 00bd 51       		.byte	0x51
+ 1743 00be 9F       		.byte	0x9f
+ 1744 00bf 0E000000 		.4byte	.LVL10
+ 1745 00c3 F4000000 		.4byte	.LVL36
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 39
+
+
+ 1746 00c7 0100     		.2byte	0x1
+ 1747 00c9 56       		.byte	0x56
+ 1748 00ca 0E010000 		.4byte	.LVL37
+ 1749 00ce 14010000 		.4byte	.LVL38
+ 1750 00d2 0100     		.2byte	0x1
+ 1751 00d4 56       		.byte	0x56
+ 1752 00d5 30010000 		.4byte	.LVL39
+ 1753 00d9 3C010000 		.4byte	.LVL42
+ 1754 00dd 0100     		.2byte	0x1
+ 1755 00df 56       		.byte	0x56
+ 1756 00e0 56010000 		.4byte	.LVL43
+ 1757 00e4 5C010000 		.4byte	.LVL44
+ 1758 00e8 0100     		.2byte	0x1
+ 1759 00ea 56       		.byte	0x56
+ 1760 00eb 74010000 		.4byte	.LVL45
+ 1761 00ef 7A010000 		.4byte	.LVL46
+ 1762 00f3 0100     		.2byte	0x1
+ 1763 00f5 56       		.byte	0x56
+ 1764 00f6 94010000 		.4byte	.LVL47
+ 1765 00fa 9A010000 		.4byte	.LVL48
+ 1766 00fe 0100     		.2byte	0x1
+ 1767 0100 56       		.byte	0x56
+ 1768 0101 B2010000 		.4byte	.LVL49
+ 1769 0105 BE010000 		.4byte	.LVL51
+ 1770 0109 0100     		.2byte	0x1
+ 1771 010b 56       		.byte	0x56
+ 1772 010c 00000000 		.4byte	0
+ 1773 0110 00000000 		.4byte	0
+ 1774              	.LLST5:
+ 1775 0114 00000000 		.4byte	.LVL7
+ 1776 0118 09000000 		.4byte	.LVL9-1
+ 1777 011c 0100     		.2byte	0x1
+ 1778 011e 51       		.byte	0x51
+ 1779 011f 09000000 		.4byte	.LVL9-1
+ 1780 0123 E0010000 		.4byte	.LFE1
+ 1781 0127 0400     		.2byte	0x4
+ 1782 0129 F3       		.byte	0xf3
+ 1783 012a 01       		.uleb128 0x1
+ 1784 012b 51       		.byte	0x51
+ 1785 012c 9F       		.byte	0x9f
+ 1786 012d 00000000 		.4byte	0
+ 1787 0131 00000000 		.4byte	0
+ 1788              	.LLST6:
+ 1789 0135 00000000 		.4byte	.LVL7
+ 1790 0139 66000000 		.4byte	.LVL14
+ 1791 013d 0200     		.2byte	0x2
+ 1792 013f 30       		.byte	0x30
+ 1793 0140 9F       		.byte	0x9f
+ 1794 0141 66000000 		.4byte	.LVL14
+ 1795 0145 6C000000 		.4byte	.LVL15
+ 1796 0149 0200     		.2byte	0x2
+ 1797 014b 32       		.byte	0x32
+ 1798 014c 9F       		.byte	0x9f
+ 1799 014d 6C000000 		.4byte	.LVL15
+ 1800 0151 76000000 		.4byte	.LVL17
+ 1801 0155 0200     		.2byte	0x2
+ 1802 0157 30       		.byte	0x30
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 40
+
+
+ 1803 0158 9F       		.byte	0x9f
+ 1804 0159 76000000 		.4byte	.LVL17
+ 1805 015d 7E000000 		.4byte	.LVL18
+ 1806 0161 0200     		.2byte	0x2
+ 1807 0163 33       		.byte	0x33
+ 1808 0164 9F       		.byte	0x9f
+ 1809 0165 7E000000 		.4byte	.LVL18
+ 1810 0169 88000000 		.4byte	.LVL20
+ 1811 016d 0200     		.2byte	0x2
+ 1812 016f 30       		.byte	0x30
+ 1813 0170 9F       		.byte	0x9f
+ 1814 0171 88000000 		.4byte	.LVL20
+ 1815 0175 90000000 		.4byte	.LVL21
+ 1816 0179 0200     		.2byte	0x2
+ 1817 017b 34       		.byte	0x34
+ 1818 017c 9F       		.byte	0x9f
+ 1819 017d 90000000 		.4byte	.LVL21
+ 1820 0181 9A000000 		.4byte	.LVL23
+ 1821 0185 0200     		.2byte	0x2
+ 1822 0187 30       		.byte	0x30
+ 1823 0188 9F       		.byte	0x9f
+ 1824 0189 9A000000 		.4byte	.LVL23
+ 1825 018d A2000000 		.4byte	.LVL24
+ 1826 0191 0200     		.2byte	0x2
+ 1827 0193 35       		.byte	0x35
+ 1828 0194 9F       		.byte	0x9f
+ 1829 0195 A2000000 		.4byte	.LVL24
+ 1830 0199 AC000000 		.4byte	.LVL26
+ 1831 019d 0200     		.2byte	0x2
+ 1832 019f 30       		.byte	0x30
+ 1833 01a0 9F       		.byte	0x9f
+ 1834 01a1 AC000000 		.4byte	.LVL26
+ 1835 01a5 B4000000 		.4byte	.LVL27
+ 1836 01a9 0200     		.2byte	0x2
+ 1837 01ab 36       		.byte	0x36
+ 1838 01ac 9F       		.byte	0x9f
+ 1839 01ad B4000000 		.4byte	.LVL27
+ 1840 01b1 C8000000 		.4byte	.LVL28
+ 1841 01b5 0200     		.2byte	0x2
+ 1842 01b7 30       		.byte	0x30
+ 1843 01b8 9F       		.byte	0x9f
+ 1844 01b9 C8000000 		.4byte	.LVL28
+ 1845 01bd CE000000 		.4byte	.LVL29
+ 1846 01c1 0200     		.2byte	0x2
+ 1847 01c3 37       		.byte	0x37
+ 1848 01c4 9F       		.byte	0x9f
+ 1849 01c5 CE000000 		.4byte	.LVL29
+ 1850 01c9 E0000000 		.4byte	.LVL31
+ 1851 01cd 0200     		.2byte	0x2
+ 1852 01cf 30       		.byte	0x30
+ 1853 01d0 9F       		.byte	0x9f
+ 1854 01d1 E0000000 		.4byte	.LVL31
+ 1855 01d5 E8000000 		.4byte	.LVL33
+ 1856 01d9 0200     		.2byte	0x2
+ 1857 01db 39       		.byte	0x39
+ 1858 01dc 9F       		.byte	0x9f
+ 1859 01dd E8000000 		.4byte	.LVL33
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 41
+
+
+ 1860 01e1 EA000000 		.4byte	.LVL34
+ 1861 01e5 0100     		.2byte	0x1
+ 1862 01e7 53       		.byte	0x53
+ 1863 01e8 EE000000 		.4byte	.LVL35
+ 1864 01ec 32010000 		.4byte	.LVL40
+ 1865 01f0 0200     		.2byte	0x2
+ 1866 01f2 30       		.byte	0x30
+ 1867 01f3 9F       		.byte	0x9f
+ 1868 01f4 32010000 		.4byte	.LVL40
+ 1869 01f8 36010000 		.4byte	.LVL41
+ 1870 01fc 0200     		.2byte	0x2
+ 1871 01fe 31       		.byte	0x31
+ 1872 01ff 9F       		.byte	0x9f
+ 1873 0200 36010000 		.4byte	.LVL41
+ 1874 0204 B8010000 		.4byte	.LVL50
+ 1875 0208 0200     		.2byte	0x2
+ 1876 020a 30       		.byte	0x30
+ 1877 020b 9F       		.byte	0x9f
+ 1878 020c B8010000 		.4byte	.LVL50
+ 1879 0210 BE010000 		.4byte	.LVL51
+ 1880 0214 0200     		.2byte	0x2
+ 1881 0216 38       		.byte	0x38
+ 1882 0217 9F       		.byte	0x9f
+ 1883 0218 BE010000 		.4byte	.LVL51
+ 1884 021c E0010000 		.4byte	.LFE1
+ 1885 0220 0100     		.2byte	0x1
+ 1886 0222 53       		.byte	0x53
+ 1887 0223 00000000 		.4byte	0
+ 1888 0227 00000000 		.4byte	0
+ 1889              	.LLST7:
+ 1890 022b 52000000 		.4byte	.LVL12
+ 1891 022f 58000000 		.4byte	.LVL13
+ 1892 0233 0100     		.2byte	0x1
+ 1893 0235 56       		.byte	0x56
+ 1894 0236 00000000 		.4byte	0
+ 1895 023a 00000000 		.4byte	0
+ 1896              	.LLST8:
+ 1897 023e 52000000 		.4byte	.LVL12
+ 1898 0242 58000000 		.4byte	.LVL13
+ 1899 0246 0200     		.2byte	0x2
+ 1900 0248 31       		.byte	0x31
+ 1901 0249 9F       		.byte	0x9f
+ 1902 024a 00000000 		.4byte	0
+ 1903 024e 00000000 		.4byte	0
+ 1904              	.LLST9:
+ 1905 0252 6C000000 		.4byte	.LVL15
+ 1906 0256 70000000 		.4byte	.LVL16
+ 1907 025a 0100     		.2byte	0x1
+ 1908 025c 56       		.byte	0x56
+ 1909 025d 00000000 		.4byte	0
+ 1910 0261 00000000 		.4byte	0
+ 1911              	.LLST10:
+ 1912 0265 6C000000 		.4byte	.LVL15
+ 1913 0269 70000000 		.4byte	.LVL16
+ 1914 026d 0200     		.2byte	0x2
+ 1915 026f 31       		.byte	0x31
+ 1916 0270 9F       		.byte	0x9f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 42
+
+
+ 1917 0271 00000000 		.4byte	0
+ 1918 0275 00000000 		.4byte	0
+ 1919              	.LLST11:
+ 1920 0279 7E000000 		.4byte	.LVL18
+ 1921 027d 82000000 		.4byte	.LVL19
+ 1922 0281 0100     		.2byte	0x1
+ 1923 0283 56       		.byte	0x56
+ 1924 0284 00000000 		.4byte	0
+ 1925 0288 00000000 		.4byte	0
+ 1926              	.LLST12:
+ 1927 028c 7E000000 		.4byte	.LVL18
+ 1928 0290 82000000 		.4byte	.LVL19
+ 1929 0294 0200     		.2byte	0x2
+ 1930 0296 31       		.byte	0x31
+ 1931 0297 9F       		.byte	0x9f
+ 1932 0298 00000000 		.4byte	0
+ 1933 029c 00000000 		.4byte	0
+ 1934              	.LLST13:
+ 1935 02a0 90000000 		.4byte	.LVL21
+ 1936 02a4 94000000 		.4byte	.LVL22
+ 1937 02a8 0100     		.2byte	0x1
+ 1938 02aa 56       		.byte	0x56
+ 1939 02ab 00000000 		.4byte	0
+ 1940 02af 00000000 		.4byte	0
+ 1941              	.LLST14:
+ 1942 02b3 90000000 		.4byte	.LVL21
+ 1943 02b7 94000000 		.4byte	.LVL22
+ 1944 02bb 0200     		.2byte	0x2
+ 1945 02bd 31       		.byte	0x31
+ 1946 02be 9F       		.byte	0x9f
+ 1947 02bf 00000000 		.4byte	0
+ 1948 02c3 00000000 		.4byte	0
+ 1949              	.LLST15:
+ 1950 02c7 A2000000 		.4byte	.LVL24
+ 1951 02cb A6000000 		.4byte	.LVL25
+ 1952 02cf 0100     		.2byte	0x1
+ 1953 02d1 56       		.byte	0x56
+ 1954 02d2 00000000 		.4byte	0
+ 1955 02d6 00000000 		.4byte	0
+ 1956              	.LLST16:
+ 1957 02da A2000000 		.4byte	.LVL24
+ 1958 02de A6000000 		.4byte	.LVL25
+ 1959 02e2 0200     		.2byte	0x2
+ 1960 02e4 31       		.byte	0x31
+ 1961 02e5 9F       		.byte	0x9f
+ 1962 02e6 00000000 		.4byte	0
+ 1963 02ea 00000000 		.4byte	0
+ 1964              	.LLST17:
+ 1965 02ee CE000000 		.4byte	.LVL29
+ 1966 02f2 D4000000 		.4byte	.LVL30
+ 1967 02f6 0100     		.2byte	0x1
+ 1968 02f8 56       		.byte	0x56
+ 1969 02f9 00000000 		.4byte	0
+ 1970 02fd 00000000 		.4byte	0
+ 1971              	.LLST18:
+ 1972 0301 CE000000 		.4byte	.LVL29
+ 1973 0305 D4000000 		.4byte	.LVL30
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 43
+
+
+ 1974 0309 0200     		.2byte	0x2
+ 1975 030b 31       		.byte	0x31
+ 1976 030c 9F       		.byte	0x9f
+ 1977 030d 00000000 		.4byte	0
+ 1978 0311 00000000 		.4byte	0
+ 1979              		.section	.debug_aranges,"",%progbits
+ 1980 0000 34000000 		.4byte	0x34
+ 1981 0004 0200     		.2byte	0x2
+ 1982 0006 00000000 		.4byte	.Ldebug_info0
+ 1983 000a 04       		.byte	0x4
+ 1984 000b 00       		.byte	0
+ 1985 000c 0000     		.2byte	0
+ 1986 000e 0000     		.2byte	0
+ 1987 0010 00000000 		.4byte	.LFB2
+ 1988 0014 1C000000 		.4byte	.LFE2-.LFB2
+ 1989 0018 00000000 		.4byte	.LFB3
+ 1990 001c 0C000000 		.4byte	.LFE3-.LFB3
+ 1991 0020 00000000 		.4byte	.LFB4
+ 1992 0024 12000000 		.4byte	.LFE4-.LFB4
+ 1993 0028 00000000 		.4byte	.LFB1
+ 1994 002c E0010000 		.4byte	.LFE1-.LFB1
+ 1995 0030 00000000 		.4byte	0
+ 1996 0034 00000000 		.4byte	0
+ 1997              		.section	.debug_ranges,"",%progbits
+ 1998              	.Ldebug_ranges0:
+ 1999 0000 00000000 		.4byte	.LFB2
+ 2000 0004 1C000000 		.4byte	.LFE2
+ 2001 0008 00000000 		.4byte	.LFB3
+ 2002 000c 0C000000 		.4byte	.LFE3
+ 2003 0010 00000000 		.4byte	.LFB4
+ 2004 0014 12000000 		.4byte	.LFE4
+ 2005 0018 00000000 		.4byte	.LFB1
+ 2006 001c E0010000 		.4byte	.LFE1
+ 2007 0020 00000000 		.4byte	0
+ 2008 0024 00000000 		.4byte	0
+ 2009              		.section	.debug_line,"",%progbits
+ 2010              	.Ldebug_line0:
+ 2011 0000 47020000 		.section	.debug_str,"MS",%progbits,1
+ 2011      02002E01 
+ 2011      00000201 
+ 2011      FB0E0D00 
+ 2011      01010101 
+ 2012              	.LASF21:
+ 2013 0000 4E54505F 		.ascii	"NTP_INV_DA1\000"
+ 2013      494E565F 
+ 2013      44413100 
+ 2014              	.LASF23:
+ 2015 000c 4E54505F 		.ascii	"NTP_INV_DA2\000"
+ 2015      494E565F 
+ 2015      44413200 
+ 2016              	.LASF28:
+ 2017 0018 44617461 		.ascii	"Data1\000"
+ 2017      3100
+ 2018              	.LASF53:
+ 2019 001e 4E74704C 		.ascii	"NtpLenD1\000"
+ 2019      656E4431 
+ 2019      00
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 44
+
+
+ 2020              	.LASF3:
+ 2021 0027 5F5F7569 		.ascii	"__uint8_t\000"
+ 2021      6E74385F 
+ 2021      7400
+ 2022              	.LASF58:
+ 2023 0031 4E74704C 		.ascii	"NtpLenChS\000"
+ 2023      656E4368 
+ 2023      5300
+ 2024              	.LASF49:
+ 2025 003b 4E747055 		.ascii	"NtpUnpackData\000"
+ 2025      6E706163 
+ 2025      6B446174 
+ 2025      6100
+ 2026              	.LASF10:
+ 2027 0049 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2027      206C6F6E 
+ 2027      6720756E 
+ 2027      7369676E 
+ 2027      65642069 
+ 2028              	.LASF9:
+ 2029 0060 6C6F6E67 		.ascii	"long long int\000"
+ 2029      206C6F6E 
+ 2029      6720696E 
+ 2029      7400
+ 2030              	.LASF0:
+ 2031 006e 7369676E 		.ascii	"signed char\000"
+ 2031      65642063 
+ 2031      68617200 
+ 2032              	.LASF39:
+ 2033 007a 4E54505F 		.ascii	"NTP_READ_FR1\000"
+ 2033      52454144 
+ 2033      5F465231 
+ 2033      00
+ 2034              	.LASF44:
+ 2035 0087 4E54505F 		.ascii	"NTP_READ_FR2\000"
+ 2035      52454144 
+ 2035      5F465232 
+ 2035      00
+ 2036              	.LASF6:
+ 2037 0094 6C6F6E67 		.ascii	"long int\000"
+ 2037      20696E74 
+ 2037      00
+ 2038              	.LASF13:
+ 2039 009d 75696E74 		.ascii	"uint16_t\000"
+ 2039      31365F74 
+ 2039      00
+ 2040              	.LASF15:
+ 2041 00a6 6C6F6E67 		.ascii	"long double\000"
+ 2041      20646F75 
+ 2041      626C6500 
+ 2042              	.LASF55:
+ 2043 00b2 4E74704C 		.ascii	"NtpLenD2\000"
+ 2043      656E4432 
+ 2043      00
+ 2044              	.LASF7:
+ 2045 00bb 5F5F7569 		.ascii	"__uint32_t\000"
+ 2045      6E743332 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 45
+
+
+ 2045      5F7400
+ 2046              	.LASF40:
+ 2047 00c6 4E54505F 		.ascii	"NTP_READ_DA1\000"
+ 2047      52454144 
+ 2047      5F444131 
+ 2047      00
+ 2048              	.LASF42:
+ 2049 00d3 4E54505F 		.ascii	"NTP_READ_DA2\000"
+ 2049      52454144 
+ 2049      5F444132 
+ 2049      00
+ 2050              	.LASF52:
+ 2051 00e0 4552525F 		.ascii	"ERR_CODE\000"
+ 2051      434F4445 
+ 2051      00
+ 2052              	.LASF11:
+ 2053 00e9 756E7369 		.ascii	"unsigned int\000"
+ 2053      676E6564 
+ 2053      20696E74 
+ 2053      00
+ 2054              	.LASF63:
+ 2055 00f6 4E747043 		.ascii	"NtpCheckSymb\000"
+ 2055      6865636B 
+ 2055      53796D62 
+ 2055      00
+ 2056              	.LASF48:
+ 2057 0103 4E747044 		.ascii	"NtpDecodeByte\000"
+ 2057      65636F64 
+ 2057      65427974 
+ 2057      6500
+ 2058              	.LASF8:
+ 2059 0111 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2059      20756E73 
+ 2059      69676E65 
+ 2059      6420696E 
+ 2059      7400
+ 2060              	.LASF5:
+ 2061 0123 73686F72 		.ascii	"short unsigned int\000"
+ 2061      7420756E 
+ 2061      7369676E 
+ 2061      65642069 
+ 2061      6E7400
+ 2062              	.LASF26:
+ 2063 0136 4E54505F 		.ascii	"NTP_INV_CKECKSUM\000"
+ 2063      494E565F 
+ 2063      434B4543 
+ 2063      4B53554D 
+ 2063      00
+ 2064              	.LASF31:
+ 2065 0147 44617461 		.ascii	"Data2\000"
+ 2065      3200
+ 2066              	.LASF50:
+ 2067 014d 496E4279 		.ascii	"InByte\000"
+ 2067      746500
+ 2068              	.LASF27:
+ 2069 0154 4E54505F 		.ascii	"NTP_NO_ETX\000"
+ 2069      4E4F5F45 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 46
+
+
+ 2069      545800
+ 2070              	.LASF45:
+ 2071 015f 4E54505F 		.ascii	"NTP_READ_CHS\000"
+ 2071      52454144 
+ 2071      5F434853 
+ 2071      00
+ 2072              	.LASF16:
+ 2073 016c 73697A65 		.ascii	"sizetype\000"
+ 2073      74797065 
+ 2073      00
+ 2074              	.LASF61:
+ 2075 0175 6C69625F 		.ascii	"lib_Network\\ntp.c\000"
+ 2075      4E657477 
+ 2075      6F726B5C 
+ 2075      6E74702E 
+ 2075      6300
+ 2076              	.LASF60:
+ 2077 0187 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2077      43313120 
+ 2077      352E342E 
+ 2077      31203230 
+ 2077      31363036 
+ 2078 01ba 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 2078      20726576 
+ 2078      6973696F 
+ 2078      6E203233 
+ 2078      37373135 
+ 2079 01ed 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 2079      66756E63 
+ 2079      74696F6E 
+ 2079      2D736563 
+ 2079      74696F6E 
+ 2080              	.LASF37:
+ 2081 0215 4E54505F 		.ascii	"NTP_WAIT_STX\000"
+ 2081      57414954 
+ 2081      5F535458 
+ 2081      00
+ 2082              	.LASF54:
+ 2083 0222 4E74704C 		.ascii	"NtpLenMsD1\000"
+ 2083      656E4D73 
+ 2083      443100
+ 2084              	.LASF56:
+ 2085 022d 4E74704C 		.ascii	"NtpLenMsD2\000"
+ 2085      656E4D73 
+ 2085      443200
+ 2086              	.LASF22:
+ 2087 0238 4E54505F 		.ascii	"NTP_INV_DM1\000"
+ 2087      494E565F 
+ 2087      444D3100 
+ 2088              	.LASF24:
+ 2089 0244 4E54505F 		.ascii	"NTP_INV_DM2\000"
+ 2089      494E565F 
+ 2089      444D3200 
+ 2090              	.LASF32:
+ 2091 0250 43686563 		.ascii	"CheckSum\000"
+ 2091      6B53756D 
+ 2091      00
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 47
+
+
+ 2092              	.LASF64:
+ 2093 0259 4E747052 		.ascii	"NtpResetPacket\000"
+ 2093      65736574 
+ 2093      5061636B 
+ 2093      657400
+ 2094              	.LASF51:
+ 2095 0268 52656376 		.ascii	"RecvB\000"
+ 2095      4200
+ 2096              	.LASF62:
+ 2097 026e 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\finish\\"
+ 2097      79707265 
+ 2097      73735C73 
+ 2097      79737465 
+ 2097      6D2D7374 
+ 2098 029b 66696E5F 		.ascii	"fin_v11.cydsn\000"
+ 2098      7631312E 
+ 2098      63796473 
+ 2098      6E00
+ 2099              	.LASF1:
+ 2100 02a9 756E7369 		.ascii	"unsigned char\000"
+ 2100      676E6564 
+ 2100      20636861 
+ 2100      7200
+ 2101              	.LASF2:
+ 2102 02b7 73686F72 		.ascii	"short int\000"
+ 2102      7420696E 
+ 2102      7400
+ 2103              	.LASF35:
+ 2104 02c1 4E54505F 		.ascii	"NTP_ERRORS\000"
+ 2104      4552524F 
+ 2104      525300
+ 2105              	.LASF46:
+ 2106 02cc 4E54505F 		.ascii	"NTP_READ_ETX\000"
+ 2106      52454144 
+ 2106      5F455458 
+ 2106      00
+ 2107              	.LASF19:
+ 2108 02d9 4E54505F 		.ascii	"NTP_BAD_ID\000"
+ 2108      4241445F 
+ 2108      494400
+ 2109              	.LASF14:
+ 2110 02e4 75696E74 		.ascii	"uint32_t\000"
+ 2110      33325F74 
+ 2110      00
+ 2111              	.LASF29:
+ 2112 02ed 44617461 		.ascii	"DataMs1\000"
+ 2112      4D733100 
+ 2113              	.LASF17:
+ 2114 02f5 63686172 		.ascii	"char\000"
+ 2114      00
+ 2115              	.LASF4:
+ 2116 02fa 5F5F7569 		.ascii	"__uint16_t\000"
+ 2116      6E743136 
+ 2116      5F7400
+ 2117              	.LASF36:
+ 2118 0305 4E54505F 		.ascii	"NTP_STATES\000"
+ 2118      53544154 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccI6kOfX.s 			page 48
+
+
+ 2118      455300
+ 2119              	.LASF57:
+ 2120 0310 4E74704C 		.ascii	"NtpLenId\000"
+ 2120      656E4964 
+ 2120      00
+ 2121              	.LASF59:
+ 2122 0319 4E54505F 		.ascii	"NTP_STATE\000"
+ 2122      53544154 
+ 2122      4500
+ 2123              	.LASF18:
+ 2124 0323 4E54505F 		.ascii	"NTP_PARSED_OK\000"
+ 2124      50415253 
+ 2124      45445F4F 
+ 2124      4B00
+ 2125              	.LASF41:
+ 2126 0331 4E54505F 		.ascii	"NTP_READ_DM1\000"
+ 2126      52454144 
+ 2126      5F444D31 
+ 2126      00
+ 2127              	.LASF43:
+ 2128 033e 4E54505F 		.ascii	"NTP_READ_DM2\000"
+ 2128      52454144 
+ 2128      5F444D32 
+ 2128      00
+ 2129              	.LASF12:
+ 2130 034b 75696E74 		.ascii	"uint8_t\000"
+ 2130      385F7400 
+ 2131              	.LASF47:
+ 2132 0353 44617461 		.ascii	"Data\000"
+ 2132      00
+ 2133              	.LASF38:
+ 2134 0358 4E54505F 		.ascii	"NTP_READ_ID\000"
+ 2134      52454144 
+ 2134      5F494400 
+ 2135              	.LASF20:
+ 2136 0364 4E54505F 		.ascii	"NTP_NO_FR1\000"
+ 2136      4E4F5F46 
+ 2136      523100
+ 2137              	.LASF25:
+ 2138 036f 4E54505F 		.ascii	"NTP_NO_FR2\000"
+ 2138      4E4F5F46 
+ 2138      523200
+ 2139              	.LASF30:
+ 2140 037a 44617461 		.ascii	"DataMs2\000"
+ 2140      4D733200 
+ 2141              	.LASF34:
+ 2142 0382 4E747052 		.ascii	"NtpResp\000"
+ 2142      65737000 
+ 2143              	.LASF33:
+ 2144 038a 456E6450 		.ascii	"EndPacket\000"
+ 2144      61636B65 
+ 2144      7400
+ 2145              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

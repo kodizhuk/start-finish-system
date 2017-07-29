@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file CYBLE_custom.h
-* \version 2.30
+* \version 3.30
 * 
 * \brief
 *  Contains the function prototypes and constants for the Custom Service.
 * 
 ********************************************************************************
 * \copyright
-* Copyright 2014-2015, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2014-2016, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -53,23 +53,30 @@
 
 
 #define CYBLE_SFSYSTEMSERVICE_SERVICE_HANDLE   (0x000Cu) /* Handle of SFsystemService service */
+#define CYBLE_SFSYSTEMSERVICE_ID_DECL_HANDLE   (0x000Du) /* Handle of ID characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_ID_CHAR_HANDLE   (0x000Eu) /* Handle of ID characteristic */
 #define CYBLE_SFSYSTEMSERVICE_ID_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x000Fu) /* Handle of Characteristic User Description descriptor */
 #define CYBLE_SFSYSTEMSERVICE_ID_ID_CCCD_DESC_HANDLE   (0x0010u) /* Handle of ID_CCCD descriptor */
+#define CYBLE_SFSYSTEMSERVICE_TIME_START_DECL_HANDLE   (0x0011u) /* Handle of time_start characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_TIME_START_CHAR_HANDLE   (0x0012u) /* Handle of time_start characteristic */
 #define CYBLE_SFSYSTEMSERVICE_TIME_START_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0013u) /* Handle of Characteristic User Description descriptor */
 #define CYBLE_SFSYSTEMSERVICE_TIME_START_TIMESTARTCCCD_DESC_HANDLE   (0x0014u) /* Handle of timeStartCCCD descriptor */
+#define CYBLE_SFSYSTEMSERVICE_TIME_FINISH_DECL_HANDLE   (0x0015u) /* Handle of time_finish characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_TIME_FINISH_CHAR_HANDLE   (0x0016u) /* Handle of time_finish characteristic */
 #define CYBLE_SFSYSTEMSERVICE_TIME_FINISH_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0017u) /* Handle of Characteristic User Description descriptor */
 #define CYBLE_SFSYSTEMSERVICE_TIME_FINISH_TIMEFINISHCCCD_DESC_HANDLE   (0x0018u) /* Handle of timeFinishCCCD descriptor */
+#define CYBLE_SFSYSTEMSERVICE_TIME_RESULT_DECL_HANDLE   (0x0019u) /* Handle of time_result characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_TIME_RESULT_CHAR_HANDLE   (0x001Au) /* Handle of time_result characteristic */
 #define CYBLE_SFSYSTEMSERVICE_TIME_RESULT_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x001Bu) /* Handle of Characteristic User Description descriptor */
 #define CYBLE_SFSYSTEMSERVICE_TIME_RESULT_TIMERESULTCCCD_DESC_HANDLE   (0x001Cu) /* Handle of timeResultCCCD descriptor */
+#define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_DECL_HANDLE   (0x001Du) /* Handle of system_status characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_CHAR_HANDLE   (0x001Eu) /* Handle of system_status characteristic */
 #define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x001Fu) /* Handle of Characteristic User Description descriptor */
 #define CYBLE_SFSYSTEMSERVICE_SYSTEM_STATUS_STATUSCCCD_DESC_HANDLE   (0x0020u) /* Handle of statusCCCd descriptor */
+#define CYBLE_SFSYSTEMSERVICE_UNIXTIME_DECL_HANDLE   (0x0021u) /* Handle of unixTime characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHAR_HANDLE   (0x0022u) /* Handle of unixTime characteristic */
 #define CYBLE_SFSYSTEMSERVICE_UNIXTIME_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0023u) /* Handle of Characteristic User Description descriptor */
+#define CYBLE_SFSYSTEMSERVICE_ADMINONLY_DECL_HANDLE   (0x0024u) /* Handle of adminOnly characteristic declaration */
 #define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHAR_HANDLE   (0x0025u) /* Handle of adminOnly characteristic */
 #define CYBLE_SFSYSTEMSERVICE_ADMINONLY_CHARACTERISTIC_USER_DESCRIPTION_DESC_HANDLE   (0x0026u) /* Handle of Characteristic User Description descriptor */
 

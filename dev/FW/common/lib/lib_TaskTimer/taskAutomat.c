@@ -14,9 +14,9 @@
 
 #define MAX_NUM_OF_TIMERS   5
 
-#define WRITE_ERROR     1
-#define WRITE_NO_ERROR  0
-static uint16_t writeFlag;
+#define LOG_STARTED     1
+#define LOG_NOT_STARTED  0
+static uint16_t isLogStarted;
 
 uint8_t flag[MAX_NUM_OF_TIMERS];
 
@@ -193,14 +193,14 @@ void Action1(void)
     
     /*write result skier on log 
     (if there is no memory card that is a record in fifo)*/    
-    if((FifoGetSize() > 0) || (writeFlag == WRITE_ERROR))
+    if((FifoGetSize() > 0) || (isLogStarted == LOG_STARTED))
     {
         uint32_t result;
         skierDB_El tmpStruct;
         static uint32_t lastFifoSize;
         static uint32_t tmpIDSkier;
         
-        if (writeFlag == WRITE_NO_ERROR)
+        if (isLogStarted == LOG_NOT_STARTED)
         {
             FifoGet(&tmpStruct);
             FifoPushLast(tmpStruct);
@@ -212,7 +212,7 @@ void Action1(void)
 
         
         /*send finish skier result by buetooth*/
-        if(writeFlag == WRITE_NO_ERROR )
+        if(isLogStarted == LOG_NOT_STARTED )
         {
             /*SD only*/
             tmpIDSkier = GetIDskierFinished();
@@ -233,11 +233,11 @@ void Action1(void)
         if(result != FR_OK)
         {
             LogStart();
-            writeFlag = WRITE_ERROR;          
+            isLogStarted = LOG_STARTED;          
         }
         else
         {
-            writeFlag = WRITE_NO_ERROR; 
+            isLogStarted = LOG_NOT_STARTED; 
         }      
     }
     SetTaskTimer(ACTION1, ACTION1_TIMEOUT);

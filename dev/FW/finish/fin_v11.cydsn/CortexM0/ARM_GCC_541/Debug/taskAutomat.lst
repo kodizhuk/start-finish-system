@@ -1,0 +1,4246 @@
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"taskAutomat.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.TIMER_HANDLER,"ax",%progbits
+  20              		.align	1
+  21              		.global	TIMER_HANDLER
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	TIMER_HANDLER, %function
+  25              	TIMER_HANDLER:
+  26              	.LFB63:
+  27              		.file 1 "..\\..\\common\\lib\\lib_TaskTimer\\taskAutomat.c"
+   1:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include <..\..\common\lib\lib_TaskTimer\taskAutomat.h>
+   2:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "lib_Network\network.h"
+   3:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_Display\display.h"
+   4:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_Batt\batt.h"
+   5:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_IDskier\IDskier.h"
+   6:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "appGlobal.h"
+   7:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #ifdef FINISH_MODULE
+   8:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include <SDinsert.h>
+   9:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****  #include <stdio.h>
+  10:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_DB\logResult.h"
+  11:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_BLE\bluetooth.h"
+  12:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #include "..\..\common\lib\lib_DS1307\DS1307.h"
+  13:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #endif
+  14:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  15:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #define MAX_NUM_OF_TIMERS   5
+  16:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  17:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #define LOG_STARTED     1
+  18:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #define LOG_NOT_STARTED  0
+  19:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** static uint16_t isLogStarted;
+  20:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  21:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** uint8_t flag[MAX_NUM_OF_TIMERS];
+  22:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  23:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** volatile static struct
+  24:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+  25:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     uint8_t Number;
+  26:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     uint16_t Time;
+  27:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }SoftTimer[MAX_NUM_OF_TIMERS];
+  28:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  29:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action1(void);
+  30:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action2(void);
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 2
+
+
+  31:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action3(void);
+  32:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action4(void);
+  33:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action5(void);
+  34:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  35:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** CY_ISR(TIMER_HANDLER)
+  36:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+  28              		.loc 1 36 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  34              		.cfi_def_cfa_offset 24
+  35              		.cfi_offset 3, -24
+  36              		.cfi_offset 4, -20
+  37              		.cfi_offset 5, -16
+  38              		.cfi_offset 6, -12
+  39              		.cfi_offset 7, -8
+  40              		.cfi_offset 14, -4
+  37:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     int i;
+  38:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     for(i=0; i<MAX_NUM_OF_TIMERS; i++)
+  41              		.loc 1 38 0
+  42 0002 0022     		movs	r2, #0
+  39:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+  40:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(SoftTimer[i].Number == 255)continue;     /*if timer empty, next timer*/
+  41:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+  42:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(SoftTimer[i].Time > 0)
+  43:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+  44:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             SoftTimer[i].Time --;
+  45:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+  46:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         else
+  47:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+  48:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             /*set flag*/
+  49:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             flag[SoftTimer[i].Number] = 1;
+  43              		.loc 1 49 0
+  44 0004 0125     		movs	r5, #1
+  50:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+  51:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             /*reset timer*/
+  52:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             SoftTimer[i].Number = 255;
+  45              		.loc 1 52 0
+  46 0006 FF26     		movs	r6, #255
+  40:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+  47              		.loc 1 40 0
+  48 0008 0D49     		ldr	r1, .L10
+  49:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+  49              		.loc 1 49 0
+  50 000a 0E4C     		ldr	r4, .L10+4
+  51              	.LVL1:
+  52              	.L4:
+  40:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+  53              		.loc 1 40 0
+  54 000c 9300     		lsls	r3, r2, #2
+  55 000e 585C     		ldrb	r0, [r3, r1]
+  56 0010 FF28     		cmp	r0, #255
+  57 0012 0BD0     		beq	.L2
+  42:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+  58              		.loc 1 42 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 3
+
+
+  59 0014 C818     		adds	r0, r1, r3
+  60 0016 4788     		ldrh	r7, [r0, #2]
+  61 0018 002F     		cmp	r7, #0
+  62 001a 04D0     		beq	.L3
+  44:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+  63              		.loc 1 44 0
+  64 001c 4388     		ldrh	r3, [r0, #2]
+  65 001e 013B     		subs	r3, r3, #1
+  66 0020 9BB2     		uxth	r3, r3
+  67 0022 4380     		strh	r3, [r0, #2]
+  68 0024 02E0     		b	.L2
+  69              	.L3:
+  49:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+  70              		.loc 1 49 0
+  71 0026 585C     		ldrb	r0, [r3, r1]
+  72              		.loc 1 52 0
+  73 0028 5E54     		strb	r6, [r3, r1]
+  49:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+  74              		.loc 1 49 0
+  75 002a 2554     		strb	r5, [r4, r0]
+  76              	.L2:
+  38:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+  77              		.loc 1 38 0 discriminator 2
+  78 002c 0132     		adds	r2, r2, #1
+  79              	.LVL2:
+  80 002e 052A     		cmp	r2, #5
+  81 0030 ECD1     		bne	.L4
+  53:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+  54:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+  55:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     isr_timer_ClearPending();
+  82              		.loc 1 55 0
+  83 0032 FFF7FEFF 		bl	isr_timer_ClearPending
+  84              	.LVL3:
+  56:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     Timer_ClearInterrupt(Timer_INTR_MASK_CC_MATCH);
+  85              		.loc 1 56 0
+  86 0036 0220     		movs	r0, #2
+  87 0038 FFF7FEFF 		bl	Timer_ClearInterrupt
+  88              	.LVL4:
+  57:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+  89              		.loc 1 57 0
+  90              		@ sp needed
+  91 003c F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+  92              	.L11:
+  93 003e C046     		.align	2
+  94              	.L10:
+  95 0040 00000000 		.word	.LANCHOR0
+  96 0044 00000000 		.word	flag
+  97              		.cfi_endproc
+  98              	.LFE63:
+  99              		.size	TIMER_HANDLER, .-TIMER_HANDLER
+ 100              		.section	.text.TaskTimerInit,"ax",%progbits
+ 101              		.align	1
+ 102              		.global	TaskTimerInit
+ 103              		.code	16
+ 104              		.thumb_func
+ 105              		.type	TaskTimerInit, %function
+ 106              	TaskTimerInit:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 4
+
+
+ 107              	.LFB65:
+  58:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  59:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** /*******************************************************************************
+  60:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Function Name: TaskCheck
+  61:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** ********************************************************************************
+  62:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+  63:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Summary:
+  64:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *   check flag machine
+  65:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+  66:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *******************************************************************************/
+  67:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void TaskCheck(void)
+  68:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+  69:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION1] == 1)Action1();
+  70:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION2] == 1)Action2();
+  71:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION3] == 1)Action3();
+  72:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION4] == 1)Action4();
+  73:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION5] == 1)Action5();
+  74:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+  75:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  76:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** /*******************************************************************************
+  77:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Function Name: TaskTimerInit
+  78:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** ********************************************************************************
+  79:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+  80:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Summary:
+  81:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *   init flag machine
+  82:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+  83:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *******************************************************************************/
+  84:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void TaskTimerInit(void)
+  85:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 108              		.loc 1 85 0
+ 109              		.cfi_startproc
+ 110              		@ args = 0, pretend = 0, frame = 0
+ 111              		@ frame_needed = 0, uses_anonymous_args = 0
+ 112              	.LVL5:
+  86:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     int i;
+  87:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     for(i=0; i<MAX_NUM_OF_TIMERS; i++)
+  88:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         SoftTimer[i].Number = 255;
+ 113              		.loc 1 88 0
+ 114 0000 FF22     		movs	r2, #255
+  85:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     int i;
+ 115              		.loc 1 85 0
+ 116 0002 10B5     		push	{r4, lr}
+ 117              		.cfi_def_cfa_offset 8
+ 118              		.cfi_offset 4, -8
+ 119              		.cfi_offset 14, -4
+ 120              		.loc 1 88 0
+ 121 0004 054B     		ldr	r3, .L13
+  89:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+  90:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     isr_timer_StartEx(TIMER_HANDLER);
+ 122              		.loc 1 90 0
+ 123 0006 0648     		ldr	r0, .L13+4
+  88:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 124              		.loc 1 88 0
+ 125 0008 1A70     		strb	r2, [r3]
+ 126              	.LVL6:
+ 127 000a 1A71     		strb	r2, [r3, #4]
+ 128              	.LVL7:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 5
+
+
+ 129 000c 1A72     		strb	r2, [r3, #8]
+ 130              	.LVL8:
+ 131 000e 1A73     		strb	r2, [r3, #12]
+ 132              	.LVL9:
+ 133 0010 1A74     		strb	r2, [r3, #16]
+ 134              	.LVL10:
+ 135              		.loc 1 90 0
+ 136 0012 FFF7FEFF 		bl	isr_timer_StartEx
+ 137              	.LVL11:
+  91:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     Timer_Start();  
+  92:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 138              		.loc 1 92 0
+ 139              		@ sp needed
+  91:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     Timer_Start();  
+ 140              		.loc 1 91 0
+ 141 0016 FFF7FEFF 		bl	Timer_Start
+ 142              	.LVL12:
+ 143              		.loc 1 92 0
+ 144 001a 10BD     		pop	{r4, pc}
+ 145              	.L14:
+ 146              		.align	2
+ 147              	.L13:
+ 148 001c 00000000 		.word	.LANCHOR0
+ 149 0020 00000000 		.word	TIMER_HANDLER
+ 150              		.cfi_endproc
+ 151              	.LFE65:
+ 152              		.size	TaskTimerInit, .-TaskTimerInit
+ 153              		.section	.text.SetTaskTimer,"ax",%progbits
+ 154              		.align	1
+ 155              		.global	SetTaskTimer
+ 156              		.code	16
+ 157              		.thumb_func
+ 158              		.type	SetTaskTimer, %function
+ 159              	SetTaskTimer:
+ 160              	.LFB66:
+  93:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+  94:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** /*******************************************************************************
+  95:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Function Name: SetTaskTimer
+  96:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** ********************************************************************************
+  97:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+  98:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Summary:
+  99:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *   set the time for the program timer
+ 100:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+ 101:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** * Parameters:
+ 102:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *  newNumber - new number task
+ 103:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *  newTime - new time from task
+ 104:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *
+ 105:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** *******************************************************************************/
+ 106:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void SetTaskTimer(uint8_t newNumber, uint16_t newTime)
+ 107:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 161              		.loc 1 107 0
+ 162              		.cfi_startproc
+ 163              		@ args = 0, pretend = 0, frame = 0
+ 164              		@ frame_needed = 0, uses_anonymous_args = 0
+ 165              	.LVL13:
+ 108:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     //CyGlobalIntDisable;
+ 109:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     int i;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 6
+
+
+ 110:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 111:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*search existing timer*/
+ 112:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     for(i=0; i< MAX_NUM_OF_TIMERS; i++)
+ 166              		.loc 1 112 0
+ 167 0000 0022     		movs	r2, #0
+ 107:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     //CyGlobalIntDisable;
+ 168              		.loc 1 107 0
+ 169 0002 70B5     		push	{r4, r5, r6, lr}
+ 170              		.cfi_def_cfa_offset 16
+ 171              		.cfi_offset 4, -16
+ 172              		.cfi_offset 5, -12
+ 173              		.cfi_offset 6, -8
+ 174              		.cfi_offset 14, -4
+ 113:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 114:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(SoftTimer[i].Number == newNumber)
+ 175              		.loc 1 114 0
+ 176 0004 0C4B     		ldr	r3, .L23
+ 177              	.LVL14:
+ 178              	.L18:
+ 179 0006 9400     		lsls	r4, r2, #2
+ 180 0008 E65C     		ldrb	r6, [r4, r3]
+ 181 000a 1D00     		movs	r5, r3
+ 182 000c 8642     		cmp	r6, r0
+ 183 000e 02D1     		bne	.L16
+ 115:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 116:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             /*set new time*/
+ 117:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             SoftTimer[i].Time = newTime;
+ 184              		.loc 1 117 0
+ 185 0010 1C19     		adds	r4, r3, r4
+ 186 0012 6180     		strh	r1, [r4, #2]
+ 118:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+ 119:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             //CyGlobalIntEnable;
+ 120:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             return;
+ 187              		.loc 1 120 0
+ 188 0014 0EE0     		b	.L15
+ 189              	.L16:
+ 112:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 190              		.loc 1 112 0 discriminator 2
+ 191 0016 0132     		adds	r2, r2, #1
+ 192              	.LVL15:
+ 193 0018 052A     		cmp	r2, #5
+ 194 001a F4D1     		bne	.L18
+ 195 001c 0022     		movs	r2, #0
+ 196              	.LVL16:
+ 197              	.L20:
+ 121:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 122:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 123:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 124:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*search new empty timer*/
+ 125:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     for(i=0; i< MAX_NUM_OF_TIMERS; i++)
+ 126:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 127:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(SoftTimer[i].Number == 255)
+ 198              		.loc 1 127 0
+ 199 001e 9300     		lsls	r3, r2, #2
+ 200 0020 EC5C     		ldrb	r4, [r5, r3]
+ 201 0022 FF2C     		cmp	r4, #255
+ 202 0024 03D1     		bne	.L19
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 7
+
+
+ 128:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 129:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             SoftTimer[i].Number = newNumber;
+ 203              		.loc 1 129 0
+ 204 0026 E854     		strb	r0, [r5, r3]
+ 130:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             SoftTimer[i].Time = newTime;
+ 205              		.loc 1 130 0
+ 206 0028 EB18     		adds	r3, r5, r3
+ 207 002a 5980     		strh	r1, [r3, #2]
+ 131:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             
+ 132:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             //CyGlobalIntEnable;
+ 133:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             return;
+ 208              		.loc 1 133 0
+ 209 002c 02E0     		b	.L15
+ 210              	.L19:
+ 125:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 211              		.loc 1 125 0 discriminator 2
+ 212 002e 0132     		adds	r2, r2, #1
+ 213              	.LVL17:
+ 214 0030 052A     		cmp	r2, #5
+ 215 0032 F4D1     		bne	.L20
+ 216              	.L15:
+ 134:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 135:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 136:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 217              		.loc 1 136 0
+ 218              		@ sp needed
+ 219 0034 70BD     		pop	{r4, r5, r6, pc}
+ 220              	.L24:
+ 221 0036 C046     		.align	2
+ 222              	.L23:
+ 223 0038 00000000 		.word	.LANCHOR0
+ 224              		.cfi_endproc
+ 225              	.LFE66:
+ 226              		.size	SetTaskTimer, .-SetTaskTimer
+ 227              		.section	.text.Action1,"ax",%progbits
+ 228              		.align	1
+ 229              		.global	Action1
+ 230              		.code	16
+ 231              		.thumb_func
+ 232              		.type	Action1, %function
+ 233              	Action1:
+ 234              	.LFB67:
+ 137:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 138:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 139:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #ifdef START_MODULE
+ 140:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action1(void)
+ 141:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 142:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION1] = 0;
+ 143:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SendData();  
+ 144:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION1,ACTION1_TIMEOUT);
+ 145:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 146:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 147:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action2(void)
+ 148:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 149:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION2] = 0;
+ 150:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayRealTime();
+ 151:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayBattVoltage(ReadBattVoltage());
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 8
+
+
+ 152:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 153:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     ButtCheck();
+ 154:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayIDskier(ReadIdSkier());
+ 155:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 156:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION2, ACTION2_TIMEOUT);
+ 157:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 158:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 159:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action3(void)
+ 160:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 161:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION3] = 0;
+ 162:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 163:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*indicator network*/
+ 164:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayNetworkQuality(NetworkQuality());
+ 165:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    if(NetworkStatus() == NETWORK_CONN)
+ 166:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    {
+ 167:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //        DisplayIndicatorNetwork(CONNECT);
+ 168:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    }
+ 169:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    else
+ 170:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    {
+ 171:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //        DisplayIndicatorNetwork(DISCONNECT);
+ 172:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** //    }
+ 173:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 174:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION3, ACTION3_TIMEOUT);
+ 175:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 176:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 177:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action4(void)
+ 178:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 179:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION3] = 0; 
+ 180:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     //SetTaskTimer(ACTION4, ACTION4_TIMEOUT);
+ 181:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 182:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 183:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action5(void)
+ 184:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {    
+ 185:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION3] = 0;
+ 186:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     //SetTaskTimer(ACTION4, ACTION5_TIMEOUT);
+ 187:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 188:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #endif
+ 189:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** #ifdef FINISH_MODULE
+ 190:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action1(void)
+ 191:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 235              		.loc 1 191 0
+ 236              		.cfi_startproc
+ 237              		@ args = 0, pretend = 0, frame = 96
+ 238              		@ frame_needed = 0, uses_anonymous_args = 0
+ 192:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION1] = 0;
+ 239              		.loc 1 192 0
+ 240 0000 0022     		movs	r2, #0
+ 191:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION1] = 0;
+ 241              		.loc 1 191 0
+ 242 0002 30B5     		push	{r4, r5, lr}
+ 243              		.cfi_def_cfa_offset 12
+ 244              		.cfi_offset 4, -12
+ 245              		.cfi_offset 5, -8
+ 246              		.cfi_offset 14, -4
+ 247              		.loc 1 192 0
+ 248 0004 2D4B     		ldr	r3, .L34
+ 191:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION1] = 0;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 9
+
+
+ 249              		.loc 1 191 0
+ 250 0006 A1B0     		sub	sp, sp, #132
+ 251              		.cfi_def_cfa_offset 144
+ 252              		.loc 1 192 0
+ 253 0008 1A70     		strb	r2, [r3]
+ 193:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 194:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*write result skier on log 
+ 195:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     (if there is no memory card that is a record in fifo)*/    
+ 196:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if((FifoGetSize() > 0) || (isLogStarted == LOG_STARTED))
+ 254              		.loc 1 196 0
+ 255 000a FFF7FEFF 		bl	FifoGetSize
+ 256              	.LVL18:
+ 257 000e 2C4C     		ldr	r4, .L34+4
+ 258 0010 0028     		cmp	r0, #0
+ 259 0012 02D1     		bne	.L26
+ 260              		.loc 1 196 0 is_stmt 0 discriminator 1
+ 261 0014 A38A     		ldrh	r3, [r4, #20]
+ 262 0016 012B     		cmp	r3, #1
+ 263 0018 49D1     		bne	.L27
+ 264              	.L26:
+ 265              	.LBB2:
+ 197:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 198:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         uint32_t result;
+ 199:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         skierDB_El tmpStruct;
+ 200:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         static uint32_t lastFifoSize;
+ 201:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         static uint32_t tmpIDSkier;
+ 202:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 203:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if (isLogStarted == LOG_NOT_STARTED)
+ 266              		.loc 1 203 0 is_stmt 1
+ 267 001a A38A     		ldrh	r3, [r4, #20]
+ 268 001c 002B     		cmp	r3, #0
+ 269 001e 0ED1     		bne	.L28
+ 204:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 205:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             FifoGet(&tmpStruct);
+ 270              		.loc 1 205 0
+ 271 0020 14A8     		add	r0, sp, #80
+ 272 0022 FFF7FEFF 		bl	FifoGet
+ 273              	.LVL19:
+ 206:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             FifoPushLast(tmpStruct);
+ 274              		.loc 1 206 0
+ 275 0026 18A9     		add	r1, sp, #96
+ 276 0028 2022     		movs	r2, #32
+ 277 002a 6846     		mov	r0, sp
+ 278 002c FFF7FEFF 		bl	memcpy
+ 279              	.LVL20:
+ 280 0030 1498     		ldr	r0, [sp, #80]
+ 281 0032 1599     		ldr	r1, [sp, #84]
+ 282 0034 169A     		ldr	r2, [sp, #88]
+ 283 0036 179B     		ldr	r3, [sp, #92]
+ 284 0038 FFF7FEFF 		bl	FifoPushLast
+ 285              	.LVL21:
+ 286 003c 07E0     		b	.L29
+ 287              	.L28:
+ 207:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 208:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         else
+ 209:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 210:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             tmpStruct = FifoGetLast();
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 10
+
+
+ 288              		.loc 1 210 0
+ 289 003e 08A8     		add	r0, sp, #32
+ 290 0040 FFF7FEFF 		bl	FifoGetLast
+ 291              	.LVL22:
+ 292 0044 3022     		movs	r2, #48
+ 293 0046 08A9     		add	r1, sp, #32
+ 294 0048 14A8     		add	r0, sp, #80
+ 295 004a FFF7FEFF 		bl	memcpy
+ 296              	.LVL23:
+ 297              	.L29:
+ 211:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 212:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 213:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 214:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         /*send finish skier result by buetooth*/
+ 215:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(isLogStarted == LOG_NOT_STARTED )
+ 298              		.loc 1 215 0
+ 299 004e A38A     		ldrh	r3, [r4, #20]
+ 300 0050 002B     		cmp	r3, #0
+ 301 0052 0DD1     		bne	.L30
+ 216:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 217:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             /*SD only*/
+ 218:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             tmpIDSkier = GetIDskierFinished();
+ 302              		.loc 1 218 0
+ 303 0054 FFF7FEFF 		bl	GetIDskierFinished
+ 304              	.LVL24:
+ 305 0058 0500     		movs	r5, r0
+ 306 005a A061     		str	r0, [r4, #24]
+ 219:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
+ 307              		.loc 1 219 0
+ 308 005c FFF7FEFF 		bl	SkierOnWay
+ 309              	.LVL25:
+ 310 0060 0135     		adds	r5, r5, #1
+ 311 0062 C2B2     		uxtb	r2, r0
+ 312 0064 E9B2     		uxtb	r1, r5
+ 313 0066 0423     		movs	r3, #4
+ 314 0068 14A8     		add	r0, sp, #80
+ 315 006a FFF7FEFF 		bl	BLE_sendOneSkierTimeResult
+ 316              	.LVL26:
+ 317 006e 13E0     		b	.L31
+ 318              	.L30:
+ 220:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 221:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         else
+ 222:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 223:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             if(FifoGetSize() != lastFifoSize)
+ 319              		.loc 1 223 0
+ 320 0070 FFF7FEFF 		bl	FifoGetSize
+ 321              	.LVL27:
+ 322 0074 E369     		ldr	r3, [r4, #28]
+ 323 0076 9842     		cmp	r0, r3
+ 324 0078 0ED0     		beq	.L31
+ 224:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             {
+ 225:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****                 tmpIDSkier++;
+ 325              		.loc 1 225 0
+ 326 007a A369     		ldr	r3, [r4, #24]
+ 327 007c 5D1C     		adds	r5, r3, #1
+ 328 007e A561     		str	r5, [r4, #24]
+ 226:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****                 BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 11
+
+
+ 329              		.loc 1 226 0
+ 330 0080 FFF7FEFF 		bl	SkierOnWay
+ 331              	.LVL28:
+ 332 0084 0135     		adds	r5, r5, #1
+ 333 0086 C2B2     		uxtb	r2, r0
+ 334 0088 E9B2     		uxtb	r1, r5
+ 335 008a 0423     		movs	r3, #4
+ 336 008c 14A8     		add	r0, sp, #80
+ 337 008e FFF7FEFF 		bl	BLE_sendOneSkierTimeResult
+ 338              	.LVL29:
+ 227:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****                 lastFifoSize = FifoGetSize();
+ 339              		.loc 1 227 0
+ 340 0092 FFF7FEFF 		bl	FifoGetSize
+ 341              	.LVL30:
+ 342 0096 E061     		str	r0, [r4, #28]
+ 343              	.L31:
+ 228:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             }
+ 229:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 230:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 231:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         /*write data to SD card*/
+ 232:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         result = WriteSkierResult(&tmpStruct);
+ 344              		.loc 1 232 0
+ 345 0098 14A8     		add	r0, sp, #80
+ 346 009a FFF7FEFF 		bl	WriteSkierResult
+ 347              	.LVL31:
+ 233:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         if(result != FR_OK)
+ 348              		.loc 1 233 0
+ 349 009e 0028     		cmp	r0, #0
+ 350 00a0 04D0     		beq	.L32
+ 234:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 235:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             LogStart();
+ 351              		.loc 1 235 0
+ 352 00a2 FFF7FEFF 		bl	LogStart
+ 353              	.LVL32:
+ 236:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             isLogStarted = LOG_STARTED;          
+ 354              		.loc 1 236 0
+ 355 00a6 0123     		movs	r3, #1
+ 356 00a8 A382     		strh	r3, [r4, #20]
+ 357 00aa 00E0     		b	.L27
+ 358              	.LVL33:
+ 359              	.L32:
+ 237:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }
+ 238:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         else
+ 239:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         {
+ 240:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****             isLogStarted = LOG_NOT_STARTED; 
+ 360              		.loc 1 240 0
+ 361 00ac A082     		strh	r0, [r4, #20]
+ 362              	.LVL34:
+ 363              	.L27:
+ 364              	.LBE2:
+ 241:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         }      
+ 242:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 243:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION1, ACTION1_TIMEOUT);
+ 365              		.loc 1 243 0
+ 366 00ae 0521     		movs	r1, #5
+ 367 00b0 0020     		movs	r0, #0
+ 368 00b2 FFF7FEFF 		bl	SetTaskTimer
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 12
+
+
+ 369              	.LVL35:
+ 244:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 245:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 370              		.loc 1 245 0
+ 371 00b6 21B0     		add	sp, sp, #132
+ 372              		@ sp needed
+ 373 00b8 30BD     		pop	{r4, r5, pc}
+ 374              	.L35:
+ 375 00ba C046     		.align	2
+ 376              	.L34:
+ 377 00bc 00000000 		.word	flag
+ 378 00c0 00000000 		.word	.LANCHOR0
+ 379              		.cfi_endproc
+ 380              	.LFE67:
+ 381              		.size	Action1, .-Action1
+ 382              		.section	.text.Action2,"ax",%progbits
+ 383              		.align	1
+ 384              		.global	Action2
+ 385              		.code	16
+ 386              		.thumb_func
+ 387              		.type	Action2, %function
+ 388              	Action2:
+ 389              	.LFB68:
+ 246:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 247:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action2(void)
+ 248:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {   
+ 390              		.loc 1 248 0
+ 391              		.cfi_startproc
+ 392              		@ args = 0, pretend = 0, frame = 0
+ 393              		@ frame_needed = 0, uses_anonymous_args = 0
+ 249:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION2] = 0;
+ 394              		.loc 1 249 0
+ 395 0000 0022     		movs	r2, #0
+ 248:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION2] = 0;
+ 396              		.loc 1 248 0
+ 397 0002 10B5     		push	{r4, lr}
+ 398              		.cfi_def_cfa_offset 8
+ 399              		.cfi_offset 4, -8
+ 400              		.cfi_offset 14, -4
+ 401              		.loc 1 249 0
+ 402 0004 044B     		ldr	r3, .L37
+ 250:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SendData();  
+ 251:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION2,ACTION2_TIMEOUT);
+ 252:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 403              		.loc 1 252 0
+ 404              		@ sp needed
+ 249:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SendData();  
+ 405              		.loc 1 249 0
+ 406 0006 5A70     		strb	r2, [r3, #1]
+ 250:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SendData();  
+ 407              		.loc 1 250 0
+ 408 0008 FFF7FEFF 		bl	SendData
+ 409              	.LVL36:
+ 251:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 410              		.loc 1 251 0
+ 411 000c 0521     		movs	r1, #5
+ 412 000e 0120     		movs	r0, #1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 13
+
+
+ 413 0010 FFF7FEFF 		bl	SetTaskTimer
+ 414              	.LVL37:
+ 415              		.loc 1 252 0
+ 416 0014 10BD     		pop	{r4, pc}
+ 417              	.L38:
+ 418 0016 C046     		.align	2
+ 419              	.L37:
+ 420 0018 00000000 		.word	flag
+ 421              		.cfi_endproc
+ 422              	.LFE68:
+ 423              		.size	Action2, .-Action2
+ 424              		.section	.text.Action3,"ax",%progbits
+ 425              		.align	1
+ 426              		.global	Action3
+ 427              		.code	16
+ 428              		.thumb_func
+ 429              		.type	Action3, %function
+ 430              	Action3:
+ 431              	.LFB69:
+ 253:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 254:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action3(void)
+ 255:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 432              		.loc 1 255 0
+ 433              		.cfi_startproc
+ 434              		@ args = 0, pretend = 0, frame = 0
+ 435              		@ frame_needed = 0, uses_anonymous_args = 0
+ 256:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION3] = 0;
+ 436              		.loc 1 256 0
+ 437 0000 0022     		movs	r2, #0
+ 438 0002 114B     		ldr	r3, .L46
+ 255:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION3] = 0;
+ 439              		.loc 1 255 0
+ 440 0004 10B5     		push	{r4, lr}
+ 441              		.cfi_def_cfa_offset 8
+ 442              		.cfi_offset 4, -8
+ 443              		.cfi_offset 14, -4
+ 444              		.loc 1 256 0
+ 445 0006 9A70     		strb	r2, [r3, #2]
+ 257:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 258:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*print indicator SD card*/
+ 259:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(SDinsert_Read() == 0)
+ 446              		.loc 1 259 0
+ 447 0008 FFF7FEFF 		bl	SDinsert_Read
+ 448              	.LVL38:
+ 449 000c 041E     		subs	r4, r0, #0
+ 450 000e 03D1     		bne	.L40
+ 260:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 261:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         DisplayIndicatorSD(SD_INSERT);
+ 451              		.loc 1 261 0
+ 452 0010 FFF7FEFF 		bl	DisplayIndicatorSD
+ 453              	.LVL39:
+ 262:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         BLE_sendSDcardStatus(STATUS_OK);
+ 454              		.loc 1 262 0
+ 455 0014 2000     		movs	r0, r4
+ 456 0016 03E0     		b	.L44
+ 457              	.L40:
+ 263:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 14
+
+
+ 264:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     else
+ 265:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 266:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         DisplayIndicatorSD(SD_NO_INSERT);
+ 458              		.loc 1 266 0
+ 459 0018 0120     		movs	r0, #1
+ 460 001a FFF7FEFF 		bl	DisplayIndicatorSD
+ 461              	.LVL40:
+ 267:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         BLE_sendSDcardStatus(STATUS_ERROR);
+ 462              		.loc 1 267 0
+ 463 001e 0120     		movs	r0, #1
+ 464              	.L44:
+ 465 0020 FFF7FEFF 		bl	BLE_sendSDcardStatus
+ 466              	.LVL41:
+ 268:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 269:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 270:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*printindicator network*/
+ 271:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayNetworkQuality(NetworkQuality());
+ 467              		.loc 1 271 0
+ 468 0024 FFF7FEFF 		bl	NetworkQuality
+ 469              	.LVL42:
+ 470 0028 FFF7FEFF 		bl	DisplayNetworkQuality
+ 471              	.LVL43:
+ 272:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(NetworkStatus() == NETWORK_CONNECT)
+ 472              		.loc 1 272 0
+ 473 002c FFF7FEFF 		bl	NetworkStatus
+ 474              	.LVL44:
+ 475 0030 0128     		cmp	r0, #1
+ 476 0032 01D1     		bne	.L42
+ 273:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 274:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         //DisplayIndicatorNetwork(CONNECT);        
+ 275:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         BLE_sendNetworkStatus(STATUS_OK);
+ 477              		.loc 1 275 0
+ 478 0034 0020     		movs	r0, #0
+ 479 0036 00E0     		b	.L45
+ 480              	.L42:
+ 276:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 277:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     else
+ 278:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 279:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         //DisplayIndicatorNetwork(DISCONNECT);
+ 280:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         BLE_sendNetworkStatus(STATUS_ERROR);
+ 481              		.loc 1 280 0
+ 482 0038 0120     		movs	r0, #1
+ 483              	.L45:
+ 484 003a FFF7FEFF 		bl	BLE_sendNetworkStatus
+ 485              	.LVL45:
+ 281:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 282:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 283:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION3, ACTION3_TIMEOUT);
+ 486              		.loc 1 283 0
+ 487 003e 0521     		movs	r1, #5
+ 488 0040 0220     		movs	r0, #2
+ 489 0042 FFF7FEFF 		bl	SetTaskTimer
+ 490              	.LVL46:
+ 284:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 491              		.loc 1 284 0
+ 492              		@ sp needed
+ 493 0046 10BD     		pop	{r4, pc}
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 15
+
+
+ 494              	.L47:
+ 495              		.align	2
+ 496              	.L46:
+ 497 0048 00000000 		.word	flag
+ 498              		.cfi_endproc
+ 499              	.LFE69:
+ 500              		.size	Action3, .-Action3
+ 501              		.section	.text.Action4,"ax",%progbits
+ 502              		.align	1
+ 503              		.global	Action4
+ 504              		.code	16
+ 505              		.thumb_func
+ 506              		.type	Action4, %function
+ 507              	Action4:
+ 508              	.LFB70:
+ 285:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 286:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action4(void)
+ 287:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 509              		.loc 1 287 0
+ 510              		.cfi_startproc
+ 511              		@ args = 0, pretend = 0, frame = 0
+ 512              		@ frame_needed = 0, uses_anonymous_args = 0
+ 288:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION4] = 0;
+ 513              		.loc 1 288 0
+ 514 0000 0022     		movs	r2, #0
+ 287:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION4] = 0;
+ 515              		.loc 1 287 0
+ 516 0002 10B5     		push	{r4, lr}
+ 517              		.cfi_def_cfa_offset 8
+ 518              		.cfi_offset 4, -8
+ 519              		.cfi_offset 14, -4
+ 520              		.loc 1 288 0
+ 521 0004 084B     		ldr	r3, .L49
+ 289:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 290:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*printf real time and num skier on way*/ 
+ 291:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayRealTime();
+ 292:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayNumSkierOnWay(SkierOnWay());   
+ 293:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayBattVoltage(ReadBattVoltage());
+ 294:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 295:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION4, ACTION4_TIMEOUT);
+ 296:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 522              		.loc 1 296 0
+ 523              		@ sp needed
+ 288:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 524              		.loc 1 288 0
+ 525 0006 DA70     		strb	r2, [r3, #3]
+ 291:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayNumSkierOnWay(SkierOnWay());   
+ 526              		.loc 1 291 0
+ 527 0008 FFF7FEFF 		bl	DisplayRealTime
+ 528              	.LVL47:
+ 292:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     DisplayBattVoltage(ReadBattVoltage());
+ 529              		.loc 1 292 0
+ 530 000c FFF7FEFF 		bl	SkierOnWay
+ 531              	.LVL48:
+ 532 0010 FFF7FEFF 		bl	DisplayNumSkierOnWay
+ 533              	.LVL49:
+ 293:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 16
+
+
+ 534              		.loc 1 293 0
+ 535 0014 FFF7FEFF 		bl	ReadBattVoltage
+ 536              	.LVL50:
+ 537 0018 FFF7FEFF 		bl	DisplayBattVoltage
+ 538              	.LVL51:
+ 295:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 539              		.loc 1 295 0
+ 540 001c 0121     		movs	r1, #1
+ 541 001e 0320     		movs	r0, #3
+ 542 0020 FFF7FEFF 		bl	SetTaskTimer
+ 543              	.LVL52:
+ 544              		.loc 1 296 0
+ 545 0024 10BD     		pop	{r4, pc}
+ 546              	.L50:
+ 547 0026 C046     		.align	2
+ 548              	.L49:
+ 549 0028 00000000 		.word	flag
+ 550              		.cfi_endproc
+ 551              	.LFE70:
+ 552              		.size	Action4, .-Action4
+ 553              		.section	.text.Action5,"ax",%progbits
+ 554              		.align	1
+ 555              		.global	Action5
+ 556              		.code	16
+ 557              		.thumb_func
+ 558              		.type	Action5, %function
+ 559              	Action5:
+ 560              	.LFB71:
+ 297:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 298:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** void Action5(void)
+ 299:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** {
+ 561              		.loc 1 299 0
+ 562              		.cfi_startproc
+ 563              		@ args = 0, pretend = 0, frame = 0
+ 564              		@ frame_needed = 0, uses_anonymous_args = 0
+ 565 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 566              		.cfi_def_cfa_offset 24
+ 567              		.cfi_offset 3, -24
+ 568              		.cfi_offset 4, -20
+ 569              		.cfi_offset 5, -16
+ 570              		.cfi_offset 6, -12
+ 571              		.cfi_offset 7, -8
+ 572              		.cfi_offset 14, -4
+ 300:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     /*update time*/    
+ 301:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 302:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     static uint32_t oldUnixTime;
+ 303:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     uint32_t unixTime;
+ 304:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 305:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     flag[ACTION5] = 0;
+ 573              		.loc 1 305 0
+ 574 0002 0025     		movs	r5, #0
+ 575 0004 104B     		ldr	r3, .L53
+ 576 0006 1D71     		strb	r5, [r3, #4]
+ 306:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 307:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     BLE_processEvents();
+ 577              		.loc 1 307 0
+ 578 0008 FFF7FEFF 		bl	BLE_processEvents
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 17
+
+
+ 579              	.LVL53:
+ 308:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     
+ 309:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     unixTime = BLE_getUnixTime();
+ 580              		.loc 1 309 0
+ 581 000c FFF7FEFF 		bl	BLE_getUnixTime
+ 582              	.LVL54:
+ 310:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(oldUnixTime != unixTime)
+ 583              		.loc 1 310 0
+ 584 0010 0E4E     		ldr	r6, .L53+4
+ 309:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(oldUnixTime != unixTime)
+ 585              		.loc 1 309 0
+ 586 0012 0400     		movs	r4, r0
+ 587              	.LVL55:
+ 588              		.loc 1 310 0
+ 589 0014 336A     		ldr	r3, [r6, #32]
+ 590 0016 9842     		cmp	r0, r3
+ 591 0018 10D0     		beq	.L52
+ 592              	.LBB3:
+ 311:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     {
+ 312:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         /*atomic block*/
+ 313:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         uint32 interruptState;
+ 314:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         interruptState = CyEnterCriticalSection(); 
+ 593              		.loc 1 314 0
+ 594 001a FFF7FEFF 		bl	CyEnterCriticalSection
+ 595              	.LVL56:
+ 596 001e 0700     		movs	r7, r0
+ 597              	.LVL57:
+ 315:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 316:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         /*set unix time in RTC DS1307*/
+ 317:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         DS1307_SetUnixTime(unixTime);
+ 598              		.loc 1 317 0
+ 599 0020 2900     		movs	r1, r5
+ 600 0022 2000     		movs	r0, r4
+ 601 0024 FFF7FEFF 		bl	DS1307_SetUnixTime
+ 602              	.LVL58:
+ 318:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         RTC_SetUnixTime(unixTime);
+ 603              		.loc 1 318 0
+ 604 0028 2000     		movs	r0, r4
+ 605 002a 2900     		movs	r1, r5
+ 606 002c FFF7FEFF 		bl	RTC_SetUnixTime
+ 607              	.LVL59:
+ 319:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 320:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         CyExitCriticalSection(interruptState);
+ 608              		.loc 1 320 0
+ 609 0030 3800     		movs	r0, r7
+ 610 0032 FFF7FEFF 		bl	CyExitCriticalSection
+ 611              	.LVL60:
+ 321:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         /*atomic block*/
+ 322:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 323:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         oldUnixTime = unixTime;
+ 612              		.loc 1 323 0
+ 613 0036 3462     		str	r4, [r6, #32]
+ 324:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         
+ 325:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****         SetRebootFlag();      
+ 614              		.loc 1 325 0
+ 615 0038 FFF7FEFF 		bl	SetRebootFlag
+ 616              	.LVL61:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 18
+
+
+ 617              	.L52:
+ 618              	.LBE3:
+ 326:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     }
+ 327:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     SetTaskTimer(ACTION5, ACTION5_TIMEOUT);
+ 619              		.loc 1 327 0
+ 620 003c 0121     		movs	r1, #1
+ 621 003e 0420     		movs	r0, #4
+ 622 0040 FFF7FEFF 		bl	SetTaskTimer
+ 623              	.LVL62:
+ 328:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 624              		.loc 1 328 0
+ 625              		@ sp needed
+ 626              	.LVL63:
+ 627 0044 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 628              	.L54:
+ 629 0046 C046     		.align	2
+ 630              	.L53:
+ 631 0048 00000000 		.word	flag
+ 632 004c 00000000 		.word	.LANCHOR0
+ 633              		.cfi_endproc
+ 634              	.LFE71:
+ 635              		.size	Action5, .-Action5
+ 636              		.section	.text.TaskCheck,"ax",%progbits
+ 637              		.align	1
+ 638              		.global	TaskCheck
+ 639              		.code	16
+ 640              		.thumb_func
+ 641              		.type	TaskCheck, %function
+ 642              	TaskCheck:
+ 643              	.LFB64:
+  68:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION1] == 1)Action1();
+ 644              		.loc 1 68 0
+ 645              		.cfi_startproc
+ 646              		@ args = 0, pretend = 0, frame = 0
+ 647              		@ frame_needed = 0, uses_anonymous_args = 0
+ 648 0000 10B5     		push	{r4, lr}
+ 649              		.cfi_def_cfa_offset 8
+ 650              		.cfi_offset 4, -8
+ 651              		.cfi_offset 14, -4
+  69:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION2] == 1)Action2();
+ 652              		.loc 1 69 0
+ 653 0002 0D4C     		ldr	r4, .L61
+ 654 0004 2378     		ldrb	r3, [r4]
+ 655 0006 012B     		cmp	r3, #1
+ 656 0008 01D1     		bne	.L56
+  69:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION2] == 1)Action2();
+ 657              		.loc 1 69 0 is_stmt 0 discriminator 1
+ 658 000a FFF7FEFF 		bl	Action1
+ 659              	.LVL64:
+ 660              	.L56:
+  70:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION3] == 1)Action3();
+ 661              		.loc 1 70 0 is_stmt 1
+ 662 000e 6378     		ldrb	r3, [r4, #1]
+ 663 0010 012B     		cmp	r3, #1
+ 664 0012 01D1     		bne	.L57
+  70:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION3] == 1)Action3();
+ 665              		.loc 1 70 0 is_stmt 0 discriminator 1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 19
+
+
+ 666 0014 FFF7FEFF 		bl	Action2
+ 667              	.LVL65:
+ 668              	.L57:
+  71:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION4] == 1)Action4();
+ 669              		.loc 1 71 0 is_stmt 1
+ 670 0018 A378     		ldrb	r3, [r4, #2]
+ 671 001a 012B     		cmp	r3, #1
+ 672 001c 01D1     		bne	.L58
+  71:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION4] == 1)Action4();
+ 673              		.loc 1 71 0 is_stmt 0 discriminator 1
+ 674 001e FFF7FEFF 		bl	Action3
+ 675              	.LVL66:
+ 676              	.L58:
+  72:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION5] == 1)Action5();
+ 677              		.loc 1 72 0 is_stmt 1
+ 678 0022 E378     		ldrb	r3, [r4, #3]
+ 679 0024 012B     		cmp	r3, #1
+ 680 0026 01D1     		bne	.L59
+  72:..\..\common\lib\lib_TaskTimer/taskAutomat.c ****     if(flag[ACTION5] == 1)Action5();
+ 681              		.loc 1 72 0 is_stmt 0 discriminator 1
+ 682 0028 FFF7FEFF 		bl	Action4
+ 683              	.LVL67:
+ 684              	.L59:
+  73:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 685              		.loc 1 73 0 is_stmt 1
+ 686 002c 2379     		ldrb	r3, [r4, #4]
+ 687 002e 012B     		cmp	r3, #1
+ 688 0030 01D1     		bne	.L55
+  73:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** }
+ 689              		.loc 1 73 0 is_stmt 0 discriminator 1
+ 690 0032 FFF7FEFF 		bl	Action5
+ 691              	.LVL68:
+ 692              	.L55:
+  74:..\..\common\lib\lib_TaskTimer/taskAutomat.c **** 
+ 693              		.loc 1 74 0 is_stmt 1
+ 694              		@ sp needed
+ 695 0036 10BD     		pop	{r4, pc}
+ 696              	.L62:
+ 697              		.align	2
+ 698              	.L61:
+ 699 0038 00000000 		.word	flag
+ 700              		.cfi_endproc
+ 701              	.LFE64:
+ 702              		.size	TaskCheck, .-TaskCheck
+ 703              		.comm	flag,5,1
+ 704              		.comm	currentState,1,1
+ 705              		.bss
+ 706              		.align	2
+ 707              		.set	.LANCHOR0,. + 0
+ 708              		.type	SoftTimer, %object
+ 709              		.size	SoftTimer, 20
+ 710              	SoftTimer:
+ 711 0000 00000000 		.space	20
+ 711      00000000 
+ 711      00000000 
+ 711      00000000 
+ 711      00000000 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 20
+
+
+ 712              		.type	isLogStarted, %object
+ 713              		.size	isLogStarted, 2
+ 714              	isLogStarted:
+ 715 0014 0000     		.space	2
+ 716 0016 0000     		.space	2
+ 717              		.type	tmpIDSkier.9889, %object
+ 718              		.size	tmpIDSkier.9889, 4
+ 719              	tmpIDSkier.9889:
+ 720 0018 00000000 		.space	4
+ 721              		.type	lastFifoSize.9888, %object
+ 722              		.size	lastFifoSize.9888, 4
+ 723              	lastFifoSize.9888:
+ 724 001c 00000000 		.space	4
+ 725              		.type	oldUnixTime.9902, %object
+ 726              		.size	oldUnixTime.9902, 4
+ 727              	oldUnixTime.9902:
+ 728 0020 00000000 		.space	4
+ 729              		.text
+ 730              	.Letext0:
+ 731              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 732              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 733              		.file 4 "Generated_Source\\PSoC4/cytypes.h"
+ 734              		.file 5 "Generated_Source\\PSoC4/ble_Stack.h"
+ 735              		.file 6 "./..\\..\\common\\lib\\lib_Display\\display.h"
+ 736              		.file 7 "./..\\..\\common\\lib\\lib_Fat\\ff.h"
+ 737              		.file 8 "./..\\..\\common\\lib\\lib_DB\\database.h"
+ 738              		.file 9 "./..\\..\\common\\lib\\lib_BLE\\bluetooth.h"
+ 739              		.file 10 "./appGlobal.h"
+ 740              		.file 11 "./..\\..\\common\\lib\\lib_TaskTimer\\taskAutomat.h"
+ 741              		.file 12 "Generated_Source\\PSoC4/RTC.h"
+ 742              		.file 13 "Generated_Source\\PSoC4/isr_timer.h"
+ 743              		.file 14 "Generated_Source\\PSoC4/Timer.h"
+ 744              		.file 15 "./..\\..\\common\\lib\\lib_DB\\logResult.h"
+ 745              		.file 16 "./lib_Network\\network.h"
+ 746              		.file 17 "Generated_Source\\PSoC4/SDinsert.h"
+ 747              		.file 18 "./..\\..\\common\\lib\\lib_Batt\\batt.h"
+ 748              		.file 19 "Generated_Source\\PSoC4/CyLib.h"
+ 749              		.file 20 "./..\\..\\common\\lib\\lib_DS1307\\DS1307.h"
+ 750              		.section	.debug_info,"",%progbits
+ 751              	.Ldebug_info0:
+ 752 0000 880A0000 		.4byte	0xa88
+ 753 0004 0400     		.2byte	0x4
+ 754 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 755 000a 04       		.byte	0x4
+ 756 000b 01       		.uleb128 0x1
+ 757 000c D1080000 		.4byte	.LASF194
+ 758 0010 0C       		.byte	0xc
+ 759 0011 170B0000 		.4byte	.LASF195
+ 760 0015 440B0000 		.4byte	.LASF196
+ 761 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 762 001d 00000000 		.4byte	0
+ 763 0021 00000000 		.4byte	.Ldebug_line0
+ 764 0025 02       		.uleb128 0x2
+ 765 0026 01       		.byte	0x1
+ 766 0027 06       		.byte	0x6
+ 767 0028 61020000 		.4byte	.LASF0
+ 768 002c 03       		.uleb128 0x3
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 21
+
+
+ 769 002d 18010000 		.4byte	.LASF3
+ 770 0031 02       		.byte	0x2
+ 771 0032 1D       		.byte	0x1d
+ 772 0033 37000000 		.4byte	0x37
+ 773 0037 02       		.uleb128 0x2
+ 774 0038 01       		.byte	0x1
+ 775 0039 08       		.byte	0x8
+ 776 003a B00B0000 		.4byte	.LASF1
+ 777 003e 02       		.uleb128 0x2
+ 778 003f 02       		.byte	0x2
+ 779 0040 05       		.byte	0x5
+ 780 0041 EE0B0000 		.4byte	.LASF2
+ 781 0045 03       		.uleb128 0x3
+ 782 0046 5B0D0000 		.4byte	.LASF4
+ 783 004a 02       		.byte	0x2
+ 784 004b 2B       		.byte	0x2b
+ 785 004c 50000000 		.4byte	0x50
+ 786 0050 02       		.uleb128 0x2
+ 787 0051 02       		.byte	0x2
+ 788 0052 07       		.byte	0x7
+ 789 0053 14060000 		.4byte	.LASF5
+ 790 0057 02       		.uleb128 0x2
+ 791 0058 04       		.byte	0x4
+ 792 0059 05       		.byte	0x5
+ 793 005a 4B010000 		.4byte	.LASF6
+ 794 005e 03       		.uleb128 0x3
+ 795 005f 3B040000 		.4byte	.LASF7
+ 796 0063 02       		.byte	0x2
+ 797 0064 41       		.byte	0x41
+ 798 0065 69000000 		.4byte	0x69
+ 799 0069 02       		.uleb128 0x2
+ 800 006a 04       		.byte	0x4
+ 801 006b 07       		.byte	0x7
+ 802 006c 24050000 		.4byte	.LASF8
+ 803 0070 02       		.uleb128 0x2
+ 804 0071 08       		.byte	0x8
+ 805 0072 05       		.byte	0x5
+ 806 0073 53020000 		.4byte	.LASF9
+ 807 0077 03       		.uleb128 0x3
+ 808 0078 A80A0000 		.4byte	.LASF10
+ 809 007c 02       		.byte	0x2
+ 810 007d 5B       		.byte	0x5b
+ 811 007e 82000000 		.4byte	0x82
+ 812 0082 02       		.uleb128 0x2
+ 813 0083 08       		.byte	0x8
+ 814 0084 07       		.byte	0x7
+ 815 0085 54010000 		.4byte	.LASF11
+ 816 0089 04       		.uleb128 0x4
+ 817 008a 04       		.byte	0x4
+ 818 008b 05       		.byte	0x5
+ 819 008c 696E7400 		.ascii	"int\000"
+ 820 0090 02       		.uleb128 0x2
+ 821 0091 04       		.byte	0x4
+ 822 0092 07       		.byte	0x7
+ 823 0093 CC040000 		.4byte	.LASF12
+ 824 0097 03       		.uleb128 0x3
+ 825 0098 690E0000 		.4byte	.LASF13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 22
+
+
+ 826 009c 03       		.byte	0x3
+ 827 009d 18       		.byte	0x18
+ 828 009e 2C000000 		.4byte	0x2c
+ 829 00a2 03       		.uleb128 0x3
+ 830 00a3 DA030000 		.4byte	.LASF14
+ 831 00a7 03       		.byte	0x3
+ 832 00a8 24       		.byte	0x24
+ 833 00a9 45000000 		.4byte	0x45
+ 834 00ad 03       		.uleb128 0x3
+ 835 00ae 320E0000 		.4byte	.LASF15
+ 836 00b2 03       		.byte	0x3
+ 837 00b3 30       		.byte	0x30
+ 838 00b4 5E000000 		.4byte	0x5e
+ 839 00b8 03       		.uleb128 0x3
+ 840 00b9 D3000000 		.4byte	.LASF16
+ 841 00bd 03       		.byte	0x3
+ 842 00be 3C       		.byte	0x3c
+ 843 00bf 77000000 		.4byte	0x77
+ 844 00c3 05       		.uleb128 0x5
+ 845 00c4 3A000000 		.4byte	.LASF17
+ 846 00c8 04       		.byte	0x4
+ 847 00c9 D301     		.2byte	0x1d3
+ 848 00cb 50000000 		.4byte	0x50
+ 849 00cf 05       		.uleb128 0x5
+ 850 00d0 1B040000 		.4byte	.LASF18
+ 851 00d4 04       		.byte	0x4
+ 852 00d5 D401     		.2byte	0x1d4
+ 853 00d7 69000000 		.4byte	0x69
+ 854 00db 02       		.uleb128 0x2
+ 855 00dc 04       		.byte	0x4
+ 856 00dd 04       		.byte	0x4
+ 857 00de F00A0000 		.4byte	.LASF19
+ 858 00e2 02       		.uleb128 0x2
+ 859 00e3 08       		.byte	0x8
+ 860 00e4 04       		.byte	0x4
+ 861 00e5 E3030000 		.4byte	.LASF20
+ 862 00e9 02       		.uleb128 0x2
+ 863 00ea 01       		.byte	0x1
+ 864 00eb 08       		.byte	0x8
+ 865 00ec 0D0D0000 		.4byte	.LASF21
+ 866 00f0 02       		.uleb128 0x2
+ 867 00f1 08       		.byte	0x8
+ 868 00f2 04       		.byte	0x4
+ 869 00f3 81080000 		.4byte	.LASF22
+ 870 00f7 02       		.uleb128 0x2
+ 871 00f8 04       		.byte	0x4
+ 872 00f9 07       		.byte	0x7
+ 873 00fa A30E0000 		.4byte	.LASF23
+ 874 00fe 06       		.uleb128 0x6
+ 875 00ff 01       		.byte	0x1
+ 876 0100 37000000 		.4byte	0x37
+ 877 0104 05       		.byte	0x5
+ 878 0105 4D01     		.2byte	0x14d
+ 879 0107 BC020000 		.4byte	0x2bc
+ 880 010b 07       		.uleb128 0x7
+ 881 010c 27060000 		.4byte	.LASF24
+ 882 0110 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 23
+
+
+ 883 0111 07       		.uleb128 0x7
+ 884 0112 6D020000 		.4byte	.LASF25
+ 885 0116 01       		.byte	0x1
+ 886 0117 07       		.uleb128 0x7
+ 887 0118 39010000 		.4byte	.LASF26
+ 888 011c 02       		.byte	0x2
+ 889 011d 07       		.uleb128 0x7
+ 890 011e C00D0000 		.4byte	.LASF27
+ 891 0122 03       		.byte	0x3
+ 892 0123 07       		.uleb128 0x7
+ 893 0124 6B010000 		.4byte	.LASF28
+ 894 0128 04       		.byte	0x4
+ 895 0129 07       		.uleb128 0x7
+ 896 012a 1E000000 		.4byte	.LASF29
+ 897 012e 05       		.byte	0x5
+ 898 012f 07       		.uleb128 0x7
+ 899 0130 5C060000 		.4byte	.LASF30
+ 900 0134 06       		.byte	0x6
+ 901 0135 07       		.uleb128 0x7
+ 902 0136 E4070000 		.4byte	.LASF31
+ 903 013a 20       		.byte	0x20
+ 904 013b 07       		.uleb128 0x7
+ 905 013c D5020000 		.4byte	.LASF32
+ 906 0140 21       		.byte	0x21
+ 907 0141 07       		.uleb128 0x7
+ 908 0142 9C060000 		.4byte	.LASF33
+ 909 0146 22       		.byte	0x22
+ 910 0147 07       		.uleb128 0x7
+ 911 0148 68070000 		.4byte	.LASF34
+ 912 014c 23       		.byte	0x23
+ 913 014d 07       		.uleb128 0x7
+ 914 014e D5090000 		.4byte	.LASF35
+ 915 0152 24       		.byte	0x24
+ 916 0153 07       		.uleb128 0x7
+ 917 0154 8D080000 		.4byte	.LASF36
+ 918 0158 25       		.byte	0x25
+ 919 0159 07       		.uleb128 0x7
+ 920 015a 81030000 		.4byte	.LASF37
+ 921 015e 26       		.byte	0x26
+ 922 015f 07       		.uleb128 0x7
+ 923 0160 C0060000 		.4byte	.LASF38
+ 924 0164 27       		.byte	0x27
+ 925 0165 07       		.uleb128 0x7
+ 926 0166 310D0000 		.4byte	.LASF39
+ 927 016a 28       		.byte	0x28
+ 928 016b 07       		.uleb128 0x7
+ 929 016c E3010000 		.4byte	.LASF40
+ 930 0170 29       		.byte	0x29
+ 931 0171 07       		.uleb128 0x7
+ 932 0172 9F000000 		.4byte	.LASF41
+ 933 0176 2A       		.byte	0x2a
+ 934 0177 07       		.uleb128 0x7
+ 935 0178 B6020000 		.4byte	.LASF42
+ 936 017c 2B       		.byte	0x2b
+ 937 017d 07       		.uleb128 0x7
+ 938 017e E80E0000 		.4byte	.LASF43
+ 939 0182 2C       		.byte	0x2c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 24
+
+
+ 940 0183 07       		.uleb128 0x7
+ 941 0184 17020000 		.4byte	.LASF44
+ 942 0188 2D       		.byte	0x2d
+ 943 0189 07       		.uleb128 0x7
+ 944 018a BE0B0000 		.4byte	.LASF45
+ 945 018e 2E       		.byte	0x2e
+ 946 018f 07       		.uleb128 0x7
+ 947 0190 DC000000 		.4byte	.LASF46
+ 948 0194 2F       		.byte	0x2f
+ 949 0195 07       		.uleb128 0x7
+ 950 0196 80090000 		.4byte	.LASF47
+ 951 019a 30       		.byte	0x30
+ 952 019b 07       		.uleb128 0x7
+ 953 019c AE0F0000 		.4byte	.LASF48
+ 954 01a0 31       		.byte	0x31
+ 955 01a1 07       		.uleb128 0x7
+ 956 01a2 5F090000 		.4byte	.LASF49
+ 957 01a6 32       		.byte	0x32
+ 958 01a7 07       		.uleb128 0x7
+ 959 01a8 D70C0000 		.4byte	.LASF50
+ 960 01ac 33       		.byte	0x33
+ 961 01ad 07       		.uleb128 0x7
+ 962 01ae 36050000 		.4byte	.LASF51
+ 963 01b2 34       		.byte	0x34
+ 964 01b3 07       		.uleb128 0x7
+ 965 01b4 A1090000 		.4byte	.LASF52
+ 966 01b8 35       		.byte	0x35
+ 967 01b9 07       		.uleb128 0x7
+ 968 01ba 18070000 		.4byte	.LASF53
+ 969 01be 36       		.byte	0x36
+ 970 01bf 07       		.uleb128 0x7
+ 971 01c0 380F0000 		.4byte	.LASF54
+ 972 01c4 37       		.byte	0x37
+ 973 01c5 07       		.uleb128 0x7
+ 974 01c6 BD0C0000 		.4byte	.LASF55
+ 975 01ca 40       		.byte	0x40
+ 976 01cb 07       		.uleb128 0x7
+ 977 01cc 8E070000 		.4byte	.LASF56
+ 978 01d0 41       		.byte	0x41
+ 979 01d1 07       		.uleb128 0x7
+ 980 01d2 8A0B0000 		.4byte	.LASF57
+ 981 01d6 42       		.byte	0x42
+ 982 01d7 07       		.uleb128 0x7
+ 983 01d8 3B0E0000 		.4byte	.LASF58
+ 984 01dc 43       		.byte	0x43
+ 985 01dd 07       		.uleb128 0x7
+ 986 01de 77050000 		.4byte	.LASF59
+ 987 01e2 44       		.byte	0x44
+ 988 01e3 07       		.uleb128 0x7
+ 989 01e4 B30A0000 		.4byte	.LASF60
+ 990 01e8 45       		.byte	0x45
+ 991 01e9 07       		.uleb128 0x7
+ 992 01ea 43080000 		.4byte	.LASF61
+ 993 01ee 46       		.byte	0x46
+ 994 01ef 07       		.uleb128 0x7
+ 995 01f0 3E060000 		.4byte	.LASF62
+ 996 01f4 47       		.byte	0x47
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 25
+
+
+ 997 01f5 07       		.uleb128 0x7
+ 998 01f6 C10E0000 		.4byte	.LASF63
+ 999 01fa 48       		.byte	0x48
+ 1000 01fb 07       		.uleb128 0x7
+ 1001 01fc EC020000 		.4byte	.LASF64
+ 1002 0200 49       		.byte	0x49
+ 1003 0201 07       		.uleb128 0x7
+ 1004 0202 00000000 		.4byte	.LASF65
+ 1005 0206 4A       		.byte	0x4a
+ 1006 0207 07       		.uleb128 0x7
+ 1007 0208 120D0000 		.4byte	.LASF66
+ 1008 020c 4B       		.byte	0x4b
+ 1009 020d 07       		.uleb128 0x7
+ 1010 020e 5D050000 		.4byte	.LASF67
+ 1011 0212 4C       		.byte	0x4c
+ 1012 0213 07       		.uleb128 0x7
+ 1013 0214 B7080000 		.4byte	.LASF68
+ 1014 0218 4D       		.byte	0x4d
+ 1015 0219 07       		.uleb128 0x7
+ 1016 021a 27030000 		.4byte	.LASF69
+ 1017 021e 4E       		.byte	0x4e
+ 1018 021f 07       		.uleb128 0x7
+ 1019 0220 520C0000 		.4byte	.LASF70
+ 1020 0224 4F       		.byte	0x4f
+ 1021 0225 07       		.uleb128 0x7
+ 1022 0226 7D060000 		.4byte	.LASF71
+ 1023 022a 50       		.byte	0x50
+ 1024 022b 07       		.uleb128 0x7
+ 1025 022c 840E0000 		.4byte	.LASF72
+ 1026 0230 51       		.byte	0x51
+ 1027 0231 07       		.uleb128 0x7
+ 1028 0232 F3050000 		.4byte	.LASF73
+ 1029 0236 52       		.byte	0x52
+ 1030 0237 07       		.uleb128 0x7
+ 1031 0238 EA060000 		.4byte	.LASF74
+ 1032 023c 53       		.byte	0x53
+ 1033 023d 07       		.uleb128 0x7
+ 1034 023e 9C0C0000 		.4byte	.LASF75
+ 1035 0242 54       		.byte	0x54
+ 1036 0243 07       		.uleb128 0x7
+ 1037 0244 95050000 		.4byte	.LASF76
+ 1038 0248 55       		.byte	0x55
+ 1039 0249 07       		.uleb128 0x7
+ 1040 024a A0040000 		.4byte	.LASF77
+ 1041 024e 56       		.byte	0x56
+ 1042 024f 07       		.uleb128 0x7
+ 1043 0250 76000000 		.4byte	.LASF78
+ 1044 0254 57       		.byte	0x57
+ 1045 0255 07       		.uleb128 0x7
+ 1046 0256 D0050000 		.4byte	.LASF79
+ 1047 025a 58       		.byte	0x58
+ 1048 025b 07       		.uleb128 0x7
+ 1049 025c BD010000 		.4byte	.LASF80
+ 1050 0260 70       		.byte	0x70
+ 1051 0261 07       		.uleb128 0x7
+ 1052 0262 7B0F0000 		.4byte	.LASF81
+ 1053 0266 71       		.byte	0x71
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 26
+
+
+ 1054 0267 07       		.uleb128 0x7
+ 1055 0268 C8070000 		.4byte	.LASF82
+ 1056 026c 72       		.byte	0x72
+ 1057 026d 07       		.uleb128 0x7
+ 1058 026e 25080000 		.4byte	.LASF83
+ 1059 0272 73       		.byte	0x73
+ 1060 0273 07       		.uleb128 0x7
+ 1061 0274 8A0A0000 		.4byte	.LASF84
+ 1062 0278 74       		.byte	0x74
+ 1063 0279 07       		.uleb128 0x7
+ 1064 027a 0C0F0000 		.4byte	.LASF85
+ 1065 027e 75       		.byte	0x75
+ 1066 027f 07       		.uleb128 0x7
+ 1067 0280 50030000 		.4byte	.LASF86
+ 1068 0284 76       		.byte	0x76
+ 1069 0285 07       		.uleb128 0x7
+ 1070 0286 41000000 		.4byte	.LASF87
+ 1071 028a 77       		.byte	0x77
+ 1072 028b 07       		.uleb128 0x7
+ 1073 028c 580A0000 		.4byte	.LASF88
+ 1074 0290 78       		.byte	0x78
+ 1075 0291 07       		.uleb128 0x7
+ 1076 0292 940D0000 		.4byte	.LASF89
+ 1077 0296 79       		.byte	0x79
+ 1078 0297 07       		.uleb128 0x7
+ 1079 0298 53040000 		.4byte	.LASF90
+ 1080 029c 7A       		.byte	0x7a
+ 1081 029d 07       		.uleb128 0x7
+ 1082 029e 8F010000 		.4byte	.LASF91
+ 1083 02a2 FA       		.byte	0xfa
+ 1084 02a3 07       		.uleb128 0x7
+ 1085 02a4 E4040000 		.4byte	.LASF92
+ 1086 02a8 FB       		.byte	0xfb
+ 1087 02a9 07       		.uleb128 0x7
+ 1088 02aa 250C0000 		.4byte	.LASF93
+ 1089 02ae FC       		.byte	0xfc
+ 1090 02af 07       		.uleb128 0x7
+ 1091 02b0 E30F0000 		.4byte	.LASF94
+ 1092 02b4 FD       		.byte	0xfd
+ 1093 02b5 07       		.uleb128 0x7
+ 1094 02b6 2D040000 		.4byte	.LASF95
+ 1095 02ba FF       		.byte	0xff
+ 1096 02bb 00       		.byte	0
+ 1097 02bc 08       		.uleb128 0x8
+ 1098 02bd 01       		.byte	0x1
+ 1099 02be 37000000 		.4byte	0x37
+ 1100 02c2 06       		.byte	0x6
+ 1101 02c3 07       		.byte	0x7
+ 1102 02c4 D5020000 		.4byte	0x2d5
+ 1103 02c8 07       		.uleb128 0x7
+ 1104 02c9 22010000 		.4byte	.LASF96
+ 1105 02cd 00       		.byte	0
+ 1106 02ce 07       		.uleb128 0x7
+ 1107 02cf 46040000 		.4byte	.LASF97
+ 1108 02d3 01       		.byte	0x1
+ 1109 02d4 00       		.byte	0
+ 1110 02d5 08       		.uleb128 0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 27
+
+
+ 1111 02d6 01       		.byte	0x1
+ 1112 02d7 37000000 		.4byte	0x37
+ 1113 02db 07       		.byte	0x7
+ 1114 02dc DC       		.byte	0xdc
+ 1115 02dd 5A030000 		.4byte	0x35a
+ 1116 02e1 07       		.uleb128 0x7
+ 1117 02e2 62070000 		.4byte	.LASF98
+ 1118 02e6 00       		.byte	0
+ 1119 02e7 07       		.uleb128 0x7
+ 1120 02e8 56070000 		.4byte	.LASF99
+ 1121 02ec 01       		.byte	0x1
+ 1122 02ed 07       		.uleb128 0x7
+ 1123 02ee DF060000 		.4byte	.LASF100
+ 1124 02f2 02       		.byte	0x2
+ 1125 02f3 07       		.uleb128 0x7
+ 1126 02f4 A10F0000 		.4byte	.LASF101
+ 1127 02f8 03       		.byte	0x3
+ 1128 02f9 07       		.uleb128 0x7
+ 1129 02fa F1090000 		.4byte	.LASF102
+ 1130 02fe 04       		.byte	0x4
+ 1131 02ff 07       		.uleb128 0x7
+ 1132 0300 2D0F0000 		.4byte	.LASF103
+ 1133 0304 05       		.byte	0x5
+ 1134 0305 07       		.uleb128 0x7
+ 1135 0306 F90D0000 		.4byte	.LASF104
+ 1136 030a 06       		.byte	0x6
+ 1137 030b 07       		.uleb128 0x7
+ 1138 030c 480C0000 		.4byte	.LASF105
+ 1139 0310 07       		.byte	0x7
+ 1140 0311 07       		.uleb128 0x7
+ 1141 0312 FD030000 		.4byte	.LASF106
+ 1142 0316 08       		.byte	0x8
+ 1143 0317 07       		.uleb128 0x7
+ 1144 0318 15030000 		.4byte	.LASF107
+ 1145 031c 09       		.byte	0x9
+ 1146 031d 07       		.uleb128 0x7
+ 1147 031e A9070000 		.4byte	.LASF108
+ 1148 0322 0A       		.byte	0xa
+ 1149 0323 07       		.uleb128 0x7
+ 1150 0324 370C0000 		.4byte	.LASF109
+ 1151 0328 0B       		.byte	0xb
+ 1152 0329 07       		.uleb128 0x7
+ 1153 032a 7B0A0000 		.4byte	.LASF110
+ 1154 032e 0C       		.byte	0xc
+ 1155 032f 07       		.uleb128 0x7
+ 1156 0330 C9030000 		.4byte	.LASF111
+ 1157 0334 0D       		.byte	0xd
+ 1158 0335 07       		.uleb128 0x7
+ 1159 0336 710C0000 		.4byte	.LASF112
+ 1160 033a 0E       		.byte	0xe
+ 1161 033b 07       		.uleb128 0x7
+ 1162 033c C8000000 		.4byte	.LASF113
+ 1163 0340 0F       		.byte	0xf
+ 1164 0341 07       		.uleb128 0x7
+ 1165 0342 810C0000 		.4byte	.LASF114
+ 1166 0346 10       		.byte	0x10
+ 1167 0347 07       		.uleb128 0x7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 28
+
+
+ 1168 0348 EA030000 		.4byte	.LASF115
+ 1169 034c 11       		.byte	0x11
+ 1170 034d 07       		.uleb128 0x7
+ 1171 034e 00020000 		.4byte	.LASF116
+ 1172 0352 12       		.byte	0x12
+ 1173 0353 07       		.uleb128 0x7
+ 1174 0354 97020000 		.4byte	.LASF117
+ 1175 0358 13       		.byte	0x13
+ 1176 0359 00       		.byte	0
+ 1177 035a 09       		.uleb128 0x9
+ 1178 035b 30       		.byte	0x30
+ 1179 035c 08       		.byte	0x8
+ 1180 035d 0E       		.byte	0xe
+ 1181 035e AB030000 		.4byte	0x3ab
+ 1182 0362 0A       		.uleb128 0xa
+ 1183 0363 16080000 		.4byte	.LASF118
+ 1184 0367 08       		.byte	0x8
+ 1185 0368 10       		.byte	0x10
+ 1186 0369 B8000000 		.4byte	0xb8
+ 1187 036d 00       		.byte	0
+ 1188 036e 0A       		.uleb128 0xa
+ 1189 036f AD010000 		.4byte	.LASF119
+ 1190 0373 08       		.byte	0x8
+ 1191 0374 11       		.byte	0x11
+ 1192 0375 A2000000 		.4byte	0xa2
+ 1193 0379 08       		.byte	0x8
+ 1194 037a 0A       		.uleb128 0xa
+ 1195 037b 46070000 		.4byte	.LASF120
+ 1196 037f 08       		.byte	0x8
+ 1197 0380 12       		.byte	0x12
+ 1198 0381 B8000000 		.4byte	0xb8
+ 1199 0385 10       		.byte	0x10
+ 1200 0386 0A       		.uleb128 0xa
+ 1201 0387 8B0C0000 		.4byte	.LASF121
+ 1202 038b 08       		.byte	0x8
+ 1203 038c 13       		.byte	0x13
+ 1204 038d A2000000 		.4byte	0xa2
+ 1205 0391 18       		.byte	0x18
+ 1206 0392 0A       		.uleb128 0xa
+ 1207 0393 D9040000 		.4byte	.LASF122
+ 1208 0397 08       		.byte	0x8
+ 1209 0398 14       		.byte	0x14
+ 1210 0399 B8000000 		.4byte	0xb8
+ 1211 039d 20       		.byte	0x20
+ 1212 039e 0A       		.uleb128 0xa
+ 1213 039f B70D0000 		.4byte	.LASF123
+ 1214 03a3 08       		.byte	0x8
+ 1215 03a4 15       		.byte	0x15
+ 1216 03a5 A2000000 		.4byte	0xa2
+ 1217 03a9 28       		.byte	0x28
+ 1218 03aa 00       		.byte	0
+ 1219 03ab 03       		.uleb128 0x3
+ 1220 03ac 45030000 		.4byte	.LASF124
+ 1221 03b0 08       		.byte	0x8
+ 1222 03b1 16       		.byte	0x16
+ 1223 03b2 5A030000 		.4byte	0x35a
+ 1224 03b6 08       		.uleb128 0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 29
+
+
+ 1225 03b7 01       		.byte	0x1
+ 1226 03b8 37000000 		.4byte	0x37
+ 1227 03bc 09       		.byte	0x9
+ 1228 03bd 15       		.byte	0x15
+ 1229 03be CF030000 		.4byte	0x3cf
+ 1230 03c2 07       		.uleb128 0x7
+ 1231 03c3 170A0000 		.4byte	.LASF125
+ 1232 03c7 00       		.byte	0
+ 1233 03c8 07       		.uleb128 0x7
+ 1234 03c9 8A020000 		.4byte	.LASF126
+ 1235 03cd 01       		.byte	0x1
+ 1236 03ce 00       		.byte	0
+ 1237 03cf 08       		.uleb128 0x8
+ 1238 03d0 01       		.byte	0x1
+ 1239 03d1 37000000 		.4byte	0x37
+ 1240 03d5 0A       		.byte	0xa
+ 1241 03d6 1E       		.byte	0x1e
+ 1242 03d7 F4030000 		.4byte	0x3f4
+ 1243 03db 07       		.uleb128 0x7
+ 1244 03dc 80020000 		.4byte	.LASF127
+ 1245 03e0 00       		.byte	0
+ 1246 03e1 07       		.uleb128 0x7
+ 1247 03e2 070D0000 		.4byte	.LASF128
+ 1248 03e6 01       		.byte	0x1
+ 1249 03e7 07       		.uleb128 0x7
+ 1250 03e8 7F0B0000 		.4byte	.LASF129
+ 1251 03ec 02       		.byte	0x2
+ 1252 03ed 07       		.uleb128 0x7
+ 1253 03ee 7E0D0000 		.4byte	.LASF130
+ 1254 03f2 03       		.byte	0x3
+ 1255 03f3 00       		.byte	0
+ 1256 03f4 03       		.uleb128 0x3
+ 1257 03f5 8A0D0000 		.4byte	.LASF131
+ 1258 03f9 0A       		.byte	0xa
+ 1259 03fa 1E       		.byte	0x1e
+ 1260 03fb CF030000 		.4byte	0x3cf
+ 1261 03ff 08       		.uleb128 0x8
+ 1262 0400 01       		.byte	0x1
+ 1263 0401 37000000 		.4byte	0x37
+ 1264 0405 0B       		.byte	0xb
+ 1265 0406 16       		.byte	0x16
+ 1266 0407 2A040000 		.4byte	0x42a
+ 1267 040b 07       		.uleb128 0x7
+ 1268 040c D90D0000 		.4byte	.LASF132
+ 1269 0410 00       		.byte	0
+ 1270 0411 07       		.uleb128 0x7
+ 1271 0412 E10D0000 		.4byte	.LASF133
+ 1272 0416 01       		.byte	0x1
+ 1273 0417 07       		.uleb128 0x7
+ 1274 0418 E90D0000 		.4byte	.LASF134
+ 1275 041c 02       		.byte	0x2
+ 1276 041d 07       		.uleb128 0x7
+ 1277 041e F10D0000 		.4byte	.LASF135
+ 1278 0422 03       		.byte	0x3
+ 1279 0423 07       		.uleb128 0x7
+ 1280 0424 06040000 		.4byte	.LASF136
+ 1281 0428 04       		.byte	0x4
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 30
+
+
+ 1282 0429 00       		.byte	0
+ 1283 042a 09       		.uleb128 0x9
+ 1284 042b 04       		.byte	0x4
+ 1285 042c 01       		.byte	0x1
+ 1286 042d 17       		.byte	0x17
+ 1287 042e 4B040000 		.4byte	0x44b
+ 1288 0432 0A       		.uleb128 0xa
+ 1289 0433 64080000 		.4byte	.LASF137
+ 1290 0437 01       		.byte	0x1
+ 1291 0438 19       		.byte	0x19
+ 1292 0439 97000000 		.4byte	0x97
+ 1293 043d 00       		.byte	0
+ 1294 043e 0A       		.uleb128 0xa
+ 1295 043f 640E0000 		.4byte	.LASF138
+ 1296 0443 01       		.byte	0x1
+ 1297 0444 1A       		.byte	0x1a
+ 1298 0445 A2000000 		.4byte	0xa2
+ 1299 0449 02       		.byte	0x2
+ 1300 044a 00       		.byte	0
+ 1301 044b 0B       		.uleb128 0xb
+ 1302 044c 08080000 		.4byte	.LASF139
+ 1303 0450 01       		.byte	0x1
+ 1304 0451 23       		.byte	0x23
+ 1305 0452 00000000 		.4byte	.LFB63
+ 1306 0456 48000000 		.4byte	.LFE63-.LFB63
+ 1307 045a 01       		.uleb128 0x1
+ 1308 045b 9C       		.byte	0x9c
+ 1309 045c 86040000 		.4byte	0x486
+ 1310 0460 0C       		.uleb128 0xc
+ 1311 0461 6900     		.ascii	"i\000"
+ 1312 0463 01       		.byte	0x1
+ 1313 0464 25       		.byte	0x25
+ 1314 0465 89000000 		.4byte	0x89
+ 1315 0469 00000000 		.4byte	.LLST0
+ 1316 046d 0D       		.uleb128 0xd
+ 1317 046e 36000000 		.4byte	.LVL3
+ 1318 0472 1F090000 		.4byte	0x91f
+ 1319 0476 0E       		.uleb128 0xe
+ 1320 0477 3C000000 		.4byte	.LVL4
+ 1321 047b 2A090000 		.4byte	0x92a
+ 1322 047f 0F       		.uleb128 0xf
+ 1323 0480 01       		.uleb128 0x1
+ 1324 0481 50       		.byte	0x50
+ 1325 0482 01       		.uleb128 0x1
+ 1326 0483 32       		.byte	0x32
+ 1327 0484 00       		.byte	0
+ 1328 0485 00       		.byte	0
+ 1329 0486 0B       		.uleb128 0xb
+ 1330 0487 F60A0000 		.4byte	.LASF140
+ 1331 048b 01       		.byte	0x1
+ 1332 048c 54       		.byte	0x54
+ 1333 048d 00000000 		.4byte	.LFB65
+ 1334 0491 24000000 		.4byte	.LFE65-.LFB65
+ 1335 0495 01       		.uleb128 0x1
+ 1336 0496 9C       		.byte	0x9c
+ 1337 0497 C9040000 		.4byte	0x4c9
+ 1338 049b 0C       		.uleb128 0xc
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 31
+
+
+ 1339 049c 6900     		.ascii	"i\000"
+ 1340 049e 01       		.byte	0x1
+ 1341 049f 56       		.byte	0x56
+ 1342 04a0 89000000 		.4byte	0x89
+ 1343 04a4 1F000000 		.4byte	.LLST1
+ 1344 04a8 10       		.uleb128 0x10
+ 1345 04a9 16000000 		.4byte	.LVL11
+ 1346 04ad 36090000 		.4byte	0x936
+ 1347 04b1 BF040000 		.4byte	0x4bf
+ 1348 04b5 0F       		.uleb128 0xf
+ 1349 04b6 01       		.uleb128 0x1
+ 1350 04b7 50       		.byte	0x50
+ 1351 04b8 05       		.uleb128 0x5
+ 1352 04b9 03       		.byte	0x3
+ 1353 04ba 00000000 		.4byte	TIMER_HANDLER
+ 1354 04be 00       		.byte	0
+ 1355 04bf 0D       		.uleb128 0xd
+ 1356 04c0 1A000000 		.4byte	.LVL12
+ 1357 04c4 41090000 		.4byte	0x941
+ 1358 04c8 00       		.byte	0
+ 1359 04c9 0B       		.uleb128 0xb
+ 1360 04ca 93040000 		.4byte	.LASF141
+ 1361 04ce 01       		.byte	0x1
+ 1362 04cf 6A       		.byte	0x6a
+ 1363 04d0 00000000 		.4byte	.LFB66
+ 1364 04d4 3C000000 		.4byte	.LFE66-.LFB66
+ 1365 04d8 01       		.uleb128 0x1
+ 1366 04d9 9C       		.byte	0x9c
+ 1367 04da 06050000 		.4byte	0x506
+ 1368 04de 11       		.uleb128 0x11
+ 1369 04df AC020000 		.4byte	.LASF142
+ 1370 04e3 01       		.byte	0x1
+ 1371 04e4 6A       		.byte	0x6a
+ 1372 04e5 97000000 		.4byte	0x97
+ 1373 04e9 01       		.uleb128 0x1
+ 1374 04ea 50       		.byte	0x50
+ 1375 04eb 11       		.uleb128 0x11
+ 1376 04ec A80B0000 		.4byte	.LASF143
+ 1377 04f0 01       		.byte	0x1
+ 1378 04f1 6A       		.byte	0x6a
+ 1379 04f2 A2000000 		.4byte	0xa2
+ 1380 04f6 01       		.uleb128 0x1
+ 1381 04f7 51       		.byte	0x51
+ 1382 04f8 0C       		.uleb128 0xc
+ 1383 04f9 6900     		.ascii	"i\000"
+ 1384 04fb 01       		.byte	0x1
+ 1385 04fc 6D       		.byte	0x6d
+ 1386 04fd 89000000 		.4byte	0x89
+ 1387 0501 6F000000 		.4byte	.LLST2
+ 1388 0505 00       		.byte	0
+ 1389 0506 0B       		.uleb128 0xb
+ 1390 0507 530D0000 		.4byte	.LASF144
+ 1391 050b 01       		.byte	0x1
+ 1392 050c BE       		.byte	0xbe
+ 1393 050d 00000000 		.4byte	.LFB67
+ 1394 0511 C4000000 		.4byte	.LFE67-.LFB67
+ 1395 0515 01       		.uleb128 0x1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 32
+
+
+ 1396 0516 9C       		.byte	0x9c
+ 1397 0517 81060000 		.4byte	0x681
+ 1398 051b 12       		.uleb128 0x12
+ 1399 051c 1A000000 		.4byte	.LBB2
+ 1400 0520 94000000 		.4byte	.LBE2-.LBB2
+ 1401 0524 63060000 		.4byte	0x663
+ 1402 0528 13       		.uleb128 0x13
+ 1403 0529 D20F0000 		.4byte	.LASF145
+ 1404 052d 01       		.byte	0x1
+ 1405 052e C6       		.byte	0xc6
+ 1406 052f AD000000 		.4byte	0xad
+ 1407 0533 8E000000 		.4byte	.LLST3
+ 1408 0537 14       		.uleb128 0x14
+ 1409 0538 160C0000 		.4byte	.LASF146
+ 1410 053c 01       		.byte	0x1
+ 1411 053d C7       		.byte	0xc7
+ 1412 053e AB030000 		.4byte	0x3ab
+ 1413 0542 02       		.uleb128 0x2
+ 1414 0543 91       		.byte	0x91
+ 1415 0544 40       		.sleb128 -64
+ 1416 0545 14       		.uleb128 0x14
+ 1417 0546 0B070000 		.4byte	.LASF147
+ 1418 054a 01       		.byte	0x1
+ 1419 054b C8       		.byte	0xc8
+ 1420 054c AD000000 		.4byte	0xad
+ 1421 0550 05       		.uleb128 0x5
+ 1422 0551 03       		.byte	0x3
+ 1423 0552 1C000000 		.4byte	lastFifoSize.9888
+ 1424 0556 14       		.uleb128 0x14
+ 1425 0557 590E0000 		.4byte	.LASF148
+ 1426 055b 01       		.byte	0x1
+ 1427 055c C9       		.byte	0xc9
+ 1428 055d AD000000 		.4byte	0xad
+ 1429 0561 05       		.uleb128 0x5
+ 1430 0562 03       		.byte	0x3
+ 1431 0563 18000000 		.4byte	tmpIDSkier.9889
+ 1432 0567 10       		.uleb128 0x10
+ 1433 0568 26000000 		.4byte	.LVL19
+ 1434 056c 4D090000 		.4byte	0x94d
+ 1435 0570 7B050000 		.4byte	0x57b
+ 1436 0574 0F       		.uleb128 0xf
+ 1437 0575 01       		.uleb128 0x1
+ 1438 0576 50       		.byte	0x50
+ 1439 0577 02       		.uleb128 0x2
+ 1440 0578 91       		.byte	0x91
+ 1441 0579 40       		.sleb128 -64
+ 1442 057a 00       		.byte	0
+ 1443 057b 10       		.uleb128 0x10
+ 1444 057c 30000000 		.4byte	.LVL20
+ 1445 0580 58090000 		.4byte	0x958
+ 1446 0584 9B050000 		.4byte	0x59b
+ 1447 0588 0F       		.uleb128 0xf
+ 1448 0589 01       		.uleb128 0x1
+ 1449 058a 50       		.byte	0x50
+ 1450 058b 02       		.uleb128 0x2
+ 1451 058c 7D       		.byte	0x7d
+ 1452 058d 00       		.sleb128 0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 33
+
+
+ 1453 058e 0F       		.uleb128 0xf
+ 1454 058f 01       		.uleb128 0x1
+ 1455 0590 51       		.byte	0x51
+ 1456 0591 02       		.uleb128 0x2
+ 1457 0592 91       		.byte	0x91
+ 1458 0593 50       		.sleb128 -48
+ 1459 0594 0F       		.uleb128 0xf
+ 1460 0595 01       		.uleb128 0x1
+ 1461 0596 52       		.byte	0x52
+ 1462 0597 02       		.uleb128 0x2
+ 1463 0598 08       		.byte	0x8
+ 1464 0599 20       		.byte	0x20
+ 1465 059a 00       		.byte	0
+ 1466 059b 0D       		.uleb128 0xd
+ 1467 059c 3C000000 		.4byte	.LVL21
+ 1468 05a0 61090000 		.4byte	0x961
+ 1469 05a4 10       		.uleb128 0x10
+ 1470 05a5 44000000 		.4byte	.LVL22
+ 1471 05a9 6C090000 		.4byte	0x96c
+ 1472 05ad B9050000 		.4byte	0x5b9
+ 1473 05b1 0F       		.uleb128 0xf
+ 1474 05b2 01       		.uleb128 0x1
+ 1475 05b3 50       		.byte	0x50
+ 1476 05b4 03       		.uleb128 0x3
+ 1477 05b5 91       		.byte	0x91
+ 1478 05b6 907F     		.sleb128 -112
+ 1479 05b8 00       		.byte	0
+ 1480 05b9 10       		.uleb128 0x10
+ 1481 05ba 4E000000 		.4byte	.LVL23
+ 1482 05be 58090000 		.4byte	0x958
+ 1483 05c2 DA050000 		.4byte	0x5da
+ 1484 05c6 0F       		.uleb128 0xf
+ 1485 05c7 01       		.uleb128 0x1
+ 1486 05c8 50       		.byte	0x50
+ 1487 05c9 02       		.uleb128 0x2
+ 1488 05ca 91       		.byte	0x91
+ 1489 05cb 40       		.sleb128 -64
+ 1490 05cc 0F       		.uleb128 0xf
+ 1491 05cd 01       		.uleb128 0x1
+ 1492 05ce 51       		.byte	0x51
+ 1493 05cf 03       		.uleb128 0x3
+ 1494 05d0 91       		.byte	0x91
+ 1495 05d1 907F     		.sleb128 -112
+ 1496 05d3 0F       		.uleb128 0xf
+ 1497 05d4 01       		.uleb128 0x1
+ 1498 05d5 52       		.byte	0x52
+ 1499 05d6 02       		.uleb128 0x2
+ 1500 05d7 08       		.byte	0x8
+ 1501 05d8 30       		.byte	0x30
+ 1502 05d9 00       		.byte	0
+ 1503 05da 0D       		.uleb128 0xd
+ 1504 05db 58000000 		.4byte	.LVL24
+ 1505 05df 77090000 		.4byte	0x977
+ 1506 05e3 0D       		.uleb128 0xd
+ 1507 05e4 60000000 		.4byte	.LVL25
+ 1508 05e8 82090000 		.4byte	0x982
+ 1509 05ec 10       		.uleb128 0x10
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 34
+
+
+ 1510 05ed 6E000000 		.4byte	.LVL26
+ 1511 05f1 8D090000 		.4byte	0x98d
+ 1512 05f5 0B060000 		.4byte	0x60b
+ 1513 05f9 0F       		.uleb128 0xf
+ 1514 05fa 01       		.uleb128 0x1
+ 1515 05fb 50       		.byte	0x50
+ 1516 05fc 02       		.uleb128 0x2
+ 1517 05fd 91       		.byte	0x91
+ 1518 05fe 40       		.sleb128 -64
+ 1519 05ff 0F       		.uleb128 0xf
+ 1520 0600 01       		.uleb128 0x1
+ 1521 0601 51       		.byte	0x51
+ 1522 0602 02       		.uleb128 0x2
+ 1523 0603 75       		.byte	0x75
+ 1524 0604 00       		.sleb128 0
+ 1525 0605 0F       		.uleb128 0xf
+ 1526 0606 01       		.uleb128 0x1
+ 1527 0607 53       		.byte	0x53
+ 1528 0608 01       		.uleb128 0x1
+ 1529 0609 34       		.byte	0x34
+ 1530 060a 00       		.byte	0
+ 1531 060b 0D       		.uleb128 0xd
+ 1532 060c 74000000 		.4byte	.LVL27
+ 1533 0610 98090000 		.4byte	0x998
+ 1534 0614 0D       		.uleb128 0xd
+ 1535 0615 84000000 		.4byte	.LVL28
+ 1536 0619 82090000 		.4byte	0x982
+ 1537 061d 10       		.uleb128 0x10
+ 1538 061e 92000000 		.4byte	.LVL29
+ 1539 0622 8D090000 		.4byte	0x98d
+ 1540 0626 3C060000 		.4byte	0x63c
+ 1541 062a 0F       		.uleb128 0xf
+ 1542 062b 01       		.uleb128 0x1
+ 1543 062c 50       		.byte	0x50
+ 1544 062d 02       		.uleb128 0x2
+ 1545 062e 91       		.byte	0x91
+ 1546 062f 40       		.sleb128 -64
+ 1547 0630 0F       		.uleb128 0xf
+ 1548 0631 01       		.uleb128 0x1
+ 1549 0632 51       		.byte	0x51
+ 1550 0633 02       		.uleb128 0x2
+ 1551 0634 75       		.byte	0x75
+ 1552 0635 00       		.sleb128 0
+ 1553 0636 0F       		.uleb128 0xf
+ 1554 0637 01       		.uleb128 0x1
+ 1555 0638 53       		.byte	0x53
+ 1556 0639 01       		.uleb128 0x1
+ 1557 063a 34       		.byte	0x34
+ 1558 063b 00       		.byte	0
+ 1559 063c 0D       		.uleb128 0xd
+ 1560 063d 96000000 		.4byte	.LVL30
+ 1561 0641 98090000 		.4byte	0x998
+ 1562 0645 10       		.uleb128 0x10
+ 1563 0646 9E000000 		.4byte	.LVL31
+ 1564 064a A3090000 		.4byte	0x9a3
+ 1565 064e 59060000 		.4byte	0x659
+ 1566 0652 0F       		.uleb128 0xf
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 35
+
+
+ 1567 0653 01       		.uleb128 0x1
+ 1568 0654 50       		.byte	0x50
+ 1569 0655 02       		.uleb128 0x2
+ 1570 0656 91       		.byte	0x91
+ 1571 0657 40       		.sleb128 -64
+ 1572 0658 00       		.byte	0
+ 1573 0659 0D       		.uleb128 0xd
+ 1574 065a A6000000 		.4byte	.LVL32
+ 1575 065e AE090000 		.4byte	0x9ae
+ 1576 0662 00       		.byte	0
+ 1577 0663 0D       		.uleb128 0xd
+ 1578 0664 0E000000 		.4byte	.LVL18
+ 1579 0668 98090000 		.4byte	0x998
+ 1580 066c 0E       		.uleb128 0xe
+ 1581 066d B6000000 		.4byte	.LVL35
+ 1582 0671 C9040000 		.4byte	0x4c9
+ 1583 0675 0F       		.uleb128 0xf
+ 1584 0676 01       		.uleb128 0x1
+ 1585 0677 50       		.byte	0x50
+ 1586 0678 01       		.uleb128 0x1
+ 1587 0679 30       		.byte	0x30
+ 1588 067a 0F       		.uleb128 0xf
+ 1589 067b 01       		.uleb128 0x1
+ 1590 067c 51       		.byte	0x51
+ 1591 067d 01       		.uleb128 0x1
+ 1592 067e 35       		.byte	0x35
+ 1593 067f 00       		.byte	0
+ 1594 0680 00       		.byte	0
+ 1595 0681 0B       		.uleb128 0xb
+ 1596 0682 B0030000 		.4byte	.LASF149
+ 1597 0686 01       		.byte	0x1
+ 1598 0687 F7       		.byte	0xf7
+ 1599 0688 00000000 		.4byte	.LFB68
+ 1600 068c 1C000000 		.4byte	.LFE68-.LFB68
+ 1601 0690 01       		.uleb128 0x1
+ 1602 0691 9C       		.byte	0x9c
+ 1603 0692 B4060000 		.4byte	0x6b4
+ 1604 0696 0D       		.uleb128 0xd
+ 1605 0697 0C000000 		.4byte	.LVL36
+ 1606 069b B9090000 		.4byte	0x9b9
+ 1607 069f 0E       		.uleb128 0xe
+ 1608 06a0 14000000 		.4byte	.LVL37
+ 1609 06a4 C9040000 		.4byte	0x4c9
+ 1610 06a8 0F       		.uleb128 0xf
+ 1611 06a9 01       		.uleb128 0x1
+ 1612 06aa 50       		.byte	0x50
+ 1613 06ab 01       		.uleb128 0x1
+ 1614 06ac 31       		.byte	0x31
+ 1615 06ad 0F       		.uleb128 0xf
+ 1616 06ae 01       		.uleb128 0x1
+ 1617 06af 51       		.byte	0x51
+ 1618 06b0 01       		.uleb128 0x1
+ 1619 06b1 35       		.byte	0x35
+ 1620 06b2 00       		.byte	0
+ 1621 06b3 00       		.byte	0
+ 1622 06b4 0B       		.uleb128 0xb
+ 1623 06b5 660D0000 		.4byte	.LASF150
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 36
+
+
+ 1624 06b9 01       		.byte	0x1
+ 1625 06ba FE       		.byte	0xfe
+ 1626 06bb 00000000 		.4byte	.LFB69
+ 1627 06bf 4C000000 		.4byte	.LFE69-.LFB69
+ 1628 06c3 01       		.uleb128 0x1
+ 1629 06c4 9C       		.byte	0x9c
+ 1630 06c5 3B070000 		.4byte	0x73b
+ 1631 06c9 0D       		.uleb128 0xd
+ 1632 06ca 0C000000 		.4byte	.LVL38
+ 1633 06ce C4090000 		.4byte	0x9c4
+ 1634 06d2 10       		.uleb128 0x10
+ 1635 06d3 14000000 		.4byte	.LVL39
+ 1636 06d7 CF090000 		.4byte	0x9cf
+ 1637 06db E6060000 		.4byte	0x6e6
+ 1638 06df 0F       		.uleb128 0xf
+ 1639 06e0 01       		.uleb128 0x1
+ 1640 06e1 50       		.byte	0x50
+ 1641 06e2 02       		.uleb128 0x2
+ 1642 06e3 74       		.byte	0x74
+ 1643 06e4 00       		.sleb128 0
+ 1644 06e5 00       		.byte	0
+ 1645 06e6 10       		.uleb128 0x10
+ 1646 06e7 1E000000 		.4byte	.LVL40
+ 1647 06eb CF090000 		.4byte	0x9cf
+ 1648 06ef F9060000 		.4byte	0x6f9
+ 1649 06f3 0F       		.uleb128 0xf
+ 1650 06f4 01       		.uleb128 0x1
+ 1651 06f5 50       		.byte	0x50
+ 1652 06f6 01       		.uleb128 0x1
+ 1653 06f7 31       		.byte	0x31
+ 1654 06f8 00       		.byte	0
+ 1655 06f9 0D       		.uleb128 0xd
+ 1656 06fa 24000000 		.4byte	.LVL41
+ 1657 06fe DA090000 		.4byte	0x9da
+ 1658 0702 0D       		.uleb128 0xd
+ 1659 0703 28000000 		.4byte	.LVL42
+ 1660 0707 E5090000 		.4byte	0x9e5
+ 1661 070b 0D       		.uleb128 0xd
+ 1662 070c 2C000000 		.4byte	.LVL43
+ 1663 0710 F0090000 		.4byte	0x9f0
+ 1664 0714 0D       		.uleb128 0xd
+ 1665 0715 30000000 		.4byte	.LVL44
+ 1666 0719 FB090000 		.4byte	0x9fb
+ 1667 071d 0D       		.uleb128 0xd
+ 1668 071e 3E000000 		.4byte	.LVL45
+ 1669 0722 060A0000 		.4byte	0xa06
+ 1670 0726 0E       		.uleb128 0xe
+ 1671 0727 46000000 		.4byte	.LVL46
+ 1672 072b C9040000 		.4byte	0x4c9
+ 1673 072f 0F       		.uleb128 0xf
+ 1674 0730 01       		.uleb128 0x1
+ 1675 0731 50       		.byte	0x50
+ 1676 0732 01       		.uleb128 0x1
+ 1677 0733 32       		.byte	0x32
+ 1678 0734 0F       		.uleb128 0xf
+ 1679 0735 01       		.uleb128 0x1
+ 1680 0736 51       		.byte	0x51
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 37
+
+
+ 1681 0737 01       		.uleb128 0x1
+ 1682 0738 35       		.byte	0x35
+ 1683 0739 00       		.byte	0
+ 1684 073a 00       		.byte	0
+ 1685 073b 15       		.uleb128 0x15
+ 1686 073c 6E0D0000 		.4byte	.LASF151
+ 1687 0740 01       		.byte	0x1
+ 1688 0741 1E01     		.2byte	0x11e
+ 1689 0743 00000000 		.4byte	.LFB70
+ 1690 0747 2C000000 		.4byte	.LFE70-.LFB70
+ 1691 074b 01       		.uleb128 0x1
+ 1692 074c 9C       		.byte	0x9c
+ 1693 074d 93070000 		.4byte	0x793
+ 1694 0751 0D       		.uleb128 0xd
+ 1695 0752 0C000000 		.4byte	.LVL47
+ 1696 0756 110A0000 		.4byte	0xa11
+ 1697 075a 0D       		.uleb128 0xd
+ 1698 075b 10000000 		.4byte	.LVL48
+ 1699 075f 82090000 		.4byte	0x982
+ 1700 0763 0D       		.uleb128 0xd
+ 1701 0764 14000000 		.4byte	.LVL49
+ 1702 0768 1C0A0000 		.4byte	0xa1c
+ 1703 076c 0D       		.uleb128 0xd
+ 1704 076d 18000000 		.4byte	.LVL50
+ 1705 0771 270A0000 		.4byte	0xa27
+ 1706 0775 0D       		.uleb128 0xd
+ 1707 0776 1C000000 		.4byte	.LVL51
+ 1708 077a 320A0000 		.4byte	0xa32
+ 1709 077e 0E       		.uleb128 0xe
+ 1710 077f 24000000 		.4byte	.LVL52
+ 1711 0783 C9040000 		.4byte	0x4c9
+ 1712 0787 0F       		.uleb128 0xf
+ 1713 0788 01       		.uleb128 0x1
+ 1714 0789 50       		.byte	0x50
+ 1715 078a 01       		.uleb128 0x1
+ 1716 078b 33       		.byte	0x33
+ 1717 078c 0F       		.uleb128 0xf
+ 1718 078d 01       		.uleb128 0x1
+ 1719 078e 51       		.byte	0x51
+ 1720 078f 01       		.uleb128 0x1
+ 1721 0790 31       		.byte	0x31
+ 1722 0791 00       		.byte	0
+ 1723 0792 00       		.byte	0
+ 1724 0793 15       		.uleb128 0x15
+ 1725 0794 760D0000 		.4byte	.LASF152
+ 1726 0798 01       		.byte	0x1
+ 1727 0799 2A01     		.2byte	0x12a
+ 1728 079b 00000000 		.4byte	.LFB71
+ 1729 079f 50000000 		.4byte	.LFE71-.LFB71
+ 1730 07a3 01       		.uleb128 0x1
+ 1731 07a4 9C       		.byte	0x9c
+ 1732 07a5 48080000 		.4byte	0x848
+ 1733 07a9 16       		.uleb128 0x16
+ 1734 07aa BC070000 		.4byte	.LASF153
+ 1735 07ae 01       		.byte	0x1
+ 1736 07af 2E01     		.2byte	0x12e
+ 1737 07b1 AD000000 		.4byte	0xad
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 38
+
+
+ 1738 07b5 05       		.uleb128 0x5
+ 1739 07b6 03       		.byte	0x3
+ 1740 07b7 20000000 		.4byte	oldUnixTime.9902
+ 1741 07bb 17       		.uleb128 0x17
+ 1742 07bc 090E0000 		.4byte	.LASF154
+ 1743 07c0 01       		.byte	0x1
+ 1744 07c1 2F01     		.2byte	0x12f
+ 1745 07c3 AD000000 		.4byte	0xad
+ 1746 07c7 AC000000 		.4byte	.LLST4
+ 1747 07cb 12       		.uleb128 0x12
+ 1748 07cc 1A000000 		.4byte	.LBB3
+ 1749 07d0 22000000 		.4byte	.LBE3-.LBB3
+ 1750 07d4 21080000 		.4byte	0x821
+ 1751 07d8 17       		.uleb128 0x17
+ 1752 07d9 4E050000 		.4byte	.LASF155
+ 1753 07dd 01       		.byte	0x1
+ 1754 07de 3901     		.2byte	0x139
+ 1755 07e0 CF000000 		.4byte	0xcf
+ 1756 07e4 CA000000 		.4byte	.LLST5
+ 1757 07e8 0D       		.uleb128 0xd
+ 1758 07e9 1E000000 		.4byte	.LVL56
+ 1759 07ed 3D0A0000 		.4byte	0xa3d
+ 1760 07f1 0D       		.uleb128 0xd
+ 1761 07f2 28000000 		.4byte	.LVL58
+ 1762 07f6 480A0000 		.4byte	0xa48
+ 1763 07fa 0D       		.uleb128 0xd
+ 1764 07fb 30000000 		.4byte	.LVL59
+ 1765 07ff 530A0000 		.4byte	0xa53
+ 1766 0803 10       		.uleb128 0x10
+ 1767 0804 36000000 		.4byte	.LVL60
+ 1768 0808 5F0A0000 		.4byte	0xa5f
+ 1769 080c 17080000 		.4byte	0x817
+ 1770 0810 0F       		.uleb128 0xf
+ 1771 0811 01       		.uleb128 0x1
+ 1772 0812 50       		.byte	0x50
+ 1773 0813 02       		.uleb128 0x2
+ 1774 0814 77       		.byte	0x77
+ 1775 0815 00       		.sleb128 0
+ 1776 0816 00       		.byte	0
+ 1777 0817 0D       		.uleb128 0xd
+ 1778 0818 3C000000 		.4byte	.LVL61
+ 1779 081c 6A0A0000 		.4byte	0xa6a
+ 1780 0820 00       		.byte	0
+ 1781 0821 0D       		.uleb128 0xd
+ 1782 0822 0C000000 		.4byte	.LVL53
+ 1783 0826 750A0000 		.4byte	0xa75
+ 1784 082a 0D       		.uleb128 0xd
+ 1785 082b 10000000 		.4byte	.LVL54
+ 1786 082f 800A0000 		.4byte	0xa80
+ 1787 0833 0E       		.uleb128 0xe
+ 1788 0834 44000000 		.4byte	.LVL62
+ 1789 0838 C9040000 		.4byte	0x4c9
+ 1790 083c 0F       		.uleb128 0xf
+ 1791 083d 01       		.uleb128 0x1
+ 1792 083e 50       		.byte	0x50
+ 1793 083f 01       		.uleb128 0x1
+ 1794 0840 34       		.byte	0x34
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 39
+
+
+ 1795 0841 0F       		.uleb128 0xf
+ 1796 0842 01       		.uleb128 0x1
+ 1797 0843 51       		.byte	0x51
+ 1798 0844 01       		.uleb128 0x1
+ 1799 0845 31       		.byte	0x31
+ 1800 0846 00       		.byte	0
+ 1801 0847 00       		.byte	0
+ 1802 0848 0B       		.uleb128 0xb
+ 1803 0849 D90F0000 		.4byte	.LASF156
+ 1804 084d 01       		.byte	0x1
+ 1805 084e 43       		.byte	0x43
+ 1806 084f 00000000 		.4byte	.LFB64
+ 1807 0853 3C000000 		.4byte	.LFE64-.LFB64
+ 1808 0857 01       		.uleb128 0x1
+ 1809 0858 9C       		.byte	0x9c
+ 1810 0859 8B080000 		.4byte	0x88b
+ 1811 085d 0D       		.uleb128 0xd
+ 1812 085e 0E000000 		.4byte	.LVL64
+ 1813 0862 06050000 		.4byte	0x506
+ 1814 0866 0D       		.uleb128 0xd
+ 1815 0867 18000000 		.4byte	.LVL65
+ 1816 086b 81060000 		.4byte	0x681
+ 1817 086f 0D       		.uleb128 0xd
+ 1818 0870 22000000 		.4byte	.LVL66
+ 1819 0874 B4060000 		.4byte	0x6b4
+ 1820 0878 0D       		.uleb128 0xd
+ 1821 0879 2C000000 		.4byte	.LVL67
+ 1822 087d 3B070000 		.4byte	0x73b
+ 1823 0881 0D       		.uleb128 0xd
+ 1824 0882 36000000 		.4byte	.LVL68
+ 1825 0886 93070000 		.4byte	0x793
+ 1826 088a 00       		.byte	0
+ 1827 088b 14       		.uleb128 0x14
+ 1828 088c 2C010000 		.4byte	.LASF157
+ 1829 0890 01       		.byte	0x1
+ 1830 0891 13       		.byte	0x13
+ 1831 0892 A2000000 		.4byte	0xa2
+ 1832 0896 05       		.uleb128 0x5
+ 1833 0897 03       		.byte	0x3
+ 1834 0898 14000000 		.4byte	isLogStarted
+ 1835 089c 18       		.uleb128 0x18
+ 1836 089d AC080000 		.4byte	0x8ac
+ 1837 08a1 AC080000 		.4byte	0x8ac
+ 1838 08a5 19       		.uleb128 0x19
+ 1839 08a6 F7000000 		.4byte	0xf7
+ 1840 08aa 04       		.byte	0x4
+ 1841 08ab 00       		.byte	0
+ 1842 08ac 1A       		.uleb128 0x1a
+ 1843 08ad 2A040000 		.4byte	0x42a
+ 1844 08b1 14       		.uleb128 0x14
+ 1845 08b2 C2040000 		.4byte	.LASF158
+ 1846 08b6 01       		.byte	0x1
+ 1847 08b7 1B       		.byte	0x1b
+ 1848 08b8 C2080000 		.4byte	0x8c2
+ 1849 08bc 05       		.uleb128 0x5
+ 1850 08bd 03       		.byte	0x3
+ 1851 08be 00000000 		.4byte	SoftTimer
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 40
+
+
+ 1852 08c2 1A       		.uleb128 0x1a
+ 1853 08c3 9C080000 		.4byte	0x89c
+ 1854 08c7 18       		.uleb128 0x18
+ 1855 08c8 D7080000 		.4byte	0x8d7
+ 1856 08cc D7080000 		.4byte	0x8d7
+ 1857 08d0 19       		.uleb128 0x19
+ 1858 08d1 F7000000 		.4byte	0xf7
+ 1859 08d5 0B       		.byte	0xb
+ 1860 08d6 00       		.byte	0
+ 1861 08d7 1B       		.uleb128 0x1b
+ 1862 08d8 C3000000 		.4byte	0xc3
+ 1863 08dc 1C       		.uleb128 0x1c
+ 1864 08dd BE090000 		.4byte	.LASF159
+ 1865 08e1 0C       		.byte	0xc
+ 1866 08e2 E001     		.2byte	0x1e0
+ 1867 08e4 E8080000 		.4byte	0x8e8
+ 1868 08e8 1B       		.uleb128 0x1b
+ 1869 08e9 C7080000 		.4byte	0x8c7
+ 1870 08ed 1D       		.uleb128 0x1d
+ 1871 08ee 0E040000 		.4byte	.LASF160
+ 1872 08f2 0A       		.byte	0xa
+ 1873 08f3 1F       		.byte	0x1f
+ 1874 08f4 F4030000 		.4byte	0x3f4
+ 1875 08f8 05       		.uleb128 0x5
+ 1876 08f9 03       		.byte	0x3
+ 1877 08fa 00000000 		.4byte	currentState
+ 1878 08fe 18       		.uleb128 0x18
+ 1879 08ff 97000000 		.4byte	0x97
+ 1880 0903 0E090000 		.4byte	0x90e
+ 1881 0907 19       		.uleb128 0x19
+ 1882 0908 F7000000 		.4byte	0xf7
+ 1883 090c 04       		.byte	0x4
+ 1884 090d 00       		.byte	0
+ 1885 090e 1D       		.uleb128 0x1d
+ 1886 090f 200C0000 		.4byte	.LASF161
+ 1887 0913 01       		.byte	0x1
+ 1888 0914 15       		.byte	0x15
+ 1889 0915 FE080000 		.4byte	0x8fe
+ 1890 0919 05       		.uleb128 0x5
+ 1891 091a 03       		.byte	0x3
+ 1892 091b 00000000 		.4byte	flag
+ 1893 091f 1E       		.uleb128 0x1e
+ 1894 0920 410A0000 		.4byte	.LASF162
+ 1895 0924 410A0000 		.4byte	.LASF162
+ 1896 0928 0D       		.byte	0xd
+ 1897 0929 28       		.byte	0x28
+ 1898 092a 1F       		.uleb128 0x1f
+ 1899 092b AC0E0000 		.4byte	.LASF163
+ 1900 092f AC0E0000 		.4byte	.LASF163
+ 1901 0933 0E       		.byte	0xe
+ 1902 0934 4701     		.2byte	0x147
+ 1903 0936 1E       		.uleb128 0x1e
+ 1904 0937 2F0A0000 		.4byte	.LASF164
+ 1905 093b 2F0A0000 		.4byte	.LASF164
+ 1906 093f 0D       		.byte	0xd
+ 1907 0940 18       		.byte	0x18
+ 1908 0941 1F       		.uleb128 0x1f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 41
+
+
+ 1909 0942 03050000 		.4byte	.LASF165
+ 1910 0946 03050000 		.4byte	.LASF165
+ 1911 094a 0E       		.byte	0xe
+ 1912 094b 3201     		.2byte	0x132
+ 1913 094d 1E       		.uleb128 0x1e
+ 1914 094e 75060000 		.4byte	.LASF166
+ 1915 0952 75060000 		.4byte	.LASF166
+ 1916 0956 08       		.byte	0x8
+ 1917 0957 27       		.byte	0x27
+ 1918 0958 20       		.uleb128 0x20
+ 1919 0959 A9030000 		.4byte	.LASF197
+ 1920 095d A9030000 		.4byte	.LASF197
+ 1921 0961 1E       		.uleb128 0x1e
+ 1922 0962 39070000 		.4byte	.LASF167
+ 1923 0966 39070000 		.4byte	.LASF167
+ 1924 096a 08       		.byte	0x8
+ 1925 096b 28       		.byte	0x28
+ 1926 096c 1E       		.uleb128 0x1e
+ 1927 096d E20B0000 		.4byte	.LASF168
+ 1928 0971 E20B0000 		.4byte	.LASF168
+ 1929 0975 08       		.byte	0x8
+ 1930 0976 29       		.byte	0x29
+ 1931 0977 1E       		.uleb128 0x1e
+ 1932 0978 40020000 		.4byte	.LASF169
+ 1933 097c 40020000 		.4byte	.LASF169
+ 1934 0980 0F       		.byte	0xf
+ 1935 0981 0E       		.byte	0xe
+ 1936 0982 1E       		.uleb128 0x1e
+ 1937 0983 22040000 		.4byte	.LASF170
+ 1938 0987 22040000 		.4byte	.LASF170
+ 1939 098b 08       		.byte	0x8
+ 1940 098c 20       		.byte	0x20
+ 1941 098d 1E       		.uleb128 0x1e
+ 1942 098e FC090000 		.4byte	.LASF171
+ 1943 0992 FC090000 		.4byte	.LASF171
+ 1944 0996 09       		.byte	0x9
+ 1945 0997 1F       		.byte	0x1f
+ 1946 0998 1E       		.uleb128 0x1e
+ 1947 0999 77040000 		.4byte	.LASF172
+ 1948 099d 77040000 		.4byte	.LASF172
+ 1949 09a1 08       		.byte	0x8
+ 1950 09a2 25       		.byte	0x25
+ 1951 09a3 1E       		.uleb128 0x1e
+ 1952 09a4 B8030000 		.4byte	.LASF173
+ 1953 09a8 B8030000 		.4byte	.LASF173
+ 1954 09ac 0F       		.byte	0xf
+ 1955 09ad 0A       		.byte	0xa
+ 1956 09ae 1E       		.uleb128 0x1e
+ 1957 09af 0D0C0000 		.4byte	.LASF174
+ 1958 09b3 0D0C0000 		.4byte	.LASF174
+ 1959 09b7 0F       		.byte	0xf
+ 1960 09b8 09       		.byte	0x9
+ 1961 09b9 1E       		.uleb128 0x1e
+ 1962 09ba FE0C0000 		.4byte	.LASF175
+ 1963 09be FE0C0000 		.4byte	.LASF175
+ 1964 09c2 10       		.byte	0x10
+ 1965 09c3 2C       		.byte	0x2c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 42
+
+
+ 1966 09c4 1E       		.uleb128 0x1e
+ 1967 09c5 6D0F0000 		.4byte	.LASF176
+ 1968 09c9 6D0F0000 		.4byte	.LASF176
+ 1969 09cd 11       		.byte	0x11
+ 1970 09ce 32       		.byte	0x32
+ 1971 09cf 1E       		.uleb128 0x1e
+ 1972 09d0 040B0000 		.4byte	.LASF177
+ 1973 09d4 040B0000 		.4byte	.LASF177
+ 1974 09d8 06       		.byte	0x6
+ 1975 09d9 0D       		.byte	0xd
+ 1976 09da 1E       		.uleb128 0x1e
+ 1977 09db F80B0000 		.4byte	.LASF178
+ 1978 09df F80B0000 		.4byte	.LASF178
+ 1979 09e3 09       		.byte	0x9
+ 1980 09e4 2A       		.byte	0x2a
+ 1981 09e5 1E       		.uleb128 0x1e
+ 1982 09e6 80010000 		.4byte	.LASF179
+ 1983 09ea 80010000 		.4byte	.LASF179
+ 1984 09ee 10       		.byte	0x10
+ 1985 09ef 2F       		.byte	0x2f
+ 1986 09f0 1E       		.uleb128 0x1e
+ 1987 09f1 6B080000 		.4byte	.LASF180
+ 1988 09f5 6B080000 		.4byte	.LASF180
+ 1989 09f9 06       		.byte	0x6
+ 1990 09fa 0F       		.byte	0xf
+ 1991 09fb 1E       		.uleb128 0x1e
+ 1992 09fc 210A0000 		.4byte	.LASF181
+ 1993 0a00 210A0000 		.4byte	.LASF181
+ 1994 0a04 10       		.byte	0x10
+ 1995 0a05 23       		.byte	0x23
+ 1996 0a06 1E       		.uleb128 0x1e
+ 1997 0a07 DA0A0000 		.4byte	.LASF182
+ 1998 0a0b DA0A0000 		.4byte	.LASF182
+ 1999 0a0f 09       		.byte	0x9
+ 2000 0a10 2B       		.byte	0x2b
+ 2001 0a11 1E       		.uleb128 0x1e
+ 2002 0a12 71030000 		.4byte	.LASF183
+ 2003 0a16 71030000 		.4byte	.LASF183
+ 2004 0a1a 06       		.byte	0x6
+ 2005 0a1b 10       		.byte	0x10
+ 2006 0a1c 1E       		.uleb128 0x1e
+ 2007 0a1d 0F050000 		.4byte	.LASF184
+ 2008 0a21 0F050000 		.4byte	.LASF184
+ 2009 0a25 06       		.byte	0x6
+ 2010 0a26 13       		.byte	0x13
+ 2011 0a27 1E       		.uleb128 0x1e
+ 2012 0a28 83040000 		.4byte	.LASF185
+ 2013 0a2c 83040000 		.4byte	.LASF185
+ 2014 0a30 12       		.byte	0x12
+ 2015 0a31 07       		.byte	0x7
+ 2016 0a32 1E       		.uleb128 0x1e
+ 2017 0a33 710E0000 		.4byte	.LASF186
+ 2018 0a37 710E0000 		.4byte	.LASF186
+ 2019 0a3b 06       		.byte	0x6
+ 2020 0a3c 12       		.byte	0x12
+ 2021 0a3d 1E       		.uleb128 0x1e
+ 2022 0a3e B9050000 		.4byte	.LASF187
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 43
+
+
+ 2023 0a42 B9050000 		.4byte	.LASF187
+ 2024 0a46 13       		.byte	0x13
+ 2025 0a47 E5       		.byte	0xe5
+ 2026 0a48 1E       		.uleb128 0x1e
+ 2027 0a49 05010000 		.4byte	.LASF188
+ 2028 0a4d 05010000 		.4byte	.LASF188
+ 2029 0a51 14       		.byte	0x14
+ 2030 0a52 07       		.byte	0x7
+ 2031 0a53 1F       		.uleb128 0x1f
+ 2032 0a54 05030000 		.4byte	.LASF189
+ 2033 0a58 05030000 		.4byte	.LASF189
+ 2034 0a5c 0C       		.byte	0xc
+ 2035 0a5d EE01     		.2byte	0x1ee
+ 2036 0a5f 1E       		.uleb128 0x1e
+ 2037 0a60 60000000 		.4byte	.LASF190
+ 2038 0a64 60000000 		.4byte	.LASF190
+ 2039 0a68 13       		.byte	0x13
+ 2040 0a69 E6       		.byte	0xe6
+ 2041 0a6a 1E       		.uleb128 0x1e
+ 2042 0a6b 240E0000 		.4byte	.LASF191
+ 2043 0a6f 240E0000 		.4byte	.LASF191
+ 2044 0a73 10       		.byte	0x10
+ 2045 0a74 28       		.byte	0x28
+ 2046 0a75 1E       		.uleb128 0x1e
+ 2047 0a76 120E0000 		.4byte	.LASF192
+ 2048 0a7a 120E0000 		.4byte	.LASF192
+ 2049 0a7e 09       		.byte	0x9
+ 2050 0a7f 19       		.byte	0x19
+ 2051 0a80 1E       		.uleb128 0x1e
+ 2052 0a81 A7080000 		.4byte	.LASF193
+ 2053 0a85 A7080000 		.4byte	.LASF193
+ 2054 0a89 09       		.byte	0x9
+ 2055 0a8a 1B       		.byte	0x1b
+ 2056 0a8b 00       		.byte	0
+ 2057              		.section	.debug_abbrev,"",%progbits
+ 2058              	.Ldebug_abbrev0:
+ 2059 0000 01       		.uleb128 0x1
+ 2060 0001 11       		.uleb128 0x11
+ 2061 0002 01       		.byte	0x1
+ 2062 0003 25       		.uleb128 0x25
+ 2063 0004 0E       		.uleb128 0xe
+ 2064 0005 13       		.uleb128 0x13
+ 2065 0006 0B       		.uleb128 0xb
+ 2066 0007 03       		.uleb128 0x3
+ 2067 0008 0E       		.uleb128 0xe
+ 2068 0009 1B       		.uleb128 0x1b
+ 2069 000a 0E       		.uleb128 0xe
+ 2070 000b 55       		.uleb128 0x55
+ 2071 000c 17       		.uleb128 0x17
+ 2072 000d 11       		.uleb128 0x11
+ 2073 000e 01       		.uleb128 0x1
+ 2074 000f 10       		.uleb128 0x10
+ 2075 0010 17       		.uleb128 0x17
+ 2076 0011 00       		.byte	0
+ 2077 0012 00       		.byte	0
+ 2078 0013 02       		.uleb128 0x2
+ 2079 0014 24       		.uleb128 0x24
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 44
+
+
+ 2080 0015 00       		.byte	0
+ 2081 0016 0B       		.uleb128 0xb
+ 2082 0017 0B       		.uleb128 0xb
+ 2083 0018 3E       		.uleb128 0x3e
+ 2084 0019 0B       		.uleb128 0xb
+ 2085 001a 03       		.uleb128 0x3
+ 2086 001b 0E       		.uleb128 0xe
+ 2087 001c 00       		.byte	0
+ 2088 001d 00       		.byte	0
+ 2089 001e 03       		.uleb128 0x3
+ 2090 001f 16       		.uleb128 0x16
+ 2091 0020 00       		.byte	0
+ 2092 0021 03       		.uleb128 0x3
+ 2093 0022 0E       		.uleb128 0xe
+ 2094 0023 3A       		.uleb128 0x3a
+ 2095 0024 0B       		.uleb128 0xb
+ 2096 0025 3B       		.uleb128 0x3b
+ 2097 0026 0B       		.uleb128 0xb
+ 2098 0027 49       		.uleb128 0x49
+ 2099 0028 13       		.uleb128 0x13
+ 2100 0029 00       		.byte	0
+ 2101 002a 00       		.byte	0
+ 2102 002b 04       		.uleb128 0x4
+ 2103 002c 24       		.uleb128 0x24
+ 2104 002d 00       		.byte	0
+ 2105 002e 0B       		.uleb128 0xb
+ 2106 002f 0B       		.uleb128 0xb
+ 2107 0030 3E       		.uleb128 0x3e
+ 2108 0031 0B       		.uleb128 0xb
+ 2109 0032 03       		.uleb128 0x3
+ 2110 0033 08       		.uleb128 0x8
+ 2111 0034 00       		.byte	0
+ 2112 0035 00       		.byte	0
+ 2113 0036 05       		.uleb128 0x5
+ 2114 0037 16       		.uleb128 0x16
+ 2115 0038 00       		.byte	0
+ 2116 0039 03       		.uleb128 0x3
+ 2117 003a 0E       		.uleb128 0xe
+ 2118 003b 3A       		.uleb128 0x3a
+ 2119 003c 0B       		.uleb128 0xb
+ 2120 003d 3B       		.uleb128 0x3b
+ 2121 003e 05       		.uleb128 0x5
+ 2122 003f 49       		.uleb128 0x49
+ 2123 0040 13       		.uleb128 0x13
+ 2124 0041 00       		.byte	0
+ 2125 0042 00       		.byte	0
+ 2126 0043 06       		.uleb128 0x6
+ 2127 0044 04       		.uleb128 0x4
+ 2128 0045 01       		.byte	0x1
+ 2129 0046 0B       		.uleb128 0xb
+ 2130 0047 0B       		.uleb128 0xb
+ 2131 0048 49       		.uleb128 0x49
+ 2132 0049 13       		.uleb128 0x13
+ 2133 004a 3A       		.uleb128 0x3a
+ 2134 004b 0B       		.uleb128 0xb
+ 2135 004c 3B       		.uleb128 0x3b
+ 2136 004d 05       		.uleb128 0x5
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 45
+
+
+ 2137 004e 01       		.uleb128 0x1
+ 2138 004f 13       		.uleb128 0x13
+ 2139 0050 00       		.byte	0
+ 2140 0051 00       		.byte	0
+ 2141 0052 07       		.uleb128 0x7
+ 2142 0053 28       		.uleb128 0x28
+ 2143 0054 00       		.byte	0
+ 2144 0055 03       		.uleb128 0x3
+ 2145 0056 0E       		.uleb128 0xe
+ 2146 0057 1C       		.uleb128 0x1c
+ 2147 0058 0B       		.uleb128 0xb
+ 2148 0059 00       		.byte	0
+ 2149 005a 00       		.byte	0
+ 2150 005b 08       		.uleb128 0x8
+ 2151 005c 04       		.uleb128 0x4
+ 2152 005d 01       		.byte	0x1
+ 2153 005e 0B       		.uleb128 0xb
+ 2154 005f 0B       		.uleb128 0xb
+ 2155 0060 49       		.uleb128 0x49
+ 2156 0061 13       		.uleb128 0x13
+ 2157 0062 3A       		.uleb128 0x3a
+ 2158 0063 0B       		.uleb128 0xb
+ 2159 0064 3B       		.uleb128 0x3b
+ 2160 0065 0B       		.uleb128 0xb
+ 2161 0066 01       		.uleb128 0x1
+ 2162 0067 13       		.uleb128 0x13
+ 2163 0068 00       		.byte	0
+ 2164 0069 00       		.byte	0
+ 2165 006a 09       		.uleb128 0x9
+ 2166 006b 13       		.uleb128 0x13
+ 2167 006c 01       		.byte	0x1
+ 2168 006d 0B       		.uleb128 0xb
+ 2169 006e 0B       		.uleb128 0xb
+ 2170 006f 3A       		.uleb128 0x3a
+ 2171 0070 0B       		.uleb128 0xb
+ 2172 0071 3B       		.uleb128 0x3b
+ 2173 0072 0B       		.uleb128 0xb
+ 2174 0073 01       		.uleb128 0x1
+ 2175 0074 13       		.uleb128 0x13
+ 2176 0075 00       		.byte	0
+ 2177 0076 00       		.byte	0
+ 2178 0077 0A       		.uleb128 0xa
+ 2179 0078 0D       		.uleb128 0xd
+ 2180 0079 00       		.byte	0
+ 2181 007a 03       		.uleb128 0x3
+ 2182 007b 0E       		.uleb128 0xe
+ 2183 007c 3A       		.uleb128 0x3a
+ 2184 007d 0B       		.uleb128 0xb
+ 2185 007e 3B       		.uleb128 0x3b
+ 2186 007f 0B       		.uleb128 0xb
+ 2187 0080 49       		.uleb128 0x49
+ 2188 0081 13       		.uleb128 0x13
+ 2189 0082 38       		.uleb128 0x38
+ 2190 0083 0B       		.uleb128 0xb
+ 2191 0084 00       		.byte	0
+ 2192 0085 00       		.byte	0
+ 2193 0086 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 46
+
+
+ 2194 0087 2E       		.uleb128 0x2e
+ 2195 0088 01       		.byte	0x1
+ 2196 0089 3F       		.uleb128 0x3f
+ 2197 008a 19       		.uleb128 0x19
+ 2198 008b 03       		.uleb128 0x3
+ 2199 008c 0E       		.uleb128 0xe
+ 2200 008d 3A       		.uleb128 0x3a
+ 2201 008e 0B       		.uleb128 0xb
+ 2202 008f 3B       		.uleb128 0x3b
+ 2203 0090 0B       		.uleb128 0xb
+ 2204 0091 27       		.uleb128 0x27
+ 2205 0092 19       		.uleb128 0x19
+ 2206 0093 11       		.uleb128 0x11
+ 2207 0094 01       		.uleb128 0x1
+ 2208 0095 12       		.uleb128 0x12
+ 2209 0096 06       		.uleb128 0x6
+ 2210 0097 40       		.uleb128 0x40
+ 2211 0098 18       		.uleb128 0x18
+ 2212 0099 9742     		.uleb128 0x2117
+ 2213 009b 19       		.uleb128 0x19
+ 2214 009c 01       		.uleb128 0x1
+ 2215 009d 13       		.uleb128 0x13
+ 2216 009e 00       		.byte	0
+ 2217 009f 00       		.byte	0
+ 2218 00a0 0C       		.uleb128 0xc
+ 2219 00a1 34       		.uleb128 0x34
+ 2220 00a2 00       		.byte	0
+ 2221 00a3 03       		.uleb128 0x3
+ 2222 00a4 08       		.uleb128 0x8
+ 2223 00a5 3A       		.uleb128 0x3a
+ 2224 00a6 0B       		.uleb128 0xb
+ 2225 00a7 3B       		.uleb128 0x3b
+ 2226 00a8 0B       		.uleb128 0xb
+ 2227 00a9 49       		.uleb128 0x49
+ 2228 00aa 13       		.uleb128 0x13
+ 2229 00ab 02       		.uleb128 0x2
+ 2230 00ac 17       		.uleb128 0x17
+ 2231 00ad 00       		.byte	0
+ 2232 00ae 00       		.byte	0
+ 2233 00af 0D       		.uleb128 0xd
+ 2234 00b0 898201   		.uleb128 0x4109
+ 2235 00b3 00       		.byte	0
+ 2236 00b4 11       		.uleb128 0x11
+ 2237 00b5 01       		.uleb128 0x1
+ 2238 00b6 31       		.uleb128 0x31
+ 2239 00b7 13       		.uleb128 0x13
+ 2240 00b8 00       		.byte	0
+ 2241 00b9 00       		.byte	0
+ 2242 00ba 0E       		.uleb128 0xe
+ 2243 00bb 898201   		.uleb128 0x4109
+ 2244 00be 01       		.byte	0x1
+ 2245 00bf 11       		.uleb128 0x11
+ 2246 00c0 01       		.uleb128 0x1
+ 2247 00c1 31       		.uleb128 0x31
+ 2248 00c2 13       		.uleb128 0x13
+ 2249 00c3 00       		.byte	0
+ 2250 00c4 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 47
+
+
+ 2251 00c5 0F       		.uleb128 0xf
+ 2252 00c6 8A8201   		.uleb128 0x410a
+ 2253 00c9 00       		.byte	0
+ 2254 00ca 02       		.uleb128 0x2
+ 2255 00cb 18       		.uleb128 0x18
+ 2256 00cc 9142     		.uleb128 0x2111
+ 2257 00ce 18       		.uleb128 0x18
+ 2258 00cf 00       		.byte	0
+ 2259 00d0 00       		.byte	0
+ 2260 00d1 10       		.uleb128 0x10
+ 2261 00d2 898201   		.uleb128 0x4109
+ 2262 00d5 01       		.byte	0x1
+ 2263 00d6 11       		.uleb128 0x11
+ 2264 00d7 01       		.uleb128 0x1
+ 2265 00d8 31       		.uleb128 0x31
+ 2266 00d9 13       		.uleb128 0x13
+ 2267 00da 01       		.uleb128 0x1
+ 2268 00db 13       		.uleb128 0x13
+ 2269 00dc 00       		.byte	0
+ 2270 00dd 00       		.byte	0
+ 2271 00de 11       		.uleb128 0x11
+ 2272 00df 05       		.uleb128 0x5
+ 2273 00e0 00       		.byte	0
+ 2274 00e1 03       		.uleb128 0x3
+ 2275 00e2 0E       		.uleb128 0xe
+ 2276 00e3 3A       		.uleb128 0x3a
+ 2277 00e4 0B       		.uleb128 0xb
+ 2278 00e5 3B       		.uleb128 0x3b
+ 2279 00e6 0B       		.uleb128 0xb
+ 2280 00e7 49       		.uleb128 0x49
+ 2281 00e8 13       		.uleb128 0x13
+ 2282 00e9 02       		.uleb128 0x2
+ 2283 00ea 18       		.uleb128 0x18
+ 2284 00eb 00       		.byte	0
+ 2285 00ec 00       		.byte	0
+ 2286 00ed 12       		.uleb128 0x12
+ 2287 00ee 0B       		.uleb128 0xb
+ 2288 00ef 01       		.byte	0x1
+ 2289 00f0 11       		.uleb128 0x11
+ 2290 00f1 01       		.uleb128 0x1
+ 2291 00f2 12       		.uleb128 0x12
+ 2292 00f3 06       		.uleb128 0x6
+ 2293 00f4 01       		.uleb128 0x1
+ 2294 00f5 13       		.uleb128 0x13
+ 2295 00f6 00       		.byte	0
+ 2296 00f7 00       		.byte	0
+ 2297 00f8 13       		.uleb128 0x13
+ 2298 00f9 34       		.uleb128 0x34
+ 2299 00fa 00       		.byte	0
+ 2300 00fb 03       		.uleb128 0x3
+ 2301 00fc 0E       		.uleb128 0xe
+ 2302 00fd 3A       		.uleb128 0x3a
+ 2303 00fe 0B       		.uleb128 0xb
+ 2304 00ff 3B       		.uleb128 0x3b
+ 2305 0100 0B       		.uleb128 0xb
+ 2306 0101 49       		.uleb128 0x49
+ 2307 0102 13       		.uleb128 0x13
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 48
+
+
+ 2308 0103 02       		.uleb128 0x2
+ 2309 0104 17       		.uleb128 0x17
+ 2310 0105 00       		.byte	0
+ 2311 0106 00       		.byte	0
+ 2312 0107 14       		.uleb128 0x14
+ 2313 0108 34       		.uleb128 0x34
+ 2314 0109 00       		.byte	0
+ 2315 010a 03       		.uleb128 0x3
+ 2316 010b 0E       		.uleb128 0xe
+ 2317 010c 3A       		.uleb128 0x3a
+ 2318 010d 0B       		.uleb128 0xb
+ 2319 010e 3B       		.uleb128 0x3b
+ 2320 010f 0B       		.uleb128 0xb
+ 2321 0110 49       		.uleb128 0x49
+ 2322 0111 13       		.uleb128 0x13
+ 2323 0112 02       		.uleb128 0x2
+ 2324 0113 18       		.uleb128 0x18
+ 2325 0114 00       		.byte	0
+ 2326 0115 00       		.byte	0
+ 2327 0116 15       		.uleb128 0x15
+ 2328 0117 2E       		.uleb128 0x2e
+ 2329 0118 01       		.byte	0x1
+ 2330 0119 3F       		.uleb128 0x3f
+ 2331 011a 19       		.uleb128 0x19
+ 2332 011b 03       		.uleb128 0x3
+ 2333 011c 0E       		.uleb128 0xe
+ 2334 011d 3A       		.uleb128 0x3a
+ 2335 011e 0B       		.uleb128 0xb
+ 2336 011f 3B       		.uleb128 0x3b
+ 2337 0120 05       		.uleb128 0x5
+ 2338 0121 27       		.uleb128 0x27
+ 2339 0122 19       		.uleb128 0x19
+ 2340 0123 11       		.uleb128 0x11
+ 2341 0124 01       		.uleb128 0x1
+ 2342 0125 12       		.uleb128 0x12
+ 2343 0126 06       		.uleb128 0x6
+ 2344 0127 40       		.uleb128 0x40
+ 2345 0128 18       		.uleb128 0x18
+ 2346 0129 9742     		.uleb128 0x2117
+ 2347 012b 19       		.uleb128 0x19
+ 2348 012c 01       		.uleb128 0x1
+ 2349 012d 13       		.uleb128 0x13
+ 2350 012e 00       		.byte	0
+ 2351 012f 00       		.byte	0
+ 2352 0130 16       		.uleb128 0x16
+ 2353 0131 34       		.uleb128 0x34
+ 2354 0132 00       		.byte	0
+ 2355 0133 03       		.uleb128 0x3
+ 2356 0134 0E       		.uleb128 0xe
+ 2357 0135 3A       		.uleb128 0x3a
+ 2358 0136 0B       		.uleb128 0xb
+ 2359 0137 3B       		.uleb128 0x3b
+ 2360 0138 05       		.uleb128 0x5
+ 2361 0139 49       		.uleb128 0x49
+ 2362 013a 13       		.uleb128 0x13
+ 2363 013b 02       		.uleb128 0x2
+ 2364 013c 18       		.uleb128 0x18
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 49
+
+
+ 2365 013d 00       		.byte	0
+ 2366 013e 00       		.byte	0
+ 2367 013f 17       		.uleb128 0x17
+ 2368 0140 34       		.uleb128 0x34
+ 2369 0141 00       		.byte	0
+ 2370 0142 03       		.uleb128 0x3
+ 2371 0143 0E       		.uleb128 0xe
+ 2372 0144 3A       		.uleb128 0x3a
+ 2373 0145 0B       		.uleb128 0xb
+ 2374 0146 3B       		.uleb128 0x3b
+ 2375 0147 05       		.uleb128 0x5
+ 2376 0148 49       		.uleb128 0x49
+ 2377 0149 13       		.uleb128 0x13
+ 2378 014a 02       		.uleb128 0x2
+ 2379 014b 17       		.uleb128 0x17
+ 2380 014c 00       		.byte	0
+ 2381 014d 00       		.byte	0
+ 2382 014e 18       		.uleb128 0x18
+ 2383 014f 01       		.uleb128 0x1
+ 2384 0150 01       		.byte	0x1
+ 2385 0151 49       		.uleb128 0x49
+ 2386 0152 13       		.uleb128 0x13
+ 2387 0153 01       		.uleb128 0x1
+ 2388 0154 13       		.uleb128 0x13
+ 2389 0155 00       		.byte	0
+ 2390 0156 00       		.byte	0
+ 2391 0157 19       		.uleb128 0x19
+ 2392 0158 21       		.uleb128 0x21
+ 2393 0159 00       		.byte	0
+ 2394 015a 49       		.uleb128 0x49
+ 2395 015b 13       		.uleb128 0x13
+ 2396 015c 2F       		.uleb128 0x2f
+ 2397 015d 0B       		.uleb128 0xb
+ 2398 015e 00       		.byte	0
+ 2399 015f 00       		.byte	0
+ 2400 0160 1A       		.uleb128 0x1a
+ 2401 0161 35       		.uleb128 0x35
+ 2402 0162 00       		.byte	0
+ 2403 0163 49       		.uleb128 0x49
+ 2404 0164 13       		.uleb128 0x13
+ 2405 0165 00       		.byte	0
+ 2406 0166 00       		.byte	0
+ 2407 0167 1B       		.uleb128 0x1b
+ 2408 0168 26       		.uleb128 0x26
+ 2409 0169 00       		.byte	0
+ 2410 016a 49       		.uleb128 0x49
+ 2411 016b 13       		.uleb128 0x13
+ 2412 016c 00       		.byte	0
+ 2413 016d 00       		.byte	0
+ 2414 016e 1C       		.uleb128 0x1c
+ 2415 016f 34       		.uleb128 0x34
+ 2416 0170 00       		.byte	0
+ 2417 0171 03       		.uleb128 0x3
+ 2418 0172 0E       		.uleb128 0xe
+ 2419 0173 3A       		.uleb128 0x3a
+ 2420 0174 0B       		.uleb128 0xb
+ 2421 0175 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 50
+
+
+ 2422 0176 05       		.uleb128 0x5
+ 2423 0177 49       		.uleb128 0x49
+ 2424 0178 13       		.uleb128 0x13
+ 2425 0179 3F       		.uleb128 0x3f
+ 2426 017a 19       		.uleb128 0x19
+ 2427 017b 3C       		.uleb128 0x3c
+ 2428 017c 19       		.uleb128 0x19
+ 2429 017d 00       		.byte	0
+ 2430 017e 00       		.byte	0
+ 2431 017f 1D       		.uleb128 0x1d
+ 2432 0180 34       		.uleb128 0x34
+ 2433 0181 00       		.byte	0
+ 2434 0182 03       		.uleb128 0x3
+ 2435 0183 0E       		.uleb128 0xe
+ 2436 0184 3A       		.uleb128 0x3a
+ 2437 0185 0B       		.uleb128 0xb
+ 2438 0186 3B       		.uleb128 0x3b
+ 2439 0187 0B       		.uleb128 0xb
+ 2440 0188 49       		.uleb128 0x49
+ 2441 0189 13       		.uleb128 0x13
+ 2442 018a 3F       		.uleb128 0x3f
+ 2443 018b 19       		.uleb128 0x19
+ 2444 018c 02       		.uleb128 0x2
+ 2445 018d 18       		.uleb128 0x18
+ 2446 018e 00       		.byte	0
+ 2447 018f 00       		.byte	0
+ 2448 0190 1E       		.uleb128 0x1e
+ 2449 0191 2E       		.uleb128 0x2e
+ 2450 0192 00       		.byte	0
+ 2451 0193 3F       		.uleb128 0x3f
+ 2452 0194 19       		.uleb128 0x19
+ 2453 0195 3C       		.uleb128 0x3c
+ 2454 0196 19       		.uleb128 0x19
+ 2455 0197 6E       		.uleb128 0x6e
+ 2456 0198 0E       		.uleb128 0xe
+ 2457 0199 03       		.uleb128 0x3
+ 2458 019a 0E       		.uleb128 0xe
+ 2459 019b 3A       		.uleb128 0x3a
+ 2460 019c 0B       		.uleb128 0xb
+ 2461 019d 3B       		.uleb128 0x3b
+ 2462 019e 0B       		.uleb128 0xb
+ 2463 019f 00       		.byte	0
+ 2464 01a0 00       		.byte	0
+ 2465 01a1 1F       		.uleb128 0x1f
+ 2466 01a2 2E       		.uleb128 0x2e
+ 2467 01a3 00       		.byte	0
+ 2468 01a4 3F       		.uleb128 0x3f
+ 2469 01a5 19       		.uleb128 0x19
+ 2470 01a6 3C       		.uleb128 0x3c
+ 2471 01a7 19       		.uleb128 0x19
+ 2472 01a8 6E       		.uleb128 0x6e
+ 2473 01a9 0E       		.uleb128 0xe
+ 2474 01aa 03       		.uleb128 0x3
+ 2475 01ab 0E       		.uleb128 0xe
+ 2476 01ac 3A       		.uleb128 0x3a
+ 2477 01ad 0B       		.uleb128 0xb
+ 2478 01ae 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 51
+
+
+ 2479 01af 05       		.uleb128 0x5
+ 2480 01b0 00       		.byte	0
+ 2481 01b1 00       		.byte	0
+ 2482 01b2 20       		.uleb128 0x20
+ 2483 01b3 2E       		.uleb128 0x2e
+ 2484 01b4 00       		.byte	0
+ 2485 01b5 3F       		.uleb128 0x3f
+ 2486 01b6 19       		.uleb128 0x19
+ 2487 01b7 3C       		.uleb128 0x3c
+ 2488 01b8 19       		.uleb128 0x19
+ 2489 01b9 6E       		.uleb128 0x6e
+ 2490 01ba 0E       		.uleb128 0xe
+ 2491 01bb 03       		.uleb128 0x3
+ 2492 01bc 0E       		.uleb128 0xe
+ 2493 01bd 00       		.byte	0
+ 2494 01be 00       		.byte	0
+ 2495 01bf 00       		.byte	0
+ 2496              		.section	.debug_loc,"",%progbits
+ 2497              	.Ldebug_loc0:
+ 2498              	.LLST0:
+ 2499 0000 00000000 		.4byte	.LVL0
+ 2500 0004 0C000000 		.4byte	.LVL1
+ 2501 0008 0200     		.2byte	0x2
+ 2502 000a 30       		.byte	0x30
+ 2503 000b 9F       		.byte	0x9f
+ 2504 000c 0C000000 		.4byte	.LVL1
+ 2505 0010 35000000 		.4byte	.LVL3-1
+ 2506 0014 0100     		.2byte	0x1
+ 2507 0016 52       		.byte	0x52
+ 2508 0017 00000000 		.4byte	0
+ 2509 001b 00000000 		.4byte	0
+ 2510              	.LLST1:
+ 2511 001f 00000000 		.4byte	.LVL5
+ 2512 0023 0A000000 		.4byte	.LVL6
+ 2513 0027 0200     		.2byte	0x2
+ 2514 0029 30       		.byte	0x30
+ 2515 002a 9F       		.byte	0x9f
+ 2516 002b 0A000000 		.4byte	.LVL6
+ 2517 002f 0C000000 		.4byte	.LVL7
+ 2518 0033 0200     		.2byte	0x2
+ 2519 0035 31       		.byte	0x31
+ 2520 0036 9F       		.byte	0x9f
+ 2521 0037 0C000000 		.4byte	.LVL7
+ 2522 003b 0E000000 		.4byte	.LVL8
+ 2523 003f 0200     		.2byte	0x2
+ 2524 0041 32       		.byte	0x32
+ 2525 0042 9F       		.byte	0x9f
+ 2526 0043 0E000000 		.4byte	.LVL8
+ 2527 0047 10000000 		.4byte	.LVL9
+ 2528 004b 0200     		.2byte	0x2
+ 2529 004d 33       		.byte	0x33
+ 2530 004e 9F       		.byte	0x9f
+ 2531 004f 10000000 		.4byte	.LVL9
+ 2532 0053 12000000 		.4byte	.LVL10
+ 2533 0057 0200     		.2byte	0x2
+ 2534 0059 34       		.byte	0x34
+ 2535 005a 9F       		.byte	0x9f
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 52
+
+
+ 2536 005b 12000000 		.4byte	.LVL10
+ 2537 005f 24000000 		.4byte	.LFE65
+ 2538 0063 0200     		.2byte	0x2
+ 2539 0065 35       		.byte	0x35
+ 2540 0066 9F       		.byte	0x9f
+ 2541 0067 00000000 		.4byte	0
+ 2542 006b 00000000 		.4byte	0
+ 2543              	.LLST2:
+ 2544 006f 00000000 		.4byte	.LVL13
+ 2545 0073 06000000 		.4byte	.LVL14
+ 2546 0077 0200     		.2byte	0x2
+ 2547 0079 30       		.byte	0x30
+ 2548 007a 9F       		.byte	0x9f
+ 2549 007b 06000000 		.4byte	.LVL14
+ 2550 007f 3C000000 		.4byte	.LFE66
+ 2551 0083 0100     		.2byte	0x1
+ 2552 0085 52       		.byte	0x52
+ 2553 0086 00000000 		.4byte	0
+ 2554 008a 00000000 		.4byte	0
+ 2555              	.LLST3:
+ 2556 008e 9E000000 		.4byte	.LVL31
+ 2557 0092 A5000000 		.4byte	.LVL32-1
+ 2558 0096 0100     		.2byte	0x1
+ 2559 0098 50       		.byte	0x50
+ 2560 0099 AC000000 		.4byte	.LVL33
+ 2561 009d AE000000 		.4byte	.LVL34
+ 2562 00a1 0100     		.2byte	0x1
+ 2563 00a3 50       		.byte	0x50
+ 2564 00a4 00000000 		.4byte	0
+ 2565 00a8 00000000 		.4byte	0
+ 2566              	.LLST4:
+ 2567 00ac 14000000 		.4byte	.LVL55
+ 2568 00b0 1D000000 		.4byte	.LVL56-1
+ 2569 00b4 0100     		.2byte	0x1
+ 2570 00b6 50       		.byte	0x50
+ 2571 00b7 1D000000 		.4byte	.LVL56-1
+ 2572 00bb 44000000 		.4byte	.LVL63
+ 2573 00bf 0100     		.2byte	0x1
+ 2574 00c1 54       		.byte	0x54
+ 2575 00c2 00000000 		.4byte	0
+ 2576 00c6 00000000 		.4byte	0
+ 2577              	.LLST5:
+ 2578 00ca 20000000 		.4byte	.LVL57
+ 2579 00ce 3C000000 		.4byte	.LVL61
+ 2580 00d2 0600     		.2byte	0x6
+ 2581 00d4 77       		.byte	0x77
+ 2582 00d5 00       		.sleb128 0
+ 2583 00d6 08       		.byte	0x8
+ 2584 00d7 FF       		.byte	0xff
+ 2585 00d8 1A       		.byte	0x1a
+ 2586 00d9 9F       		.byte	0x9f
+ 2587 00da 00000000 		.4byte	0
+ 2588 00de 00000000 		.4byte	0
+ 2589              		.section	.debug_aranges,"",%progbits
+ 2590 0000 5C000000 		.4byte	0x5c
+ 2591 0004 0200     		.2byte	0x2
+ 2592 0006 00000000 		.4byte	.Ldebug_info0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 53
+
+
+ 2593 000a 04       		.byte	0x4
+ 2594 000b 00       		.byte	0
+ 2595 000c 0000     		.2byte	0
+ 2596 000e 0000     		.2byte	0
+ 2597 0010 00000000 		.4byte	.LFB63
+ 2598 0014 48000000 		.4byte	.LFE63-.LFB63
+ 2599 0018 00000000 		.4byte	.LFB65
+ 2600 001c 24000000 		.4byte	.LFE65-.LFB65
+ 2601 0020 00000000 		.4byte	.LFB66
+ 2602 0024 3C000000 		.4byte	.LFE66-.LFB66
+ 2603 0028 00000000 		.4byte	.LFB67
+ 2604 002c C4000000 		.4byte	.LFE67-.LFB67
+ 2605 0030 00000000 		.4byte	.LFB68
+ 2606 0034 1C000000 		.4byte	.LFE68-.LFB68
+ 2607 0038 00000000 		.4byte	.LFB69
+ 2608 003c 4C000000 		.4byte	.LFE69-.LFB69
+ 2609 0040 00000000 		.4byte	.LFB70
+ 2610 0044 2C000000 		.4byte	.LFE70-.LFB70
+ 2611 0048 00000000 		.4byte	.LFB71
+ 2612 004c 50000000 		.4byte	.LFE71-.LFB71
+ 2613 0050 00000000 		.4byte	.LFB64
+ 2614 0054 3C000000 		.4byte	.LFE64-.LFB64
+ 2615 0058 00000000 		.4byte	0
+ 2616 005c 00000000 		.4byte	0
+ 2617              		.section	.debug_ranges,"",%progbits
+ 2618              	.Ldebug_ranges0:
+ 2619 0000 00000000 		.4byte	.LFB63
+ 2620 0004 48000000 		.4byte	.LFE63
+ 2621 0008 00000000 		.4byte	.LFB65
+ 2622 000c 24000000 		.4byte	.LFE65
+ 2623 0010 00000000 		.4byte	.LFB66
+ 2624 0014 3C000000 		.4byte	.LFE66
+ 2625 0018 00000000 		.4byte	.LFB67
+ 2626 001c C4000000 		.4byte	.LFE67
+ 2627 0020 00000000 		.4byte	.LFB68
+ 2628 0024 1C000000 		.4byte	.LFE68
+ 2629 0028 00000000 		.4byte	.LFB69
+ 2630 002c 4C000000 		.4byte	.LFE69
+ 2631 0030 00000000 		.4byte	.LFB70
+ 2632 0034 2C000000 		.4byte	.LFE70
+ 2633 0038 00000000 		.4byte	.LFB71
+ 2634 003c 50000000 		.4byte	.LFE71
+ 2635 0040 00000000 		.4byte	.LFB64
+ 2636 0044 3C000000 		.4byte	.LFE64
+ 2637 0048 00000000 		.4byte	0
+ 2638 004c 00000000 		.4byte	0
+ 2639              		.section	.debug_line,"",%progbits
+ 2640              	.Ldebug_line0:
+ 2641 0000 5E040000 		.section	.debug_str,"MS",%progbits,1
+ 2641      02000D03 
+ 2641      00000201 
+ 2641      FB0E0D00 
+ 2641      01010101 
+ 2642              	.LASF65:
+ 2643 0000 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BLOB_RSP\000"
+ 2643      455F4556 
+ 2643      545F4741 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 54
+
+
+ 2643      5454435F 
+ 2643      52454144 
+ 2644              	.LASF29:
+ 2645 001e 4359424C 		.ascii	"CYBLE_EVT_STACK_BUSY_STATUS\000"
+ 2645      455F4556 
+ 2645      545F5354 
+ 2645      41434B5F 
+ 2645      42555359 
+ 2646              	.LASF17:
+ 2647 003a 75696E74 		.ascii	"uint16\000"
+ 2647      313600
+ 2648              	.LASF87:
+ 2649 0041 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DATA_READ\000"
+ 2649      455F4556 
+ 2649      545F4C32 
+ 2649      4341505F 
+ 2649      43424643 
+ 2650              	.LASF190:
+ 2651 0060 43794578 		.ascii	"CyExitCriticalSection\000"
+ 2651      69744372 
+ 2651      69746963 
+ 2651      616C5365 
+ 2651      6374696F 
+ 2652              	.LASF78:
+ 2653 0076 4359424C 		.ascii	"CYBLE_EVT_GATTS_READ_CHAR_VAL_ACCESS_REQ\000"
+ 2653      455F4556 
+ 2653      545F4741 
+ 2653      5454535F 
+ 2653      52454144 
+ 2654              	.LASF41:
+ 2655 009f 4359424C 		.ascii	"CYBLE_EVT_GAP_CONNECTION_UPDATE_COMPLETE\000"
+ 2655      455F4556 
+ 2655      545F4741 
+ 2655      505F434F 
+ 2655      4E4E4543 
+ 2656              	.LASF113:
+ 2657 00c8 46525F54 		.ascii	"FR_TIMEOUT\000"
+ 2657      494D454F 
+ 2657      555400
+ 2658              	.LASF16:
+ 2659 00d3 75696E74 		.ascii	"uint64_t\000"
+ 2659      36345F74 
+ 2659      00
+ 2660              	.LASF46:
+ 2661 00dc 4359424C 		.ascii	"CYBLE_EVT_GAP_OOB_GENERATED_NOTIFICATION\000"
+ 2661      455F4556 
+ 2661      545F4741 
+ 2661      505F4F4F 
+ 2661      425F4745 
+ 2662              	.LASF188:
+ 2663 0105 44533133 		.ascii	"DS1307_SetUnixTime\000"
+ 2663      30375F53 
+ 2663      6574556E 
+ 2663      69785469 
+ 2663      6D6500
+ 2664              	.LASF3:
+ 2665 0118 5F5F7569 		.ascii	"__uint8_t\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 55
+
+
+ 2665      6E74385F 
+ 2665      7400
+ 2666              	.LASF96:
+ 2667 0122 53445F49 		.ascii	"SD_INSERT\000"
+ 2667      4E534552 
+ 2667      5400
+ 2668              	.LASF157:
+ 2669 012c 69734C6F 		.ascii	"isLogStarted\000"
+ 2669      67537461 
+ 2669      72746564 
+ 2669      00
+ 2670              	.LASF26:
+ 2671 0139 4359424C 		.ascii	"CYBLE_EVT_TIMEOUT\000"
+ 2671      455F4556 
+ 2671      545F5449 
+ 2671      4D454F55 
+ 2671      5400
+ 2672              	.LASF6:
+ 2673 014b 6C6F6E67 		.ascii	"long int\000"
+ 2673      20696E74 
+ 2673      00
+ 2674              	.LASF11:
+ 2675 0154 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2675      206C6F6E 
+ 2675      6720756E 
+ 2675      7369676E 
+ 2675      65642069 
+ 2676              	.LASF28:
+ 2677 016b 4359424C 		.ascii	"CYBLE_EVT_HCI_STATUS\000"
+ 2677      455F4556 
+ 2677      545F4843 
+ 2677      495F5354 
+ 2677      41545553 
+ 2678              	.LASF179:
+ 2679 0180 4E657477 		.ascii	"NetworkQuality\000"
+ 2679      6F726B51 
+ 2679      75616C69 
+ 2679      747900
+ 2680              	.LASF91:
+ 2681 018f 4359424C 		.ascii	"CYBLE_EVT_PENDING_FLASH_WRITE\000"
+ 2681      455F4556 
+ 2681      545F5045 
+ 2681      4E44494E 
+ 2681      475F464C 
+ 2682              	.LASF119:
+ 2683 01ad 6D696C6C 		.ascii	"millsStartSkier\000"
+ 2683      73537461 
+ 2683      7274536B 
+ 2683      69657200 
+ 2684              	.LASF80:
+ 2685 01bd 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CONN_PARAM_UPDATE_REQ\000"
+ 2685      455F4556 
+ 2685      545F4C32 
+ 2685      4341505F 
+ 2685      434F4E4E 
+ 2686              	.LASF40:
+ 2687 01e3 4359424C 		.ascii	"CYBLE_EVT_GAP_ENCRYPT_CHANGE\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 56
+
+
+ 2687      455F4556 
+ 2687      545F4741 
+ 2687      505F454E 
+ 2687      43525950 
+ 2688              	.LASF116:
+ 2689 0200 46525F54 		.ascii	"FR_TOO_MANY_OPEN_FILES\000"
+ 2689      4F4F5F4D 
+ 2689      414E595F 
+ 2689      4F50454E 
+ 2689      5F46494C 
+ 2690              	.LASF44:
+ 2691 0217 4359424C 		.ascii	"CYBLE_EVT_GAP_NUMERIC_COMPARISON_REQUEST\000"
+ 2691      455F4556 
+ 2691      545F4741 
+ 2691      505F4E55 
+ 2691      4D455249 
+ 2692              	.LASF169:
+ 2693 0240 47657449 		.ascii	"GetIDskierFinished\000"
+ 2693      44736B69 
+ 2693      65724669 
+ 2693      6E697368 
+ 2693      656400
+ 2694              	.LASF9:
+ 2695 0253 6C6F6E67 		.ascii	"long long int\000"
+ 2695      206C6F6E 
+ 2695      6720696E 
+ 2695      7400
+ 2696              	.LASF0:
+ 2697 0261 7369676E 		.ascii	"signed char\000"
+ 2697      65642063 
+ 2697      68617200 
+ 2698              	.LASF25:
+ 2699 026d 4359424C 		.ascii	"CYBLE_EVT_STACK_ON\000"
+ 2699      455F4556 
+ 2699      545F5354 
+ 2699      41434B5F 
+ 2699      4F4E00
+ 2700              	.LASF127:
+ 2701 0280 54494D45 		.ascii	"TIME_SYNC\000"
+ 2701      5F53594E 
+ 2701      4300
+ 2702              	.LASF126:
+ 2703 028a 53544154 		.ascii	"STATUS_ERROR\000"
+ 2703      55535F45 
+ 2703      52524F52 
+ 2703      00
+ 2704              	.LASF117:
+ 2705 0297 46525F49 		.ascii	"FR_INVALID_PARAMETER\000"
+ 2705      4E56414C 
+ 2705      49445F50 
+ 2705      4152414D 
+ 2705      45544552 
+ 2706              	.LASF142:
+ 2707 02ac 6E65774E 		.ascii	"newNumber\000"
+ 2707      756D6265 
+ 2707      7200
+ 2708              	.LASF42:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 57
+
+
+ 2709 02b6 4359424C 		.ascii	"CYBLE_EVT_GAPC_SCAN_START_STOP\000"
+ 2709      455F4556 
+ 2709      545F4741 
+ 2709      50435F53 
+ 2709      43414E5F 
+ 2710              	.LASF32:
+ 2711 02d5 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_REQ\000"
+ 2711      455F4556 
+ 2711      545F4741 
+ 2711      505F4155 
+ 2711      54485F52 
+ 2712              	.LASF64:
+ 2713 02ec 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_RSP\000"
+ 2713      455F4556 
+ 2713      545F4741 
+ 2713      5454435F 
+ 2713      52454144 
+ 2714              	.LASF189:
+ 2715 0305 5254435F 		.ascii	"RTC_SetUnixTime\000"
+ 2715      53657455 
+ 2715      6E697854 
+ 2715      696D6500 
+ 2716              	.LASF107:
+ 2717 0315 46525F49 		.ascii	"FR_INVALID_OBJECT\000"
+ 2717      4E56414C 
+ 2717      49445F4F 
+ 2717      424A4543 
+ 2717      5400
+ 2718              	.LASF69:
+ 2719 0327 4359424C 		.ascii	"CYBLE_EVT_GATTS_WRITE_CMD_REQ\000"
+ 2719      455F4556 
+ 2719      545F4741 
+ 2719      5454535F 
+ 2719      57524954 
+ 2720              	.LASF124:
+ 2721 0345 736B6965 		.ascii	"skierDB_El\000"
+ 2721      7244425F 
+ 2721      456C00
+ 2722              	.LASF86:
+ 2723 0350 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DISCONN_CNF\000"
+ 2723      455F4556 
+ 2723      545F4C32 
+ 2723      4341505F 
+ 2723      43424643 
+ 2724              	.LASF183:
+ 2725 0371 44697370 		.ascii	"DisplayRealTime\000"
+ 2725      6C617952 
+ 2725      65616C54 
+ 2725      696D6500 
+ 2726              	.LASF37:
+ 2727 0381 4359424C 		.ascii	"CYBLE_EVT_GAPP_ADVERTISEMENT_START_STOP\000"
+ 2727      455F4556 
+ 2727      545F4741 
+ 2727      50505F41 
+ 2727      44564552 
+ 2728              	.LASF197:
+ 2729 03a9 6D656D63 		.ascii	"memcpy\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 58
+
+
+ 2729      707900
+ 2730              	.LASF149:
+ 2731 03b0 41637469 		.ascii	"Action2\000"
+ 2731      6F6E3200 
+ 2732              	.LASF173:
+ 2733 03b8 57726974 		.ascii	"WriteSkierResult\000"
+ 2733      65536B69 
+ 2733      65725265 
+ 2733      73756C74 
+ 2733      00
+ 2734              	.LASF111:
+ 2735 03c9 46525F4E 		.ascii	"FR_NO_FILESYSTEM\000"
+ 2735      4F5F4649 
+ 2735      4C455359 
+ 2735      5354454D 
+ 2735      00
+ 2736              	.LASF14:
+ 2737 03da 75696E74 		.ascii	"uint16_t\000"
+ 2737      31365F74 
+ 2737      00
+ 2738              	.LASF20:
+ 2739 03e3 646F7562 		.ascii	"double\000"
+ 2739      6C6500
+ 2740              	.LASF115:
+ 2741 03ea 46525F4E 		.ascii	"FR_NOT_ENOUGH_CORE\000"
+ 2741      4F545F45 
+ 2741      4E4F5547 
+ 2741      485F434F 
+ 2741      524500
+ 2742              	.LASF106:
+ 2743 03fd 46525F45 		.ascii	"FR_EXIST\000"
+ 2743      58495354 
+ 2743      00
+ 2744              	.LASF136:
+ 2745 0406 41435449 		.ascii	"ACTION5\000"
+ 2745      4F4E3500 
+ 2746              	.LASF160:
+ 2747 040e 63757272 		.ascii	"currentState\000"
+ 2747      656E7453 
+ 2747      74617465 
+ 2747      00
+ 2748              	.LASF18:
+ 2749 041b 75696E74 		.ascii	"uint32\000"
+ 2749      333200
+ 2750              	.LASF170:
+ 2751 0422 536B6965 		.ascii	"SkierOnWay\000"
+ 2751      724F6E57 
+ 2751      617900
+ 2752              	.LASF95:
+ 2753 042d 4359424C 		.ascii	"CYBLE_EVT_MAX\000"
+ 2753      455F4556 
+ 2753      545F4D41 
+ 2753      5800
+ 2754              	.LASF7:
+ 2755 043b 5F5F7569 		.ascii	"__uint32_t\000"
+ 2755      6E743332 
+ 2755      5F7400
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 59
+
+
+ 2756              	.LASF97:
+ 2757 0446 53445F4E 		.ascii	"SD_NO_INSERT\000"
+ 2757      4F5F494E 
+ 2757      53455254 
+ 2757      00
+ 2758              	.LASF90:
+ 2759 0453 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DATA_WRITE_IND\000"
+ 2759      455F4556 
+ 2759      545F4C32 
+ 2759      4341505F 
+ 2759      43424643 
+ 2760              	.LASF172:
+ 2761 0477 4669666F 		.ascii	"FifoGetSize\000"
+ 2761      47657453 
+ 2761      697A6500 
+ 2762              	.LASF185:
+ 2763 0483 52656164 		.ascii	"ReadBattVoltage\000"
+ 2763      42617474 
+ 2763      566F6C74 
+ 2763      61676500 
+ 2764              	.LASF141:
+ 2765 0493 53657454 		.ascii	"SetTaskTimer\000"
+ 2765      61736B54 
+ 2765      696D6572 
+ 2765      00
+ 2766              	.LASF77:
+ 2767 04a0 4359424C 		.ascii	"CYBLE_EVT_GATTC_STOP_CMD_COMPLETE\000"
+ 2767      455F4556 
+ 2767      545F4741 
+ 2767      5454435F 
+ 2767      53544F50 
+ 2768              	.LASF158:
+ 2769 04c2 536F6674 		.ascii	"SoftTimer\000"
+ 2769      54696D65 
+ 2769      7200
+ 2770              	.LASF12:
+ 2771 04cc 756E7369 		.ascii	"unsigned int\000"
+ 2771      676E6564 
+ 2771      20696E74 
+ 2771      00
+ 2772              	.LASF122:
+ 2773 04d9 7365636F 		.ascii	"secondsWay\000"
+ 2773      6E647357 
+ 2773      617900
+ 2774              	.LASF92:
+ 2775 04e4 4359424C 		.ascii	"CYBLE_EVT_LE_PING_AUTH_TIMEOUT\000"
+ 2775      455F4556 
+ 2775      545F4C45 
+ 2775      5F50494E 
+ 2775      475F4155 
+ 2776              	.LASF165:
+ 2777 0503 54696D65 		.ascii	"Timer_Start\000"
+ 2777      725F5374 
+ 2777      61727400 
+ 2778              	.LASF184:
+ 2779 050f 44697370 		.ascii	"DisplayNumSkierOnWay\000"
+ 2779      6C61794E 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 60
+
+
+ 2779      756D536B 
+ 2779      6965724F 
+ 2779      6E576179 
+ 2780              	.LASF8:
+ 2781 0524 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2781      20756E73 
+ 2781      69676E65 
+ 2781      6420696E 
+ 2781      7400
+ 2782              	.LASF51:
+ 2783 0536 4359424C 		.ascii	"CYBLE_EVT_GAP_CONN_ESTB\000"
+ 2783      455F4556 
+ 2783      545F4741 
+ 2783      505F434F 
+ 2783      4E4E5F45 
+ 2784              	.LASF155:
+ 2785 054e 696E7465 		.ascii	"interruptState\000"
+ 2785      72727570 
+ 2785      74537461 
+ 2785      746500
+ 2786              	.LASF67:
+ 2787 055d 4359424C 		.ascii	"CYBLE_EVT_GATTS_WRITE_REQ\000"
+ 2787      455F4556 
+ 2787      545F4741 
+ 2787      5454535F 
+ 2787      57524954 
+ 2788              	.LASF59:
+ 2789 0577 4359424C 		.ascii	"CYBLE_EVT_GATTC_XCHNG_MTU_RSP\000"
+ 2789      455F4556 
+ 2789      545F4741 
+ 2789      5454435F 
+ 2789      5843484E 
+ 2790              	.LASF76:
+ 2791 0595 4359424C 		.ascii	"CYBLE_EVT_GATTS_DATA_SIGNED_CMD_REQ\000"
+ 2791      455F4556 
+ 2791      545F4741 
+ 2791      5454535F 
+ 2791      44415441 
+ 2792              	.LASF187:
+ 2793 05b9 4379456E 		.ascii	"CyEnterCriticalSection\000"
+ 2793      74657243 
+ 2793      72697469 
+ 2793      63616C53 
+ 2793      65637469 
+ 2794              	.LASF79:
+ 2795 05d0 4359424C 		.ascii	"CYBLE_EVT_GATTC_LONG_PROCEDURE_END\000"
+ 2795      455F4556 
+ 2795      545F4741 
+ 2795      5454435F 
+ 2795      4C4F4E47 
+ 2796              	.LASF73:
+ 2797 05f3 4359424C 		.ascii	"CYBLE_EVT_GATTC_HANDLE_VALUE_NTF\000"
+ 2797      455F4556 
+ 2797      545F4741 
+ 2797      5454435F 
+ 2797      48414E44 
+ 2798              	.LASF5:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 61
+
+
+ 2799 0614 73686F72 		.ascii	"short unsigned int\000"
+ 2799      7420756E 
+ 2799      7369676E 
+ 2799      65642069 
+ 2799      6E7400
+ 2800              	.LASF24:
+ 2801 0627 4359424C 		.ascii	"CYBLE_EVT_HOST_INVALID\000"
+ 2801      455F4556 
+ 2801      545F484F 
+ 2801      53545F49 
+ 2801      4E56414C 
+ 2802              	.LASF62:
+ 2803 063e 4359424C 		.ascii	"CYBLE_EVT_GATTC_FIND_INFO_RSP\000"
+ 2803      455F4556 
+ 2803      545F4741 
+ 2803      5454435F 
+ 2803      46494E44 
+ 2804              	.LASF30:
+ 2805 065c 4359424C 		.ascii	"CYBLE_EVT_MEMORY_REQUEST\000"
+ 2805      455F4556 
+ 2805      545F4D45 
+ 2805      4D4F5259 
+ 2805      5F524551 
+ 2806              	.LASF166:
+ 2807 0675 4669666F 		.ascii	"FifoGet\000"
+ 2807      47657400 
+ 2808              	.LASF71:
+ 2809 067d 4359424C 		.ascii	"CYBLE_EVT_GATTS_EXEC_WRITE_REQ\000"
+ 2809      455F4556 
+ 2809      545F4741 
+ 2809      5454535F 
+ 2809      45584543 
+ 2810              	.LASF33:
+ 2811 069c 4359424C 		.ascii	"CYBLE_EVT_GAP_PASSKEY_ENTRY_REQUEST\000"
+ 2811      455F4556 
+ 2811      545F4741 
+ 2811      505F5041 
+ 2811      53534B45 
+ 2812              	.LASF38:
+ 2813 06c0 4359424C 		.ascii	"CYBLE_EVT_GAP_DEVICE_CONNECTED\000"
+ 2813      455F4556 
+ 2813      545F4741 
+ 2813      505F4445 
+ 2813      56494345 
+ 2814              	.LASF100:
+ 2815 06df 46525F49 		.ascii	"FR_INT_ERR\000"
+ 2815      4E545F45 
+ 2815      525200
+ 2816              	.LASF74:
+ 2817 06ea 4359424C 		.ascii	"CYBLE_EVT_GATTC_HANDLE_VALUE_IND\000"
+ 2817      455F4556 
+ 2817      545F4741 
+ 2817      5454435F 
+ 2817      48414E44 
+ 2818              	.LASF147:
+ 2819 070b 6C617374 		.ascii	"lastFifoSize\000"
+ 2819      4669666F 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 62
+
+
+ 2819      53697A65 
+ 2819      00
+ 2820              	.LASF53:
+ 2821 0718 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_REQ_REPLY_ERR\000"
+ 2821      455F4556 
+ 2821      545F4741 
+ 2821      505F4155 
+ 2821      54485F52 
+ 2822              	.LASF167:
+ 2823 0739 4669666F 		.ascii	"FifoPushLast\000"
+ 2823      50757368 
+ 2823      4C617374 
+ 2823      00
+ 2824              	.LASF120:
+ 2825 0746 756E6978 		.ascii	"unixFinishSkier\000"
+ 2825      46696E69 
+ 2825      7368536B 
+ 2825      69657200 
+ 2826              	.LASF99:
+ 2827 0756 46525F44 		.ascii	"FR_DISK_ERR\000"
+ 2827      49534B5F 
+ 2827      45525200 
+ 2828              	.LASF98:
+ 2829 0762 46525F4F 		.ascii	"FR_OK\000"
+ 2829      4B00
+ 2830              	.LASF34:
+ 2831 0768 4359424C 		.ascii	"CYBLE_EVT_GAP_PASSKEY_DISPLAY_REQUEST\000"
+ 2831      455F4556 
+ 2831      545F4741 
+ 2831      505F5041 
+ 2831      53534B45 
+ 2832              	.LASF56:
+ 2833 078e 4359424C 		.ascii	"CYBLE_EVT_GATT_CONNECT_IND\000"
+ 2833      455F4556 
+ 2833      545F4741 
+ 2833      54545F43 
+ 2833      4F4E4E45 
+ 2834              	.LASF108:
+ 2835 07a9 46525F57 		.ascii	"FR_WRITE_PROTECTED\000"
+ 2835      52495445 
+ 2835      5F50524F 
+ 2835      54454354 
+ 2835      454400
+ 2836              	.LASF153:
+ 2837 07bc 6F6C6455 		.ascii	"oldUnixTime\000"
+ 2837      6E697854 
+ 2837      696D6500 
+ 2838              	.LASF82:
+ 2839 07c8 4359424C 		.ascii	"CYBLE_EVT_L2CAP_COMMAND_REJ\000"
+ 2839      455F4556 
+ 2839      545F4C32 
+ 2839      4341505F 
+ 2839      434F4D4D 
+ 2840              	.LASF31:
+ 2841 07e4 4359424C 		.ascii	"CYBLE_EVT_GAPC_SCAN_PROGRESS_RESULT\000"
+ 2841      455F4556 
+ 2841      545F4741 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 63
+
+
+ 2841      50435F53 
+ 2841      43414E5F 
+ 2842              	.LASF139:
+ 2843 0808 54494D45 		.ascii	"TIMER_HANDLER\000"
+ 2843      525F4841 
+ 2843      4E444C45 
+ 2843      5200
+ 2844              	.LASF118:
+ 2845 0816 756E6978 		.ascii	"unixStartSkier\000"
+ 2845      53746172 
+ 2845      74536B69 
+ 2845      657200
+ 2846              	.LASF83:
+ 2847 0825 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_CONN_IND\000"
+ 2847      455F4556 
+ 2847      545F4C32 
+ 2847      4341505F 
+ 2847      43424643 
+ 2848              	.LASF61:
+ 2849 0843 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BY_TYPE_RSP\000"
+ 2849      455F4556 
+ 2849      545F4741 
+ 2849      5454435F 
+ 2849      52454144 
+ 2850              	.LASF137:
+ 2851 0864 4E756D62 		.ascii	"Number\000"
+ 2851      657200
+ 2852              	.LASF180:
+ 2853 086b 44697370 		.ascii	"DisplayNetworkQuality\000"
+ 2853      6C61794E 
+ 2853      6574776F 
+ 2853      726B5175 
+ 2853      616C6974 
+ 2854              	.LASF22:
+ 2855 0881 6C6F6E67 		.ascii	"long double\000"
+ 2855      20646F75 
+ 2855      626C6500 
+ 2856              	.LASF36:
+ 2857 088d 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_FAILED\000"
+ 2857      455F4556 
+ 2857      545F4741 
+ 2857      505F4155 
+ 2857      54485F46 
+ 2858              	.LASF193:
+ 2859 08a7 424C455F 		.ascii	"BLE_getUnixTime\000"
+ 2859      67657455 
+ 2859      6E697854 
+ 2859      696D6500 
+ 2860              	.LASF68:
+ 2861 08b7 4359424C 		.ascii	"CYBLE_EVT_GATTC_WRITE_RSP\000"
+ 2861      455F4556 
+ 2861      545F4741 
+ 2861      5454435F 
+ 2861      57524954 
+ 2862              	.LASF194:
+ 2863 08d1 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2863      43313120 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 64
+
+
+ 2863      352E342E 
+ 2863      31203230 
+ 2863      31363036 
+ 2864 0904 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 2864      20726576 
+ 2864      6973696F 
+ 2864      6E203233 
+ 2864      37373135 
+ 2865 0937 73202D66 		.ascii	"s -ffunction-sections -ffat-lto-objects\000"
+ 2865      66756E63 
+ 2865      74696F6E 
+ 2865      2D736563 
+ 2865      74696F6E 
+ 2866              	.LASF49:
+ 2867 095f 4359424C 		.ascii	"CYBLE_EVT_GAPC_DIRECT_ADV_REPORT\000"
+ 2867      455F4556 
+ 2867      545F4741 
+ 2867      50435F44 
+ 2867      49524543 
+ 2868              	.LASF47:
+ 2869 0980 4359424C 		.ascii	"CYBLE_EVT_GAP_DATA_LENGTH_CHANGE\000"
+ 2869      455F4556 
+ 2869      545F4741 
+ 2869      505F4441 
+ 2869      54415F4C 
+ 2870              	.LASF52:
+ 2871 09a1 4359424C 		.ascii	"CYBLE_EVT_GAP_SCAN_REQ_RECVD\000"
+ 2871      455F4556 
+ 2871      545F4741 
+ 2871      505F5343 
+ 2871      414E5F52 
+ 2872              	.LASF159:
+ 2873 09be 5254435F 		.ascii	"RTC_daysBeforeMonthTbl\000"
+ 2873      64617973 
+ 2873      4265666F 
+ 2873      72654D6F 
+ 2873      6E746854 
+ 2874              	.LASF35:
+ 2875 09d5 4359424C 		.ascii	"CYBLE_EVT_GAP_AUTH_COMPLETE\000"
+ 2875      455F4556 
+ 2875      545F4741 
+ 2875      505F4155 
+ 2875      54485F43 
+ 2876              	.LASF102:
+ 2877 09f1 46525F4E 		.ascii	"FR_NO_FILE\000"
+ 2877      4F5F4649 
+ 2877      4C4500
+ 2878              	.LASF171:
+ 2879 09fc 424C455F 		.ascii	"BLE_sendOneSkierTimeResult\000"
+ 2879      73656E64 
+ 2879      4F6E6553 
+ 2879      6B696572 
+ 2879      54696D65 
+ 2880              	.LASF125:
+ 2881 0a17 53544154 		.ascii	"STATUS_OK\000"
+ 2881      55535F4F 
+ 2881      4B00
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 65
+
+
+ 2882              	.LASF181:
+ 2883 0a21 4E657477 		.ascii	"NetworkStatus\000"
+ 2883      6F726B53 
+ 2883      74617475 
+ 2883      7300
+ 2884              	.LASF164:
+ 2885 0a2f 6973725F 		.ascii	"isr_timer_StartEx\000"
+ 2885      74696D65 
+ 2885      725F5374 
+ 2885      61727445 
+ 2885      7800
+ 2886              	.LASF162:
+ 2887 0a41 6973725F 		.ascii	"isr_timer_ClearPending\000"
+ 2887      74696D65 
+ 2887      725F436C 
+ 2887      65617250 
+ 2887      656E6469 
+ 2888              	.LASF88:
+ 2889 0a58 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_RX_CREDIT_IND\000"
+ 2889      455F4556 
+ 2889      545F4C32 
+ 2889      4341505F 
+ 2889      43424643 
+ 2890              	.LASF110:
+ 2891 0a7b 46525F4E 		.ascii	"FR_NOT_ENABLED\000"
+ 2891      4F545F45 
+ 2891      4E41424C 
+ 2891      454400
+ 2892              	.LASF84:
+ 2893 0a8a 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_CONN_CNF\000"
+ 2893      455F4556 
+ 2893      545F4C32 
+ 2893      4341505F 
+ 2893      43424643 
+ 2894              	.LASF10:
+ 2895 0aa8 5F5F7569 		.ascii	"__uint64_t\000"
+ 2895      6E743634 
+ 2895      5F7400
+ 2896              	.LASF60:
+ 2897 0ab3 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_BY_GROUP_TYPE_RSP\000"
+ 2897      455F4556 
+ 2897      545F4741 
+ 2897      5454435F 
+ 2897      52454144 
+ 2898              	.LASF182:
+ 2899 0ada 424C455F 		.ascii	"BLE_sendNetworkStatus\000"
+ 2899      73656E64 
+ 2899      4E657477 
+ 2899      6F726B53 
+ 2899      74617475 
+ 2900              	.LASF19:
+ 2901 0af0 666C6F61 		.ascii	"float\000"
+ 2901      7400
+ 2902              	.LASF140:
+ 2903 0af6 5461736B 		.ascii	"TaskTimerInit\000"
+ 2903      54696D65 
+ 2903      72496E69 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 66
+
+
+ 2903      7400
+ 2904              	.LASF177:
+ 2905 0b04 44697370 		.ascii	"DisplayIndicatorSD\000"
+ 2905      6C617949 
+ 2905      6E646963 
+ 2905      61746F72 
+ 2905      534400
+ 2906              	.LASF195:
+ 2907 0b17 2E2E5C2E 		.ascii	"..\\..\\common\\lib\\lib_TaskTimer\\taskAutomat.c\000"
+ 2907      2E5C636F 
+ 2907      6D6D6F6E 
+ 2907      5C6C6962 
+ 2907      5C6C6962 
+ 2908              	.LASF196:
+ 2909 0b44 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\finish\\"
+ 2909      79707265 
+ 2909      73735C73 
+ 2909      79737465 
+ 2909      6D2D7374 
+ 2910 0b71 66696E5F 		.ascii	"fin_v11.cydsn\000"
+ 2910      7631312E 
+ 2910      63796473 
+ 2910      6E00
+ 2911              	.LASF129:
+ 2912 0b7f 43484543 		.ascii	"CHECK_GATE\000"
+ 2912      4B5F4741 
+ 2912      544500
+ 2913              	.LASF57:
+ 2914 0b8a 4359424C 		.ascii	"CYBLE_EVT_GATT_DISCONNECT_IND\000"
+ 2914      455F4556 
+ 2914      545F4741 
+ 2914      54545F44 
+ 2914      4953434F 
+ 2915              	.LASF143:
+ 2916 0ba8 6E657754 		.ascii	"newTime\000"
+ 2916      696D6500 
+ 2917              	.LASF1:
+ 2918 0bb0 756E7369 		.ascii	"unsigned char\000"
+ 2918      676E6564 
+ 2918      20636861 
+ 2918      7200
+ 2919              	.LASF45:
+ 2920 0bbe 4359424C 		.ascii	"CYBLE_EVT_GAP_KEYPRESS_NOTIFICATION\000"
+ 2920      455F4556 
+ 2920      545F4741 
+ 2920      505F4B45 
+ 2920      59505245 
+ 2921              	.LASF168:
+ 2922 0be2 4669666F 		.ascii	"FifoGetLast\000"
+ 2922      4765744C 
+ 2922      61737400 
+ 2923              	.LASF2:
+ 2924 0bee 73686F72 		.ascii	"short int\000"
+ 2924      7420696E 
+ 2924      7400
+ 2925              	.LASF178:
+ 2926 0bf8 424C455F 		.ascii	"BLE_sendSDcardStatus\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 67
+
+
+ 2926      73656E64 
+ 2926      53446361 
+ 2926      72645374 
+ 2926      61747573 
+ 2927              	.LASF174:
+ 2928 0c0d 4C6F6753 		.ascii	"LogStart\000"
+ 2928      74617274 
+ 2928      00
+ 2929              	.LASF146:
+ 2930 0c16 746D7053 		.ascii	"tmpStruct\000"
+ 2930      74727563 
+ 2930      7400
+ 2931              	.LASF161:
+ 2932 0c20 666C6167 		.ascii	"flag\000"
+ 2932      00
+ 2933              	.LASF93:
+ 2934 0c25 4359424C 		.ascii	"CYBLE_EVT_HCI_PKT\000"
+ 2934      455F4556 
+ 2934      545F4843 
+ 2934      495F504B 
+ 2934      5400
+ 2935              	.LASF109:
+ 2936 0c37 46525F49 		.ascii	"FR_INVALID_DRIVE\000"
+ 2936      4E56414C 
+ 2936      49445F44 
+ 2936      52495645 
+ 2936      00
+ 2937              	.LASF105:
+ 2938 0c48 46525F44 		.ascii	"FR_DENIED\000"
+ 2938      454E4945 
+ 2938      4400
+ 2939              	.LASF70:
+ 2940 0c52 4359424C 		.ascii	"CYBLE_EVT_GATTS_PREP_WRITE_REQ\000"
+ 2940      455F4556 
+ 2940      545F4741 
+ 2940      5454535F 
+ 2940      50524550 
+ 2941              	.LASF112:
+ 2942 0c71 46525F4D 		.ascii	"FR_MKFS_ABORTED\000"
+ 2942      4B46535F 
+ 2942      41424F52 
+ 2942      54454400 
+ 2943              	.LASF114:
+ 2944 0c81 46525F4C 		.ascii	"FR_LOCKED\000"
+ 2944      4F434B45 
+ 2944      4400
+ 2945              	.LASF121:
+ 2946 0c8b 6D696C6C 		.ascii	"millsFinishSkier\000"
+ 2946      7346696E 
+ 2946      69736853 
+ 2946      6B696572 
+ 2946      00
+ 2947              	.LASF75:
+ 2948 0c9c 4359424C 		.ascii	"CYBLE_EVT_GATTS_HANDLE_VALUE_CNF\000"
+ 2948      455F4556 
+ 2948      545F4741 
+ 2948      5454535F 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 68
+
+
+ 2948      48414E44 
+ 2949              	.LASF55:
+ 2950 0cbd 4359424C 		.ascii	"CYBLE_EVT_GATTC_ERROR_RSP\000"
+ 2950      455F4556 
+ 2950      545F4741 
+ 2950      5454435F 
+ 2950      4552524F 
+ 2951              	.LASF50:
+ 2952 0cd7 4359424C 		.ascii	"CYBLE_EVT_GAP_SMP_NEGOTIATED_AUTH_INFO\000"
+ 2952      455F4556 
+ 2952      545F4741 
+ 2952      505F534D 
+ 2952      505F4E45 
+ 2953              	.LASF175:
+ 2954 0cfe 53656E64 		.ascii	"SendData\000"
+ 2954      44617461 
+ 2954      00
+ 2955              	.LASF128:
+ 2956 0d07 52454144 		.ascii	"READY\000"
+ 2956      5900
+ 2957              	.LASF21:
+ 2958 0d0d 63686172 		.ascii	"char\000"
+ 2958      00
+ 2959              	.LASF66:
+ 2960 0d12 4359424C 		.ascii	"CYBLE_EVT_GATTC_READ_MULTI_RSP\000"
+ 2960      455F4556 
+ 2960      545F4741 
+ 2960      5454435F 
+ 2960      52454144 
+ 2961              	.LASF39:
+ 2962 0d31 4359424C 		.ascii	"CYBLE_EVT_GAP_DEVICE_DISCONNECTED\000"
+ 2962      455F4556 
+ 2962      545F4741 
+ 2962      505F4445 
+ 2962      56494345 
+ 2963              	.LASF144:
+ 2964 0d53 41637469 		.ascii	"Action1\000"
+ 2964      6F6E3100 
+ 2965              	.LASF4:
+ 2966 0d5b 5F5F7569 		.ascii	"__uint16_t\000"
+ 2966      6E743136 
+ 2966      5F7400
+ 2967              	.LASF150:
+ 2968 0d66 41637469 		.ascii	"Action3\000"
+ 2968      6F6E3300 
+ 2969              	.LASF151:
+ 2970 0d6e 41637469 		.ascii	"Action4\000"
+ 2970      6F6E3400 
+ 2971              	.LASF152:
+ 2972 0d76 41637469 		.ascii	"Action5\000"
+ 2972      6F6E3500 
+ 2973              	.LASF130:
+ 2974 0d7e 53415645 		.ascii	"SAVE_RESULT\000"
+ 2974      5F524553 
+ 2974      554C5400 
+ 2975              	.LASF131:
+ 2976 0d8a 53746174 		.ascii	"StateType\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 69
+
+
+ 2976      65547970 
+ 2976      6500
+ 2977              	.LASF89:
+ 2978 0d94 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_TX_CREDIT_IND\000"
+ 2978      455F4556 
+ 2978      545F4C32 
+ 2978      4341505F 
+ 2978      43424643 
+ 2979              	.LASF123:
+ 2980 0db7 6D696C6C 		.ascii	"millsWay\000"
+ 2980      73576179 
+ 2980      00
+ 2981              	.LASF27:
+ 2982 0dc0 4359424C 		.ascii	"CYBLE_EVT_HARDWARE_ERROR\000"
+ 2982      455F4556 
+ 2982      545F4841 
+ 2982      52445741 
+ 2982      52455F45 
+ 2983              	.LASF132:
+ 2984 0dd9 41435449 		.ascii	"ACTION1\000"
+ 2984      4F4E3100 
+ 2985              	.LASF133:
+ 2986 0de1 41435449 		.ascii	"ACTION2\000"
+ 2986      4F4E3200 
+ 2987              	.LASF134:
+ 2988 0de9 41435449 		.ascii	"ACTION3\000"
+ 2988      4F4E3300 
+ 2989              	.LASF135:
+ 2990 0df1 41435449 		.ascii	"ACTION4\000"
+ 2990      4F4E3400 
+ 2991              	.LASF104:
+ 2992 0df9 46525F49 		.ascii	"FR_INVALID_NAME\000"
+ 2992      4E56414C 
+ 2992      49445F4E 
+ 2992      414D4500 
+ 2993              	.LASF154:
+ 2994 0e09 756E6978 		.ascii	"unixTime\000"
+ 2994      54696D65 
+ 2994      00
+ 2995              	.LASF192:
+ 2996 0e12 424C455F 		.ascii	"BLE_processEvents\000"
+ 2996      70726F63 
+ 2996      65737345 
+ 2996      76656E74 
+ 2996      7300
+ 2997              	.LASF191:
+ 2998 0e24 53657452 		.ascii	"SetRebootFlag\000"
+ 2998      65626F6F 
+ 2998      74466C61 
+ 2998      6700
+ 2999              	.LASF15:
+ 3000 0e32 75696E74 		.ascii	"uint32_t\000"
+ 3000      33325F74 
+ 3000      00
+ 3001              	.LASF58:
+ 3002 0e3b 4359424C 		.ascii	"CYBLE_EVT_GATTS_XCNHG_MTU_REQ\000"
+ 3002      455F4556 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 70
+
+
+ 3002      545F4741 
+ 3002      5454535F 
+ 3002      58434E48 
+ 3003              	.LASF148:
+ 3004 0e59 746D7049 		.ascii	"tmpIDSkier\000"
+ 3004      44536B69 
+ 3004      657200
+ 3005              	.LASF138:
+ 3006 0e64 54696D65 		.ascii	"Time\000"
+ 3006      00
+ 3007              	.LASF13:
+ 3008 0e69 75696E74 		.ascii	"uint8_t\000"
+ 3008      385F7400 
+ 3009              	.LASF186:
+ 3010 0e71 44697370 		.ascii	"DisplayBattVoltage\000"
+ 3010      6C617942 
+ 3010      61747456 
+ 3010      6F6C7461 
+ 3010      676500
+ 3011              	.LASF72:
+ 3012 0e84 4359424C 		.ascii	"CYBLE_EVT_GATTC_EXEC_WRITE_RSP\000"
+ 3012      455F4556 
+ 3012      545F4741 
+ 3012      5454435F 
+ 3012      45584543 
+ 3013              	.LASF23:
+ 3014 0ea3 73697A65 		.ascii	"sizetype\000"
+ 3014      74797065 
+ 3014      00
+ 3015              	.LASF163:
+ 3016 0eac 54696D65 		.ascii	"Timer_ClearInterrupt\000"
+ 3016      725F436C 
+ 3016      65617249 
+ 3016      6E746572 
+ 3016      72757074 
+ 3017              	.LASF63:
+ 3018 0ec1 4359424C 		.ascii	"CYBLE_EVT_GATTC_FIND_BY_TYPE_VALUE_RSP\000"
+ 3018      455F4556 
+ 3018      545F4741 
+ 3018      5454435F 
+ 3018      46494E44 
+ 3019              	.LASF43:
+ 3020 0ee8 4359424C 		.ascii	"CYBLE_EVT_GAP_KEYINFO_EXCHNGE_CMPLT\000"
+ 3020      455F4556 
+ 3020      545F4741 
+ 3020      505F4B45 
+ 3020      59494E46 
+ 3021              	.LASF85:
+ 3022 0f0c 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CBFC_DISCONN_IND\000"
+ 3022      455F4556 
+ 3022      545F4C32 
+ 3022      4341505F 
+ 3022      43424643 
+ 3023              	.LASF103:
+ 3024 0f2d 46525F4E 		.ascii	"FR_NO_PATH\000"
+ 3024      4F5F5041 
+ 3024      544800
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvg7pGw.s 			page 71
+
+
+ 3025              	.LASF54:
+ 3026 0f38 4359424C 		.ascii	"CYBLE_EVT_GAP_SMP_LOC_P256_KEYS_GEN_AND_SET_COMPLET"
+ 3026      455F4556 
+ 3026      545F4741 
+ 3026      505F534D 
+ 3026      505F4C4F 
+ 3027 0f6b 4500     		.ascii	"E\000"
+ 3028              	.LASF176:
+ 3029 0f6d 5344696E 		.ascii	"SDinsert_Read\000"
+ 3029      73657274 
+ 3029      5F526561 
+ 3029      6400
+ 3030              	.LASF81:
+ 3031 0f7b 4359424C 		.ascii	"CYBLE_EVT_L2CAP_CONN_PARAM_UPDATE_RSP\000"
+ 3031      455F4556 
+ 3031      545F4C32 
+ 3031      4341505F 
+ 3031      434F4E4E 
+ 3032              	.LASF101:
+ 3033 0fa1 46525F4E 		.ascii	"FR_NOT_READY\000"
+ 3033      4F545F52 
+ 3033      45414459 
+ 3033      00
+ 3034              	.LASF48:
+ 3035 0fae 4359424C 		.ascii	"CYBLE_EVT_GAP_ENHANCE_CONN_COMPLETE\000"
+ 3035      455F4556 
+ 3035      545F4741 
+ 3035      505F454E 
+ 3035      48414E43 
+ 3036              	.LASF145:
+ 3037 0fd2 72657375 		.ascii	"result\000"
+ 3037      6C7400
+ 3038              	.LASF156:
+ 3039 0fd9 5461736B 		.ascii	"TaskCheck\000"
+ 3039      43686563 
+ 3039      6B00
+ 3040              	.LASF94:
+ 3041 0fe3 4359424C 		.ascii	"CYBLE_EVT_FLASH_CORRUPT\000"
+ 3041      455F4556 
+ 3041      545F464C 
+ 3041      4153485F 
+ 3041      434F5252 
+ 3042              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

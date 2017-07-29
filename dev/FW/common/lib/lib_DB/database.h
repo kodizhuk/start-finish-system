@@ -23,16 +23,15 @@ typedef struct
 
 #include "..\..\common\lib\lib_DB\logResult.h"
 
-uint32_t DataBaseStart(void);
-void InitBuff();
+uint32_t DataBaseStart(void);       //init log to SD card
+void InitBuff(void);                    //init fifo
 
 void WriteStartTime(uint64_t unixTime, uint16_t mills);
 void WriteFinishTime(uint64_t unixTime, uint16_t mills);
 
-uint32_t TimeOnWay(uint32_t Number);
-uint32_t SkierOnWay();
-uint32_t LastSecTimeOnWay();
-uint32_t LastMillsTimeOnWay();
+uint32_t SkierOnWay(void);
+uint32_t LastSecTimeOnWay(void);
+uint32_t LastMillsTimeOnWay(void);
 
 
 uint16_t FifoGetSize(void);
@@ -40,7 +39,6 @@ void FifoPush(skierDB_El data);
 void FifoGet(skierDB_El *data); 
 void FifoPushLast(skierDB_El data);
 skierDB_El FifoGetLast(void);
-void FifoPushLastFinished();
 
 #endif
 /* [] END OF FILE */
