@@ -79,6 +79,7 @@ typedef struct
     uint64_t unixStartTime;
     uint16_t startMsTime;
     uint8_t newSkier;
+    uint8_t idSkier;
     uint8_t testMode;
     uint8_t writeStatus;
     uint8_t reboot;     /*reboot=1, not reboot=0*/
@@ -270,17 +271,17 @@ void SendData(void)
             char sendData[DATA_BUFFER];
             
             /*pack data*/
-            sprintf(sendData,"%02X:%08X%08X%04X%02X%02X",
+            sprintf(sendData,"%02X:%08X%08X%04X%01X%01X%02X",
                     outData.testMode,
                     (uint32_t)((outData.unixStartTime & MASK_HIGH) >> DATA_SHIFT), 
                     (uint32_t)(outData.unixStartTime & MASK_LOW), 
                     outData.startMsTime, 
                     outData.newSkier, 
-                    outData.reboot);
+                    outData.reboot,
+                    outData.idSkier);
             
             
             PackData(sendBuffer, (uint8_t *)sendData, inData.IDpacket);
-            //UART_XB_UartPutString("hello abcdefgkjklmnopertfdddd qdqf world");
             UART_XB_UartPutString(sendBuffer);   
             UART_XB_UartPutChar('0');
 
@@ -314,8 +315,9 @@ uint32_t NetworkStatus(void)
 
 
 
-void SendSkierStart(uint64_t unixTimeStart, uint32_t recentMs)
+void SendSkierStart(uint8_t idSkier,uint64_t unixTimeStart, uint32_t recentMs)
 {
+    outData.idSkier = idSkier;
     outData.unixStartTime = unixTimeStart;
     outData.startMsTime = recentMs;
     outData.newSkier = NEW_SKIER_IN_TARCK;

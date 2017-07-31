@@ -198,7 +198,6 @@ void Action1(void)
         uint32_t result;
         skierDB_El tmpStruct;
         static uint32_t lastFifoSize;
-        static uint32_t tmpIDSkier;
         
         if (isLogStarted == LOG_NOT_STARTED)
         {
@@ -215,15 +214,13 @@ void Action1(void)
         if(isLogStarted == LOG_NOT_STARTED )
         {
             /*SD only*/
-            tmpIDSkier = GetIDskierFinished();
-            BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
+            BLE_sendOneSkierTimeResult(&tmpStruct,SkierOnWay(),MAX_SKIERS_ON_WAY);
         }
         else
         {
             if(FifoGetSize() != lastFifoSize)
             {
-                tmpIDSkier++;
-                BLE_sendOneSkierTimeResult(&tmpStruct,tmpIDSkier+1,SkierOnWay(),MAX_SKIERS_ON_WAY);
+                BLE_sendOneSkierTimeResult(&tmpStruct,SkierOnWay(),MAX_SKIERS_ON_WAY);
                 lastFifoSize = FifoGetSize();
             }
         }

@@ -12,7 +12,7 @@ void GateInit(void);
 uint32_t  GateIsOpen(void);
 
 #ifdef START_MODULE
-void GetStartTime(uint64_t *unixTime,  uint32_t *recentMs);
+void GetStartTime(uint8_t *idSkier,uint64_t *unixTime,  uint32_t *recentMs);
 #endif
 
 #ifdef FINISH_MODULE

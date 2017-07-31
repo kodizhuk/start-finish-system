@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 1
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 1
 
 
    1              		.syntax unified
@@ -24,1132 +24,1204 @@ ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 1
   21              		.align	2
   22              	result:
   23 0000 00000000 		.space	4
-  24 0004 00000000 		.align	3
-  25              	savedUnixTime:
-  26 0008 00000000 		.space	8
-  26      00000000 
-  27              		.align	2
-  28              	savedRecentMs:
-  29 0010 00000000 		.space	4
-  30              		.align	2
-  31              	gateOpen:
-  32 0014 00000000 		.space	4
-  33              		.section	.text.GATE_INTERRUPT,"ax",%progbits
-  34              		.align	2
-  35              		.global	GATE_INTERRUPT
-  36              		.code	16
-  37              		.thumb_func
-  38              		.type	GATE_INTERRUPT, %function
-  39              	GATE_INTERRUPT:
-  40              	.LFB63:
-  41              		.file 1 "..\\..\\common\\lib\\lib_Gate\\gate.c"
+  24              	savedIdSkier:
+  25 0004 00       		.space	1
+  26 0005 000000   		.align	3
+  27              	savedUnixTime:
+  28 0008 00000000 		.space	8
+  28      00000000 
+  29              		.align	2
+  30              	savedRecentMs:
+  31 0010 00000000 		.space	4
+  32              		.align	2
+  33              	gateOpen:
+  34 0014 00000000 		.space	4
+  35              		.section	.text.GATE_INTERRUPT,"ax",%progbits
+  36              		.align	2
+  37              		.global	GATE_INTERRUPT
+  38              		.code	16
+  39              		.thumb_func
+  40              		.type	GATE_INTERRUPT, %function
+  41              	GATE_INTERRUPT:
+  42              	.LFB63:
+  43              		.file 1 "..\\..\\common\\lib\\lib_Gate\\gate.c"
    1:..\..\common\lib\lib_Gate/gate.c **** #include "..\..\common\lib\lib_Gate\gate.h"
    2:..\..\common\lib\lib_Gate/gate.c **** #include <GatePin.h>
    3:..\..\common\lib\lib_Gate/gate.c **** #include <GATE_INT.h>
    4:..\..\common\lib\lib_Gate/gate.c **** #include "..\..\common\lib\lib_RTC\RTC_WDT.h"
-   5:..\..\common\lib\lib_Gate/gate.c **** #include "appGlobal.h"
-   6:..\..\common\lib\lib_Gate/gate.c **** 
-   7:..\..\common\lib\lib_Gate/gate.c **** static uint64_t savedUnixTime;
-   8:..\..\common\lib\lib_Gate/gate.c **** static uint32_t savedRecentMs;
-   9:..\..\common\lib\lib_Gate/gate.c **** static uint32_t gateOpen ;
-  10:..\..\common\lib\lib_Gate/gate.c **** 
-  11:..\..\common\lib\lib_Gate/gate.c **** 
-  12:..\..\common\lib\lib_Gate/gate.c **** /*gate interrupt*/
-  13:..\..\common\lib\lib_Gate/gate.c **** CY_ISR(GATE_INTERRUPT)
-  14:..\..\common\lib\lib_Gate/gate.c **** {   
-  42              		.loc 1 14 0
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 2
+   5:..\..\common\lib\lib_Gate/gate.c **** #ifdef START_MODULE
+   6:..\..\common\lib\lib_Gate/gate.c ****     #include "..\..\common\lib\lib_IDskier\IDskier.h"
+   7:..\..\common\lib\lib_Gate/gate.c **** #endif
+   8:..\..\common\lib\lib_Gate/gate.c **** #include "appGlobal.h"
+   9:..\..\common\lib\lib_Gate/gate.c **** 
+  10:..\..\common\lib\lib_Gate/gate.c **** static uint8_t savedIdSkier;
+  11:..\..\common\lib\lib_Gate/gate.c **** static uint64_t savedUnixTime;
+  12:..\..\common\lib\lib_Gate/gate.c **** static uint32_t savedRecentMs;
+  13:..\..\common\lib\lib_Gate/gate.c **** static uint32_t gateOpen ;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 2
 
 
-  43              		.cfi_startproc
-  44              		@ args = 0, pretend = 0, frame = 0
-  45              		@ frame_needed = 1, uses_anonymous_args = 0
-  46 0000 B0B5     		push	{r4, r5, r7, lr}
-  47              		.cfi_def_cfa_offset 16
-  48              		.cfi_offset 4, -16
-  49              		.cfi_offset 5, -12
-  50              		.cfi_offset 7, -8
-  51              		.cfi_offset 14, -4
-  52 0002 00AF     		add	r7, sp, #0
-  53              		.cfi_def_cfa_register 7
-  15:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
-  54              		.loc 1 15 0
-  55 0004 FFF7FEFF 		bl	GATE_INT_Disable
-  16:..\..\common\lib\lib_Gate/gate.c ****     
-  17:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_OPEN;    
-  56              		.loc 1 17 0
-  57 0008 094B     		ldr	r3, .L2
-  58 000a 0122     		movs	r2, #1
-  59 000c 1A60     		str	r2, [r3]
-  18:..\..\common\lib\lib_Gate/gate.c **** 
-  19:..\..\common\lib\lib_Gate/gate.c ****     savedUnixTime = RTCGetUnixTime();
-  60              		.loc 1 19 0
-  61 000e FFF7FEFF 		bl	RTCGetUnixTime
-  62 0012 0300     		movs	r3, r0
-  63 0014 0C00     		movs	r4, r1
-  64 0016 074A     		ldr	r2, .L2+4
-  65 0018 1360     		str	r3, [r2]
-  66 001a 5460     		str	r4, [r2, #4]
-  20:..\..\common\lib\lib_Gate/gate.c ****     savedRecentMs = RTCgetRecentMs();
-  67              		.loc 1 20 0
-  68 001c FFF7FEFF 		bl	RTCgetRecentMs
-  69 0020 0200     		movs	r2, r0
-  70 0022 054B     		ldr	r3, .L2+8
-  71 0024 1A60     		str	r2, [r3]
-  21:..\..\common\lib\lib_Gate/gate.c ****     
-  22:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
-  23:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();   
-  72              		.loc 1 23 0
-  73 0026 FFF7FEFF 		bl	GATE_INT_ClearPending
-  24:..\..\common\lib\lib_Gate/gate.c **** }
-  74              		.loc 1 24 0
-  75 002a C046     		nop
-  76 002c BD46     		mov	sp, r7
-  77              		@ sp needed
-  78 002e B0BD     		pop	{r4, r5, r7, pc}
-  79              	.L3:
-  80              		.align	2
-  81              	.L2:
-  82 0030 14000000 		.word	gateOpen
-  83 0034 08000000 		.word	savedUnixTime
-  84 0038 10000000 		.word	savedRecentMs
-  85              		.cfi_endproc
-  86              	.LFE63:
-  87              		.size	GATE_INTERRUPT, .-GATE_INTERRUPT
-  88              		.section	.text.GateInit,"ax",%progbits
-  89              		.align	2
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 3
+  14:..\..\common\lib\lib_Gate/gate.c **** 
+  15:..\..\common\lib\lib_Gate/gate.c **** 
+  16:..\..\common\lib\lib_Gate/gate.c **** /*gate interrupt*/
+  17:..\..\common\lib\lib_Gate/gate.c **** CY_ISR(GATE_INTERRUPT)
+  18:..\..\common\lib\lib_Gate/gate.c **** {   
+  44              		.loc 1 18 0
+  45              		.cfi_startproc
+  46              		@ args = 0, pretend = 0, frame = 0
+  47              		@ frame_needed = 1, uses_anonymous_args = 0
+  48 0000 B0B5     		push	{r4, r5, r7, lr}
+  49              		.cfi_def_cfa_offset 16
+  50              		.cfi_offset 4, -16
+  51              		.cfi_offset 5, -12
+  52              		.cfi_offset 7, -8
+  53              		.cfi_offset 14, -4
+  54 0002 00AF     		add	r7, sp, #0
+  55              		.cfi_def_cfa_register 7
+  19:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
+  56              		.loc 1 19 0
+  57 0004 FFF7FEFF 		bl	GATE_INT_Disable
+  20:..\..\common\lib\lib_Gate/gate.c ****     
+  21:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_OPEN;    
+  58              		.loc 1 21 0
+  59 0008 0C4B     		ldr	r3, .L2
+  60 000a 0122     		movs	r2, #1
+  61 000c 1A60     		str	r2, [r3]
+  22:..\..\common\lib\lib_Gate/gate.c **** 
+  23:..\..\common\lib\lib_Gate/gate.c ****     savedUnixTime = RTCGetUnixTime();
+  62              		.loc 1 23 0
+  63 000e FFF7FEFF 		bl	RTCGetUnixTime
+  64 0012 0300     		movs	r3, r0
+  65 0014 0C00     		movs	r4, r1
+  66 0016 0A4A     		ldr	r2, .L2+4
+  67 0018 1360     		str	r3, [r2]
+  68 001a 5460     		str	r4, [r2, #4]
+  24:..\..\common\lib\lib_Gate/gate.c ****     savedRecentMs = RTCgetRecentMs();
+  69              		.loc 1 24 0
+  70 001c FFF7FEFF 		bl	RTCgetRecentMs
+  71 0020 0200     		movs	r2, r0
+  72 0022 084B     		ldr	r3, .L2+8
+  73 0024 1A60     		str	r2, [r3]
+  25:..\..\common\lib\lib_Gate/gate.c ****     
+  26:..\..\common\lib\lib_Gate/gate.c ****     #ifdef START_MODULE
+  27:..\..\common\lib\lib_Gate/gate.c ****     savedIdSkier = ReadIdSkier();
+  74              		.loc 1 27 0
+  75 0026 FFF7FEFF 		bl	ReadIdSkier
+  76 002a 0300     		movs	r3, r0
+  77 002c 1A00     		movs	r2, r3
+  78 002e 064B     		ldr	r3, .L2+12
+  79 0030 1A70     		strb	r2, [r3]
+  28:..\..\common\lib\lib_Gate/gate.c ****     #endif
+  29:..\..\common\lib\lib_Gate/gate.c ****     
+  30:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  31:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();   
+  80              		.loc 1 31 0
+  81 0032 FFF7FEFF 		bl	GATE_INT_ClearPending
+  32:..\..\common\lib\lib_Gate/gate.c **** }
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 3
 
 
-  90              		.global	GateInit
-  91              		.code	16
-  92              		.thumb_func
-  93              		.type	GateInit, %function
-  94              	GateInit:
-  95              	.LFB64:
-  25:..\..\common\lib\lib_Gate/gate.c **** 
-  26:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
-  27:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateInit
-  28:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
-  29:..\..\common\lib\lib_Gate/gate.c **** *
-  30:..\..\common\lib\lib_Gate/gate.c **** * Summary:
-  31:..\..\common\lib\lib_Gate/gate.c **** *   inittilisation the gate pin
-  32:..\..\common\lib\lib_Gate/gate.c **** *   disable interrupt from gate
-  33:..\..\common\lib\lib_Gate/gate.c **** *
-  34:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
-  35:..\..\common\lib\lib_Gate/gate.c **** void GateInit(void)
-  36:..\..\common\lib\lib_Gate/gate.c **** {
-  96              		.loc 1 36 0
-  97              		.cfi_startproc
-  98              		@ args = 0, pretend = 0, frame = 0
-  99              		@ frame_needed = 1, uses_anonymous_args = 0
- 100 0000 80B5     		push	{r7, lr}
- 101              		.cfi_def_cfa_offset 8
- 102              		.cfi_offset 7, -8
- 103              		.cfi_offset 14, -4
- 104 0002 00AF     		add	r7, sp, #0
- 105              		.cfi_def_cfa_register 7
-  37:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
-  38:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
- 106              		.loc 1 38 0
- 107 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
-  39:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_StartEx(GATE_INTERRUPT); 
- 108              		.loc 1 39 0
- 109 0008 054B     		ldr	r3, .L5
- 110 000a 1800     		movs	r0, r3
- 111 000c FFF7FEFF 		bl	GATE_INT_StartEx
-  40:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
- 112              		.loc 1 40 0
- 113 0010 FFF7FEFF 		bl	GATE_INT_Disable
-  41:..\..\common\lib\lib_Gate/gate.c ****     
-  42:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;     
- 114              		.loc 1 42 0
- 115 0014 034B     		ldr	r3, .L5+4
- 116 0016 0022     		movs	r2, #0
- 117 0018 1A60     		str	r2, [r3]
-  43:..\..\common\lib\lib_Gate/gate.c **** }
- 118              		.loc 1 43 0
- 119 001a C046     		nop
- 120 001c BD46     		mov	sp, r7
- 121              		@ sp needed
- 122 001e 80BD     		pop	{r7, pc}
- 123              	.L6:
- 124              		.align	2
- 125              	.L5:
- 126 0020 00000000 		.word	GATE_INTERRUPT
- 127 0024 14000000 		.word	gateOpen
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 4
+  82              		.loc 1 32 0
+  83 0036 C046     		nop
+  84 0038 BD46     		mov	sp, r7
+  85              		@ sp needed
+  86 003a B0BD     		pop	{r4, r5, r7, pc}
+  87              	.L3:
+  88              		.align	2
+  89              	.L2:
+  90 003c 14000000 		.word	gateOpen
+  91 0040 08000000 		.word	savedUnixTime
+  92 0044 10000000 		.word	savedRecentMs
+  93 0048 04000000 		.word	savedIdSkier
+  94              		.cfi_endproc
+  95              	.LFE63:
+  96              		.size	GATE_INTERRUPT, .-GATE_INTERRUPT
+  97              		.section	.text.GateInit,"ax",%progbits
+  98              		.align	2
+  99              		.global	GateInit
+ 100              		.code	16
+ 101              		.thumb_func
+ 102              		.type	GateInit, %function
+ 103              	GateInit:
+ 104              	.LFB64:
+  33:..\..\common\lib\lib_Gate/gate.c **** 
+  34:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  35:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateInit
+  36:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  37:..\..\common\lib\lib_Gate/gate.c **** *
+  38:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  39:..\..\common\lib\lib_Gate/gate.c **** *   inittilisation the gate pin
+  40:..\..\common\lib\lib_Gate/gate.c **** *   disable interrupt from gate
+  41:..\..\common\lib\lib_Gate/gate.c **** *
+  42:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  43:..\..\common\lib\lib_Gate/gate.c **** void GateInit(void)
+  44:..\..\common\lib\lib_Gate/gate.c **** {
+ 105              		.loc 1 44 0
+ 106              		.cfi_startproc
+ 107              		@ args = 0, pretend = 0, frame = 0
+ 108              		@ frame_needed = 1, uses_anonymous_args = 0
+ 109 0000 80B5     		push	{r7, lr}
+ 110              		.cfi_def_cfa_offset 8
+ 111              		.cfi_offset 7, -8
+ 112              		.cfi_offset 14, -4
+ 113 0002 00AF     		add	r7, sp, #0
+ 114              		.cfi_def_cfa_register 7
+  45:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  46:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 115              		.loc 1 46 0
+ 116 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
+  47:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_StartEx(GATE_INTERRUPT); 
+ 117              		.loc 1 47 0
+ 118 0008 054B     		ldr	r3, .L5
+ 119 000a 1800     		movs	r0, r3
+ 120 000c FFF7FEFF 		bl	GATE_INT_StartEx
+  48:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();
+ 121              		.loc 1 48 0
+ 122 0010 FFF7FEFF 		bl	GATE_INT_Disable
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 4
 
 
- 128              		.cfi_endproc
- 129              	.LFE64:
- 130              		.size	GateInit, .-GateInit
- 131              		.section	.text.GateIsOpen,"ax",%progbits
- 132              		.align	2
- 133              		.global	GateIsOpen
- 134              		.code	16
- 135              		.thumb_func
- 136              		.type	GateIsOpen, %function
- 137              	GateIsOpen:
- 138              	.LFB65:
-  44:..\..\common\lib\lib_Gate/gate.c **** 
-  45:..\..\common\lib\lib_Gate/gate.c **** 
-  46:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
-  47:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateOpen
-  48:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
-  49:..\..\common\lib\lib_Gate/gate.c **** *
-  50:..\..\common\lib\lib_Gate/gate.c **** * Summary:
-  51:..\..\common\lib\lib_Gate/gate.c **** *  verification or gate closed
-  52:..\..\common\lib\lib_Gate/gate.c **** *
-  53:..\..\common\lib\lib_Gate/gate.c **** * Return:
-  54:..\..\common\lib\lib_Gate/gate.c **** *  GATE_CLOSE or GATE_OPEN
-  55:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
-  56:..\..\common\lib\lib_Gate/gate.c **** uint32_t GateIsOpen(void)
-  57:..\..\common\lib\lib_Gate/gate.c **** {   
- 139              		.loc 1 57 0
- 140              		.cfi_startproc
- 141              		@ args = 0, pretend = 0, frame = 8
- 142              		@ frame_needed = 1, uses_anonymous_args = 0
- 143 0000 80B5     		push	{r7, lr}
- 144              		.cfi_def_cfa_offset 8
- 145              		.cfi_offset 7, -8
- 146              		.cfi_offset 14, -4
- 147 0002 82B0     		sub	sp, sp, #8
- 148              		.cfi_def_cfa_offset 16
- 149 0004 00AF     		add	r7, sp, #0
- 150              		.cfi_def_cfa_register 7
-  58:..\..\common\lib\lib_Gate/gate.c ****     uint32_t result;
-  59:..\..\common\lib\lib_Gate/gate.c ****     
-  60:..\..\common\lib\lib_Gate/gate.c ****     result = gateOpen;
- 151              		.loc 1 60 0
- 152 0006 054B     		ldr	r3, .L9
- 153 0008 1B68     		ldr	r3, [r3]
- 154 000a 7B60     		str	r3, [r7, #4]
-  61:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
- 155              		.loc 1 61 0
- 156 000c 034B     		ldr	r3, .L9
- 157 000e 0022     		movs	r2, #0
- 158 0010 1A60     		str	r2, [r3]
-  62:..\..\common\lib\lib_Gate/gate.c ****     
-  63:..\..\common\lib\lib_Gate/gate.c ****     return result;
- 159              		.loc 1 63 0
- 160 0012 7B68     		ldr	r3, [r7, #4]
-  64:..\..\common\lib\lib_Gate/gate.c **** }
- 161              		.loc 1 64 0
- 162 0014 1800     		movs	r0, r3
- 163 0016 BD46     		mov	sp, r7
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 5
+  49:..\..\common\lib\lib_Gate/gate.c ****     
+  50:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;     
+ 123              		.loc 1 50 0
+ 124 0014 034B     		ldr	r3, .L5+4
+ 125 0016 0022     		movs	r2, #0
+ 126 0018 1A60     		str	r2, [r3]
+  51:..\..\common\lib\lib_Gate/gate.c **** }
+ 127              		.loc 1 51 0
+ 128 001a C046     		nop
+ 129 001c BD46     		mov	sp, r7
+ 130              		@ sp needed
+ 131 001e 80BD     		pop	{r7, pc}
+ 132              	.L6:
+ 133              		.align	2
+ 134              	.L5:
+ 135 0020 00000000 		.word	GATE_INTERRUPT
+ 136 0024 14000000 		.word	gateOpen
+ 137              		.cfi_endproc
+ 138              	.LFE64:
+ 139              		.size	GateInit, .-GateInit
+ 140              		.section	.text.GateIsOpen,"ax",%progbits
+ 141              		.align	2
+ 142              		.global	GateIsOpen
+ 143              		.code	16
+ 144              		.thumb_func
+ 145              		.type	GateIsOpen, %function
+ 146              	GateIsOpen:
+ 147              	.LFB65:
+  52:..\..\common\lib\lib_Gate/gate.c **** 
+  53:..\..\common\lib\lib_Gate/gate.c **** 
+  54:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  55:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GateOpen
+  56:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  57:..\..\common\lib\lib_Gate/gate.c **** *
+  58:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  59:..\..\common\lib\lib_Gate/gate.c **** *  verification or gate closed
+  60:..\..\common\lib\lib_Gate/gate.c **** *
+  61:..\..\common\lib\lib_Gate/gate.c **** * Return:
+  62:..\..\common\lib\lib_Gate/gate.c **** *  GATE_CLOSE or GATE_OPEN
+  63:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  64:..\..\common\lib\lib_Gate/gate.c **** uint32_t GateIsOpen(void)
+  65:..\..\common\lib\lib_Gate/gate.c **** {   
+ 148              		.loc 1 65 0
+ 149              		.cfi_startproc
+ 150              		@ args = 0, pretend = 0, frame = 8
+ 151              		@ frame_needed = 1, uses_anonymous_args = 0
+ 152 0000 80B5     		push	{r7, lr}
+ 153              		.cfi_def_cfa_offset 8
+ 154              		.cfi_offset 7, -8
+ 155              		.cfi_offset 14, -4
+ 156 0002 82B0     		sub	sp, sp, #8
+ 157              		.cfi_def_cfa_offset 16
+ 158 0004 00AF     		add	r7, sp, #0
+ 159              		.cfi_def_cfa_register 7
+  66:..\..\common\lib\lib_Gate/gate.c ****     uint32_t result;
+  67:..\..\common\lib\lib_Gate/gate.c ****     
+  68:..\..\common\lib\lib_Gate/gate.c ****     result = gateOpen;
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 5
 
 
- 164 0018 02B0     		add	sp, sp, #8
- 165              		@ sp needed
- 166 001a 80BD     		pop	{r7, pc}
- 167              	.L10:
- 168              		.align	2
- 169              	.L9:
- 170 001c 14000000 		.word	gateOpen
- 171              		.cfi_endproc
- 172              	.LFE65:
- 173              		.size	GateIsOpen, .-GateIsOpen
- 174              		.section	.text.AllowNextSkier,"ax",%progbits
- 175              		.align	2
- 176              		.global	AllowNextSkier
- 177              		.code	16
- 178              		.thumb_func
- 179              		.type	AllowNextSkier, %function
- 180              	AllowNextSkier:
- 181              	.LFB66:
-  65:..\..\common\lib\lib_Gate/gate.c **** 
-  66:..\..\common\lib\lib_Gate/gate.c **** 
-  67:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
-  68:..\..\common\lib\lib_Gate/gate.c **** * Function Name: AllowNextSkier
-  69:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
-  70:..\..\common\lib\lib_Gate/gate.c **** *
-  71:..\..\common\lib\lib_Gate/gate.c **** * Summary:
-  72:..\..\common\lib\lib_Gate/gate.c **** *   allow the new skier on way(enable gate interrupt)
-  73:..\..\common\lib\lib_Gate/gate.c **** *
-  74:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
-  75:..\..\common\lib\lib_Gate/gate.c **** void AllowNextSkier(void)
-  76:..\..\common\lib\lib_Gate/gate.c **** {
- 182              		.loc 1 76 0
- 183              		.cfi_startproc
- 184              		@ args = 0, pretend = 0, frame = 0
- 185              		@ frame_needed = 1, uses_anonymous_args = 0
- 186 0000 80B5     		push	{r7, lr}
- 187              		.cfi_def_cfa_offset 8
- 188              		.cfi_offset 7, -8
- 189              		.cfi_offset 14, -4
- 190 0002 00AF     		add	r7, sp, #0
- 191              		.cfi_def_cfa_register 7
-  77:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
-  78:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
- 192              		.loc 1 78 0
- 193 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
-  79:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Enable();
- 194              		.loc 1 79 0
- 195 0008 FFF7FEFF 		bl	GATE_INT_Enable
-  80:..\..\common\lib\lib_Gate/gate.c **** }
- 196              		.loc 1 80 0
- 197 000c C046     		nop
- 198 000e BD46     		mov	sp, r7
- 199              		@ sp needed
- 200 0010 80BD     		pop	{r7, pc}
- 201              		.cfi_endproc
- 202              	.LFE66:
- 203              		.size	AllowNextSkier, .-AllowNextSkier
- 204 0012 C046     		.section	.text.DisAllowNextSkier,"ax",%progbits
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 6
+ 160              		.loc 1 68 0
+ 161 0006 054B     		ldr	r3, .L9
+ 162 0008 1B68     		ldr	r3, [r3]
+ 163 000a 7B60     		str	r3, [r7, #4]
+  69:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
+ 164              		.loc 1 69 0
+ 165 000c 034B     		ldr	r3, .L9
+ 166 000e 0022     		movs	r2, #0
+ 167 0010 1A60     		str	r2, [r3]
+  70:..\..\common\lib\lib_Gate/gate.c ****     
+  71:..\..\common\lib\lib_Gate/gate.c ****     return result;
+ 168              		.loc 1 71 0
+ 169 0012 7B68     		ldr	r3, [r7, #4]
+  72:..\..\common\lib\lib_Gate/gate.c **** }
+ 170              		.loc 1 72 0
+ 171 0014 1800     		movs	r0, r3
+ 172 0016 BD46     		mov	sp, r7
+ 173 0018 02B0     		add	sp, sp, #8
+ 174              		@ sp needed
+ 175 001a 80BD     		pop	{r7, pc}
+ 176              	.L10:
+ 177              		.align	2
+ 178              	.L9:
+ 179 001c 14000000 		.word	gateOpen
+ 180              		.cfi_endproc
+ 181              	.LFE65:
+ 182              		.size	GateIsOpen, .-GateIsOpen
+ 183              		.section	.text.AllowNextSkier,"ax",%progbits
+ 184              		.align	2
+ 185              		.global	AllowNextSkier
+ 186              		.code	16
+ 187              		.thumb_func
+ 188              		.type	AllowNextSkier, %function
+ 189              	AllowNextSkier:
+ 190              	.LFB66:
+  73:..\..\common\lib\lib_Gate/gate.c **** 
+  74:..\..\common\lib\lib_Gate/gate.c **** 
+  75:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+  76:..\..\common\lib\lib_Gate/gate.c **** * Function Name: AllowNextSkier
+  77:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+  78:..\..\common\lib\lib_Gate/gate.c **** *
+  79:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+  80:..\..\common\lib\lib_Gate/gate.c **** *   allow the new skier on way(enable gate interrupt)
+  81:..\..\common\lib\lib_Gate/gate.c **** *
+  82:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+  83:..\..\common\lib\lib_Gate/gate.c **** void AllowNextSkier(void)
+  84:..\..\common\lib\lib_Gate/gate.c **** {
+ 191              		.loc 1 84 0
+ 192              		.cfi_startproc
+ 193              		@ args = 0, pretend = 0, frame = 0
+ 194              		@ frame_needed = 1, uses_anonymous_args = 0
+ 195 0000 80B5     		push	{r7, lr}
+ 196              		.cfi_def_cfa_offset 8
+ 197              		.cfi_offset 7, -8
+ 198              		.cfi_offset 14, -4
+ 199 0002 00AF     		add	r7, sp, #0
+ 200              		.cfi_def_cfa_register 7
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 6
 
 
- 205              		.align	2
- 206              		.global	DisAllowNextSkier
- 207              		.code	16
- 208              		.thumb_func
- 209              		.type	DisAllowNextSkier, %function
- 210              	DisAllowNextSkier:
- 211              	.LFB67:
-  81:..\..\common\lib\lib_Gate/gate.c **** 
-  82:..\..\common\lib\lib_Gate/gate.c **** void DisAllowNextSkier(void)
-  83:..\..\common\lib\lib_Gate/gate.c **** {
- 212              		.loc 1 83 0
- 213              		.cfi_startproc
- 214              		@ args = 0, pretend = 0, frame = 0
- 215              		@ frame_needed = 1, uses_anonymous_args = 0
- 216 0000 80B5     		push	{r7, lr}
- 217              		.cfi_def_cfa_offset 8
- 218              		.cfi_offset 7, -8
- 219              		.cfi_offset 14, -4
- 220 0002 00AF     		add	r7, sp, #0
- 221              		.cfi_def_cfa_register 7
-  84:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
- 222              		.loc 1 84 0
- 223 0004 054B     		ldr	r3, .L13
- 224 0006 0022     		movs	r2, #0
- 225 0008 1A60     		str	r2, [r3]
-  85:..\..\common\lib\lib_Gate/gate.c ****      
-  86:..\..\common\lib\lib_Gate/gate.c ****     GatePin_ClearInterrupt();
- 226              		.loc 1 86 0
- 227 000a FFF7FEFF 		bl	GatePin_ClearInterrupt
-  87:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
- 228              		.loc 1 87 0
- 229 000e FFF7FEFF 		bl	GATE_INT_ClearPending
-  88:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();   
- 230              		.loc 1 88 0
- 231 0012 FFF7FEFF 		bl	GATE_INT_Disable
-  89:..\..\common\lib\lib_Gate/gate.c **** }
- 232              		.loc 1 89 0
- 233 0016 C046     		nop
- 234 0018 BD46     		mov	sp, r7
- 235              		@ sp needed
- 236 001a 80BD     		pop	{r7, pc}
- 237              	.L14:
- 238              		.align	2
- 239              	.L13:
- 240 001c 14000000 		.word	gateOpen
- 241              		.cfi_endproc
- 242              	.LFE67:
- 243              		.size	DisAllowNextSkier, .-DisAllowNextSkier
- 244              		.section	.text.GetStartTime,"ax",%progbits
- 245              		.align	2
- 246              		.global	GetStartTime
- 247              		.code	16
- 248              		.thumb_func
- 249              		.type	GetStartTime, %function
- 250              	GetStartTime:
- 251              	.LFB68:
-  90:..\..\common\lib\lib_Gate/gate.c **** 
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 7
+  85:..\..\common\lib\lib_Gate/gate.c ****     //GatePin_ClearInterrupt();
+  86:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 201              		.loc 1 86 0
+ 202 0004 FFF7FEFF 		bl	GATE_INT_ClearPending
+  87:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Enable();
+ 203              		.loc 1 87 0
+ 204 0008 FFF7FEFF 		bl	GATE_INT_Enable
+  88:..\..\common\lib\lib_Gate/gate.c **** }
+ 205              		.loc 1 88 0
+ 206 000c C046     		nop
+ 207 000e BD46     		mov	sp, r7
+ 208              		@ sp needed
+ 209 0010 80BD     		pop	{r7, pc}
+ 210              		.cfi_endproc
+ 211              	.LFE66:
+ 212              		.size	AllowNextSkier, .-AllowNextSkier
+ 213 0012 C046     		.section	.text.DisAllowNextSkier,"ax",%progbits
+ 214              		.align	2
+ 215              		.global	DisAllowNextSkier
+ 216              		.code	16
+ 217              		.thumb_func
+ 218              		.type	DisAllowNextSkier, %function
+ 219              	DisAllowNextSkier:
+ 220              	.LFB67:
+  89:..\..\common\lib\lib_Gate/gate.c **** 
+  90:..\..\common\lib\lib_Gate/gate.c **** void DisAllowNextSkier(void)
+  91:..\..\common\lib\lib_Gate/gate.c **** {
+ 221              		.loc 1 91 0
+ 222              		.cfi_startproc
+ 223              		@ args = 0, pretend = 0, frame = 0
+ 224              		@ frame_needed = 1, uses_anonymous_args = 0
+ 225 0000 80B5     		push	{r7, lr}
+ 226              		.cfi_def_cfa_offset 8
+ 227              		.cfi_offset 7, -8
+ 228              		.cfi_offset 14, -4
+ 229 0002 00AF     		add	r7, sp, #0
+ 230              		.cfi_def_cfa_register 7
+  92:..\..\common\lib\lib_Gate/gate.c ****     gateOpen = GATE_CLOSE;
+ 231              		.loc 1 92 0
+ 232 0004 054B     		ldr	r3, .L13
+ 233 0006 0022     		movs	r2, #0
+ 234 0008 1A60     		str	r2, [r3]
+  93:..\..\common\lib\lib_Gate/gate.c ****      
+  94:..\..\common\lib\lib_Gate/gate.c ****     GatePin_ClearInterrupt();
+ 235              		.loc 1 94 0
+ 236 000a FFF7FEFF 		bl	GatePin_ClearInterrupt
+  95:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_ClearPending();
+ 237              		.loc 1 95 0
+ 238 000e FFF7FEFF 		bl	GATE_INT_ClearPending
+  96:..\..\common\lib\lib_Gate/gate.c ****     GATE_INT_Disable();   
+ 239              		.loc 1 96 0
+ 240 0012 FFF7FEFF 		bl	GATE_INT_Disable
+  97:..\..\common\lib\lib_Gate/gate.c **** }
+ 241              		.loc 1 97 0
+ 242 0016 C046     		nop
+ 243 0018 BD46     		mov	sp, r7
+ 244              		@ sp needed
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 7
 
 
-  91:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
-  92:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GetFinTime
-  93:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
-  94:..\..\common\lib\lib_Gate/gate.c **** *
-  95:..\..\common\lib\lib_Gate/gate.c **** * Summary:
-  96:..\..\common\lib\lib_Gate/gate.c **** *   reading recorded in the interruption time finish skier
-  97:..\..\common\lib\lib_Gate/gate.c **** * Parametrs:
-  98:..\..\common\lib\lib_Gate/gate.c **** *   *unixTime - pointer from unix time skier
-  99:..\..\common\lib\lib_Gate/gate.c **** *   *recentMs - pointer from miliseconds time
- 100:..\..\common\lib\lib_Gate/gate.c **** *
- 101:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
- 102:..\..\common\lib\lib_Gate/gate.c **** #ifdef START_MODULE
- 103:..\..\common\lib\lib_Gate/gate.c **** void GetStartTime(uint64_t *unixTime,  uint32_t *recentMs)
- 104:..\..\common\lib\lib_Gate/gate.c **** {
- 252              		.loc 1 104 0
- 253              		.cfi_startproc
- 254              		@ args = 0, pretend = 0, frame = 8
- 255              		@ frame_needed = 1, uses_anonymous_args = 0
- 256 0000 90B5     		push	{r4, r7, lr}
- 257              		.cfi_def_cfa_offset 12
- 258              		.cfi_offset 4, -12
- 259              		.cfi_offset 7, -8
- 260              		.cfi_offset 14, -4
- 261 0002 83B0     		sub	sp, sp, #12
- 262              		.cfi_def_cfa_offset 24
- 263 0004 00AF     		add	r7, sp, #0
- 264              		.cfi_def_cfa_register 7
- 265 0006 7860     		str	r0, [r7, #4]
- 266 0008 3960     		str	r1, [r7]
- 105:..\..\common\lib\lib_Gate/gate.c ****     *unixTime = savedUnixTime;
- 267              		.loc 1 105 0
- 268 000a 074B     		ldr	r3, .L16
- 269 000c 5C68     		ldr	r4, [r3, #4]
- 270 000e 1B68     		ldr	r3, [r3]
- 271 0010 7A68     		ldr	r2, [r7, #4]
- 272 0012 1360     		str	r3, [r2]
- 273 0014 5460     		str	r4, [r2, #4]
- 106:..\..\common\lib\lib_Gate/gate.c ****     *recentMs = savedRecentMs;
- 274              		.loc 1 106 0
- 275 0016 054B     		ldr	r3, .L16+4
- 276 0018 1A68     		ldr	r2, [r3]
- 277 001a 3B68     		ldr	r3, [r7]
- 278 001c 1A60     		str	r2, [r3]
- 107:..\..\common\lib\lib_Gate/gate.c **** }
- 279              		.loc 1 107 0
- 280 001e C046     		nop
- 281 0020 BD46     		mov	sp, r7
- 282 0022 03B0     		add	sp, sp, #12
- 283              		@ sp needed
- 284 0024 90BD     		pop	{r4, r7, pc}
- 285              	.L17:
- 286 0026 C046     		.align	2
- 287              	.L16:
- 288 0028 08000000 		.word	savedUnixTime
- 289 002c 10000000 		.word	savedRecentMs
- 290              		.cfi_endproc
- 291              	.LFE68:
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 8
+ 245 001a 80BD     		pop	{r7, pc}
+ 246              	.L14:
+ 247              		.align	2
+ 248              	.L13:
+ 249 001c 14000000 		.word	gateOpen
+ 250              		.cfi_endproc
+ 251              	.LFE67:
+ 252              		.size	DisAllowNextSkier, .-DisAllowNextSkier
+ 253              		.section	.text.GetStartTime,"ax",%progbits
+ 254              		.align	2
+ 255              		.global	GetStartTime
+ 256              		.code	16
+ 257              		.thumb_func
+ 258              		.type	GetStartTime, %function
+ 259              	GetStartTime:
+ 260              	.LFB68:
+  98:..\..\common\lib\lib_Gate/gate.c **** 
+  99:..\..\common\lib\lib_Gate/gate.c **** /*******************************************************************************
+ 100:..\..\common\lib\lib_Gate/gate.c **** * Function Name: GetFinTime
+ 101:..\..\common\lib\lib_Gate/gate.c **** ********************************************************************************
+ 102:..\..\common\lib\lib_Gate/gate.c **** *
+ 103:..\..\common\lib\lib_Gate/gate.c **** * Summary:
+ 104:..\..\common\lib\lib_Gate/gate.c **** *   reading recorded in the interruption time finish skier
+ 105:..\..\common\lib\lib_Gate/gate.c **** * Parametrs:
+ 106:..\..\common\lib\lib_Gate/gate.c **** *   *unixTime - pointer from unix time skier
+ 107:..\..\common\lib\lib_Gate/gate.c **** *   *recentMs - pointer from miliseconds time
+ 108:..\..\common\lib\lib_Gate/gate.c **** *
+ 109:..\..\common\lib\lib_Gate/gate.c **** *******************************************************************************/
+ 110:..\..\common\lib\lib_Gate/gate.c **** #ifdef START_MODULE
+ 111:..\..\common\lib\lib_Gate/gate.c **** void GetStartTime(uint8_t *idSkier,uint64_t *unixTime,  uint32_t *recentMs)
+ 112:..\..\common\lib\lib_Gate/gate.c **** {
+ 261              		.loc 1 112 0
+ 262              		.cfi_startproc
+ 263              		@ args = 0, pretend = 0, frame = 16
+ 264              		@ frame_needed = 1, uses_anonymous_args = 0
+ 265 0000 90B5     		push	{r4, r7, lr}
+ 266              		.cfi_def_cfa_offset 12
+ 267              		.cfi_offset 4, -12
+ 268              		.cfi_offset 7, -8
+ 269              		.cfi_offset 14, -4
+ 270 0002 85B0     		sub	sp, sp, #20
+ 271              		.cfi_def_cfa_offset 32
+ 272 0004 00AF     		add	r7, sp, #0
+ 273              		.cfi_def_cfa_register 7
+ 274 0006 F860     		str	r0, [r7, #12]
+ 275 0008 B960     		str	r1, [r7, #8]
+ 276 000a 7A60     		str	r2, [r7, #4]
+ 113:..\..\common\lib\lib_Gate/gate.c ****     *idSkier = savedIdSkier;
+ 277              		.loc 1 113 0
+ 278 000c 084B     		ldr	r3, .L16
+ 279 000e 1A78     		ldrb	r2, [r3]
+ 280 0010 FB68     		ldr	r3, [r7, #12]
+ 281 0012 1A70     		strb	r2, [r3]
+ 114:..\..\common\lib\lib_Gate/gate.c ****     *unixTime = savedUnixTime;
+ 282              		.loc 1 114 0
+ 283 0014 074B     		ldr	r3, .L16+4
+ 284 0016 5C68     		ldr	r4, [r3, #4]
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 8
 
 
- 292              		.size	GetStartTime, .-GetStartTime
- 293              		.text
- 294              	.Letext0:
- 295              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
- 296              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
- 297              		.file 4 "./appGlobal.h"
- 298              		.section	.debug_info,"",%progbits
- 299              	.Ldebug_info0:
- 300 0000 E6010000 		.4byte	0x1e6
- 301 0004 0400     		.2byte	0x4
- 302 0006 00000000 		.4byte	.Ldebug_abbrev0
- 303 000a 04       		.byte	0x4
- 304 000b 01       		.uleb128 0x1
- 305 000c 1E010000 		.4byte	.LASF33
- 306 0010 0C       		.byte	0xc
- 307 0011 38000000 		.4byte	.LASF34
- 308 0015 E2000000 		.4byte	.LASF35
- 309 0019 00000000 		.4byte	.Ldebug_ranges0+0
- 310 001d 00000000 		.4byte	0
- 311 0021 00000000 		.4byte	.Ldebug_line0
- 312 0025 02       		.uleb128 0x2
- 313 0026 01       		.byte	0x1
- 314 0027 06       		.byte	0x6
- 315 0028 86000000 		.4byte	.LASF0
- 316 002c 02       		.uleb128 0x2
- 317 002d 01       		.byte	0x1
- 318 002e 08       		.byte	0x8
- 319 002f 92000000 		.4byte	.LASF1
- 320 0033 02       		.uleb128 0x2
- 321 0034 02       		.byte	0x2
- 322 0035 05       		.byte	0x5
- 323 0036 43020000 		.4byte	.LASF2
- 324 003a 02       		.uleb128 0x2
- 325 003b 02       		.byte	0x2
- 326 003c 07       		.byte	0x7
- 327 003d CF000000 		.4byte	.LASF3
- 328 0041 02       		.uleb128 0x2
- 329 0042 04       		.byte	0x4
- 330 0043 05       		.byte	0x5
- 331 0044 61020000 		.4byte	.LASF4
- 332 0048 03       		.uleb128 0x3
- 333 0049 DA010000 		.4byte	.LASF7
- 334 004d 02       		.byte	0x2
- 335 004e 41       		.byte	0x41
- 336 004f 53000000 		.4byte	0x53
- 337 0053 02       		.uleb128 0x2
- 338 0054 04       		.byte	0x4
- 339 0055 07       		.byte	0x7
- 340 0056 AF000000 		.4byte	.LASF5
- 341 005a 02       		.uleb128 0x2
- 342 005b 08       		.byte	0x8
- 343 005c 05       		.byte	0x5
- 344 005d 30020000 		.4byte	.LASF6
- 345 0061 03       		.uleb128 0x3
- 346 0062 4D020000 		.4byte	.LASF8
- 347 0066 02       		.byte	0x2
- 348 0067 5B       		.byte	0x5b
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 9
+ 285 0018 1B68     		ldr	r3, [r3]
+ 286 001a BA68     		ldr	r2, [r7, #8]
+ 287 001c 1360     		str	r3, [r2]
+ 288 001e 5460     		str	r4, [r2, #4]
+ 115:..\..\common\lib\lib_Gate/gate.c ****     *recentMs = savedRecentMs;
+ 289              		.loc 1 115 0
+ 290 0020 054B     		ldr	r3, .L16+8
+ 291 0022 1A68     		ldr	r2, [r3]
+ 292 0024 7B68     		ldr	r3, [r7, #4]
+ 293 0026 1A60     		str	r2, [r3]
+ 116:..\..\common\lib\lib_Gate/gate.c **** }
+ 294              		.loc 1 116 0
+ 295 0028 C046     		nop
+ 296 002a BD46     		mov	sp, r7
+ 297 002c 05B0     		add	sp, sp, #20
+ 298              		@ sp needed
+ 299 002e 90BD     		pop	{r4, r7, pc}
+ 300              	.L17:
+ 301              		.align	2
+ 302              	.L16:
+ 303 0030 04000000 		.word	savedIdSkier
+ 304 0034 08000000 		.word	savedUnixTime
+ 305 0038 10000000 		.word	savedRecentMs
+ 306              		.cfi_endproc
+ 307              	.LFE68:
+ 308              		.size	GetStartTime, .-GetStartTime
+ 309              		.text
+ 310              	.Letext0:
+ 311              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 312              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 313              		.file 4 "./appGlobal.h"
+ 314              		.section	.debug_info,"",%progbits
+ 315              	.Ldebug_info0:
+ 316 0000 21020000 		.4byte	0x221
+ 317 0004 0400     		.2byte	0x4
+ 318 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 319 000a 04       		.byte	0x4
+ 320 000b 01       		.uleb128 0x1
+ 321 000c 28010000 		.4byte	.LASF37
+ 322 0010 0C       		.byte	0xc
+ 323 0011 42000000 		.4byte	.LASF38
+ 324 0015 EC000000 		.4byte	.LASF39
+ 325 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 326 001d 00000000 		.4byte	0
+ 327 0021 00000000 		.4byte	.Ldebug_line0
+ 328 0025 02       		.uleb128 0x2
+ 329 0026 01       		.byte	0x1
+ 330 0027 06       		.byte	0x6
+ 331 0028 90000000 		.4byte	.LASF0
+ 332 002c 03       		.uleb128 0x3
+ 333 002d 0F000000 		.4byte	.LASF5
+ 334 0031 02       		.byte	0x2
+ 335 0032 1D       		.byte	0x1d
+ 336 0033 37000000 		.4byte	0x37
+ 337 0037 02       		.uleb128 0x2
+ 338 0038 01       		.byte	0x1
+ 339 0039 08       		.byte	0x8
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 9
 
 
- 349 0068 6C000000 		.4byte	0x6c
- 350 006c 02       		.uleb128 0x2
- 351 006d 08       		.byte	0x8
- 352 006e 07       		.byte	0x7
- 353 006f 00020000 		.4byte	.LASF9
- 354 0073 04       		.uleb128 0x4
- 355 0074 04       		.byte	0x4
- 356 0075 05       		.byte	0x5
- 357 0076 696E7400 		.ascii	"int\000"
- 358 007a 02       		.uleb128 0x2
- 359 007b 04       		.byte	0x4
- 360 007c 07       		.byte	0x7
- 361 007d F3010000 		.4byte	.LASF10
- 362 0081 03       		.uleb128 0x3
- 363 0082 58020000 		.4byte	.LASF11
- 364 0086 03       		.byte	0x3
- 365 0087 30       		.byte	0x30
- 366 0088 48000000 		.4byte	0x48
- 367 008c 03       		.uleb128 0x3
- 368 008d 6D000000 		.4byte	.LASF12
- 369 0091 03       		.byte	0x3
- 370 0092 3C       		.byte	0x3c
- 371 0093 61000000 		.4byte	0x61
- 372 0097 02       		.uleb128 0x2
- 373 0098 04       		.byte	0x4
- 374 0099 04       		.byte	0x4
- 375 009a 80000000 		.4byte	.LASF13
- 376 009e 02       		.uleb128 0x2
- 377 009f 08       		.byte	0x8
- 378 00a0 04       		.byte	0x4
- 379 00a1 B7010000 		.4byte	.LASF14
- 380 00a5 02       		.uleb128 0x2
- 381 00a6 01       		.byte	0x1
- 382 00a7 08       		.byte	0x8
- 383 00a8 3E020000 		.4byte	.LASF15
- 384 00ac 02       		.uleb128 0x2
- 385 00ad 08       		.byte	0x8
- 386 00ae 04       		.byte	0x4
- 387 00af 6A020000 		.4byte	.LASF16
- 388 00b3 02       		.uleb128 0x2
- 389 00b4 04       		.byte	0x4
- 390 00b5 07       		.byte	0x7
- 391 00b6 27020000 		.4byte	.LASF17
- 392 00ba 05       		.uleb128 0x5
- 393 00bb 01       		.byte	0x1
- 394 00bc 2C000000 		.4byte	0x2c
- 395 00c0 04       		.byte	0x4
- 396 00c1 18       		.byte	0x18
- 397 00c2 DF000000 		.4byte	0xdf
- 398 00c6 06       		.uleb128 0x6
- 399 00c7 D0010000 		.4byte	.LASF18
- 400 00cb 00       		.byte	0
- 401 00cc 06       		.uleb128 0x6
- 402 00cd 00000000 		.4byte	.LASF19
- 403 00d1 01       		.byte	0x1
- 404 00d2 06       		.uleb128 0x6
- 405 00d3 AC010000 		.4byte	.LASF20
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 10
+ 340 003a 9C000000 		.4byte	.LASF1
+ 341 003e 02       		.uleb128 0x2
+ 342 003f 02       		.byte	0x2
+ 343 0040 05       		.byte	0x5
+ 344 0041 EF010000 		.4byte	.LASF2
+ 345 0045 02       		.uleb128 0x2
+ 346 0046 02       		.byte	0x2
+ 347 0047 07       		.byte	0x7
+ 348 0048 D9000000 		.4byte	.LASF3
+ 349 004c 02       		.uleb128 0x2
+ 350 004d 04       		.byte	0x4
+ 351 004e 05       		.byte	0x5
+ 352 004f 88020000 		.4byte	.LASF4
+ 353 0053 03       		.uleb128 0x3
+ 354 0054 B6010000 		.4byte	.LASF6
+ 355 0058 02       		.byte	0x2
+ 356 0059 41       		.byte	0x41
+ 357 005a 5E000000 		.4byte	0x5e
+ 358 005e 02       		.uleb128 0x2
+ 359 005f 04       		.byte	0x4
+ 360 0060 07       		.byte	0x7
+ 361 0061 B9000000 		.4byte	.LASF7
+ 362 0065 02       		.uleb128 0x2
+ 363 0066 08       		.byte	0x8
+ 364 0067 05       		.byte	0x5
+ 365 0068 54020000 		.4byte	.LASF8
+ 366 006c 03       		.uleb128 0x3
+ 367 006d 74020000 		.4byte	.LASF9
+ 368 0071 02       		.byte	0x2
+ 369 0072 5B       		.byte	0x5b
+ 370 0073 77000000 		.4byte	0x77
+ 371 0077 02       		.uleb128 0x2
+ 372 0078 08       		.byte	0x8
+ 373 0079 07       		.byte	0x7
+ 374 007a 1C020000 		.4byte	.LASF10
+ 375 007e 04       		.uleb128 0x4
+ 376 007f 04       		.byte	0x4
+ 377 0080 05       		.byte	0x5
+ 378 0081 696E7400 		.ascii	"int\000"
+ 379 0085 02       		.uleb128 0x2
+ 380 0086 04       		.byte	0x4
+ 381 0087 07       		.byte	0x7
+ 382 0088 07020000 		.4byte	.LASF11
+ 383 008c 03       		.uleb128 0x3
+ 384 008d 33020000 		.4byte	.LASF12
+ 385 0091 03       		.byte	0x3
+ 386 0092 18       		.byte	0x18
+ 387 0093 2C000000 		.4byte	0x2c
+ 388 0097 03       		.uleb128 0x3
+ 389 0098 7F020000 		.4byte	.LASF13
+ 390 009c 03       		.byte	0x3
+ 391 009d 30       		.byte	0x30
+ 392 009e 53000000 		.4byte	0x53
+ 393 00a2 03       		.uleb128 0x3
+ 394 00a3 77000000 		.4byte	.LASF14
+ 395 00a7 03       		.byte	0x3
+ 396 00a8 3C       		.byte	0x3c
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 10
 
 
- 406 00d7 02       		.byte	0x2
- 407 00d8 06       		.uleb128 0x6
- 408 00d9 7F020000 		.4byte	.LASF21
- 409 00dd 03       		.byte	0x3
- 410 00de 00       		.byte	0
- 411 00df 03       		.uleb128 0x3
- 412 00e0 76000000 		.4byte	.LASF22
- 413 00e4 04       		.byte	0x4
- 414 00e5 18       		.byte	0x18
- 415 00e6 BA000000 		.4byte	0xba
- 416 00ea 07       		.uleb128 0x7
- 417 00eb A0000000 		.4byte	.LASF23
- 418 00ef 01       		.byte	0x1
- 419 00f0 0D       		.byte	0xd
- 420 00f1 00000000 		.4byte	.LFB63
- 421 00f5 3C000000 		.4byte	.LFE63-.LFB63
- 422 00f9 01       		.uleb128 0x1
- 423 00fa 9C       		.byte	0x9c
- 424 00fb 07       		.uleb128 0x7
- 425 00fc 76020000 		.4byte	.LASF24
- 426 0100 01       		.byte	0x1
- 427 0101 23       		.byte	0x23
- 428 0102 00000000 		.4byte	.LFB64
- 429 0106 28000000 		.4byte	.LFE64-.LFB64
- 430 010a 01       		.uleb128 0x1
- 431 010b 9C       		.byte	0x9c
- 432 010c 08       		.uleb128 0x8
- 433 010d 59000000 		.4byte	.LASF36
- 434 0111 01       		.byte	0x1
- 435 0112 38       		.byte	0x38
- 436 0113 81000000 		.4byte	0x81
- 437 0117 00000000 		.4byte	.LFB65
- 438 011b 20000000 		.4byte	.LFE65-.LFB65
- 439 011f 01       		.uleb128 0x1
- 440 0120 9C       		.byte	0x9c
- 441 0121 34010000 		.4byte	0x134
- 442 0125 09       		.uleb128 0x9
- 443 0126 17020000 		.4byte	.LASF29
- 444 012a 01       		.byte	0x1
- 445 012b 3A       		.byte	0x3a
- 446 012c 81000000 		.4byte	0x81
- 447 0130 02       		.uleb128 0x2
- 448 0131 91       		.byte	0x91
- 449 0132 74       		.sleb128 -12
- 450 0133 00       		.byte	0
- 451 0134 07       		.uleb128 0x7
- 452 0135 29000000 		.4byte	.LASF25
- 453 0139 01       		.byte	0x1
- 454 013a 4B       		.byte	0x4b
- 455 013b 00000000 		.4byte	.LFB66
- 456 013f 12000000 		.4byte	.LFE66-.LFB66
- 457 0143 01       		.uleb128 0x1
- 458 0144 9C       		.byte	0x9c
- 459 0145 07       		.uleb128 0x7
- 460 0146 BE010000 		.4byte	.LASF26
- 461 014a 01       		.byte	0x1
- 462 014b 52       		.byte	0x52
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 11
+ 397 00a9 6C000000 		.4byte	0x6c
+ 398 00ad 02       		.uleb128 0x2
+ 399 00ae 04       		.byte	0x4
+ 400 00af 04       		.byte	0x4
+ 401 00b0 8A000000 		.4byte	.LASF15
+ 402 00b4 02       		.uleb128 0x2
+ 403 00b5 08       		.byte	0x8
+ 404 00b6 04       		.byte	0x4
+ 405 00b7 CC010000 		.4byte	.LASF16
+ 406 00bb 02       		.uleb128 0x2
+ 407 00bc 01       		.byte	0x1
+ 408 00bd 08       		.byte	0x8
+ 409 00be 62020000 		.4byte	.LASF17
+ 410 00c2 02       		.uleb128 0x2
+ 411 00c3 08       		.byte	0x8
+ 412 00c4 04       		.byte	0x4
+ 413 00c5 91020000 		.4byte	.LASF18
+ 414 00c9 02       		.uleb128 0x2
+ 415 00ca 04       		.byte	0x4
+ 416 00cb 07       		.byte	0x7
+ 417 00cc 4B020000 		.4byte	.LASF19
+ 418 00d0 05       		.uleb128 0x5
+ 419 00d1 01       		.byte	0x1
+ 420 00d2 37000000 		.4byte	0x37
+ 421 00d6 04       		.byte	0x4
+ 422 00d7 18       		.byte	0x18
+ 423 00d8 F5000000 		.4byte	0xf5
+ 424 00dc 06       		.uleb128 0x6
+ 425 00dd E5010000 		.4byte	.LASF20
+ 426 00e1 00       		.byte	0
+ 427 00e2 06       		.uleb128 0x6
+ 428 00e3 00000000 		.4byte	.LASF21
+ 429 00e7 01       		.byte	0x1
+ 430 00e8 06       		.uleb128 0x6
+ 431 00e9 C1010000 		.4byte	.LASF22
+ 432 00ed 02       		.byte	0x2
+ 433 00ee 06       		.uleb128 0x6
+ 434 00ef A6020000 		.4byte	.LASF23
+ 435 00f3 03       		.byte	0x3
+ 436 00f4 00       		.byte	0
+ 437 00f5 03       		.uleb128 0x3
+ 438 00f6 80000000 		.4byte	.LASF24
+ 439 00fa 04       		.byte	0x4
+ 440 00fb 18       		.byte	0x18
+ 441 00fc D0000000 		.4byte	0xd0
+ 442 0100 07       		.uleb128 0x7
+ 443 0101 AA000000 		.4byte	.LASF25
+ 444 0105 01       		.byte	0x1
+ 445 0106 11       		.byte	0x11
+ 446 0107 00000000 		.4byte	.LFB63
+ 447 010b 4C000000 		.4byte	.LFE63-.LFB63
+ 448 010f 01       		.uleb128 0x1
+ 449 0110 9C       		.byte	0x9c
+ 450 0111 07       		.uleb128 0x7
+ 451 0112 9D020000 		.4byte	.LASF26
+ 452 0116 01       		.byte	0x1
+ 453 0117 2B       		.byte	0x2b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 11
 
 
- 463 014c 00000000 		.4byte	.LFB67
- 464 0150 20000000 		.4byte	.LFE67-.LFB67
- 465 0154 01       		.uleb128 0x1
- 466 0155 9C       		.byte	0x9c
- 467 0156 0A       		.uleb128 0xa
- 468 0157 1C000000 		.4byte	.LASF37
- 469 015b 01       		.byte	0x1
- 470 015c 67       		.byte	0x67
- 471 015d 00000000 		.4byte	.LFB68
- 472 0161 30000000 		.4byte	.LFE68-.LFB68
- 473 0165 01       		.uleb128 0x1
- 474 0166 9C       		.byte	0x9c
- 475 0167 88010000 		.4byte	0x188
- 476 016b 0B       		.uleb128 0xb
- 477 016c 64000000 		.4byte	.LASF27
- 478 0170 01       		.byte	0x1
- 479 0171 67       		.byte	0x67
- 480 0172 88010000 		.4byte	0x188
- 481 0176 02       		.uleb128 0x2
- 482 0177 91       		.byte	0x91
- 483 0178 6C       		.sleb128 -20
- 484 0179 0B       		.uleb128 0xb
- 485 017a 8B020000 		.4byte	.LASF28
- 486 017e 01       		.byte	0x1
- 487 017f 67       		.byte	0x67
- 488 0180 8E010000 		.4byte	0x18e
- 489 0184 02       		.uleb128 0x2
- 490 0185 91       		.byte	0x91
- 491 0186 68       		.sleb128 -24
- 492 0187 00       		.byte	0
- 493 0188 0C       		.uleb128 0xc
- 494 0189 04       		.byte	0x4
- 495 018a 8C000000 		.4byte	0x8c
- 496 018e 0C       		.uleb128 0xc
- 497 018f 04       		.byte	0x4
- 498 0190 81000000 		.4byte	0x81
- 499 0194 09       		.uleb128 0x9
- 500 0195 17020000 		.4byte	.LASF29
- 501 0199 04       		.byte	0x4
- 502 019a 1B       		.byte	0x1b
- 503 019b 81000000 		.4byte	0x81
- 504 019f 05       		.uleb128 0x5
- 505 01a0 03       		.byte	0x3
- 506 01a1 00000000 		.4byte	result
- 507 01a5 09       		.uleb128 0x9
- 508 01a6 E5010000 		.4byte	.LASF30
- 509 01aa 01       		.byte	0x1
- 510 01ab 07       		.byte	0x7
- 511 01ac 8C000000 		.4byte	0x8c
- 512 01b0 05       		.uleb128 0x5
- 513 01b1 03       		.byte	0x3
- 514 01b2 08000000 		.4byte	savedUnixTime
- 515 01b6 09       		.uleb128 0x9
- 516 01b7 C1000000 		.4byte	.LASF31
- 517 01bb 01       		.byte	0x1
- 518 01bc 08       		.byte	0x8
- 519 01bd 81000000 		.4byte	0x81
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 12
+ 454 0118 00000000 		.4byte	.LFB64
+ 455 011c 28000000 		.4byte	.LFE64-.LFB64
+ 456 0120 01       		.uleb128 0x1
+ 457 0121 9C       		.byte	0x9c
+ 458 0122 08       		.uleb128 0x8
+ 459 0123 63000000 		.4byte	.LASF40
+ 460 0127 01       		.byte	0x1
+ 461 0128 40       		.byte	0x40
+ 462 0129 97000000 		.4byte	0x97
+ 463 012d 00000000 		.4byte	.LFB65
+ 464 0131 20000000 		.4byte	.LFE65-.LFB65
+ 465 0135 01       		.uleb128 0x1
+ 466 0136 9C       		.byte	0x9c
+ 467 0137 4A010000 		.4byte	0x14a
+ 468 013b 09       		.uleb128 0x9
+ 469 013c 3B020000 		.4byte	.LASF32
+ 470 0140 01       		.byte	0x1
+ 471 0141 42       		.byte	0x42
+ 472 0142 97000000 		.4byte	0x97
+ 473 0146 02       		.uleb128 0x2
+ 474 0147 91       		.byte	0x91
+ 475 0148 74       		.sleb128 -12
+ 476 0149 00       		.byte	0
+ 477 014a 07       		.uleb128 0x7
+ 478 014b 33000000 		.4byte	.LASF27
+ 479 014f 01       		.byte	0x1
+ 480 0150 53       		.byte	0x53
+ 481 0151 00000000 		.4byte	.LFB66
+ 482 0155 12000000 		.4byte	.LFE66-.LFB66
+ 483 0159 01       		.uleb128 0x1
+ 484 015a 9C       		.byte	0x9c
+ 485 015b 07       		.uleb128 0x7
+ 486 015c D3010000 		.4byte	.LASF28
+ 487 0160 01       		.byte	0x1
+ 488 0161 5A       		.byte	0x5a
+ 489 0162 00000000 		.4byte	.LFB67
+ 490 0166 20000000 		.4byte	.LFE67-.LFB67
+ 491 016a 01       		.uleb128 0x1
+ 492 016b 9C       		.byte	0x9c
+ 493 016c 0A       		.uleb128 0xa
+ 494 016d 26000000 		.4byte	.LASF41
+ 495 0171 01       		.byte	0x1
+ 496 0172 6F       		.byte	0x6f
+ 497 0173 00000000 		.4byte	.LFB68
+ 498 0177 3C000000 		.4byte	.LFE68-.LFB68
+ 499 017b 01       		.uleb128 0x1
+ 500 017c 9C       		.byte	0x9c
+ 501 017d AC010000 		.4byte	0x1ac
+ 502 0181 0B       		.uleb128 0xb
+ 503 0182 14020000 		.4byte	.LASF29
+ 504 0186 01       		.byte	0x1
+ 505 0187 6F       		.byte	0x6f
+ 506 0188 AC010000 		.4byte	0x1ac
+ 507 018c 02       		.uleb128 0x2
+ 508 018d 91       		.byte	0x91
+ 509 018e 6C       		.sleb128 -20
+ 510 018f 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 12
 
 
- 520 01c1 05       		.uleb128 0x5
- 521 01c2 03       		.byte	0x3
- 522 01c3 10000000 		.4byte	savedRecentMs
- 523 01c7 09       		.uleb128 0x9
- 524 01c8 1E020000 		.4byte	.LASF32
- 525 01cc 01       		.byte	0x1
- 526 01cd 09       		.byte	0x9
- 527 01ce 81000000 		.4byte	0x81
- 528 01d2 05       		.uleb128 0x5
- 529 01d3 03       		.byte	0x3
- 530 01d4 14000000 		.4byte	gateOpen
- 531 01d8 0D       		.uleb128 0xd
- 532 01d9 0F000000 		.4byte	.LASF38
- 533 01dd 04       		.byte	0x4
- 534 01de 19       		.byte	0x19
- 535 01df DF000000 		.4byte	0xdf
- 536 01e3 05       		.uleb128 0x5
- 537 01e4 03       		.byte	0x3
- 538 01e5 00000000 		.4byte	currentState
- 539 01e9 00       		.byte	0
- 540              		.section	.debug_abbrev,"",%progbits
- 541              	.Ldebug_abbrev0:
- 542 0000 01       		.uleb128 0x1
- 543 0001 11       		.uleb128 0x11
- 544 0002 01       		.byte	0x1
- 545 0003 25       		.uleb128 0x25
- 546 0004 0E       		.uleb128 0xe
- 547 0005 13       		.uleb128 0x13
- 548 0006 0B       		.uleb128 0xb
- 549 0007 03       		.uleb128 0x3
- 550 0008 0E       		.uleb128 0xe
- 551 0009 1B       		.uleb128 0x1b
- 552 000a 0E       		.uleb128 0xe
- 553 000b 55       		.uleb128 0x55
- 554 000c 17       		.uleb128 0x17
- 555 000d 11       		.uleb128 0x11
- 556 000e 01       		.uleb128 0x1
- 557 000f 10       		.uleb128 0x10
- 558 0010 17       		.uleb128 0x17
- 559 0011 00       		.byte	0
- 560 0012 00       		.byte	0
- 561 0013 02       		.uleb128 0x2
- 562 0014 24       		.uleb128 0x24
- 563 0015 00       		.byte	0
- 564 0016 0B       		.uleb128 0xb
- 565 0017 0B       		.uleb128 0xb
- 566 0018 3E       		.uleb128 0x3e
- 567 0019 0B       		.uleb128 0xb
- 568 001a 03       		.uleb128 0x3
- 569 001b 0E       		.uleb128 0xe
- 570 001c 00       		.byte	0
- 571 001d 00       		.byte	0
- 572 001e 03       		.uleb128 0x3
- 573 001f 16       		.uleb128 0x16
- 574 0020 00       		.byte	0
- 575 0021 03       		.uleb128 0x3
- 576 0022 0E       		.uleb128 0xe
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 13
+ 511 0190 6E000000 		.4byte	.LASF30
+ 512 0194 01       		.byte	0x1
+ 513 0195 6F       		.byte	0x6f
+ 514 0196 B2010000 		.4byte	0x1b2
+ 515 019a 02       		.uleb128 0x2
+ 516 019b 91       		.byte	0x91
+ 517 019c 68       		.sleb128 -24
+ 518 019d 0B       		.uleb128 0xb
+ 519 019e B2020000 		.4byte	.LASF31
+ 520 01a2 01       		.byte	0x1
+ 521 01a3 6F       		.byte	0x6f
+ 522 01a4 B8010000 		.4byte	0x1b8
+ 523 01a8 02       		.uleb128 0x2
+ 524 01a9 91       		.byte	0x91
+ 525 01aa 64       		.sleb128 -28
+ 526 01ab 00       		.byte	0
+ 527 01ac 0C       		.uleb128 0xc
+ 528 01ad 04       		.byte	0x4
+ 529 01ae 8C000000 		.4byte	0x8c
+ 530 01b2 0C       		.uleb128 0xc
+ 531 01b3 04       		.byte	0x4
+ 532 01b4 A2000000 		.4byte	0xa2
+ 533 01b8 0C       		.uleb128 0xc
+ 534 01b9 04       		.byte	0x4
+ 535 01ba 97000000 		.4byte	0x97
+ 536 01be 09       		.uleb128 0x9
+ 537 01bf 3B020000 		.4byte	.LASF32
+ 538 01c3 04       		.byte	0x4
+ 539 01c4 1B       		.byte	0x1b
+ 540 01c5 97000000 		.4byte	0x97
+ 541 01c9 05       		.uleb128 0x5
+ 542 01ca 03       		.byte	0x3
+ 543 01cb 00000000 		.4byte	result
+ 544 01cf 09       		.uleb128 0x9
+ 545 01d0 67020000 		.4byte	.LASF33
+ 546 01d4 01       		.byte	0x1
+ 547 01d5 0A       		.byte	0xa
+ 548 01d6 8C000000 		.4byte	0x8c
+ 549 01da 05       		.uleb128 0x5
+ 550 01db 03       		.byte	0x3
+ 551 01dc 04000000 		.4byte	savedIdSkier
+ 552 01e0 09       		.uleb128 0x9
+ 553 01e1 F9010000 		.4byte	.LASF34
+ 554 01e5 01       		.byte	0x1
+ 555 01e6 0B       		.byte	0xb
+ 556 01e7 A2000000 		.4byte	0xa2
+ 557 01eb 05       		.uleb128 0x5
+ 558 01ec 03       		.byte	0x3
+ 559 01ed 08000000 		.4byte	savedUnixTime
+ 560 01f1 09       		.uleb128 0x9
+ 561 01f2 CB000000 		.4byte	.LASF35
+ 562 01f6 01       		.byte	0x1
+ 563 01f7 0C       		.byte	0xc
+ 564 01f8 97000000 		.4byte	0x97
+ 565 01fc 05       		.uleb128 0x5
+ 566 01fd 03       		.byte	0x3
+ 567 01fe 10000000 		.4byte	savedRecentMs
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 13
 
 
- 577 0023 3A       		.uleb128 0x3a
- 578 0024 0B       		.uleb128 0xb
- 579 0025 3B       		.uleb128 0x3b
- 580 0026 0B       		.uleb128 0xb
- 581 0027 49       		.uleb128 0x49
- 582 0028 13       		.uleb128 0x13
- 583 0029 00       		.byte	0
- 584 002a 00       		.byte	0
- 585 002b 04       		.uleb128 0x4
- 586 002c 24       		.uleb128 0x24
- 587 002d 00       		.byte	0
- 588 002e 0B       		.uleb128 0xb
- 589 002f 0B       		.uleb128 0xb
- 590 0030 3E       		.uleb128 0x3e
- 591 0031 0B       		.uleb128 0xb
- 592 0032 03       		.uleb128 0x3
- 593 0033 08       		.uleb128 0x8
- 594 0034 00       		.byte	0
- 595 0035 00       		.byte	0
- 596 0036 05       		.uleb128 0x5
- 597 0037 04       		.uleb128 0x4
- 598 0038 01       		.byte	0x1
- 599 0039 0B       		.uleb128 0xb
- 600 003a 0B       		.uleb128 0xb
- 601 003b 49       		.uleb128 0x49
- 602 003c 13       		.uleb128 0x13
- 603 003d 3A       		.uleb128 0x3a
- 604 003e 0B       		.uleb128 0xb
- 605 003f 3B       		.uleb128 0x3b
- 606 0040 0B       		.uleb128 0xb
- 607 0041 01       		.uleb128 0x1
- 608 0042 13       		.uleb128 0x13
- 609 0043 00       		.byte	0
- 610 0044 00       		.byte	0
- 611 0045 06       		.uleb128 0x6
- 612 0046 28       		.uleb128 0x28
- 613 0047 00       		.byte	0
- 614 0048 03       		.uleb128 0x3
- 615 0049 0E       		.uleb128 0xe
- 616 004a 1C       		.uleb128 0x1c
- 617 004b 0B       		.uleb128 0xb
- 618 004c 00       		.byte	0
- 619 004d 00       		.byte	0
- 620 004e 07       		.uleb128 0x7
- 621 004f 2E       		.uleb128 0x2e
- 622 0050 00       		.byte	0
- 623 0051 3F       		.uleb128 0x3f
- 624 0052 19       		.uleb128 0x19
- 625 0053 03       		.uleb128 0x3
- 626 0054 0E       		.uleb128 0xe
- 627 0055 3A       		.uleb128 0x3a
- 628 0056 0B       		.uleb128 0xb
- 629 0057 3B       		.uleb128 0x3b
- 630 0058 0B       		.uleb128 0xb
- 631 0059 27       		.uleb128 0x27
- 632 005a 19       		.uleb128 0x19
- 633 005b 11       		.uleb128 0x11
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 14
+ 568 0202 09       		.uleb128 0x9
+ 569 0203 42020000 		.4byte	.LASF36
+ 570 0207 01       		.byte	0x1
+ 571 0208 0D       		.byte	0xd
+ 572 0209 97000000 		.4byte	0x97
+ 573 020d 05       		.uleb128 0x5
+ 574 020e 03       		.byte	0x3
+ 575 020f 14000000 		.4byte	gateOpen
+ 576 0213 0D       		.uleb128 0xd
+ 577 0214 19000000 		.4byte	.LASF42
+ 578 0218 04       		.byte	0x4
+ 579 0219 19       		.byte	0x19
+ 580 021a F5000000 		.4byte	0xf5
+ 581 021e 05       		.uleb128 0x5
+ 582 021f 03       		.byte	0x3
+ 583 0220 00000000 		.4byte	currentState
+ 584 0224 00       		.byte	0
+ 585              		.section	.debug_abbrev,"",%progbits
+ 586              	.Ldebug_abbrev0:
+ 587 0000 01       		.uleb128 0x1
+ 588 0001 11       		.uleb128 0x11
+ 589 0002 01       		.byte	0x1
+ 590 0003 25       		.uleb128 0x25
+ 591 0004 0E       		.uleb128 0xe
+ 592 0005 13       		.uleb128 0x13
+ 593 0006 0B       		.uleb128 0xb
+ 594 0007 03       		.uleb128 0x3
+ 595 0008 0E       		.uleb128 0xe
+ 596 0009 1B       		.uleb128 0x1b
+ 597 000a 0E       		.uleb128 0xe
+ 598 000b 55       		.uleb128 0x55
+ 599 000c 17       		.uleb128 0x17
+ 600 000d 11       		.uleb128 0x11
+ 601 000e 01       		.uleb128 0x1
+ 602 000f 10       		.uleb128 0x10
+ 603 0010 17       		.uleb128 0x17
+ 604 0011 00       		.byte	0
+ 605 0012 00       		.byte	0
+ 606 0013 02       		.uleb128 0x2
+ 607 0014 24       		.uleb128 0x24
+ 608 0015 00       		.byte	0
+ 609 0016 0B       		.uleb128 0xb
+ 610 0017 0B       		.uleb128 0xb
+ 611 0018 3E       		.uleb128 0x3e
+ 612 0019 0B       		.uleb128 0xb
+ 613 001a 03       		.uleb128 0x3
+ 614 001b 0E       		.uleb128 0xe
+ 615 001c 00       		.byte	0
+ 616 001d 00       		.byte	0
+ 617 001e 03       		.uleb128 0x3
+ 618 001f 16       		.uleb128 0x16
+ 619 0020 00       		.byte	0
+ 620 0021 03       		.uleb128 0x3
+ 621 0022 0E       		.uleb128 0xe
+ 622 0023 3A       		.uleb128 0x3a
+ 623 0024 0B       		.uleb128 0xb
+ 624 0025 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 14
 
 
- 634 005c 01       		.uleb128 0x1
- 635 005d 12       		.uleb128 0x12
- 636 005e 06       		.uleb128 0x6
- 637 005f 40       		.uleb128 0x40
- 638 0060 18       		.uleb128 0x18
- 639 0061 9642     		.uleb128 0x2116
- 640 0063 19       		.uleb128 0x19
- 641 0064 00       		.byte	0
- 642 0065 00       		.byte	0
- 643 0066 08       		.uleb128 0x8
- 644 0067 2E       		.uleb128 0x2e
- 645 0068 01       		.byte	0x1
- 646 0069 3F       		.uleb128 0x3f
- 647 006a 19       		.uleb128 0x19
- 648 006b 03       		.uleb128 0x3
- 649 006c 0E       		.uleb128 0xe
- 650 006d 3A       		.uleb128 0x3a
- 651 006e 0B       		.uleb128 0xb
- 652 006f 3B       		.uleb128 0x3b
- 653 0070 0B       		.uleb128 0xb
- 654 0071 27       		.uleb128 0x27
- 655 0072 19       		.uleb128 0x19
- 656 0073 49       		.uleb128 0x49
- 657 0074 13       		.uleb128 0x13
- 658 0075 11       		.uleb128 0x11
- 659 0076 01       		.uleb128 0x1
- 660 0077 12       		.uleb128 0x12
- 661 0078 06       		.uleb128 0x6
- 662 0079 40       		.uleb128 0x40
- 663 007a 18       		.uleb128 0x18
- 664 007b 9742     		.uleb128 0x2117
- 665 007d 19       		.uleb128 0x19
- 666 007e 01       		.uleb128 0x1
- 667 007f 13       		.uleb128 0x13
- 668 0080 00       		.byte	0
- 669 0081 00       		.byte	0
- 670 0082 09       		.uleb128 0x9
- 671 0083 34       		.uleb128 0x34
- 672 0084 00       		.byte	0
- 673 0085 03       		.uleb128 0x3
- 674 0086 0E       		.uleb128 0xe
- 675 0087 3A       		.uleb128 0x3a
- 676 0088 0B       		.uleb128 0xb
- 677 0089 3B       		.uleb128 0x3b
- 678 008a 0B       		.uleb128 0xb
- 679 008b 49       		.uleb128 0x49
- 680 008c 13       		.uleb128 0x13
- 681 008d 02       		.uleb128 0x2
- 682 008e 18       		.uleb128 0x18
- 683 008f 00       		.byte	0
- 684 0090 00       		.byte	0
- 685 0091 0A       		.uleb128 0xa
- 686 0092 2E       		.uleb128 0x2e
- 687 0093 01       		.byte	0x1
- 688 0094 3F       		.uleb128 0x3f
- 689 0095 19       		.uleb128 0x19
- 690 0096 03       		.uleb128 0x3
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 15
+ 625 0026 0B       		.uleb128 0xb
+ 626 0027 49       		.uleb128 0x49
+ 627 0028 13       		.uleb128 0x13
+ 628 0029 00       		.byte	0
+ 629 002a 00       		.byte	0
+ 630 002b 04       		.uleb128 0x4
+ 631 002c 24       		.uleb128 0x24
+ 632 002d 00       		.byte	0
+ 633 002e 0B       		.uleb128 0xb
+ 634 002f 0B       		.uleb128 0xb
+ 635 0030 3E       		.uleb128 0x3e
+ 636 0031 0B       		.uleb128 0xb
+ 637 0032 03       		.uleb128 0x3
+ 638 0033 08       		.uleb128 0x8
+ 639 0034 00       		.byte	0
+ 640 0035 00       		.byte	0
+ 641 0036 05       		.uleb128 0x5
+ 642 0037 04       		.uleb128 0x4
+ 643 0038 01       		.byte	0x1
+ 644 0039 0B       		.uleb128 0xb
+ 645 003a 0B       		.uleb128 0xb
+ 646 003b 49       		.uleb128 0x49
+ 647 003c 13       		.uleb128 0x13
+ 648 003d 3A       		.uleb128 0x3a
+ 649 003e 0B       		.uleb128 0xb
+ 650 003f 3B       		.uleb128 0x3b
+ 651 0040 0B       		.uleb128 0xb
+ 652 0041 01       		.uleb128 0x1
+ 653 0042 13       		.uleb128 0x13
+ 654 0043 00       		.byte	0
+ 655 0044 00       		.byte	0
+ 656 0045 06       		.uleb128 0x6
+ 657 0046 28       		.uleb128 0x28
+ 658 0047 00       		.byte	0
+ 659 0048 03       		.uleb128 0x3
+ 660 0049 0E       		.uleb128 0xe
+ 661 004a 1C       		.uleb128 0x1c
+ 662 004b 0B       		.uleb128 0xb
+ 663 004c 00       		.byte	0
+ 664 004d 00       		.byte	0
+ 665 004e 07       		.uleb128 0x7
+ 666 004f 2E       		.uleb128 0x2e
+ 667 0050 00       		.byte	0
+ 668 0051 3F       		.uleb128 0x3f
+ 669 0052 19       		.uleb128 0x19
+ 670 0053 03       		.uleb128 0x3
+ 671 0054 0E       		.uleb128 0xe
+ 672 0055 3A       		.uleb128 0x3a
+ 673 0056 0B       		.uleb128 0xb
+ 674 0057 3B       		.uleb128 0x3b
+ 675 0058 0B       		.uleb128 0xb
+ 676 0059 27       		.uleb128 0x27
+ 677 005a 19       		.uleb128 0x19
+ 678 005b 11       		.uleb128 0x11
+ 679 005c 01       		.uleb128 0x1
+ 680 005d 12       		.uleb128 0x12
+ 681 005e 06       		.uleb128 0x6
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 15
 
 
- 691 0097 0E       		.uleb128 0xe
- 692 0098 3A       		.uleb128 0x3a
- 693 0099 0B       		.uleb128 0xb
- 694 009a 3B       		.uleb128 0x3b
- 695 009b 0B       		.uleb128 0xb
- 696 009c 27       		.uleb128 0x27
- 697 009d 19       		.uleb128 0x19
- 698 009e 11       		.uleb128 0x11
- 699 009f 01       		.uleb128 0x1
- 700 00a0 12       		.uleb128 0x12
- 701 00a1 06       		.uleb128 0x6
- 702 00a2 40       		.uleb128 0x40
- 703 00a3 18       		.uleb128 0x18
- 704 00a4 9742     		.uleb128 0x2117
- 705 00a6 19       		.uleb128 0x19
- 706 00a7 01       		.uleb128 0x1
- 707 00a8 13       		.uleb128 0x13
- 708 00a9 00       		.byte	0
- 709 00aa 00       		.byte	0
- 710 00ab 0B       		.uleb128 0xb
- 711 00ac 05       		.uleb128 0x5
- 712 00ad 00       		.byte	0
- 713 00ae 03       		.uleb128 0x3
- 714 00af 0E       		.uleb128 0xe
- 715 00b0 3A       		.uleb128 0x3a
- 716 00b1 0B       		.uleb128 0xb
- 717 00b2 3B       		.uleb128 0x3b
- 718 00b3 0B       		.uleb128 0xb
- 719 00b4 49       		.uleb128 0x49
- 720 00b5 13       		.uleb128 0x13
- 721 00b6 02       		.uleb128 0x2
- 722 00b7 18       		.uleb128 0x18
- 723 00b8 00       		.byte	0
- 724 00b9 00       		.byte	0
- 725 00ba 0C       		.uleb128 0xc
- 726 00bb 0F       		.uleb128 0xf
- 727 00bc 00       		.byte	0
- 728 00bd 0B       		.uleb128 0xb
- 729 00be 0B       		.uleb128 0xb
- 730 00bf 49       		.uleb128 0x49
- 731 00c0 13       		.uleb128 0x13
- 732 00c1 00       		.byte	0
- 733 00c2 00       		.byte	0
- 734 00c3 0D       		.uleb128 0xd
- 735 00c4 34       		.uleb128 0x34
- 736 00c5 00       		.byte	0
- 737 00c6 03       		.uleb128 0x3
- 738 00c7 0E       		.uleb128 0xe
- 739 00c8 3A       		.uleb128 0x3a
- 740 00c9 0B       		.uleb128 0xb
- 741 00ca 3B       		.uleb128 0x3b
- 742 00cb 0B       		.uleb128 0xb
- 743 00cc 49       		.uleb128 0x49
- 744 00cd 13       		.uleb128 0x13
- 745 00ce 3F       		.uleb128 0x3f
- 746 00cf 19       		.uleb128 0x19
- 747 00d0 02       		.uleb128 0x2
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 16
+ 682 005f 40       		.uleb128 0x40
+ 683 0060 18       		.uleb128 0x18
+ 684 0061 9642     		.uleb128 0x2116
+ 685 0063 19       		.uleb128 0x19
+ 686 0064 00       		.byte	0
+ 687 0065 00       		.byte	0
+ 688 0066 08       		.uleb128 0x8
+ 689 0067 2E       		.uleb128 0x2e
+ 690 0068 01       		.byte	0x1
+ 691 0069 3F       		.uleb128 0x3f
+ 692 006a 19       		.uleb128 0x19
+ 693 006b 03       		.uleb128 0x3
+ 694 006c 0E       		.uleb128 0xe
+ 695 006d 3A       		.uleb128 0x3a
+ 696 006e 0B       		.uleb128 0xb
+ 697 006f 3B       		.uleb128 0x3b
+ 698 0070 0B       		.uleb128 0xb
+ 699 0071 27       		.uleb128 0x27
+ 700 0072 19       		.uleb128 0x19
+ 701 0073 49       		.uleb128 0x49
+ 702 0074 13       		.uleb128 0x13
+ 703 0075 11       		.uleb128 0x11
+ 704 0076 01       		.uleb128 0x1
+ 705 0077 12       		.uleb128 0x12
+ 706 0078 06       		.uleb128 0x6
+ 707 0079 40       		.uleb128 0x40
+ 708 007a 18       		.uleb128 0x18
+ 709 007b 9742     		.uleb128 0x2117
+ 710 007d 19       		.uleb128 0x19
+ 711 007e 01       		.uleb128 0x1
+ 712 007f 13       		.uleb128 0x13
+ 713 0080 00       		.byte	0
+ 714 0081 00       		.byte	0
+ 715 0082 09       		.uleb128 0x9
+ 716 0083 34       		.uleb128 0x34
+ 717 0084 00       		.byte	0
+ 718 0085 03       		.uleb128 0x3
+ 719 0086 0E       		.uleb128 0xe
+ 720 0087 3A       		.uleb128 0x3a
+ 721 0088 0B       		.uleb128 0xb
+ 722 0089 3B       		.uleb128 0x3b
+ 723 008a 0B       		.uleb128 0xb
+ 724 008b 49       		.uleb128 0x49
+ 725 008c 13       		.uleb128 0x13
+ 726 008d 02       		.uleb128 0x2
+ 727 008e 18       		.uleb128 0x18
+ 728 008f 00       		.byte	0
+ 729 0090 00       		.byte	0
+ 730 0091 0A       		.uleb128 0xa
+ 731 0092 2E       		.uleb128 0x2e
+ 732 0093 01       		.byte	0x1
+ 733 0094 3F       		.uleb128 0x3f
+ 734 0095 19       		.uleb128 0x19
+ 735 0096 03       		.uleb128 0x3
+ 736 0097 0E       		.uleb128 0xe
+ 737 0098 3A       		.uleb128 0x3a
+ 738 0099 0B       		.uleb128 0xb
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 16
 
 
- 748 00d1 18       		.uleb128 0x18
- 749 00d2 00       		.byte	0
- 750 00d3 00       		.byte	0
- 751 00d4 00       		.byte	0
- 752              		.section	.debug_aranges,"",%progbits
- 753 0000 44000000 		.4byte	0x44
- 754 0004 0200     		.2byte	0x2
- 755 0006 00000000 		.4byte	.Ldebug_info0
- 756 000a 04       		.byte	0x4
- 757 000b 00       		.byte	0
- 758 000c 0000     		.2byte	0
- 759 000e 0000     		.2byte	0
- 760 0010 00000000 		.4byte	.LFB63
- 761 0014 3C000000 		.4byte	.LFE63-.LFB63
- 762 0018 00000000 		.4byte	.LFB64
- 763 001c 28000000 		.4byte	.LFE64-.LFB64
- 764 0020 00000000 		.4byte	.LFB65
- 765 0024 20000000 		.4byte	.LFE65-.LFB65
- 766 0028 00000000 		.4byte	.LFB66
- 767 002c 12000000 		.4byte	.LFE66-.LFB66
- 768 0030 00000000 		.4byte	.LFB67
- 769 0034 20000000 		.4byte	.LFE67-.LFB67
- 770 0038 00000000 		.4byte	.LFB68
- 771 003c 30000000 		.4byte	.LFE68-.LFB68
- 772 0040 00000000 		.4byte	0
- 773 0044 00000000 		.4byte	0
- 774              		.section	.debug_ranges,"",%progbits
- 775              	.Ldebug_ranges0:
- 776 0000 00000000 		.4byte	.LFB63
- 777 0004 3C000000 		.4byte	.LFE63
- 778 0008 00000000 		.4byte	.LFB64
- 779 000c 28000000 		.4byte	.LFE64
- 780 0010 00000000 		.4byte	.LFB65
- 781 0014 20000000 		.4byte	.LFE65
- 782 0018 00000000 		.4byte	.LFB66
- 783 001c 12000000 		.4byte	.LFE66
- 784 0020 00000000 		.4byte	.LFB67
- 785 0024 20000000 		.4byte	.LFE67
- 786 0028 00000000 		.4byte	.LFB68
- 787 002c 30000000 		.4byte	.LFE68
- 788 0030 00000000 		.4byte	0
- 789 0034 00000000 		.4byte	0
- 790              		.section	.debug_line,"",%progbits
- 791              	.Ldebug_line0:
- 792 0000 C2010000 		.section	.debug_str,"MS",%progbits,1
- 792      02004501 
- 792      00000201 
- 792      FB0E0D00 
- 792      01010101 
- 793              	.LASF19:
- 794 0000 4745545F 		.ascii	"GET_FIN_STATUS\000"
- 794      46494E5F 
- 794      53544154 
- 794      555300
- 795              	.LASF38:
- 796 000f 63757272 		.ascii	"currentState\000"
- 796      656E7453 
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 17
+ 739 009a 3B       		.uleb128 0x3b
+ 740 009b 0B       		.uleb128 0xb
+ 741 009c 27       		.uleb128 0x27
+ 742 009d 19       		.uleb128 0x19
+ 743 009e 11       		.uleb128 0x11
+ 744 009f 01       		.uleb128 0x1
+ 745 00a0 12       		.uleb128 0x12
+ 746 00a1 06       		.uleb128 0x6
+ 747 00a2 40       		.uleb128 0x40
+ 748 00a3 18       		.uleb128 0x18
+ 749 00a4 9742     		.uleb128 0x2117
+ 750 00a6 19       		.uleb128 0x19
+ 751 00a7 01       		.uleb128 0x1
+ 752 00a8 13       		.uleb128 0x13
+ 753 00a9 00       		.byte	0
+ 754 00aa 00       		.byte	0
+ 755 00ab 0B       		.uleb128 0xb
+ 756 00ac 05       		.uleb128 0x5
+ 757 00ad 00       		.byte	0
+ 758 00ae 03       		.uleb128 0x3
+ 759 00af 0E       		.uleb128 0xe
+ 760 00b0 3A       		.uleb128 0x3a
+ 761 00b1 0B       		.uleb128 0xb
+ 762 00b2 3B       		.uleb128 0x3b
+ 763 00b3 0B       		.uleb128 0xb
+ 764 00b4 49       		.uleb128 0x49
+ 765 00b5 13       		.uleb128 0x13
+ 766 00b6 02       		.uleb128 0x2
+ 767 00b7 18       		.uleb128 0x18
+ 768 00b8 00       		.byte	0
+ 769 00b9 00       		.byte	0
+ 770 00ba 0C       		.uleb128 0xc
+ 771 00bb 0F       		.uleb128 0xf
+ 772 00bc 00       		.byte	0
+ 773 00bd 0B       		.uleb128 0xb
+ 774 00be 0B       		.uleb128 0xb
+ 775 00bf 49       		.uleb128 0x49
+ 776 00c0 13       		.uleb128 0x13
+ 777 00c1 00       		.byte	0
+ 778 00c2 00       		.byte	0
+ 779 00c3 0D       		.uleb128 0xd
+ 780 00c4 34       		.uleb128 0x34
+ 781 00c5 00       		.byte	0
+ 782 00c6 03       		.uleb128 0x3
+ 783 00c7 0E       		.uleb128 0xe
+ 784 00c8 3A       		.uleb128 0x3a
+ 785 00c9 0B       		.uleb128 0xb
+ 786 00ca 3B       		.uleb128 0x3b
+ 787 00cb 0B       		.uleb128 0xb
+ 788 00cc 49       		.uleb128 0x49
+ 789 00cd 13       		.uleb128 0x13
+ 790 00ce 3F       		.uleb128 0x3f
+ 791 00cf 19       		.uleb128 0x19
+ 792 00d0 02       		.uleb128 0x2
+ 793 00d1 18       		.uleb128 0x18
+ 794 00d2 00       		.byte	0
+ 795 00d3 00       		.byte	0
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 17
 
 
- 796      74617465 
- 796      00
- 797              	.LASF37:
- 798 001c 47657453 		.ascii	"GetStartTime\000"
- 798      74617274 
- 798      54696D65 
- 798      00
- 799              	.LASF25:
- 800 0029 416C6C6F 		.ascii	"AllowNextSkier\000"
- 800      774E6578 
- 800      74536B69 
- 800      657200
- 801              	.LASF34:
- 802 0038 2E2E5C2E 		.ascii	"..\\..\\common\\lib\\lib_Gate\\gate.c\000"
- 802      2E5C636F 
- 802      6D6D6F6E 
- 802      5C6C6962 
- 802      5C6C6962 
- 803              	.LASF36:
- 804 0059 47617465 		.ascii	"GateIsOpen\000"
- 804      49734F70 
- 804      656E00
- 805              	.LASF27:
- 806 0064 756E6978 		.ascii	"unixTime\000"
- 806      54696D65 
- 806      00
- 807              	.LASF12:
- 808 006d 75696E74 		.ascii	"uint64_t\000"
- 808      36345F74 
- 808      00
- 809              	.LASF22:
- 810 0076 53746174 		.ascii	"StateType\000"
- 810      65547970 
- 810      6500
- 811              	.LASF13:
- 812 0080 666C6F61 		.ascii	"float\000"
- 812      7400
- 813              	.LASF0:
- 814 0086 7369676E 		.ascii	"signed char\000"
- 814      65642063 
- 814      68617200 
- 815              	.LASF1:
- 816 0092 756E7369 		.ascii	"unsigned char\000"
- 816      676E6564 
- 816      20636861 
- 816      7200
- 817              	.LASF23:
- 818 00a0 47415445 		.ascii	"GATE_INTERRUPT\000"
- 818      5F494E54 
- 818      45525255 
- 818      505400
- 819              	.LASF5:
- 820 00af 6C6F6E67 		.ascii	"long unsigned int\000"
- 820      20756E73 
- 820      69676E65 
- 820      6420696E 
- 820      7400
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 18
+ 796 00d4 00       		.byte	0
+ 797              		.section	.debug_aranges,"",%progbits
+ 798 0000 44000000 		.4byte	0x44
+ 799 0004 0200     		.2byte	0x2
+ 800 0006 00000000 		.4byte	.Ldebug_info0
+ 801 000a 04       		.byte	0x4
+ 802 000b 00       		.byte	0
+ 803 000c 0000     		.2byte	0
+ 804 000e 0000     		.2byte	0
+ 805 0010 00000000 		.4byte	.LFB63
+ 806 0014 4C000000 		.4byte	.LFE63-.LFB63
+ 807 0018 00000000 		.4byte	.LFB64
+ 808 001c 28000000 		.4byte	.LFE64-.LFB64
+ 809 0020 00000000 		.4byte	.LFB65
+ 810 0024 20000000 		.4byte	.LFE65-.LFB65
+ 811 0028 00000000 		.4byte	.LFB66
+ 812 002c 12000000 		.4byte	.LFE66-.LFB66
+ 813 0030 00000000 		.4byte	.LFB67
+ 814 0034 20000000 		.4byte	.LFE67-.LFB67
+ 815 0038 00000000 		.4byte	.LFB68
+ 816 003c 3C000000 		.4byte	.LFE68-.LFB68
+ 817 0040 00000000 		.4byte	0
+ 818 0044 00000000 		.4byte	0
+ 819              		.section	.debug_ranges,"",%progbits
+ 820              	.Ldebug_ranges0:
+ 821 0000 00000000 		.4byte	.LFB63
+ 822 0004 4C000000 		.4byte	.LFE63
+ 823 0008 00000000 		.4byte	.LFB64
+ 824 000c 28000000 		.4byte	.LFE64
+ 825 0010 00000000 		.4byte	.LFB65
+ 826 0014 20000000 		.4byte	.LFE65
+ 827 0018 00000000 		.4byte	.LFB66
+ 828 001c 12000000 		.4byte	.LFE66
+ 829 0020 00000000 		.4byte	.LFB67
+ 830 0024 20000000 		.4byte	.LFE67
+ 831 0028 00000000 		.4byte	.LFB68
+ 832 002c 3C000000 		.4byte	.LFE68
+ 833 0030 00000000 		.4byte	0
+ 834 0034 00000000 		.4byte	0
+ 835              		.section	.debug_line,"",%progbits
+ 836              	.Ldebug_line0:
+ 837 0000 C5010000 		.section	.debug_str,"MS",%progbits,1
+ 837      02004501 
+ 837      00000201 
+ 837      FB0E0D00 
+ 837      01010101 
+ 838              	.LASF21:
+ 839 0000 4745545F 		.ascii	"GET_FIN_STATUS\000"
+ 839      46494E5F 
+ 839      53544154 
+ 839      555300
+ 840              	.LASF5:
+ 841 000f 5F5F7569 		.ascii	"__uint8_t\000"
+ 841      6E74385F 
+ 841      7400
+ 842              	.LASF42:
+ 843 0019 63757272 		.ascii	"currentState\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 18
 
 
- 821              	.LASF31:
- 822 00c1 73617665 		.ascii	"savedRecentMs\000"
- 822      64526563 
- 822      656E744D 
- 822      7300
- 823              	.LASF3:
- 824 00cf 73686F72 		.ascii	"short unsigned int\000"
- 824      7420756E 
- 824      7369676E 
- 824      65642069 
- 824      6E7400
- 825              	.LASF35:
- 826 00e2 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\start\\s"
- 826      79707265 
- 826      73735C73 
- 826      79737465 
- 826      6D2D7374 
- 827 010f 74617274 		.ascii	"tart_v11.cydsn\000"
- 827      5F763131 
- 827      2E637964 
- 827      736E00
- 828              	.LASF33:
- 829 011e 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
- 829      43313120 
- 829      352E342E 
- 829      31203230 
- 829      31363036 
- 830 0151 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
- 830      20726576 
- 830      6973696F 
- 830      6E203233 
- 830      37373135 
- 831 0184 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
- 831      66756E63 
- 831      74696F6E 
- 831      2D736563 
- 831      74696F6E 
- 832              	.LASF20:
- 833 01ac 43484543 		.ascii	"CHECK_GATE\000"
- 833      4B5F4741 
- 833      544500
- 834              	.LASF14:
- 835 01b7 646F7562 		.ascii	"double\000"
- 835      6C6500
- 836              	.LASF26:
- 837 01be 44697341 		.ascii	"DisAllowNextSkier\000"
- 837      6C6C6F77 
- 837      4E657874 
- 837      536B6965 
- 837      7200
- 838              	.LASF18:
- 839 01d0 54494D45 		.ascii	"TIME_SYNC\000"
- 839      5F53594E 
- 839      4300
- 840              	.LASF7:
- 841 01da 5F5F7569 		.ascii	"__uint32_t\000"
- 841      6E743332 
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 19
-
-
- 841      5F7400
- 842              	.LASF30:
- 843 01e5 73617665 		.ascii	"savedUnixTime\000"
- 843      64556E69 
- 843      7854696D 
- 843      6500
- 844              	.LASF10:
- 845 01f3 756E7369 		.ascii	"unsigned int\000"
- 845      676E6564 
- 845      20696E74 
+ 843      656E7453 
+ 843      74617465 
+ 843      00
+ 844              	.LASF41:
+ 845 0026 47657453 		.ascii	"GetStartTime\000"
+ 845      74617274 
+ 845      54696D65 
  845      00
- 846              	.LASF9:
- 847 0200 6C6F6E67 		.ascii	"long long unsigned int\000"
- 847      206C6F6E 
- 847      6720756E 
- 847      7369676E 
- 847      65642069 
- 848              	.LASF29:
- 849 0217 72657375 		.ascii	"result\000"
- 849      6C7400
- 850              	.LASF32:
- 851 021e 67617465 		.ascii	"gateOpen\000"
- 851      4F70656E 
- 851      00
- 852              	.LASF17:
- 853 0227 73697A65 		.ascii	"sizetype\000"
- 853      74797065 
+ 846              	.LASF27:
+ 847 0033 416C6C6F 		.ascii	"AllowNextSkier\000"
+ 847      774E6578 
+ 847      74536B69 
+ 847      657200
+ 848              	.LASF38:
+ 849 0042 2E2E5C2E 		.ascii	"..\\..\\common\\lib\\lib_Gate\\gate.c\000"
+ 849      2E5C636F 
+ 849      6D6D6F6E 
+ 849      5C6C6962 
+ 849      5C6C6962 
+ 850              	.LASF40:
+ 851 0063 47617465 		.ascii	"GateIsOpen\000"
+ 851      49734F70 
+ 851      656E00
+ 852              	.LASF30:
+ 853 006e 756E6978 		.ascii	"unixTime\000"
+ 853      54696D65 
  853      00
- 854              	.LASF6:
- 855 0230 6C6F6E67 		.ascii	"long long int\000"
- 855      206C6F6E 
- 855      6720696E 
- 855      7400
- 856              	.LASF15:
- 857 023e 63686172 		.ascii	"char\000"
- 857      00
- 858              	.LASF2:
- 859 0243 73686F72 		.ascii	"short int\000"
- 859      7420696E 
+ 854              	.LASF14:
+ 855 0077 75696E74 		.ascii	"uint64_t\000"
+ 855      36345F74 
+ 855      00
+ 856              	.LASF24:
+ 857 0080 53746174 		.ascii	"StateType\000"
+ 857      65547970 
+ 857      6500
+ 858              	.LASF15:
+ 859 008a 666C6F61 		.ascii	"float\000"
  859      7400
- 860              	.LASF8:
- 861 024d 5F5F7569 		.ascii	"__uint64_t\000"
- 861      6E743634 
- 861      5F7400
- 862              	.LASF11:
- 863 0258 75696E74 		.ascii	"uint32_t\000"
- 863      33325F74 
- 863      00
- 864              	.LASF4:
- 865 0261 6C6F6E67 		.ascii	"long int\000"
- 865      20696E74 
- 865      00
- 866              	.LASF16:
- 867 026a 6C6F6E67 		.ascii	"long double\000"
- 867      20646F75 
- 867      626C6500 
- 868              	.LASF24:
-ARM GAS  C:\Users\Petro\AppData\Local\Temp\ccvQnRr3.s 			page 20
+ 860              	.LASF0:
+ 861 0090 7369676E 		.ascii	"signed char\000"
+ 861      65642063 
+ 861      68617200 
+ 862              	.LASF1:
+ 863 009c 756E7369 		.ascii	"unsigned char\000"
+ 863      676E6564 
+ 863      20636861 
+ 863      7200
+ 864              	.LASF25:
+ 865 00aa 47415445 		.ascii	"GATE_INTERRUPT\000"
+ 865      5F494E54 
+ 865      45525255 
+ 865      505400
+ 866              	.LASF7:
+ 867 00b9 6C6F6E67 		.ascii	"long unsigned int\000"
+ 867      20756E73 
+ 867      69676E65 
+ 867      6420696E 
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 19
 
 
- 869 0276 47617465 		.ascii	"GateInit\000"
- 869      496E6974 
- 869      00
- 870              	.LASF21:
- 871 027f 53415645 		.ascii	"SAVE_RESULT\000"
- 871      5F524553 
- 871      554C5400 
- 872              	.LASF28:
- 873 028b 72656365 		.ascii	"recentMs\000"
- 873      6E744D73 
- 873      00
- 874              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ 867      7400
+ 868              	.LASF35:
+ 869 00cb 73617665 		.ascii	"savedRecentMs\000"
+ 869      64526563 
+ 869      656E744D 
+ 869      7300
+ 870              	.LASF3:
+ 871 00d9 73686F72 		.ascii	"short unsigned int\000"
+ 871      7420756E 
+ 871      7369676E 
+ 871      65642069 
+ 871      6E7400
+ 872              	.LASF39:
+ 873 00ec 443A5C43 		.ascii	"D:\\Cypress\\system-start-finish\\dev\\FW\\start\\s"
+ 873      79707265 
+ 873      73735C73 
+ 873      79737465 
+ 873      6D2D7374 
+ 874 0119 74617274 		.ascii	"tart_v11.cydsn\000"
+ 874      5F763131 
+ 874      2E637964 
+ 874      736E00
+ 875              	.LASF37:
+ 876 0128 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 876      43313120 
+ 876      352E342E 
+ 876      31203230 
+ 876      31363036 
+ 877 015b 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 877      20726576 
+ 877      6973696F 
+ 877      6E203233 
+ 877      37373135 
+ 878 018e 30202D66 		.ascii	"0 -ffunction-sections -ffat-lto-objects\000"
+ 878      66756E63 
+ 878      74696F6E 
+ 878      2D736563 
+ 878      74696F6E 
+ 879              	.LASF6:
+ 880 01b6 5F5F7569 		.ascii	"__uint32_t\000"
+ 880      6E743332 
+ 880      5F7400
+ 881              	.LASF22:
+ 882 01c1 43484543 		.ascii	"CHECK_GATE\000"
+ 882      4B5F4741 
+ 882      544500
+ 883              	.LASF16:
+ 884 01cc 646F7562 		.ascii	"double\000"
+ 884      6C6500
+ 885              	.LASF28:
+ 886 01d3 44697341 		.ascii	"DisAllowNextSkier\000"
+ 886      6C6C6F77 
+ 886      4E657874 
+ 886      536B6965 
+ 886      7200
+ 887              	.LASF20:
+ 888 01e5 54494D45 		.ascii	"TIME_SYNC\000"
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 20
+
+
+ 888      5F53594E 
+ 888      4300
+ 889              	.LASF2:
+ 890 01ef 73686F72 		.ascii	"short int\000"
+ 890      7420696E 
+ 890      7400
+ 891              	.LASF34:
+ 892 01f9 73617665 		.ascii	"savedUnixTime\000"
+ 892      64556E69 
+ 892      7854696D 
+ 892      6500
+ 893              	.LASF11:
+ 894 0207 756E7369 		.ascii	"unsigned int\000"
+ 894      676E6564 
+ 894      20696E74 
+ 894      00
+ 895              	.LASF29:
+ 896 0214 6964536B 		.ascii	"idSkier\000"
+ 896      69657200 
+ 897              	.LASF10:
+ 898 021c 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 898      206C6F6E 
+ 898      6720756E 
+ 898      7369676E 
+ 898      65642069 
+ 899              	.LASF12:
+ 900 0233 75696E74 		.ascii	"uint8_t\000"
+ 900      385F7400 
+ 901              	.LASF32:
+ 902 023b 72657375 		.ascii	"result\000"
+ 902      6C7400
+ 903              	.LASF36:
+ 904 0242 67617465 		.ascii	"gateOpen\000"
+ 904      4F70656E 
+ 904      00
+ 905              	.LASF19:
+ 906 024b 73697A65 		.ascii	"sizetype\000"
+ 906      74797065 
+ 906      00
+ 907              	.LASF8:
+ 908 0254 6C6F6E67 		.ascii	"long long int\000"
+ 908      206C6F6E 
+ 908      6720696E 
+ 908      7400
+ 909              	.LASF17:
+ 910 0262 63686172 		.ascii	"char\000"
+ 910      00
+ 911              	.LASF33:
+ 912 0267 73617665 		.ascii	"savedIdSkier\000"
+ 912      64496453 
+ 912      6B696572 
+ 912      00
+ 913              	.LASF9:
+ 914 0274 5F5F7569 		.ascii	"__uint64_t\000"
+ 914      6E743634 
+ 914      5F7400
+ 915              	.LASF13:
+ARM GAS  C:\Users\Petro\AppData\Local\Temp\cc0QuxCz.s 			page 21
+
+
+ 916 027f 75696E74 		.ascii	"uint32_t\000"
+ 916      33325F74 
+ 916      00
+ 917              	.LASF4:
+ 918 0288 6C6F6E67 		.ascii	"long int\000"
+ 918      20696E74 
+ 918      00
+ 919              	.LASF18:
+ 920 0291 6C6F6E67 		.ascii	"long double\000"
+ 920      20646F75 
+ 920      626C6500 
+ 921              	.LASF26:
+ 922 029d 47617465 		.ascii	"GateInit\000"
+ 922      496E6974 
+ 922      00
+ 923              	.LASF23:
+ 924 02a6 53415645 		.ascii	"SAVE_RESULT\000"
+ 924      5F524553 
+ 924      554C5400 
+ 925              	.LASF31:
+ 926 02b2 72656365 		.ascii	"recentMs\000"
+ 926      6E744D73 
+ 926      00
+ 927              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

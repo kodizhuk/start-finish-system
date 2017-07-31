@@ -72,6 +72,7 @@ typedef struct
     uint64_t unixStartTime;
     uint16_t startMsTime;
     uint8_t newSkier;
+    uint8_t idSkier;
     uint8_t testMode;
     uint8_t reboot;     /*reboot=1, no reboot=0*/
     
@@ -214,22 +215,22 @@ void CustomInterruptHandler(void)
                         buffNetworkQualyty = (buffNetworkQualyty << 1)|1;
                         
                         /*write data*/
-                        inData.newSkier = (recvData.Data3 & 0xFF00) >> 8;
+                        inData.testMode = recvData.Command;
                         inData.unixStartTime = recvData.Data1;
                         inData.startMsTime = recvData.Data2;
-                        inData.reboot = (recvData.Data3 & 0x00FF);
-                        inData.testMode = recvData.Command;
+                        inData.newSkier = (recvData.Data3 & 0xF000) >> 12;
+                        inData.reboot = (recvData.Data3 & 0x0F00) >> 8;
+                        inData.idSkier = (recvData.Data3 & 0x00FF);
                         
                         /*if new skier on track*/
                         if(inData.newSkier == NEW_SKIER_IN_TARCK )
                         {
-                            WriteStartTime(5,inData.unixStartTime, inData.startMsTime);
+                            WriteStartTime(inData.idSkier,inData.unixStartTime, inData.startMsTime);
                             BLE_sendOneSkierTimeStart(inData.unixStartTime, 
                                                         inData.startMsTime,
-                                                        GetIDskierStarted(),
+                                                        inData.idSkier,
                                                         SkierOnWay(),
                                                         MAX_SKIERS_ON_WAY);
-                            IncrementID();
                         }
                         
                         /*next packet*/

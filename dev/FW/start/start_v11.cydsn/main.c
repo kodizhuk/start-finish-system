@@ -179,6 +179,7 @@ uint32_t CheckGate(void)
 uint32_t SaveResult(void)
 {
     uint32_t result;
+    uint8_t idSkier;
     uint64_t startUnixTime;
     uint32_t startRecentMs;
     
@@ -187,8 +188,8 @@ uint32_t SaveResult(void)
     
     Display("Save result");
     
-    GetStartTime(&startUnixTime, &startRecentMs);
-    SendSkierStart(startUnixTime, startRecentMs);
+    GetStartTime(&idSkier,&startUnixTime, &startRecentMs);
+    SendSkierStart(idSkier,startUnixTime, startRecentMs);
     Delay(TIMEOUT_USER_READ_INFO);
     
     Display("Next skier");

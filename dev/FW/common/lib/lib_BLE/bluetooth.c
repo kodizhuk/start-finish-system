@@ -222,7 +222,7 @@ uint8_t BLE_getFlagAdminOnly(void)
     }
 }
 
-void BLE_sendOneSkierTimeResult(skierDB_El *data, uint8_t idSkier,
+void BLE_sendOneSkierTimeResult(skierDB_El *data,
                             uint8_t numSkierOnWay, uint8_t maxSkierOnWay)
 {   
     RTC_DATE_TIME time;
@@ -246,7 +246,7 @@ void BLE_sendOneSkierTimeResult(skierDB_El *data, uint8_t idSkier,
     sendBufferResult[BLE_SEND_SEC] = (data->secondsWay) - minResult*60;
     sendBufferResult[BLE_SEND_MS] = data->millsWay;
     
-    sendIdSkier = idSkier;
+    sendIdSkier = data->idSkier;
     
     sendBufferStatus[3] = numSkierOnWay/10;
     sendBufferStatus[4] = numSkierOnWay%10;

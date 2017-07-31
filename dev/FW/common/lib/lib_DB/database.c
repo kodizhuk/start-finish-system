@@ -8,7 +8,7 @@ void getSkiFromWay(uint8_t *id, uint64_t *unixTime, uint16_t *mills);
 
 struct elementBuff
 {
-    uint8_t idSkier;
+    uint8_t idStartSkier;
     uint64_t unixStartSkier;
     uint16_t millsStartSkier;
     struct elementBuff* nextSki;
@@ -93,9 +93,9 @@ void InitBuff(void)
 *  save start time skier
 *
 *******************************************************************************/
-void putSkiOnWay(uint8_t id, uint64_t unixTime, uint16_t mills)
+void putSkiOnWay(uint8_t idSkier, uint64_t unixTime, uint16_t mills)
 {
-    currentElementStart->idSkier = id;
+    currentElementStart->idStartSkier = idSkier;
     currentElementStart->millsStartSkier = mills;
     currentElementStart->unixStartSkier = unixTime;
     currentElementStart = currentElementStart->nextSki;
@@ -112,10 +112,10 @@ void putSkiOnWay(uint8_t id, uint64_t unixTime, uint16_t mills)
 *******************************************************************************/
 void getSkiFromWay(uint8_t *id,uint64_t *unixTime, uint16_t *mills)
 {
-    *id = currentElementEnd->idSkier;
+    *id = currentElementEnd->idStartSkier;
     *mills = currentElementEnd->millsStartSkier;
     *unixTime = currentElementEnd->unixStartSkier;
-    currentElementStart = currentElementEnd->nextSki;
+    currentElementEnd = currentElementEnd->nextSki;
     currentSizeBuff--;
 }
 

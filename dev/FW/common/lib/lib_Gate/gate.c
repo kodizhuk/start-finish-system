@@ -2,8 +2,12 @@
 #include <GatePin.h>
 #include <GATE_INT.h>
 #include "..\..\common\lib\lib_RTC\RTC_WDT.h"
+#ifdef START_MODULE
+    #include "..\..\common\lib\lib_IDskier\IDskier.h"
+#endif
 #include "appGlobal.h"
 
+static uint8_t savedIdSkier;
 static uint64_t savedUnixTime;
 static uint32_t savedRecentMs;
 static uint32_t gateOpen ;
@@ -18,6 +22,10 @@ CY_ISR(GATE_INTERRUPT)
 
     savedUnixTime = RTCGetUnixTime();
     savedRecentMs = RTCgetRecentMs();
+    
+    #ifdef START_MODULE
+    savedIdSkier = ReadIdSkier();
+    #endif
     
     //GatePin_ClearInterrupt();
     GATE_INT_ClearPending();   
@@ -100,8 +108,9 @@ void DisAllowNextSkier(void)
 *
 *******************************************************************************/
 #ifdef START_MODULE
-void GetStartTime(uint64_t *unixTime,  uint32_t *recentMs)
+void GetStartTime(uint8_t *idSkier,uint64_t *unixTime,  uint32_t *recentMs)
 {
+    *idSkier = savedIdSkier;
     *unixTime = savedUnixTime;
     *recentMs = savedRecentMs;
 }
