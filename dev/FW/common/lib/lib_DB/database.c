@@ -4,7 +4,7 @@
 #define BUFFER_SIZE         MAX_SKIERS_ON_WAY
 
 void putSkiOnWay(uint8_t id, uint64_t unixTime, uint16_t mills);
-void getSkiFromWay(uint8_t *id, uint64_t *unixTime, uint16_t *mills);
+void getSkiFromWay(uint8_t *id, uint64_t *unixTime, uint16_t *mills, uint8_t permiss);
 
 struct elementBuff
 {
@@ -110,13 +110,16 @@ void putSkiOnWay(uint8_t idSkier, uint64_t unixTime, uint16_t mills)
 *  get start time skier
 *
 *******************************************************************************/
-void getSkiFromWay(uint8_t *id,uint64_t *unixTime, uint16_t *mills)
+void getSkiFromWay(uint8_t *id,uint64_t *unixTime, uint16_t *mills, uint8_t permiss)
 {
     *id = currentElementEnd->idStartSkier;
     *mills = currentElementEnd->millsStartSkier;
     *unixTime = currentElementEnd->unixStartSkier;
-    currentElementEnd = currentElementEnd->nextSki;
-    currentSizeBuff--;
+    if(permiss)
+    {
+        currentElementEnd = currentElementEnd->nextSki;
+        currentSizeBuff--;
+    }
 }
 
 /*******************************************************************************
@@ -143,11 +146,12 @@ void WriteStartTime(uint8_t id, uint64_t unixTime, uint16_t mills)
 *   unixTime - skier finished time, seconds
 *   mills - skier finished time, miliseconds
 *******************************************************************************/
-void WriteFinishTime(uint64_t unixTime, uint16_t mills)
+void WriteFinishTime(uint64_t unixTime, uint16_t mills, uint8_t permiss)
 {   
-    getSkiFromWay(&skierDB.idSkier, &skierDB.unixStartSkier, &skierDB.millsStartSkier);
+    getSkiFromWay(&skierDB.idSkier, &skierDB.unixStartSkier, &skierDB.millsStartSkier, permiss);
     skierDB.millsFinishSkier = mills;
     skierDB.unixFinishSkier = unixTime;
+    skierDB.permiss = permiss;
     
     /*calculate time on way*/
     skierDB.secondsWay =  skierDB.unixFinishSkier - skierDB.unixStartSkier;  

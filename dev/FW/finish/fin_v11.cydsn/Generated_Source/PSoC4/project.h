@@ -88,6 +88,8 @@
 #include "SW_RunTestMode.h"
 #include "SW_RunTestMode_aliases.h"
 #include "timer_clock_2.h"
+#include "SW_GateEnable.h"
+#include "SW_GateEnable_aliases.h"
 #include "I2C_SCBCLK.h"
 #include "I2C_sda.h"
 #include "I2C_sda_aliases.h"

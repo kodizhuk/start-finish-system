@@ -5,11 +5,15 @@
 #ifdef START_MODULE
     #include "..\..\common\lib\lib_IDskier\IDskier.h"
 #endif
+#ifdef FINISH_MODULE
+    #include "SW_GateEnable.h"
+#endif
 #include "appGlobal.h"
 
 static uint8_t savedIdSkier;
 static uint64_t savedUnixTime;
 static uint32_t savedRecentMs;
+static uint8_t savedFinPermiss;
 static uint32_t gateOpen ;
 
 
@@ -22,6 +26,10 @@ CY_ISR(GATE_INTERRUPT)
 
     savedUnixTime = RTCGetUnixTime();
     savedRecentMs = RTCgetRecentMs();
+    
+    #ifdef FINISH_MODULE
+    savedFinPermiss = SW_GateEnable_Read();
+    #endif
     
     #ifdef START_MODULE
     savedIdSkier = ReadIdSkier();
@@ -120,6 +128,11 @@ void GetFinTime(uint64_t *unixTime,  uint32_t *recentMs)
 {
     *unixTime = savedUnixTime;
     *recentMs = savedRecentMs;
+}
+
+uint8_t GetPermissFin(void)
+{
+    return savedFinPermiss;
 }
 #endif
 /* [] END OF FILE */

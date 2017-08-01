@@ -20,6 +20,7 @@ typedef struct
     uint16_t millsFinishSkier;
     uint64_t secondsWay;
     uint16_t millsWay;
+    uint8_t permiss;
 }skierDB_El;
 
 #include "..\..\common\lib\lib_DB\logResult.h"
@@ -28,7 +29,7 @@ uint32_t DataBaseStart(void);       //init log to SD card
 void InitBuff(void);                    //init fifo
 
 void WriteStartTime(uint8_t id, uint64_t unixTime, uint16_t mills);
-void WriteFinishTime(uint64_t unixTime, uint16_t mills);
+void WriteFinishTime(uint64_t unixTime, uint16_t mills, uint8_t permiss);
 
 uint32_t SkierOnWay(void);
 uint32_t LastSecTimeOnWay(void);

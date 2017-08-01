@@ -17,6 +17,7 @@ void GetStartTime(uint8_t *idSkier,uint64_t *unixTime,  uint32_t *recentMs);
 
 #ifdef FINISH_MODULE
 void GetFinTime(uint64_t *unixTime,  uint32_t *recentMs);
+uint8_t GetPermissFin(void);
 #endif
 
 void AllowNextSkier(void);

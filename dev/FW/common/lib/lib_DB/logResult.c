@@ -95,29 +95,39 @@ uint32_t WriteSkierResult(skierDB_El *data)
         
         /*read unix time*/
         RTC_UnixToDateTime(&time, data->unixStartSkier, RTC_24_HOURS_FORMAT);
-        sprintf(start, "\t\t%02lu:%02lu:%02lu:%03u",RTC_GetHours(time.time),RTC_GetMinutes(time.time),RTC_GetSecond(time.time),data->millsStartSkier);
+        sprintf(start, "%02lu:%02lu:%02lu:%03u",RTC_GetHours(time.time),RTC_GetMinutes(time.time),RTC_GetSecond(time.time),data->millsStartSkier);
         RTC_UnixToDateTime(&time, data->unixFinishSkier, RTC_24_HOURS_FORMAT);
-        sprintf(finish, "\t\t%02lu:%02lu:%02lu:%03u",RTC_GetHours(time.time),RTC_GetMinutes(time.time),RTC_GetSecond(time.time),data->millsFinishSkier);
-        sprintf(result, "\t\t%02lu:%03u",(uint32)data->secondsWay,data->millsWay);
-        sprintf(writeData,"\n\r%d\t%d%s%s%s\n\r",position, data->idSkier, start, finish, result);
-              
+        sprintf(finish, "%02lu:%02lu:%02lu:%03u",RTC_GetHours(time.time),RTC_GetMinutes(time.time),RTC_GetSecond(time.time),data->millsFinishSkier);
+        sprintf(result, "%02lu:%03u",(uint32)data->secondsWay,data->millsWay);
+        if(data->permiss)
+        {
+            sprintf(writeData,"\n\r%d\t%d\t\t%s\t\t%s\t\t%s\n\r",
+                position, data->idSkier, start, finish, result);
+        }else
+        {
+            sprintf(writeData,"\n\r%d\t%d\t\t(%s)\t\t(%s)\t\t(%s)\n\r",
+                position, data->idSkier, start, finish, result);
+        } 
         if((position == 1) || (createFlag == 1))
         {
             /*write new "cap"*/
             uint32_t tmpTime ;
             
             tmpTime = RTC_GetTime();
-            f_printf(&fileO,"\r\nSystem started %02d:%02d:%02d\n\r", RTC_GetHours(tmpTime),RTC_GetMinutes(tmpTime),RTC_GetSecond(tmpTime));
-            f_printf(&fileO,"--------------------------------------------------\n\r");
+            f_printf(&fileO,"\r\n\nSystem started %02d:%02d:%02d\n\r", RTC_GetHours(tmpTime),RTC_GetMinutes(tmpTime),RTC_GetSecond(tmpTime));
+            f_printf(&fileO,"--------------------------------------------------------------------------------\n\r");
             f_printf(&fileO,"NUM\tID\t\tSTART\t\t\tFINISH\t\t\tRESULT\n\r");
-            f_printf(&fileO,"--------------------------------------------------\n\r");
+            f_printf(&fileO,"--------------------------------------------------------------------------------\n\r");
             
         }
         
         /*write data*/
         resultF = f_write(&fileO, writeData, strlen(writeData),&count);
         resultF = f_close(&fileO);
-        position++;
+        if(data->permiss)
+        {
+            position++;
+        }
     }
     
     return resultF;

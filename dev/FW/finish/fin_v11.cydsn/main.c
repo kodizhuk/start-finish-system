@@ -269,6 +269,7 @@ void SaveResult(void)
 {
     uint64_t finUnixTime;
     uint32_t finRecentMs;
+    uint8_t permissFin;
     
     LedBlink(FREQ_INIT_BLINK);
     Display(" Save data");
@@ -276,7 +277,8 @@ void SaveResult(void)
     
     /*write time in fifo*/
     GetFinTime(&finUnixTime, &finRecentMs);
-    WriteFinishTime(finUnixTime,finRecentMs);
+    permissFin = GetPermissFin();
+    WriteFinishTime(finUnixTime,finRecentMs, permissFin);
     
     /*print time result last skier finished*/
     DisplayLastSkierTime(LastSecTimeOnWay(),LastMillsTimeOnWay());/*LastTimeOnWaySecs(), LastTimeOnWayMillis()*/
