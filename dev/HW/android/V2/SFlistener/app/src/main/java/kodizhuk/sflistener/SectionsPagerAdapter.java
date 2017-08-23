@@ -10,6 +10,8 @@ import android.support.v4.app.FragmentPagerAdapter;
  */
 
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    static final int PAGE_COUNT = 5;
+
     public SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
     }
@@ -18,14 +20,13 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
         // Return a PlaceholderFragment (defined as a static inner class below).
-
         return PlaceholderFragment.newInstance(position + 1);
     }
 
     @Override
     public int getCount() {
         // Show 5 total pages.
-        return 5;
+        return PAGE_COUNT;
     }
 
     @Override
