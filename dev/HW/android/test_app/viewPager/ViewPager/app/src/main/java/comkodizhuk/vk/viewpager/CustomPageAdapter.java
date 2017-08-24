@@ -1,11 +1,12 @@
-package kodizhuk.sflistener;
+package comkodizhuk.vk.viewpager;
 
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.support.v4.app.Fragment;
-import android.os.Bundle;
+import android.content.Context;
+import android.support.v4.view.PagerAdapter;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +15,58 @@ import android.widget.TextView;
 import java.util.List;
 
 /**
- * A placeholder fragment containing a simple view.
+ * Created by Petro on 23.08.2017.
  */
-public class PlaceholderFragment extends Fragment {
 
-    private static final String ARG_SECTION_NUMBER = "section_number";
-    private final String TAG = "PlaceholderFragment";
+public class CustomPageAdapter extends PagerAdapter {
+    private Context mContext;
+    private final String TAG = "CustomPageAdapter";
 
     Data data = new Data();
+
+    public CustomPageAdapter(Context context){
+        mContext = context;
+    }
+
+    @Override
+    /*добавлення екранів*/
+    public Object instantiateItem(ViewGroup collection, int position){
+        ModelObject modelObject = ModelObject.values()[position];
+        LayoutInflater inflater = LayoutInflater.from(mContext);
+        ViewGroup layout = (ViewGroup)inflater.inflate(modelObject.getLayoutResId(), collection, false);
+        TextView t = (TextView)layout.findViewById(R.id.textView);
+        t.setText("tru number:"+data.getTruNum(0)+"\nposition:"+position);
+        Log.d(TAG,"tru Num"+data.getTruNum(0));
+        collection.addView(layout);
+        return layout;
+    }
+
+    @Override
+    /*видалення екранів*/
+    public void destroyItem(ViewGroup collection,int position, Object view ){
+        collection.removeView((View)view);
+    }
+
+    @Override
+    public int getCount(){
+        return ModelObject.values().length;
+    }
+
+    @Override
+    public boolean isViewFromObject(View view, Object object){
+        return view == object;
+    }
+
+    @Override
+    public CharSequence getPageTitle(int position){
+        ModelObject customPageEnum = ModelObject.values()[position];
+        return mContext.getString(customPageEnum.getTitleResId());
+    }
+
+    public int getItemPosition(Object object){
+        return PagerAdapter.POSITION_NONE;
+    }
+
     public ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -40,6 +85,8 @@ public class PlaceholderFragment extends Fragment {
 //            builder.append("\n").append(new String(result.getScanRecord().getBytes()));
 
             data.addData(result);
+            CustomPageAdapter.this.notifyDataSetChanged();
+
             int numIndex = 4;
 
             long truNum = data.getTruNum(numIndex);
@@ -50,13 +97,13 @@ public class PlaceholderFragment extends Fragment {
             int[] timeFinish = data.getTimeFinish(numIndex);
             int[] timeResult = data.getTimeResult(numIndex);
             String txtOut = data.getTxt(numIndex);
-            Log.d(TAG, "tru num ="+truNum);
-            Log.d(TAG, "skier num ="+skierNum);
-            Log.d(TAG, "status byte ="+statusByte);
-            Log.d(TAG, "start "+timeStart[0]+":"+timeStart[1]+":"+timeStart[2]+":"+timeStart[3]);
-            Log.d(TAG, "finish "+timeFinish[0]+":"+timeFinish[1]+":"+timeFinish[2]+":"+timeFinish[3]);
-            Log.d(TAG, "result "+timeResult[0]+":"+timeResult[1]+":"+timeResult[2]+":"+timeResult[3]);
-            Log.d(TAG,"txt-"+txtOut);
+//            Log.d(TAG, "tru num ="+truNum);
+//            Log.d(TAG, "skier num ="+skierNum);
+//            Log.d(TAG, "status byte ="+statusByte);
+//            Log.d(TAG, "start "+timeStart[0]+":"+timeStart[1]+":"+timeStart[2]+":"+timeStart[3]);
+//            Log.d(TAG, "finish "+timeFinish[0]+":"+timeFinish[1]+":"+timeFinish[2]+":"+timeFinish[3]);
+//            Log.d(TAG, "result "+timeResult[0]+":"+timeResult[1]+":"+timeResult[2]+":"+timeResult[3]);
+//            Log.d(TAG,"txt-"+txtOut);
 
 //            Log.d(TAG,"page - "+mViewPager.getCurrentItem());
 
@@ -93,22 +140,4 @@ public class PlaceholderFragment extends Fragment {
             //mText.setText("scan filed code-"+errorCode);
         }
     };
-
-
-    public static PlaceholderFragment newInstance(int sectionNumber) {
-        PlaceholderFragment fragment = new PlaceholderFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-        return rootView;
-    }
 }
