@@ -41,16 +41,22 @@ public class Data {
     private final static int ADV_PACKET_TXT_START_B1 = 25;
     private final static int ADV_PACKET_TXT_START_B0 = 26;
 
+    private final static int UUID_LSB = 0xA1;
+    private final static int UUID_MSB = 0xE5;
+
     Buffer buffer = new Buffer();
     StringBuilder builder = new StringBuilder();
 
     public void addData(ScanResult data){
 //        Log.d(TAG,"add data");
 
-        /*add to cyclic buffer*/
-        //перевірити чи такий елемент вже існує, якщо існує - то нічого не робити, інакше - закинути в буффер
-        buffer.add(data.getScanRecord().getBytes());
+        byte[] inData = data.getScanRecord().getBytes();
 
+        Log.d(TAG,"lsb-"+((inData[5]& 0xFF)<<0)+" msb-"+((inData[6]& 0xFF)<<0));
+        if (((inData[ADV_PACKET_UUID_LSB]& 0xFF)<<0) ==UUID_LSB && ((inData[ADV_PACKET_UUID_MSB]& 0xFF)<<0)==UUID_MSB) {
+            /*add to cyclic buffer*/
+            buffer.add(inData);
+        }
 
 //        inData = data.getScanRecord().getBytes();
 //        builder.append("0x");
@@ -84,16 +90,14 @@ public class Data {
     }
     public int getSkierNum(int index){
         byte[] data = buffer.get(index);
-         int skierNum =
-                ((data[ADV_PACKET_SKIER_NUM] & 0xFF) <<  0) ;
+         int skierNum = ((data[ADV_PACKET_SKIER_NUM]& 0xFF)<<0) ;
 
 //        Log.d(TAG, "skier num ="+skierNum);
         return skierNum;
     }
     public int getStatusByte(int index){
         byte[] data = buffer.get(index);
-        int statusByte =
-                ((data[ADV_PACKET_STATUS_BYTE] & 0xFF) <<  0) ;
+        int statusByte =data[ADV_PACKET_STATUS_BYTE] ;
 
 //        Log.d(TAG, "status byte ="+statusByte);
         return statusByte;
