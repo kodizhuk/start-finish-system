@@ -2,9 +2,7 @@ package kodizhuk.sflistener;
 
 import android.bluetooth.le.ScanResult;
 import android.util.Log;
-import android.util.Xml;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -103,30 +101,30 @@ public class Data {
     public int[] getTimeStart(int index){
         byte[] data = buffer.get(index);
         int[] time = new int[4];
-        time[0] = ((data[ADV_PACKET_TIME_START_B3] & 0xFF) <<  0) ;
-        time[1] = ((data[ADV_PACKET_TIME_START_B2] & 0xFF) <<  0) ;
-        time[2] = ((data[ADV_PACKET_TIME_START_B1] & 0xFF) <<  0) ;
-        time[3] = ((data[ADV_PACKET_TIME_START_B0] & 0xFF) <<  0) ;
-//        Log.d(TAG, "start "+time[0]+":"+time[1]+":"+time[2]+":"+time[3]);
+        time[0] = BCDtoInt(data[ADV_PACKET_TIME_START_B3]);
+        time[1] = BCDtoInt(data[ADV_PACKET_TIME_START_B2]);
+        time[2] = BCDtoInt(data[ADV_PACKET_TIME_START_B1]);
+        time[3] = BCDtoInt(data[ADV_PACKET_TIME_START_B0]);
+        Log.d(TAG, "start "+time[0]+":"+time[1]+":"+time[2]+":"+time[3]);
         return time;
     }
     public int[] getTimeFinish(int index){
         byte[] data = buffer.get(index);
         int[] time = new int[4];
-        time[0] = ((data[ADV_PACKET_TIME_FINISH_B3] & 0xFF) <<  0) ;
-        time[1] = ((data[ADV_PACKET_TIME_FINISH_B2] & 0xFF) <<  0) ;
-        time[2] = ((data[ADV_PACKET_TIME_FINISH_B1] & 0xFF) <<  0) ;
-        time[3] = ((data[ADV_PACKET_TIME_FINISH_B0] & 0xFF) <<  0) ;
+        time[0] = BCDtoInt(data[ADV_PACKET_TIME_FINISH_B3]) ;
+        time[1] = BCDtoInt(data[ADV_PACKET_TIME_FINISH_B2]) ;
+        time[2] = BCDtoInt(data[ADV_PACKET_TIME_FINISH_B1]) ;
+        time[3] = BCDtoInt(data[ADV_PACKET_TIME_FINISH_B0]) ;
 //        Log.d(TAG, "finish "+time[0]+":"+time[1]+":"+time[2]+":"+time[3]);
         return time;
     }
     public int[] getTimeResult(int index){
         byte[] data = buffer.get(index);
         int[] time = new int[4];
-        time[0] = ((data[ADV_PACKET_TIME_RESULT_B3] & 0xFF) <<  0) ;
-        time[1] = ((data[ADV_PACKET_TIME_RESULT_B2] & 0xFF) <<  0) ;
-        time[2] = ((data[ADV_PACKET_TIME_RESULT_B1] & 0xFF) <<  0) ;
-        time[3] = ((data[ADV_PACKET_TIME_RESULT_B0] & 0xFF) <<  0) ;
+        time[0] = BCDtoInt(data[ADV_PACKET_TIME_RESULT_B3]) ;
+        time[1] = BCDtoInt(data[ADV_PACKET_TIME_RESULT_B2]) ;
+        time[2] = BCDtoInt(data[ADV_PACKET_TIME_RESULT_B1]) ;
+        time[3] = BCDtoInt(data[ADV_PACKET_TIME_RESULT_B0]) ;
 //        Log.d(TAG, "result "+time[0]+":"+time[1]+":"+time[2]+":"+time[3]);
         return time;
     }
@@ -136,6 +134,25 @@ public class Data {
         String txt  = new String(txtByte);
 //        Log.d(TAG,"txt-"+txt);
         return txt;
+    }
+
+    private static int BCDtoInt(byte bcd) {
+//        StringBuffer sb = new StringBuffer();
+        int num ;
+
+        byte high = (byte) (bcd & 0xf0);
+        high >>>= (byte) 4;
+        high = (byte) (high & 0x0f);
+        byte low = (byte) (bcd & 0x0f);
+
+        num = high*10;
+        num += low;
+
+//        sb.append(high);
+//        sb.append(low);
+//        Log.d(TAG,"sb-"+sb.toString());
+
+        return num;
     }
 
 
@@ -159,20 +176,22 @@ public class Data {
                 }
 
                 if(dataExist == false) {
-                    if (index + 1 < SIZE_BUFFER) {
+                    if (index + 1 <= SIZE_BUFFER) {
 //                        Log.d(TAG,"index="+index);
 //                    Log.d(TAG,"data-"+inData);
                         buffer[index] = Arrays.copyOf(inData, inData.length);
                         index++;
                     } else {
                         /*delete the oldest data*/
+                        if(index >= SIZE_BUFFER)index--;
                         for (int i = 0; i < SIZE_BUFFER - 1; i++) {
                             buffer[i] = Arrays.copyOf(buffer[i+1], buffer[i+1].length);
                         }
 //                        Log.d(TAG,"index="+index);
-//                    Log.d(TAG,"data-"+inData);
+//                          Log.d(TAG,"data-"+inData);
                         /*add new data*/
                         buffer[index] = Arrays.copyOf(inData, inData.length);
+                        index++;
                     }
                 }
             }

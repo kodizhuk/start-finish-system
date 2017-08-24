@@ -44,6 +44,12 @@ public class MainActivity extends AppCompatActivity {
     TextView textViewResult4;
     TextView textViewResult5;
 
+    TextView textViewStatus1;
+    TextView textViewStatus2;
+    TextView textViewStatus3;
+    TextView textViewStatus4;
+    TextView textViewStatus5;
+
     private BluetoothAdapter adapter;
     private BluetoothLeScanner mBluetoothLeScanner;
     Data data = new Data();
@@ -91,39 +97,93 @@ public class MainActivity extends AppCompatActivity {
             textViewId5.setText(toString().valueOf(data.getSkierNum(4)));
 
             int[] time;
-            time = data.getTimeStart(0);
-            textViewStart1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeStart(1);
-            textViewStart2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeStart(2);
-            textViewStart3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeStart(3);
-            textViewStart4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeStart(4);
-            textViewStart5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            int status;
 
-            time = data.getTimeFinish(0);
-            textViewFinish1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeFinish(1);
-            textViewFinish2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeFinish(2);
-            textViewFinish3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeFinish(3);
-            textViewFinish4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeFinish(4);
-            textViewFinish5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            status = data.getStatusByte(0);
+            textViewStatus1.setText(getStatusString(status));
+            if(status >=1 && status <= 3){
+                time = data.getTimeStart(0);
+                textViewStart1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            if(status == 2 ){
+                time = data.getTimeFinish(0);
+                textViewFinish1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+                time = data.getTimeResult(0);
+                textViewResult1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            else {
+                textViewFinish1.setText(R.string.none_time);
+                textViewResult1.setText(R.string.none_time);
+            }
 
-            time = data.getTimeResult(0);
-            textViewResult1.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeResult(1);
-            textViewResult2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeResult(2);
-            textViewResult3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeResult(3);
-            textViewResult4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
-            time = data.getTimeResult(4);
-            textViewResult5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            status = data.getStatusByte(1);
+            textViewStatus2.setText(getStatusString(status));
+            if(status >= 1 && status <= 3){
+                time = data.getTimeStart(1);
+                textViewStart2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            if(status == 2){
+                time = data.getTimeFinish(1);
+                textViewFinish2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+                time = data.getTimeResult(1);
+                textViewResult2.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            else {
+                textViewFinish2.setText(R.string.none_time);
+                textViewResult2.setText(R.string.none_time);
+            }
 
+            status = data.getStatusByte(2);
+            textViewStatus3.setText(getStatusString(status));
+            if(status >= 1 && status <=3){
+                time = data.getTimeStart(2);
+                textViewStart3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            if(status == 2){
+                time = data.getTimeFinish(2);
+                textViewFinish3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+                time = data.getTimeResult(2);
+                textViewResult3.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            else {
+
+                textViewFinish3.setText(R.string.none_time);
+                textViewResult3.setText(R.string.none_time);
+            }
+
+            status = data.getStatusByte(3);
+            textViewStatus4.setText(getStatusString(status));
+            if(status >= 1 && status <=3){
+                time = data.getTimeStart(3);
+                textViewStart4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            if(status == 2){
+                time = data.getTimeFinish(3);
+                textViewFinish4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+                time = data.getTimeResult(3);
+                textViewResult4.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            else {
+                textViewFinish4.setText(R.string.none_time);
+                textViewResult4.setText(R.string.none_time);
+            }
+
+            status = data.getStatusByte(4);
+            textViewStatus5.setText(getStatusString(status));
+            if(status >= 1 && status <=3){
+                time = data.getTimeStart(4);
+                textViewStart5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            if(status == 2){
+                time = data.getTimeFinish(4);
+                textViewFinish5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+                time = data.getTimeResult(4);
+                textViewResult5.setText(String.format("%02d:%02d:%02d:%02d",time[0],time[1],time[2],time[3]));
+            }
+            else {
+                textViewFinish5.setText(R.string.none_time);
+                textViewResult5.setText(R.string.none_time);
+            }
         }
 
         @Override
@@ -170,6 +230,12 @@ public class MainActivity extends AppCompatActivity {
         textViewResult4 = (TextView)findViewById(R.id.textViewResult3);
         textViewResult5 = (TextView)findViewById(R.id.textViewResult4);
 
+        textViewStatus1 = (TextView)findViewById(R.id.textViewStatus0);
+        textViewStatus2 = (TextView)findViewById(R.id.textViewStatus1);
+        textViewStatus3 = (TextView)findViewById(R.id.textViewStatus2);
+        textViewStatus4 = (TextView)findViewById(R.id.textViewStatus3);
+        textViewStatus5 = (TextView)findViewById(R.id.textViewStatus4);
+
         /*start bluetooth*/
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         if (bluetoothManager == null){
@@ -203,5 +269,12 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothLeScanner.stopScan(mScanCallback);
         Log.d(TAG, "stop ble scan");
         super.onPause();
+    }
+
+    private int getStatusString(int status){
+        if(status==1)return R.string.started;
+        else if(status == 2)return R.string.finished;
+        else if(status == 3)return R.string.canceled;
+        else return R.string.none_status;
     }
 }
